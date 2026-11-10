@@ -34,4 +34,4 @@
 ### Tahap 4 (Phase 10): Sapick-Style Analytics Overview, Export Studio & Production VPS Rollout
 - [x] **Task 19**: Redesign `Ringkasan Analitik` (`src/components/dashboard/overview-panel.tsx`, `src/components/dashboard/metrics-cards.tsx`, `src/components/dashboard/sector-distribution.tsx`) with Sapick/BlazeX `rounded-2xl` white cards and clickable KBLI bars
 - [x] **Task 20**: Redesign `Pusat Ekspor Excel` (`src/components/export/export-center.tsx`) with `rounded-2xl` configurator card, 3-sheet summary cards, and clean hairline preview table
-- [ ] **Task 21**: Verification & Deployment (`typecheck`, `vitest`, `build`, Git push passed; remaining: authenticated workspace browser inspection & VPS redeploy on `https://sipena-ktt.caplinlab.my.id`)
+- [x] **Task 21**: Verification & Deployment (`typecheck`, `23/23` Vitest, `next build`, GitHub `main`, PM2 VPS rollout `https://sipena-ktt.caplinlab.my.id`, headless Chrome desktop `1440x900` + mobile `375x812` authenticated audit, and `GET /api/export/excel` `.xlsx` binary check all passed)
