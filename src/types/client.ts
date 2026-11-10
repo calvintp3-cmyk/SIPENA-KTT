@@ -47,6 +47,7 @@ export type SourceMediaCode =
   | "radar_tarakan"
   | "tribun_kaltara"
   | "benuanta"
+  | "fokus_borneo"
   | "antara_kaltara"
   | "national_media";
 

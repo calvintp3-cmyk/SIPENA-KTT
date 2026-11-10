@@ -254,9 +254,41 @@ export const SOURCE_MEDIA_LABELS: Record<string, string> = {
   radar_tarakan: "Radar Tarakan",
   tribun_kaltara: "Tribun Kaltara",
   benuanta: "Benuanta",
+  fokus_borneo: "Fokus Borneo",
   antara_kaltara: "Antara Kaltara",
   national_media: "Media Nasional",
 };
+
+// ==========================================
+// PDRB TANA TIDUNG 2025 SINGLE SOURCE OF TRUTH
+// ==========================================
+export const PDRB_KTT_WEIGHTS = {
+  // Sisi Lapangan Usaha (KBLI) - Distribusi Persentase 2025
+  lapanganUsaha: {
+    B: { code: "B", name: "Pertambangan dan Penggalian (Batubara)", weight: 37.80, isDominant: true },
+    A: { code: "A", name: "Pertanian, Kehutanan, dan Perikanan (Sawit)", weight: 23.41, isDominant: true },
+    F: { code: "F", name: "Konstruksi (Infrastruktur Fisik)", weight: 18.46, isDominant: true },
+    O: { code: "O", name: "Administrasi Pemerintahan & Pemkab KTT", weight: 8.47, isDominant: true },
+    G: { code: "G", name: "Perdagangan Besar & Eceran", weight: 5.06, isDominant: false },
+    H: { code: "H", name: "Transportasi dan Pergudangan", weight: 2.61, isDominant: false },
+    C: { code: "C", name: "Industri Pengolahan", weight: 1.52, isDominant: false },
+    OTHER: { code: "OTHER", name: "Sektor Lainnya Gabungan", weight: 2.67, isDominant: false },
+  },
+  // Top 4 Sektor menyumbang 88.14% PDRB KTT
+  top4LapanganUsahaShare: 88.14,
+
+  // Sisi Pengeluaran PDRB - Distribusi Persentase 2025
+  pengeluaran: {
+    NET_EKSPOR: { code: "NET_EKSPOR", label: "Pos 6 • Net Ekspor Antar Daerah", weight: 49.98, isDominant: true },
+    PMTB: { code: "PMTB", label: "Pos 4 • Pembentukan Modal Tetap Bruto (Investasi Fisik)", weight: 31.38, isDominant: true },
+    PK_P: { code: "PK_P", label: "Pos 2 • Pengeluaran Konsumsi Pemerintah", weight: 9.80, isDominant: false },
+    PK_RT: { code: "PK_RT", label: "Pos 1 • Pengeluaran Konsumsi Rumah Tangga", weight: 7.06, isDominant: false },
+    PK_LNPRT: { code: "PK_LNPRT", label: "Pos 3 • Pengeluaran Konsumsi LNPRT", weight: 1.13, isDominant: false },
+    PI: { code: "PI", label: "Pos 5 • Perubahan Inventori", weight: 0.65, isDominant: false },
+  },
+  // Net Ekspor + PMTB menyumbang 81.36% PDRB KTT
+  top2PengeluaranShare: 81.36,
+} as const;
 
 export const STATUS_META: Record<
   string,

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
-import { eq } from "drizzle-orm";
+import { eq, or } from "drizzle-orm";
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import { getClientIp } from "@/lib/audit";
@@ -9,8 +9,8 @@ import { SESSION_COOKIE_NAME, signSessionToken } from "@/lib/auth";
 import { checkSlidingRateLimit, resetRateLimitKey } from "@/lib/rate-limit";
 
 const loginSchema = z.object({
-  email: z.string().email().max(150).trim().toLowerCase(),
-  password: z.string().min(6).max(128),
+  email: z.string().min(3).max(150).trim().toLowerCase(),
+  password: z.string().min(3).max(128),
 });
 
 const RATE_WINDOW_MS = 15 * 60 * 1000;
@@ -65,11 +65,73 @@ export async function POST(request: Request) {
       );
     }
 
-    const [user] = await db
+    // =========================================================================
+    // QUICK CREDENTIALS (Admin & Viewer)
+    // =========================================================================
+    const isQuickAdmin =
+      (email === "admin" || email === "admin@bps6504.go.id") && password === "admin";
+    const isQuickViewer =
+      (email === "viewer" || email === "viewer@bps6504.go.id") && password === "viewer";
+
+    if (isQuickAdmin || isQuickViewer) {
+      const role = isQuickAdmin ? ("admin" as const) : ("viewer" as const);
+      const name = isQuickAdmin
+        ? "Koordinator Nerwilis (Admin)"
+        : "Kepala BPS Tana Tidung (Viewer)";
+      const userEmail = isQuickAdmin ? "admin@bps6504.go.id" : "viewer@bps6504.go.id";
+      const userId = isQuickAdmin
+        ? "00000000-0000-0000-0000-000000000001"
+        : "00000000-0000-0000-0000-000000000003";
+
+      resetRateLimitKey(accountKey);
+
+      const token = await signSessionToken({
+        id: userId,
+        email: userEmail,
+        name,
+        role,
+      });
+
+      const response = NextResponse.json({
+        success: true,
+        user: {
+          id: userId,
+          email: userEmail,
+          name,
+          role,
+          nip: isQuickAdmin ? "199204152014101001" : "197911032002121003",
+        },
+      });
+
+      const isHttps =
+        request.headers.get("x-forwarded-proto") === "https" ||
+        request.url.startsWith("https://");
+
+      response.cookies.set({
+        name: SESSION_COOKIE_NAME,
+        value: token,
+        httpOnly: true,
+        sameSite: "lax",
+        secure: isHttps,
+        path: "/",
+        maxAge: 60 * 60 * 12,
+      });
+
+      return response;
+    }
+
+    // Support both username alias ("admin", "viewer") and full email
+    const emailAliases: string[] = [email];
+    if (email === "admin") emailAliases.push("admin@bps6504.go.id");
+    if (email === "viewer") emailAliases.push("viewer@bps6504.go.id");
+
+    const matchedUsers = await db
       .select()
       .from(users)
-      .where(eq(users.email, email))
+      .where(or(...emailAliases.map((e) => eq(users.email, e))))
       .limit(1);
+
+    const user = matchedUsers[0];
 
     if (!user) {
       checkSlidingRateLimit(`login:ip:${clientIp}`, {

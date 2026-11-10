@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SIPENA ODON — Gazette & Ledger BPS Tana Tidung</title>
+  
+  <!-- Typography: Newsreader (Editorial Serif), Plus Jakarta Sans (Precision UI), JetBrains Mono (Codes) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+            serif: ['"Newsreader"', 'Georgia', 'serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            paper: '#FDFBF7',     // Warm Alabaster Newspaper Paper tint
+            ink: '#111827',       // Pure deep ink
+            subtle: '#6B7280',
+            hairline: '#E5E7EB',
+            bps: '#002B49',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    .tabular-nums { font-variant-numeric: tabular-nums; }
+    
+    /* Smooth ledger selection animation */
+    .ledger-row {
+      transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .ledger-row.active {
+      background-color: #F3F4F6;
+      border-left-color: #111827;
+    }
+    
+    /* Custom clean scrollbar */
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 9999px; }
+  </style>
+</head>
+<body class="bg-[#F8F9FA] text-ink font-sans antialiased h-screen overflow-hidden flex flex-col selection:bg-amber-100 selection:text-amber-900">
+
+  <!-- ========================================================================= -->
+  <!-- TOP QUIET MASTHEAD (HEADER TUNGGAL, ELEGAN, BEBAS POLUSI VISUAL)          -->
+  <!-- ========================================================================= -->
+  <header class="h-14 px-6 border-b border-hairline bg-white/95 backdrop-blur-sm flex items-center justify-between shrink-0 z-20">
+    
+    <!-- Left: Identity -->
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-md bg-bps text-white font-bold flex items-center justify-center text-xs tracking-wider shadow-xs">
+        BPS
+      </div>
+      <div class="flex items-baseline gap-2">
+        <span class="font-bold text-sm tracking-tight text-ink">SIPENA <span class="font-serif italic font-normal text-slate-500">Gazette</span></span>
+        <span class="text-[11px] text-subtle font-mono">65.04 Tana Tidung</span>
+        <span class="text-hairline">|</span>
+        <span class="text-[11px] text-slate-500 font-medium hidden sm:inline">Kompilasi Fenomena Ekonomi & Neraca Wilayah</span>
+      </div>
+    </div>
+
+    <!-- Center: Quarter Coverage Indicator (Quiet Progress) -->
+    <div class="hidden md:flex items-center gap-3 px-3 py-1 rounded-full bg-slate-50 border border-hairline text-xs">
+      <span class="font-semibold text-slate-700">TW IV-2026</span>
+      <span class="w-1 h-1 rounded-full bg-slate-300"></span>
+      <span class="text-emerald-700 font-medium font-mono text-[11px]">29 / 60 Hari Terisi (48%)</span>
+      <!-- Mini tactile dot strip -->
+      <div class="flex items-center gap-0.5">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+        <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+        <span class="w-1.5 h-1.5 rounded-full bg-slate-200"></span>
+      </div>
+    </div>
+
+    <!-- Right: Mode & Actions -->
+    <div class="flex items-center gap-3">
+      
+      <!-- WITA Clock -->
+      <span id="masthead-clock" class="text-xs font-mono text-subtle hidden sm:inline tabular-nums">08:00 WITA</span>
+
+      <!-- Kirim Link Quick Action -->
+      <button onclick="toggleSubmitModal()" class="text-xs font-medium px-2.5 py-1.5 rounded-md hover:bg-slate-100 text-slate-700 transition-colors flex items-center gap-1.5 cursor-pointer">
+        <i data-lucide="plus" class="w-3.5 h-3.5 text-slate-500"></i>
+        <span>Kirim Berita</span>
+      </button>
+
+      <!-- Role Switcher -->
+      <div class="flex items-center p-0.5 rounded-md bg-slate-100 border border-hairline text-xs font-medium">
+        <button id="role-public" onclick="setRole('public')" class="px-2 py-1 rounded bg-white text-ink shadow-xs cursor-pointer">
+          Pembaca
+        </button>
+        <button id="role-admin" onclick="setRole('admin')" class="px-2 py-1 rounded text-subtle hover:text-ink cursor-pointer">
+          Admin
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ========================================================================= -->
+  <!-- MAIN WORKSPACE: THE SPLIT STAGE (1 VIEWPORT FIT, ZERO ENDLESS SCROLLING) -->
+  <!-- ========================================================================= -->
+  <div class="flex-1 flex flex-col lg:flex-row overflow-hidden min-h-0">
+    
+    <!-- ----------------------------------------------------------------------- -->
+    <!-- LEFT PANE: THE DAILY GAZETTE DISPATCH (PANGGUNG UTAMA BACA & KURASI)   -->
+    <!-- ----------------------------------------------------------------------- -->
+    <section class="lg:w-[58%] xl:w-[60%] flex flex-col justify-between p-6 sm:p-8 lg:p-10 bg-white border-b lg:border-b-0 lg:border-r border-hairline overflow-y-auto">
+      
+      <div class="max-w-2xl mx-auto w-full space-y-6">
+        
+        <!-- Story Dateline & Origin -->
+        <div class="flex items-center justify-between border-b border-hairline pb-3 text-xs">
+          <div class="flex items-center gap-2">
+            <span class="font-mono font-bold uppercase tracking-wider text-slate-400" id="dispatch-num">#6504-2026-0312</span>
+            <span>•</span>
+            <span class="font-semibold text-slate-700" id="dispatch-source">Tribun Kaltara</span>
+            <span>•</span>
+            <span class="text-subtle font-mono" id="dispatch-origin-time">10 Nov 2026 (H-1)</span>
+          </div>
+          <span class="inline-flex items-center gap-1 text-[11px] font-mono font-semibold px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200" id="dispatch-status-badge">
+            ● TERBIT RESMI
+          </span>
+        </div>
+
+        <!-- Headline (Editorial Serif Class) -->
+        <div class="space-y-4">
+          <h1 id="dispatch-title" class="font-serif font-bold text-2xl sm:text-3xl lg:text-4xl text-ink leading-[1.18] tracking-tight">
+            Harga Bawang Merah Naik di Pasar Imbayud Taka Capai Rp70 Ribu per Kg
+          </h1>
+
+          <!-- Narrative Synthesis -->
+          <p id="dispatch-summary" class="text-sm sm:text-base text-slate-600 leading-relaxed font-sans">
+            Harga komoditas bawang merah di Pasar Imbayud Taka, Tideng Pale mengalami kenaikan signifikan mencapai Rp60.000–Rp65.000 hingga Rp70.000 per kg karena modal pasokan dari Samarinda melonjak dan biaya armada transportasi sungai tinggi. Kendati harga melonjak, pedagang mencatat perputaran stok 10–25 kg per hari tetap terserap habis oleh konsumsi masyarakat lokal.
+          </p>
+        </div>
+
+        <!-- THE BALANCING SCALES: DUA PILAR PDRB SALING MENGIMBANGI -->
+        <div class="p-4 rounded-xl bg-slate-50/80 border border-hairline space-y-3">
+          <div class="flex items-center justify-between text-xs font-mono font-semibold text-slate-500 border-b border-hairline pb-2">
+            <span class="flex items-center gap-1.5 text-slate-700 font-bold uppercase tracking-wider">
+              <i data-lucide="scale" class="w-3.5 h-3.5 text-bps"></i>
+              Transmisi Keseimbangan PDRB
+            </span>
+            <span>TW IV-2026</span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            
+            <!-- Sisi Lapangan Usaha -->
+            <div class="p-3 rounded-lg bg-white border border-hairline space-y-1.5 shadow-2xs">
+              <div class="flex items-center justify-between text-[11px]">
+                <span class="font-bold text-slate-900 flex items-center gap-1">
+                  <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                  Lapangan Usaha
+                </span>
+                <span class="font-mono text-[10px] text-slate-500" id="lu-weight">5,06% PDRB</span>
+              </div>
+              <p class="text-xs font-semibold text-ink" id="lu-cat">Kategori G — Perdagangan</p>
+              <div class="pt-1 border-t border-slate-100 flex items-center justify-between text-[11px]">
+                <span class="text-rose-700 font-medium" id="lu-impact">▲ Meningkatkan Harga Margin</span>
+                <span class="font-mono text-[10px] text-slate-400" id="lu-kbli">KBLI: 4721</span>
+              </div>
+            </div>
+
+            <!-- Sisi Pengeluaran -->
+            <div class="p-3 rounded-lg bg-white border border-hairline space-y-1.5 shadow-2xs">
+              <div class="flex items-center justify-between text-[11px]">
+                <span class="font-bold text-slate-900 flex items-center gap-1">
+                  <span class="w-1.5 h-1.5 rounded-full bg-sky-500"></span>
+                  Pengeluaran
+                </span>
+                <span class="font-mono text-[10px] text-slate-500" id="exp-weight">7,06% PDRB</span>
+              </div>
+              <p class="text-xs font-semibold text-ink" id="exp-comp">PK-RT (Konsumsi Rumah Tangga)</p>
+              <div class="pt-1 border-t border-slate-100 flex items-center justify-between text-[11px]">
+                <span class="text-amber-800 font-medium" id="exp-impact">▲ Tekanan Inflasi Sembako</span>
+                <span class="font-mono text-[10px] text-slate-400">Volatile Food</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Bottom Action Bar -->
+      <div class="max-w-2xl mx-auto w-full pt-4 border-t border-hairline flex flex-wrap items-center justify-between gap-3 text-xs">
+        <a id="dispatch-link" href="https://kaltara.tribunnews.com" target="_blank" class="inline-flex items-center gap-1.5 text-slate-700 hover:text-ink font-medium">
+          <span>Baca Berita di Sumber Asli</span>
+          <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i>
+        </a>
+
+        <!-- Admin Only Fast Edit Trigger -->
+        <div id="admin-actions" class="hidden flex items-center gap-2">
+          <button onclick="editCurrentStory()" class="px-3 py-1.5 rounded-md border border-hairline text-slate-700 hover:bg-slate-50 font-medium cursor-pointer">
+            Sunting Ringkasan
+          </button>
+          <button onclick="publishTodayAction()" class="px-3.5 py-1.5 rounded-md bg-ink text-white font-semibold hover:bg-slate-800 transition-colors cursor-pointer shadow-xs">
+            Terbitkan Hari Ini (11 Nov)
+          </button>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ----------------------------------------------------------------------- -->
+    <!-- RIGHT PANE: THE INTERACTIVE QUARTER LEDGER (BUKU KERJA NERACA BERDENSITAS)-->
+    <!-- ----------------------------------------------------------------------- -->
+    <section class="lg:w-[42%] xl:w-[40%] flex flex-col justify-between bg-[#FDFBF7] overflow-hidden">
+      
+      <!-- Ledger Header & Sub-Tabs -->
+      <div class="p-4 border-b border-hairline bg-white/60 backdrop-blur-xs space-y-3">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-xs font-bold uppercase tracking-wider text-slate-900 flex items-center gap-1.5">
+              <span>Buku Kerja Fenomena ODON</span>
+              <span class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 font-normal">Sheet 6503</span>
+            </h2>
+            <p class="text-[11px] text-subtle">Gunakan tombol <kbd class="font-mono bg-slate-100 border border-slate-300 px-1 rounded text-[10px]">J</kbd> / <kbd class="font-mono bg-slate-100 border border-slate-300 px-1 rounded text-[10px]">K</kbd> untuk pindah hari</p>
+          </div>
+
+          <!-- Ekspor Excel Button -->
+          <button onclick="exportExcel()" class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-white border border-hairline hover:bg-slate-50 text-[11px] font-medium text-slate-700 shadow-2xs cursor-pointer">
+            <i data-lucide="file-spreadsheet" class="w-3 h-3 text-emerald-600"></i>
+            <span>Ekspor .xlsx</span>
+          </button>
+        </div>
+
+        <!-- Sisi Lapangan Usaha vs Pengeluaran Segmented Pill -->
+        <div class="grid grid-cols-2 p-0.5 rounded-md bg-slate-200/70 text-xs text-center font-medium">
+          <button id="pill-lu" onclick="switchLedgerView('lu')" class="py-1 rounded bg-white text-ink shadow-2xs font-semibold cursor-pointer">
+            🏢 Lapangan Usaha (KBLI)
+          </button>
+          <button id="pill-exp" onclick="switchLedgerView('exp')" class="py-1 rounded text-slate-600 hover:text-ink cursor-pointer">
+            🛒 Pengeluaran PDRB
+          </button>
+        </div>
+      </div>
+
+      <!-- Ledger Row List (Keyboard & Click Navigable) -->
+      <div class="flex-1 overflow-y-auto divide-y divide-hairline" id="ledger-list-container">
+        <!-- Populated via JS -->
+      </div>
+
+      <!-- Ledger Status Bar -->
+      <div class="p-3 border-t border-hairline bg-white text-[11px] flex items-center justify-between text-subtle font-mono">
+        <span>Menampilkan 8 Hari Kerja Terakhir</span>
+        <span>BPS Nerwilis 6504</span>
+      </div>
+
+    </section>
+
+  </div>
+
+  <!-- MODAL: KIRIM TAUTAN BERITA -->
+  <div id="modal-submit" class="hidden fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl max-w-md w-full border border-hairline p-5 shadow-lg space-y-4">
+      <div class="flex items-center justify-between border-b border-hairline pb-2.5">
+        <h3 class="text-sm font-bold text-ink">Kirim Tautan Berita Ekonomi</h3>
+        <button onclick="toggleSubmitModal()" class="text-slate-400 hover:text-ink">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+      <p class="text-xs text-slate-600 leading-relaxed">
+        Tempelkan tautan berita dari Radar Tarakan, Benuanta, Fokus Borneo, atau Tribun Kaltara. Sistem akan mengekstraknya otomatis.
+      </p>
+      <div class="space-y-2">
+        <input type="url" placeholder="https://..." class="w-full text-xs p-2.5 rounded-md border border-hairline focus:outline-none focus:ring-1 focus:ring-ink"/>
+        <button onclick="alert('Tautan berhasil dikirim ke antrean kurasi BPS!')" class="w-full py-2 bg-ink text-white rounded-md text-xs font-semibold hover:bg-slate-800 transition-colors">
+          Kirim ke Antrean
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    // Live Clock WITA
+    function updateClock() {
+      const now = new Date();
+      const opts = { timeZone: 'Asia/Makassar', hour: '2-digit', minute: '2-digit' };
+      document.getElementById('masthead-clock').innerText = now.toLocaleTimeString('id-ID', opts) + ' WITA';
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // Data Store (8 Real Grounded Phenomena in Tana Tidung)
+    const STORIES = [
+      {
+        id: 0,
+        num: '#6504-2026-0312',
+        date: '10 Nov 2026',
+        source: 'Tribun Kaltara',
+        title: 'Harga Bawang Merah Naik di Pasar Imbayud Taka Capai Rp70 Ribu per Kg',
+        summary: 'Harga komoditas bawang merah di Pasar Imbayud Taka, Tideng Pale mengalami kenaikan signifikan mencapai Rp60.000–Rp65.000 hingga Rp70.000 per kg karena modal pasokan dari Samarinda melonjak dan biaya armada transportasi sungai tinggi. Kendati harga melonjak, pedagang mencatat perputaran stok harian tetap cepat terserap.',
+        luCat: 'Kategori G — Perdagangan',
+        luWeight: '5,06% PDRB',
+        luImpact: '▲ Meningkatkan Harga Margin',
+        luKbli: 'KBLI: 4721',
+        expComp: 'PK-RT (Konsumsi Rumah Tangga)',
+        expWeight: '7,06% PDRB',
+        expImpact: '▲ Tekanan Inflasi Sembako',
+        link: 'https://kaltara.tribunnews.com',
+        badge: '● TERBIT RESMI'
+      },
+      {
+        id: 1,
+        num: '#6504-2026-0311',
+        date: '09 Nov 2026',
+        source: 'Radar Tarakan',
+        title: 'Dishub Tana Tidung: Dermaga Keramat Akan Dipasang Tiang Pancang Beton Pengaman',
+        summary: 'Dinas Perhubungan Kabupaten Tana Tidung merencanakan pembangunan pengaman dermaga di Pelabuhan Keramat Tideng Pale memakai tiang pancang beton guna meminimalkan risiko kerusakan akibat benturan kayu gelondongan sungai. Proyek senilai Rp3 miliar ini menopang keselamatan pelayaran reguler.',
+        luCat: 'Kategori F — Konstruksi Sipil',
+        luWeight: '18,46% PDRB',
+        luImpact: '▲ Meningkatkan Volume Konstruksi',
+        luKbli: 'KBLI: 4291',
+        expComp: 'PMTB (Investasi Fisik Daerah)',
+        expWeight: '31,38% PDRB',
+        expImpact: '▲ Realisasi Belanja Modal',
+        link: 'https://radartarakan.jawapos.com',
+        badge: '● TERBIT RESMI'
+      },
+      {
+        id: 2,
+        num: '#6504-2026-0310',
+        date: '08 Nov 2026',
+        source: 'Benuanta',
+        title: 'Petani Sawit Sesayap Hilir Sambut Kenaikan Harga Pembelian TBS Rp2.650/Kg',
+        summary: 'Pabrik kelapa sawit (PKS) di Tana Tidung mulai memberlakukan penyesuaian harga pembelian Tandan Buah Segar (TBS) menyusul menguatnya harga CPO internasional. Kenaikan harga ini langsung mendongkrak margin pendapatan pekebun swadaya di Sesayap Hilir dan Betayau.',
+        luCat: 'Kategori A — Pertanian & Perkebunan',
+        luWeight: '23,41% PDRB',
+        luImpact: '▲ Meningkatkan NTB Pekebun',
+        luKbli: 'KBLI: 0126',
+        expComp: 'Net Ekspor Barang & Jasa',
+        expWeight: '49,98% PDRB',
+        expImpact: '▲ Devisa Ekspor Komoditas',
+        link: 'https://benuanta.co.id',
+        badge: '● TERBIT RESMI'
+      },
+      {
+        id: 3,
+        num: '#6504-2026-0309',
+        date: '07 Nov 2026',
+        source: 'Fokus Borneo',
+        title: 'Pembangunan Kantor Bupati Tana Tidung di Bundaran Sebawang Tahap 2 Dikebut',
+        summary: 'Pemerintah Kabupaten Tana Tidung menggenjot penyelesaian struktur gedung kantor bupati di kawasan Pusat Pemerintahan Sebawang dengan serapan anggaran fisik triwulan IV mencapai 82%, melibatkan tenaga kerja konstruksi lokal.',
+        luCat: 'Kategori F — Konstruksi Gedung',
+        luWeight: '18,46% PDRB',
+        luImpact: '▲ Meningkatkan NTB Konstruksi',
+        luKbli: 'KBLI: 4101',
+        expComp: 'PMTB (Investasi Pemerintah)',
+        expWeight: '31,38% PDRB',
+        expImpact: '▲ Belanja Modal Fisik APBD',
+        link: 'https://fokusborneo.com',
+        badge: '● TERBIT RESMI'
+      },
+      {
+        id: 4,
+        num: '#6504-2026-0308',
+        date: '06 Nov 2026',
+        source: 'Radar Tarakan',
+        title: 'Produksi Batubara Muruk Rian Tembus Target RKAB, Kapal Tongkang Padati Sungai',
+        summary: 'Operasional tambang batubara di koridor Muruk Rian-Sesayap mencatat rekor muat 12 tongkang sepanjang pekan pertama November dengan kepatuhan kuota royalti daerah berjalan lancar menuju pelabuhan transshipment.',
+        luCat: 'Kategori B — Pertambangan Batubara',
+        luWeight: '37,80% PDRB',
+        luImpact: '▲ Meningkatkan Volume Galian',
+        luKbli: 'KBLI: 0510',
+        expComp: 'Net Ekspor Barang Antar-Daerah',
+        expWeight: '49,98% PDRB',
+        expImpact: '▲ Pertumbuhan Ekspor KTT',
+        link: 'https://radartarakan.jawapos.com',
+        badge: '● TERBIT RESMI'
+      },
+      {
+        id: 5,
+        num: '#6504-2026-0307',
+        date: '05 Nov 2026',
+        source: 'Radar Tarakan',
+        title: 'Panen Bandeng Melimpah di Tana Lia, Petani Tambak Minta Fasilitas Pendingin Cepat',
+        summary: 'Hasil tambak budidaya bandeng air payau di pesisir Tana Lia mencapai 8 ton per hari namun menghadapi penurunan harga di tingkat pengumpul lokal karena keterbatasan fasilitas rantai dingin (cold storage).',
+        luCat: 'Kategori A — Perikanan Tambak',
+        luWeight: '23,41% PDRB',
+        luImpact: '▲ Meningkatkan Volume Panen',
+        luKbli: 'KBLI: 0321',
+        expComp: 'PK-RT / Ekspor Daerah',
+        expWeight: '7,06% PDRB',
+        expImpact: '▼ Menurunkan Harga Ikan',
+        link: 'https://radartarakan.jawapos.com',
+        badge: '● TERBIT RESMI'
+      },
+      {
+        id: 6,
+        num: '#6504-2026-0306',
+        date: '04 Nov 2026',
+        source: 'Fokus Borneo',
+        title: 'Pencairan DAK Fisik Pendidikan Tana Tidung Pacu Renovasi 7 Gedung Sekolah Dasar',
+        summary: 'Disdikbud Tana Tidung mengonfirmasi pencairan DAK Fisik tahap 3 untuk perbaikan gedung SDN di pedalaman Betayau dan Muruk Rian yang menyerap material lokal dan tukang bangunan daerah.',
+        luCat: 'Kategori O — Administrasi Pemerintahan',
+        luWeight: '8,47% PDRB',
+        luImpact: '▲ Mendorong Belanja APBD',
+        luKbli: 'KBLI: 8411',
+        expComp: 'PK-P (Konsumsi Pemerintah)',
+        expWeight: '9,80% PDRB',
+        expImpact: '▲ Realisasi Belanja Barang',
+        link: 'https://fokusborneo.com',
+        badge: '● TERBIT RESMI'
+      },
+      {
+        id: 7,
+        num: '#6504-2026-0305',
+        date: '03 Nov 2026',
+        source: 'Antara Ekonomi',
+        title: 'Kementerian ESDM Rilis Formula HBA Baru, Royalti DBH Batubara KTT Diproyeksi Naik',
+        summary: 'Kementerian ESDM menetapkan penyesuaian formula Harga Batubara Acuan (HBA) nasional yang diperkirakan memperkuat realisasi Dana Bagi Hasil (DBH) sektor pertambangan Kabupaten Tana Tidung pada triwulan IV.',
+        luCat: 'Kategori B — Pertambangan Batubara',
+        luWeight: '37,80% PDRB',
+        luImpact: '▲ Meningkatkan Valuasi Sektor',
+        luKbli: 'KBLI: 0510',
+        expComp: 'Net Ekspor / Penerimaan DBH',
+        expWeight: '49,98% PDRB',
+        expImpact: '▲ Pendapatan Fiskal Transfer',
+        link: 'https://antaranews.com',
+        badge: '● TERBIT RESMI'
+      }
+    ];
+
+    let currentIndex = 0;
+    let ledgerViewMode = 'lu'; // 'lu' or 'exp'
+
+    // Render Story to Left Stage
+    function renderStory(idx) {
+      const s = STORIES[idx];
+      currentIndex = idx;
+
+      document.getElementById('dispatch-num').innerText = s.num;
+      document.getElementById('dispatch-source').innerText = s.source;
+      document.getElementById('dispatch-origin-time').innerText = s.date;
+      document.getElementById('dispatch-title').innerText = s.title;
+      document.getElementById('dispatch-summary').innerText = s.summary;
+      
+      document.getElementById('lu-cat').innerText = s.luCat;
+      document.getElementById('lu-weight').innerText = s.luWeight;
+      document.getElementById('lu-impact').innerText = s.luImpact;
+      document.getElementById('lu-kbli').innerText = s.luKbli;
+
+      document.getElementById('exp-comp').innerText = s.expComp;
+      document.getElementById('exp-weight').innerText = s.expWeight;
+      document.getElementById('exp-impact').innerText = s.expImpact;
+      
+      document.getElementById('dispatch-link').href = s.link;
+
+      // Update active state in ledger list
+      document.querySelectorAll('.ledger-row').forEach((row, i) => {
+        if (i === idx) {
+          row.classList.add('active', 'border-l-4');
+        } else {
+          row.classList.remove('active', 'border-l-4');
+        }
+      });
+    }
+
+    // Render Ledger Rows (Right Stage)
+    function renderLedgerList() {
+      const container = document.getElementById('ledger-list-container');
+      container.innerHTML = '';
+
+      STORIES.forEach((s, idx) => {
+        const row = document.createElement('div');
+        row.className = `ledger-row p-3.5 border-l-2 border-transparent hover:bg-slate-50 cursor-pointer space-y-1 ${idx === currentIndex ? 'active border-l-4' : ''}`;
+        row.onclick = () => renderStory(idx);
+
+        if (ledgerViewMode === 'lu') {
+          row.innerHTML = `
+            <div class="flex items-center justify-between text-[11px]">
+              <span class="font-mono text-slate-500 font-semibold">${s.date}</span>
+              <span class="px-1.5 py-0.2 rounded font-mono font-bold text-[10px] bg-slate-100 text-slate-800 border border-slate-200">${s.luKbli.replace('KBLI: ', '')}</span>
+            </div>
+            <h4 class="text-xs font-semibold text-ink line-clamp-1 leading-snug">${s.title}</h4>
+            <div class="flex items-center justify-between text-[11px] pt-0.5">
+              <span class="text-slate-500 text-[10px]">${s.source}</span>
+              <span class="font-medium text-emerald-700 text-[10px]">${s.luImpact}</span>
+            </div>
+          `;
+        } else {
+          row.innerHTML = `
+            <div class="flex items-center justify-between text-[11px]">
+              <span class="font-mono text-slate-500 font-semibold">${s.date}</span>
+              <span class="px-1.5 py-0.2 rounded font-mono font-bold text-[10px] bg-sky-50 text-sky-800 border border-sky-200">${s.expComp.split(' ')[0]}</span>
+            </div>
+            <h4 class="text-xs font-semibold text-ink line-clamp-1 leading-snug">${s.title}</h4>
+            <div class="flex items-center justify-between text-[11px] pt-0.5">
+              <span class="text-slate-500 text-[10px]">${s.source}</span>
+              <span class="font-medium text-amber-800 text-[10px]">${s.expImpact}</span>
+            </div>
+          `;
+        }
+
+        container.appendChild(row);
+      });
+    }
+
+    // Switch Ledger Sub-Tab View (Lapangan Usaha vs Pengeluaran)
+    function switchLedgerView(mode) {
+      ledgerViewMode = mode;
+      const bLu = document.getElementById('pill-lu');
+      const bExp = document.getElementById('pill-exp');
+
+      if (mode === 'lu') {
+        bLu.className = 'py-1 rounded bg-white text-ink shadow-2xs font-semibold cursor-pointer';
+        bExp.className = 'py-1 rounded text-slate-600 hover:text-ink cursor-pointer';
+      } else {
+        bLu.className = 'py-1 rounded text-slate-600 hover:text-ink cursor-pointer';
+        bExp.className = 'py-1 rounded bg-white text-ink shadow-2xs font-semibold cursor-pointer';
+      }
+      renderLedgerList();
+    }
+
+    // Keyboard Shortcuts (J = Down, K = Up)
+    window.addEventListener('keydown', (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      if (e.key === 'j' || e.key === 'J' || e.key === 'ArrowDown') {
+        if (currentIndex < STORIES.length - 1) {
+          renderStory(currentIndex + 1);
+        }
+      } else if (e.key === 'k' || e.key === 'K' || e.key === 'ArrowUp') {
+        if (currentIndex > 0) {
+          renderStory(currentIndex - 1);
+        }
+      }
+    });
+
+    // Role Switcher: Public vs Admin
+    function setRole(role) {
+      const bPub = document.getElementById('role-public');
+      const bAdm = document.getElementById('role-admin');
+      const admActions = document.getElementById('admin-actions');
+
+      if (role === 'admin') {
+        bPub.className = 'px-2 py-1 rounded text-subtle hover:text-ink cursor-pointer';
+        bAdm.className = 'px-2 py-1 rounded bg-white text-ink shadow-xs cursor-pointer';
+        admActions.classList.remove('hidden');
+      } else {
+        bPub.className = 'px-2 py-1 rounded bg-white text-ink shadow-xs cursor-pointer';
+        bAdm.className = 'px-2 py-1 rounded text-subtle hover:text-ink cursor-pointer';
+        admActions.classList.add('hidden');
+      }
+    }
+
+    function editCurrentStory() {
+      const newSummary = prompt('Sunting ringkasan berita fenomena:', STORIES[currentIndex].summary);
+      if (newSummary) {
+        STORIES[currentIndex].summary = newSummary;
+        renderStory(currentIndex);
+      }
+    }
+
+    function publishTodayAction() {
+      alert('Berita Edisi 11 November 2026 Berhasil Divalidasi dan Diterbitkan Resmi!');
+    }
+
+    function exportExcel() {
+      alert('Mengunduh Berkas Kompilasi Fenomena ODON_Tana_Tidung_2026.xlsx (Format Sheet 6503 BPS)...');
+    }
+
+    function toggleSubmitModal() {
+      document.getElementById('modal-submit').classList.toggle('hidden');
+    }
+
+    // Init
+    window.addEventListener('DOMContentLoaded', () => {
+      renderLedgerList();
+      renderStory(0);
+      lucide.createIcons();
+    });
+  </script>
+</body>
+</html>

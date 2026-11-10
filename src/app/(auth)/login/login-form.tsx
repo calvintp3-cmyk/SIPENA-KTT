@@ -22,10 +22,10 @@ export function LoginForm() {
   function validateEmail(value: string): string | null {
     const trimmed = value.trim();
     if (!trimmed) {
-      return "Masukkan alamat email pegawai terlebih dahulu.";
+      return "Masukkan username atau email pegawai terlebih dahulu.";
     }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
-      return "Gunakan format email yang benar, misalnya analis@bps6504.go.id.";
+    if (trimmed.length < 3) {
+      return "Username atau email minimal 3 karakter.";
     }
     return null;
   }
@@ -111,17 +111,17 @@ export function LoginForm() {
             htmlFor="email"
             className="text-[13px] font-medium text-[var(--text-primary)]"
           >
-            Email Pegawai
+            Username atau Email Pegawai
           </label>
           <span className="text-[11px] text-[var(--text-muted)]">
-            @bps6504.go.id
+            admin / viewer
           </span>
         </div>
         <input
           ref={emailInputRef}
           id="email"
           name="email"
-          type="email"
+          type="text"
           autoComplete="username"
           autoCorrect="off"
           spellCheck={false}
@@ -145,7 +145,7 @@ export function LoginForm() {
               setEmailError(validateEmail(email));
             }
           }}
-          placeholder="analis@bps6504.go.id"
+          placeholder="admin atau email pegawai"
           className={`input-modern h-11 w-full rounded-xl px-3.5 text-sm placeholder:text-[var(--text-muted)] ${
             emailTouched && emailError
               ? "border-rose-500 focus:border-rose-600 focus:shadow-[0_0_0_3px_rgba(225,29,72,0.14)]"

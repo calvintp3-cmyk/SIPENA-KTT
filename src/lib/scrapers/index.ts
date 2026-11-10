@@ -6,6 +6,7 @@ import { koranKaltaraScraper } from "./koran-kaltara";
 import { radarTarakanScraper } from "./radar-tarakan";
 import { tribunKaltaraScraper } from "./tribun-kaltara";
 import { benuantaScraper } from "./benuanta";
+import { fokusBorneoScraper } from "./fokus-borneo";
 import { antaraKaltaraScraper } from "./antara-kaltara";
 import { nationalMediaScraper } from "./national-media";
 import {
@@ -19,6 +20,7 @@ const ALL_SCRAPERS: Record<MediaSource, ScraperSourceModule> = {
   radar_tarakan: radarTarakanScraper,
   tribun_kaltara: tribunKaltaraScraper,
   benuanta: benuantaScraper,
+  fokus_borneo: fokusBorneoScraper,
   antara_kaltara: antaraKaltaraScraper,
   national_media: nationalMediaScraper,
 };

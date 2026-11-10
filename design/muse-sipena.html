@@ -1,0 +1,1333 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SIPENA-KTT — Muse Ant Design Edition (Single Source of Truth)</title>
+  
+  <!-- Typography: Inter & JetBrains Mono (Strict Next.js 15 Font Stack) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- Tailwind CSS via CDN with Exact Design Tokens -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Inter"', 'system-ui', '-apple-system', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            muse: {
+              bg: '#f0f2f5',         // Ant Design classic canvas background
+              card: '#ffffff',
+              sidebar: '#ffffff',
+              primary: '#1890ff',     // Ant Design Blue
+              primaryHover: '#40a9ff',
+              heading: '#141414',     // High-contrast ink black (WCAG AAA)
+              body: '#434343',        // Neutral 8
+              muted: '#8c8c8c',       // Neutral 6
+              border: '#f0f0f0',      // Hairline border
+              borderDark: '#d9d9d9',
+              success: '#52c41a',     // Ant Design Green
+              warning: '#faad14',     // Ant Design Gold
+              error: '#ff4d4f',       // Ant Design Red
+            },
+            ktt: {
+              batubara: '#1e293b',    // 37.80%
+              sawit: '#15803d',       // 23.41%
+              konstruksi: '#0284c7',   // 18.46%
+              pemda: '#d97706',       // 8.47%
+              perdagangan: '#7c3aed', // 5.06%
+              ekspor: '#059669',      // 49.98%
+              pmtb: '#2563eb',        // 31.38%
+            }
+          },
+          boxShadow: {
+            'muse-card': '0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 20px 25px -5px rgba(0, 0, 0, 0.04)',
+            'muse-hover': '0 10px 30px 0 rgba(0, 0, 0, 0.08)',
+            'muse-glow': '0 4px 14px 0 rgba(24, 144, 255, 0.35)',
+            'muse-nav': '0 2px 8px rgba(0, 0, 0, 0.06)',
+          },
+          borderRadius: {
+            'xl': '0.875rem',
+            '2xl': '1rem',
+            '3xl': '1.5rem',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    .tabular-nums { font-variant-numeric: tabular-nums; }
+    
+    /* Muse Ant Design Hero Gradient (Official Deep Sapphire Navy) */
+    .bg-muse-hero {
+      background: linear-gradient(135deg, #061126 0%, #0c214d 45%, #1852a8 85%, #1890ff 100%);
+    }
+
+    /* Subtle custom scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #d9d9d9; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #bfbfbf; }
+
+    .ant-badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+  </style>
+</head>
+<body class="bg-muse-bg text-muse-body font-sans antialiased min-h-screen flex selection:bg-blue-100 selection:text-blue-900">
+
+  <!-- ========================================================================= -->
+  <!-- 1. MUSE ANT DESIGN FLOATING SIDEBAR (COLLAPSIBLE & STICKY)                 -->
+  <!-- ========================================================================= -->
+  <aside id="main-sidebar" class="w-64 my-4 ml-4 hidden lg:flex flex-col justify-between shrink-0 h-[calc(100vh-2rem)] sticky top-4 z-30 transition-all duration-300">
+    <div class="bg-muse-card rounded-2xl shadow-muse-card border border-muse-border p-4 flex flex-col h-full">
+      
+      <!-- Logo Satker BPS 6504 -->
+      <div class="flex items-center justify-between pb-4 border-b border-muse-border">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-700 to-sky-500 flex items-center justify-center text-white font-bold text-sm shadow-muse-glow">
+            <span>65</span>
+          </div>
+          <div>
+            <h1 class="text-sm font-extrabold text-muse-heading tracking-tight flex items-center gap-1.5">
+              <span>SIPENA-KTT</span>
+              <span class="text-[10px] px-1.5 py-0.2 rounded bg-blue-50 text-blue-600 font-mono font-bold">ODON</span>
+            </h1>
+            <p class="text-[11px] text-muse-muted font-medium truncate">BPS Kabupaten Tana Tidung</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation Menus -->
+      <nav class="flex-1 overflow-y-auto py-4 space-y-1 text-xs">
+        
+        <p class="px-3 text-[10px] font-bold uppercase tracking-wider text-muse-muted mt-1 mb-2">Buku Kerja & ODON</p>
+
+        <!-- Tab 1: Edisi Hari Ini (Active) -->
+        <button onclick="switchView('overview')" id="nav-overview" class="w-full nav-link flex items-center gap-3 px-3 py-2.5 rounded-xl bg-muse-card shadow-muse-nav text-muse-heading font-bold border border-muse-border transition-all cursor-pointer">
+          <div class="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center shadow-muse-glow">
+            <i data-lucide="sparkles" class="w-4 h-4"></i>
+          </div>
+          <span class="flex-1 text-left">Edisi Hari Ini (H-1)</span>
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+        </button>
+
+        <!-- Tab 2: Meja Kurasi Nerwilis -->
+        <button onclick="switchView('curation')" id="nav-curation" class="w-full nav-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-muse-body hover:bg-slate-50 hover:text-muse-heading transition-all cursor-pointer">
+          <div class="w-8 h-8 rounded-lg bg-slate-100 text-muse-heading flex items-center justify-center">
+            <i data-lucide="check-check" class="w-4 h-4"></i>
+          </div>
+          <span class="flex-1 text-left font-medium">Meja Kurasi Berita</span>
+          <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-600 font-bold font-mono">8 Antre</span>
+        </button>
+
+        <!-- Tab 3: Sheet 6503 Ledger Master -->
+        <button onclick="switchView('ledger')" id="nav-ledger" class="w-full nav-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-muse-body hover:bg-slate-50 hover:text-muse-heading transition-all cursor-pointer">
+          <div class="w-8 h-8 rounded-lg bg-slate-100 text-muse-heading flex items-center justify-center">
+            <i data-lucide="table-2" class="w-4 h-4"></i>
+          </div>
+          <span class="flex-1 text-left font-medium">Buku Kerja Sheet 6503</span>
+          <span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 font-bold font-mono">.xlsx</span>
+        </button>
+
+        <p class="px-3 text-[10px] font-bold uppercase tracking-wider text-muse-muted pt-4 mb-2">Analisis & Pipeline</p>
+
+        <!-- Tab 4: Radar Scraper Status -->
+        <button onclick="switchView('scrapers')" id="nav-scrapers" class="w-full nav-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-muse-body hover:bg-slate-50 hover:text-muse-heading transition-all cursor-pointer">
+          <div class="w-8 h-8 rounded-lg bg-slate-100 text-muse-heading flex items-center justify-center">
+            <i data-lucide="radar" class="w-4 h-4"></i>
+          </div>
+          <span class="flex-1 text-left font-medium">Radar 4 Portal Kaltara</span>
+          <span class="text-[10px] font-mono text-emerald-600 font-bold">05:00</span>
+        </button>
+
+        <!-- Tab 5: KBLI 2020 ↔ 2025 Crosswalk -->
+        <button onclick="switchView('kbli')" id="nav-kbli" class="w-full nav-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-muse-body hover:bg-slate-50 hover:text-muse-heading transition-all cursor-pointer">
+          <div class="w-8 h-8 rounded-lg bg-slate-100 text-muse-heading flex items-center justify-center">
+            <i data-lucide="arrow-left-right" class="w-4 h-4"></i>
+          </div>
+          <span class="flex-1 text-left font-medium">Konversi KBLI 2025</span>
+        </button>
+
+        <!-- Public Proposal Modal Button -->
+        <button onclick="toggleModal('modal-submit')" class="w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-xl text-muse-body hover:bg-slate-50 hover:text-muse-heading transition-all cursor-pointer">
+          <div class="w-8 h-8 rounded-lg bg-slate-100 text-muse-heading flex items-center justify-center">
+            <i data-lucide="plus-circle" class="w-4 h-4"></i>
+          </div>
+          <span class="flex-1 font-medium">Kirim Usulan Berita</span>
+        </button>
+
+      </nav>
+
+      <!-- User Satker Footer -->
+      <div class="p-3 rounded-xl bg-slate-50 border border-muse-border flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-700 font-bold flex items-center justify-center text-xs">
+            NW
+          </div>
+          <div class="min-w-0">
+            <p class="text-xs font-bold text-muse-heading truncate">Tim Nerwilis 6504</p>
+            <p class="text-[10px] text-muse-muted truncate">bps6504@bps.go.id</p>
+          </div>
+        </div>
+        <button onclick="toggleTechStackModal()" title="Lihat Blueprint Techstack" class="p-1 rounded-lg text-muse-muted hover:text-muse-heading hover:bg-slate-200 transition-colors">
+          <i data-lucide="code-2" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+    </div>
+  </aside>
+
+  <!-- ========================================================================= -->
+  <!-- 2. MAIN WORKSPACE CONTAINER                                               -->
+  <!-- ========================================================================= -->
+  <main class="flex-1 p-4 lg:p-6 overflow-y-auto max-w-7xl mx-auto w-full space-y-6">
+    
+    <!-- TOP NAVBAR: Ant Design Segmented Style -->
+    <header class="bg-muse-card rounded-2xl shadow-muse-card border border-muse-border px-5 py-3.5 flex flex-wrap items-center justify-between gap-4 sticky top-4 z-20">
+      
+      <!-- Context & Breadcrumbs -->
+      <div>
+        <div class="flex items-center gap-2 text-xs text-muse-muted">
+          <span>BPS Tana Tidung (65.04)</span>
+          <span>/</span>
+          <span class="text-muse-body">Neraca Wilayah & Analisis Statistik</span>
+          <span>/</span>
+          <span class="text-blue-600 font-semibold" id="active-breadcrumb">One Day One News</span>
+        </div>
+        <h2 class="text-sm font-bold text-muse-heading mt-0.5" id="page-title">Monitoring Fenomena Ekonomi Harian (ODON)</h2>
+      </div>
+
+      <!-- Right Toolbar -->
+      <div class="flex items-center gap-3">
+        
+        <!-- Search -->
+        <div class="relative hidden sm:block w-64">
+          <i data-lucide="search" class="w-3.5 h-3.5 text-muse-muted absolute left-3 top-1/2 -translate-y-1/2"></i>
+          <input type="text" id="global-search" oninput="handleSearch(this.value)" placeholder="Cari KBLI, komoditas, atau berita..." class="w-full h-8 pl-8 pr-3 rounded-lg bg-slate-50 border border-muse-borderDark/50 text-xs text-muse-heading placeholder:text-muse-muted focus:outline-none focus:border-blue-500 focus:bg-white transition-all"/>
+        </div>
+
+        <!-- Live WITA Clock -->
+        <div class="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 text-[11px] font-mono text-muse-heading font-medium">
+          <i data-lucide="clock" class="w-3 h-3 text-blue-600"></i>
+          <span id="live-wita-clock" class="tabular-nums">08:00:15 WITA</span>
+        </div>
+
+        <!-- Role Toggle (Admin Nerwilis vs Publik) -->
+        <div class="inline-flex rounded-lg bg-slate-100 p-0.5 text-xs">
+          <button id="role-admin-btn" onclick="setRole('admin')" class="px-2.5 py-1 rounded-md bg-white shadow-xs text-muse-heading font-bold transition-all">
+            Admin Nerwilis
+          </button>
+          <button id="role-public-btn" onclick="setRole('public')" class="px-2.5 py-1 rounded-md text-muse-muted hover:text-muse-heading font-medium transition-all">
+            Publik
+          </button>
+        </div>
+
+        <!-- Export XLSX Button -->
+        <button onclick="exportSheetExcel()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-muse-glow transition-all cursor-pointer">
+          <i data-lucide="download" class="w-3.5 h-3.5"></i>
+          <span class="hidden sm:inline">Ekspor Sheet 6503</span>
+        </button>
+
+      </div>
+    </header>
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 1: OVERVIEW & DASHBOARD (EDISI HARI INI SPOTLIGHT)                    -->
+    <!-- ========================================================================= -->
+    <div id="view-overview" class="view-panel space-y-6">
+      
+      <!-- 4 MUSE STATISTIC KPI CARDS (Real BPS 6504 Ground Truth) -->
+      <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        
+        <!-- KPI 1 -->
+        <div class="bg-muse-card rounded-2xl p-4 shadow-muse-card border border-muse-border flex items-center justify-between">
+          <div>
+            <span class="text-xs text-muse-muted font-semibold block">ODON Terverifikasi</span>
+            <h3 class="text-xl font-extrabold text-muse-heading mt-1">156 Hari</h3>
+            <span class="text-[11px] text-emerald-600 font-bold inline-flex items-center gap-1 mt-1">
+              <i data-lucide="check-circle" class="w-3 h-3"></i>
+              Edisi 10 Nov (H-1) Siap
+            </span>
+          </div>
+          <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+            <i data-lucide="newspaper" class="w-6 h-6"></i>
+          </div>
+        </div>
+
+        <!-- KPI 2 -->
+        <div class="bg-muse-card rounded-2xl p-4 shadow-muse-card border border-muse-border flex items-center justify-between">
+          <div>
+            <span class="text-xs text-muse-muted font-semibold block">Sektor KBLI Terbesar</span>
+            <h3 class="text-xl font-extrabold text-muse-heading mt-1">37.80%</h3>
+            <span class="text-[11px] text-muse-muted font-medium block mt-1">
+              KBLI B • Tambang Batubara
+            </span>
+          </div>
+          <div class="w-12 h-12 rounded-xl bg-slate-100 text-slate-800 flex items-center justify-center font-bold">
+            <i data-lucide="pickaxe" class="w-6 h-6"></i>
+          </div>
+        </div>
+
+        <!-- KPI 3 -->
+        <div class="bg-muse-card rounded-2xl p-4 shadow-muse-card border border-muse-border flex items-center justify-between">
+          <div>
+            <span class="text-xs text-muse-muted font-semibold block">Pengeluaran Dominan</span>
+            <h3 class="text-xl font-extrabold text-muse-heading mt-1">49.98%</h3>
+            <span class="text-[11px] text-emerald-600 font-bold block mt-1">
+              Pos 6 • Net Ekspor Antardaerah
+            </span>
+          </div>
+          <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+            <i data-lucide="ship" class="w-6 h-6"></i>
+          </div>
+        </div>
+
+        <!-- KPI 4 -->
+        <div class="bg-muse-card rounded-2xl p-4 shadow-muse-card border border-muse-border flex items-center justify-between">
+          <div>
+            <span class="text-xs text-muse-muted font-semibold block">Scraper Pipeline H-1</span>
+            <h3 class="text-xl font-extrabold text-muse-heading mt-1">4 Portal</h3>
+            <span class="text-[11px] text-blue-600 font-mono font-medium block mt-1">
+              Sinkron 05:00 WITA (200 OK)
+            </span>
+          </div>
+          <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
+            <i data-lucide="radio" class="w-6 h-6"></i>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ICONIC MUSE HERO SECTION: 2-CARD EDITORIAL BANNER -->
+      <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Left Hero Banner Card (2 Cols): Spotlight ODON H-1 -->
+        <div class="lg:col-span-2 bg-muse-hero rounded-2xl p-6 sm:p-7 text-white shadow-muse-card flex flex-col justify-between relative overflow-hidden">
+          
+          <div class="absolute -bottom-16 -right-16 w-80 h-80 bg-white/5 rounded-full blur-3xl pointer-events-none"></div>
+
+          <div>
+            <!-- Banner Header -->
+            <div class="flex items-center justify-between gap-2 pb-3.5 border-b border-white/10">
+              <div class="flex items-center gap-2">
+                <span class="px-2.5 py-0.5 rounded-full bg-white/20 text-white font-mono text-[11px] font-bold">
+                  ODON EDISI RESMI H-1
+                </span>
+                <span class="text-xs text-white/80 font-medium">Senin, 10 November 2026</span>
+              </div>
+              <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 text-[11px] font-semibold flex items-center gap-1">
+                <i data-lucide="shield-check" class="w-3 h-3"></i>
+                Terverifikasi Nerwilis BPS
+              </span>
+            </div>
+
+            <!-- News Headline & Metadata -->
+            <div class="mt-4">
+              <div class="flex items-center gap-2 text-xs text-cyan-200 font-semibold mb-1">
+                <span>Radar Tarakan • Biro Tana Tidung</span>
+                <span>•</span>
+                <span>Rilis: 09 Nov 2026</span>
+                <span>•</span>
+                <span>Indeks Relevansi: 96%</span>
+              </div>
+              
+              <h3 class="text-lg sm:text-2xl font-bold text-white leading-snug">
+                Pelabuhan Bebatu Pacu Pengapalan Batubara dan Hasil Kelapa Sawit, Ekspor Tana Tidung Melonjak 14.8% di Q4
+              </h3>
+              
+              <!-- AI Synthesis Box -->
+              <div class="mt-3.5 p-3.5 rounded-xl bg-black/25 border border-white/10 text-xs sm:text-[13px] text-white/90 leading-relaxed">
+                <div class="flex items-center gap-1.5 text-cyan-300 font-bold text-[11px] uppercase tracking-wider mb-1">
+                  <i data-lucide="cpu" class="w-3.5 h-3.5"></i>
+                  <span>Sintesis Fenomena Ekonomi (AI Nerwilis):</span>
+                </div>
+                Aktivitas transshipment di Terminal Khusus Bebatu mencatatkan lonjakan pengapalan batubara curah dan CPO kelapa sawit sebesar 14.8% (Q-o-Q). Ini menjadi katalisator langsung penopang nilai tambah bruto sektor primer serta mengonfirmasi ekspansi neraca perdagangan luar wilayah Tana Tidung.
+              </div>
+            </div>
+
+            <!-- Dual-Pillar Balancing Badges -->
+            <div class="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3 pt-4 border-t border-white/10 text-xs">
+              
+              <div class="bg-white/10 rounded-xl p-3.5 backdrop-blur-xs border border-white/10">
+                <div class="flex items-center justify-between mb-1.5">
+                  <span class="text-[11px] uppercase tracking-wider text-cyan-200 font-bold flex items-center gap-1">
+                    <i data-lucide="layers" class="w-3 h-3"></i> Sisi Lapangan Usaha (KBLI)
+                  </span>
+                  <span class="text-emerald-300 font-bold font-mono">+12.4% Output</span>
+                </div>
+                <p class="font-bold text-white text-xs sm:text-sm">KBLI B (05100) • Pertambangan Batubara (37.8%)</p>
+                <p class="text-[11px] text-white/70 mt-1">
+                  KBLI Tambahan: KBLI A (01262 - Perkebunan Sawit 23.4%)
+                </p>
+                <div class="mt-2 text-[10px] text-cyan-200 font-mono bg-white/10 px-2 py-0.5 rounded w-fit">
+                  Mapping 2025: 05101 (Penambangan Batubara)
+                </div>
+              </div>
+
+              <div class="bg-white/10 rounded-xl p-3.5 backdrop-blur-xs border border-white/10">
+                <div class="flex items-center justify-between mb-1.5">
+                  <span class="text-[11px] uppercase tracking-wider text-emerald-300 font-bold flex items-center gap-1">
+                    <i data-lucide="scale" class="w-3 h-3"></i> Sisi Pengeluaran PDRB
+                  </span>
+                  <span class="text-emerald-300 font-bold font-mono">Dampak Agregat 81.36%</span>
+                </div>
+                <p class="font-bold text-white text-xs sm:text-sm">Pos 6 • Net Ekspor Antar Daerah (49.98%)</p>
+                <p class="text-[11px] text-white/70 mt-1">
+                  Komponen Sekunder: Pos 4 • PMTB Fisik & Logistik (31.38%)
+                </p>
+                <div class="mt-2 text-[10px] text-emerald-300 font-mono bg-white/10 px-2 py-0.5 rounded w-fit">
+                  Konfirmasi: Peningkatan frekuensi armada tongkang
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Hero Action Footer -->
+          <div class="mt-6 pt-4 border-t border-white/10 flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div class="flex items-center gap-2 text-white/80">
+              <span class="text-white/60">Verifikator:</span>
+              <span class="font-bold text-white">Calvin (Tim Nerwilis KTT)</span>
+              <span class="text-white/60">• 10 Nov 07:15 WITA</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <a href="https://kaltara.prokal.co" target="_blank" class="px-3 py-1.5 rounded-lg bg-white/15 hover:bg-white/25 text-white font-semibold transition-all inline-flex items-center gap-1.5">
+                <span>Buka Sumber Berita</span>
+                <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+              </a>
+              <button onclick="openEditModal(1)" class="px-3.5 py-1.5 rounded-lg bg-white text-muse-heading font-bold hover:bg-slate-100 transition-all cursor-pointer">
+                Koreksi Klasifikasi
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Right Card (1 Col): Pipeline Timeline & PDRB Sector Weights -->
+        <div class="space-y-6">
+          
+          <!-- Box 1: Muse Vertical Timeline of ODON Pipeline -->
+          <div class="bg-muse-card rounded-2xl p-5 shadow-muse-card border border-muse-border">
+            <div class="flex items-center justify-between pb-3 border-b border-muse-border">
+              <h4 class="text-xs font-bold uppercase tracking-wider text-muse-heading">Jejak Alur Kerja ODON</h4>
+              <span class="text-[11px] font-mono font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">Siklus Harian</span>
+            </div>
+
+            <div class="mt-4 space-y-3.5 text-xs">
+              
+              <div class="flex gap-3">
+                <div class="flex flex-col items-center">
+                  <div class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center">
+                    <i data-lucide="check" class="w-3.5 h-3.5"></i>
+                  </div>
+                  <div class="w-0.5 h-7 bg-slate-200"></div>
+                </div>
+                <div class="pb-1">
+                  <p class="font-bold text-muse-heading">05:00 WITA — Scraper H-1</p>
+                  <p class="text-[11px] text-muse-muted">54 berita terjaring dari 4 portal Kaltara.</p>
+                </div>
+              </div>
+
+              <div class="flex gap-3">
+                <div class="flex flex-col items-center">
+                  <div class="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
+                    <i data-lucide="cpu" class="w-3.5 h-3.5"></i>
+                  </div>
+                  <div class="w-0.5 h-7 bg-slate-200"></div>
+                </div>
+                <div class="pb-1">
+                  <p class="font-bold text-muse-heading">05:30 WITA — Ekstraksi AI Gemini</p>
+                  <p class="text-[11px] text-muse-muted">Mencocokkan bobot PDRB KTT & membuang noise non-ekonomi.</p>
+                </div>
+              </div>
+
+              <div class="flex gap-3">
+                <div class="flex flex-col items-center">
+                  <div class="w-6 h-6 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center">
+                    <i data-lucide="user-check" class="w-3.5 h-3.5"></i>
+                  </div>
+                  <div class="w-0.5 h-7 bg-slate-200"></div>
+                </div>
+                <div class="pb-1">
+                  <p class="font-bold text-muse-heading">07:15 WITA — Validasi Nerwilis</p>
+                  <p class="text-[11px] text-muse-muted">1 berita terpilih dan dipetakan ke Sheet 6503.</p>
+                </div>
+              </div>
+
+              <div class="flex gap-3">
+                <div class="flex flex-col items-center">
+                  <div class="w-6 h-6 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center">
+                    <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i>
+                  </div>
+                </div>
+                <div class="pb-1">
+                  <p class="font-bold text-muse-heading">Sinkronisasi Excel Siap</p>
+                  <p class="text-[11px] text-muse-muted">Data siap diekspor untuk bahan rilis Triwulanan.</p>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Box 2: Real-time PDRB Sector Distribution Widget -->
+          <div class="bg-muse-card rounded-2xl p-5 shadow-muse-card border border-muse-border">
+            <div class="flex items-center justify-between pb-3 border-b border-muse-border">
+              <div>
+                <h4 class="text-xs font-bold uppercase tracking-wider text-muse-heading">Peta Bobot PDRB KTT 2025</h4>
+                <p class="text-[11px] text-muse-muted">Single Source of Truth Neraca</p>
+              </div>
+              <span class="text-xs font-mono font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">Top 4 = 88.1%</span>
+            </div>
+
+            <div class="mt-4 space-y-3 text-xs">
+              <div>
+                <div class="flex justify-between font-semibold text-muse-heading mb-1 text-[11px]">
+                  <span>1. Tambang Batubara (B)</span>
+                  <span class="font-mono font-bold">37.80%</span>
+                </div>
+                <div class="w-full bg-slate-100 rounded-full h-2">
+                  <div class="bg-slate-800 h-2 rounded-full" style="width: 37.8%"></div>
+                </div>
+              </div>
+
+              <div>
+                <div class="flex justify-between font-semibold text-muse-heading mb-1 text-[11px]">
+                  <span>2. Sawit & Pertanian (A)</span>
+                  <span class="font-mono font-bold">23.41%</span>
+                </div>
+                <div class="w-full bg-slate-100 rounded-full h-2">
+                  <div class="bg-emerald-600 h-2 rounded-full" style="width: 23.41%"></div>
+                </div>
+              </div>
+
+              <div>
+                <div class="flex justify-between font-semibold text-muse-heading mb-1 text-[11px]">
+                  <span>3. Konstruksi (F)</span>
+                  <span class="font-mono font-bold">18.46%</span>
+                </div>
+                <div class="w-full bg-slate-100 rounded-full h-2">
+                  <div class="bg-blue-600 h-2 rounded-full" style="width: 18.46%"></div>
+                </div>
+              </div>
+
+              <div>
+                <div class="flex justify-between font-semibold text-muse-heading mb-1 text-[11px]">
+                  <span>4. Administrasi Pemda (O)</span>
+                  <span class="font-mono font-bold">8.47%</span>
+                </div>
+                <div class="w-full bg-slate-100 rounded-full h-2">
+                  <div class="bg-amber-600 h-2 rounded-full" style="width: 8.47%"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-4 pt-3 border-t border-muse-border flex items-center justify-between text-[11px]">
+              <span class="text-muse-muted">Net Ekspor (Pos 6) + PMTB (Pos 4)</span>
+              <span class="font-bold text-emerald-700 font-mono">81.36% Total</span>
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- RECENT 7 WORKING DAYS ODON QUICK LEDGER (Ant Design Table) -->
+      <section class="bg-muse-card rounded-2xl shadow-muse-card border border-muse-border overflow-hidden">
+        
+        <div class="p-5 border-b border-muse-border flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 class="text-sm font-bold text-muse-heading">Riwayat ODON 7 Hari Terakhir (November 2026)</h3>
+              <span class="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 text-xs font-mono font-bold">Sheet 6503</span>
+            </div>
+            <p class="text-xs text-muse-muted mt-0.5">
+              Kompilasi harian representatif untuk bahan narasi dan estimasi PDRB Triwulanan BPS 6504.
+            </p>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button onclick="switchView('ledger')" class="text-xs font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 cursor-pointer">
+              <span>Buka Buku Kerja Lengkap</span>
+              <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="bg-slate-50 border-b border-muse-border text-[11px] uppercase tracking-wider text-muse-muted font-bold">
+                <th class="py-3 px-4 w-12 text-center">No</th>
+                <th class="py-3 px-4 w-28">Tanggal (H-1)</th>
+                <th class="py-3 px-4 w-32">Kanal Portal</th>
+                <th class="py-3 px-6 min-w-[340px]">Judul Berita & Ringkasan Fenomena</th>
+                <th class="py-3 px-4 w-44">Sisi Lapangan Usaha</th>
+                <th class="py-3 px-4 w-48">Sisi Pengeluaran</th>
+                <th class="py-3 px-4 w-24 text-center">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="table-overview-body" class="divide-y divide-muse-border text-muse-body">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+
+      </section>
+
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 2: MEJA KURASI BERITA (AI CANDIDATES TABLE & APPROVAL WORKSPACE)     -->
+    <!-- ========================================================================= -->
+    <div id="view-curation" class="view-panel hidden space-y-6">
+      
+      <div class="bg-muse-card rounded-2xl p-5 shadow-muse-card border border-muse-border flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h3 class="text-sm font-bold text-muse-heading">Meja Kurasi Berita H-1 (Hasil Scraper Pagi 05:00 WITA)</h3>
+          <p class="text-xs text-muse-muted mt-0.5">
+            AI telah mengekstrak kandidat berita ekonomi. Pilih <b>1 berita utama</b> untuk ditetapkan sebagai ODON hari ini.
+          </p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="triggerManualScraper()" class="px-3 py-1.5 rounded-lg border border-muse-borderDark/40 hover:bg-slate-50 text-xs font-semibold text-muse-heading flex items-center gap-1.5 cursor-pointer">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+            <span>Tarik Ulang Scraper</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="curation-cards-container">
+        <!-- Rendered via JS -->
+      </div>
+
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 3: BUKU KERJA MASTER LEDGER (MIRROR GOOGLE SHEET 6503 ODON)          -->
+    <!-- ========================================================================= -->
+    <div id="view-ledger" class="view-panel hidden space-y-6">
+      
+      <div class="bg-muse-card rounded-2xl shadow-muse-card border border-muse-border overflow-hidden">
+        
+        <!-- Controls & Filter Toolbar -->
+        <div class="p-5 border-b border-muse-border flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 class="text-sm font-bold text-muse-heading">Buku Kerja ODON 2026 (Format Resmi Sheet 6503)</h3>
+              <span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-xs font-mono font-bold">156 Entri Terdata</span>
+            </div>
+            <p class="text-xs text-muse-muted mt-0.5">
+              Struktur kolom 100% identik dengan spreadsheet kompilasi BPS Tana Tidung.
+            </p>
+          </div>
+
+          <div class="flex items-center gap-2.5">
+            <!-- Triwulan Filter -->
+            <select id="filter-triwulan" onchange="applyFilters()" class="h-8 px-3 rounded-lg bg-slate-50 border border-muse-borderDark/40 text-xs text-muse-heading focus:outline-none">
+              <option value="all">Semua Triwulan</option>
+              <option value="Q4" selected>Triwulan IV (Okt-Des 2026)</option>
+              <option value="Q3">Triwulan III (Jul-Sep 2026)</option>
+              <option value="Q2">Triwulan II (Apr-Jun 2026)</option>
+              <option value="Q1">Triwulan I (Jan-Mar 2026)</option>
+            </select>
+
+            <!-- KBLI Filter -->
+            <select id="filter-kbli" onchange="applyFilters()" class="h-8 px-3 rounded-lg bg-slate-50 border border-muse-borderDark/40 text-xs text-muse-heading focus:outline-none">
+              <option value="all">Semua Sektor KBLI</option>
+              <option value="B">KBLI B • Tambang Batubara (37.8%)</option>
+              <option value="A">KBLI A • Sawit & Pertanian (23.4%)</option>
+              <option value="F">KBLI F • Konstruksi (18.5%)</option>
+              <option value="O">KBLI O • Pemkab KTT (8.5%)</option>
+              <option value="G">KBLI G • Perdagangan (5.1%)</option>
+            </select>
+
+            <!-- Pengeluaran Filter -->
+            <select id="filter-pengeluaran" onchange="applyFilters()" class="h-8 px-3 rounded-lg bg-slate-50 border border-muse-borderDark/40 text-xs text-muse-heading focus:outline-none">
+              <option value="all">Semua Pengeluaran</option>
+              <option value="net-ekspor">Pos 6 • Net Ekspor (49.98%)</option>
+              <option value="pmtb">Pos 4 • PMTB Investasi (31.38%)</option>
+              <option value="pk-p">Pos 2 • Konsumsi Pemerintah (9.8%)</option>
+              <option value="pk-rt">Pos 1 • Konsumsi RT (7.06%)</option>
+            </select>
+
+            <!-- Ekspor Excel -->
+            <button onclick="exportSheetExcel()" class="h-8 px-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-muse-glow cursor-pointer">
+              <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i>
+              <span>Download .XLSX</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Ledger Table -->
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="bg-slate-50 border-b border-muse-border text-[11px] uppercase tracking-wider text-muse-muted font-bold">
+                <th class="py-3 px-4 w-12 text-center">No</th>
+                <th class="py-3 px-4 w-28">Tanggal (H-1)</th>
+                <th class="py-3 px-4 w-32">Kanal Portal</th>
+                <th class="py-3 px-6 min-w-[340px]">Judul Berita & Fenomena Ekonomi</th>
+                <th class="py-3 px-4 w-44">Sisi Lapangan Usaha (KBLI)</th>
+                <th class="py-3 px-4 w-48">Sisi Pengeluaran</th>
+                <th class="py-3 px-4 w-28 text-center">Kurasi Nerwilis</th>
+              </tr>
+            </thead>
+            <tbody id="table-ledger-body" class="divide-y divide-muse-border text-muse-body">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+
+        <div class="p-4 border-t border-muse-border flex items-center justify-between text-xs text-muse-muted">
+          <span id="ledger-count-info">Menampilkan 5 dari 156 entri buku kerja ODON</span>
+          <div class="flex items-center gap-1">
+            <button class="px-2.5 py-1 rounded border border-muse-borderDark/40 hover:bg-slate-100 text-muse-heading">Sebelumnya</button>
+            <button class="px-2.5 py-1 rounded bg-blue-600 text-white font-bold">1</button>
+            <button class="px-2.5 py-1 rounded border border-muse-borderDark/40 hover:bg-slate-100 text-muse-heading">2</button>
+            <button class="px-2.5 py-1 rounded border border-muse-borderDark/40 hover:bg-slate-100 text-muse-heading">Selanjutnya</button>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 4: RADAR SCRAPER STATUS & LOGS                                       -->
+    <!-- ========================================================================= -->
+    <div id="view-scrapers" class="view-panel hidden space-y-6">
+      
+      <div class="bg-muse-card rounded-2xl p-6 shadow-muse-card border border-muse-border">
+        <div class="flex items-center justify-between pb-4 border-b border-muse-border">
+          <div>
+            <h3 class="text-sm font-bold text-muse-heading">Status Pipeline 4 Portal Berita Daerah Kaltara</h3>
+            <p class="text-xs text-muse-muted mt-0.5">Jadwal scraping otomatis: Setiap hari pukul 05:00 WITA (Jendela rilis berita H-1)</p>
+          </div>
+          <button onclick="triggerManualScraper()" class="px-3.5 py-1.5 rounded-lg bg-blue-600 text-white text-xs font-bold shadow-muse-glow hover:bg-blue-700 cursor-pointer">
+            Jalankan Scraper Sekarang
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-5">
+          
+          <div class="p-4 rounded-xl border border-muse-border bg-slate-50/60 flex items-center justify-between">
+            <div>
+              <span class="text-xs font-bold text-muse-heading block">Radar Tarakan</span>
+              <p class="text-[11px] font-mono text-muse-muted mt-0.5">kaltara.prokal.co/tana-tidung</p>
+              <p class="text-[11px] text-emerald-600 font-semibold mt-1">14 artikel H-1 terdeteksi • 200 OK</p>
+            </div>
+            <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+          </div>
+
+          <div class="p-4 rounded-xl border border-muse-border bg-slate-50/60 flex items-center justify-between">
+            <div>
+              <span class="text-xs font-bold text-muse-heading block">Benuanta.co.id</span>
+              <p class="text-[11px] font-mono text-muse-muted mt-0.5">benuanta.co.id/category/tana-tidung</p>
+              <p class="text-[11px] text-emerald-600 font-semibold mt-1">9 artikel H-1 terdeteksi • 200 OK</p>
+            </div>
+            <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+          </div>
+
+          <div class="p-4 rounded-xl border border-muse-border bg-slate-50/60 flex items-center justify-between">
+            <div>
+              <span class="text-xs font-bold text-muse-heading block">Fokus Borneo</span>
+              <p class="text-[11px] font-mono text-muse-muted mt-0.5">fokusborneo.com/category/advetorial/pemkab-tana-tidung</p>
+              <p class="text-[11px] text-emerald-600 font-semibold mt-1">6 artikel H-1 terdeteksi • 200 OK</p>
+            </div>
+            <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+          </div>
+
+          <div class="p-4 rounded-xl border border-muse-border bg-slate-50/60 flex items-center justify-between">
+            <div>
+              <span class="text-xs font-bold text-muse-heading block">Tribun Kaltara</span>
+              <p class="text-[11px] font-mono text-muse-muted mt-0.5">kaltara.tribunnews.com/kaltara/tanah-tidung</p>
+              <p class="text-[11px] text-emerald-600 font-semibold mt-1">25 artikel H-1 terdeteksi • 200 OK</p>
+            </div>
+            <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 5: KBLI 2020 ↔ 2025 AUTOMATED CROSSWALK                              -->
+    <!-- ========================================================================= -->
+    <div id="view-kbli" class="view-panel hidden space-y-6">
+      
+      <div class="bg-muse-card rounded-2xl p-6 shadow-muse-card border border-muse-border">
+        <div class="flex items-center justify-between pb-4 border-b border-muse-border">
+          <div>
+            <h3 class="text-sm font-bold text-muse-heading">Mesin Konversi KBLI 2020 ↔ KBLI 2025 (BPS0000)</h3>
+            <p class="text-xs text-muse-muted mt-0.5">Mengadopsi buku resmi Lampiran Konversi BPS RI (444 halaman)</p>
+          </div>
+          <span class="text-xs font-mono font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded">1.559 Kode Terindeks</span>
+        </div>
+
+        <div class="mt-4">
+          <div class="relative w-full max-w-md">
+            <i data-lucide="search" class="w-3.5 h-3.5 text-muse-muted absolute left-3 top-1/2 -translate-y-1/2"></i>
+            <input type="text" id="kbli-search-input" oninput="searchKbli(this.value)" placeholder="Ketik kode KBLI (contoh: 05100, 01262)..." class="w-full h-9 pl-9 pr-3 rounded-lg bg-slate-50 border border-muse-borderDark/40 text-xs text-muse-heading focus:outline-none focus:border-blue-500"/>
+          </div>
+
+          <div class="mt-4 border border-muse-border rounded-xl overflow-hidden">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-50 text-[11px] font-bold text-muse-muted uppercase border-b border-muse-border">
+                <tr>
+                  <th class="py-2.5 px-4 w-32">KBLI 2020</th>
+                  <th class="py-2.5 px-4">Deskripsi 2020</th>
+                  <th class="py-2.5 px-4 w-32">KBLI 2025</th>
+                  <th class="py-2.5 px-4">Deskripsi 2025</th>
+                  <th class="py-2.5 px-4 w-28">Status</th>
+                </tr>
+              </thead>
+              <tbody id="kbli-table-body" class="divide-y divide-muse-border text-muse-body">
+                <!-- Rendered via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: KOREKSI KLASIFIKASI & VALIDASI NERWILIS                            -->
+  <!-- ========================================================================= -->
+  <div id="modal-edit" class="fixed inset-0 bg-black/45 backdrop-blur-2xs z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-lg rounded-2xl shadow-muse-card border border-muse-border p-6 space-y-4">
+      <div class="flex items-center justify-between border-b border-muse-border pb-3">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+            <i data-lucide="scale" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h4 class="text-sm font-bold text-muse-heading">Koreksi & Penetapan ODON</h4>
+            <p class="text-[11px] text-muse-muted">BPS 6504 • Validasi Neraca Lapangan Usaha & Pengeluaran</p>
+          </div>
+        </div>
+        <button onclick="toggleModal('modal-edit')" class="p-1 rounded-lg hover:bg-slate-100 text-muse-muted">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block font-bold text-muse-heading mb-1">Judul Berita:</label>
+          <p id="modal-edit-title" class="p-2.5 rounded-lg bg-slate-50 border border-muse-border text-muse-heading font-medium">
+            Pelabuhan Bebatu Pacu Pengapalan Batubara dan Hasil Sawit, Ekspor KTT Melonjak di Q4
+          </p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-muse-heading mb-1">KBLI Lapangan Usaha (2020):</label>
+            <select id="modal-edit-kbli" onchange="updateKbli2025Mapping(this.value)" class="w-full p-2 rounded-lg bg-slate-50 border border-muse-borderDark/40 text-xs text-muse-heading">
+              <option value="05100" selected>KBLI B • 05100 (Batubara - 37.8%)</option>
+              <option value="01262">KBLI A • 01262 (Sawit - 23.4%)</option>
+              <option value="41011">KBLI F • 41011 (Konstruksi - 18.5%)</option>
+              <option value="84111">KBLI O • 84111 (Pemkab KTT - 8.5%)</option>
+              <option value="47111">KBLI G • 47111 (Perdagangan - 5.1%)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-bold text-muse-heading mb-1">KBLI 2025 (Crosswalk BPS):</label>
+            <input type="text" id="modal-edit-kbli2025" value="05101 (Penambangan Batubara)" readonly class="w-full p-2 rounded-lg bg-slate-100 border border-muse-border text-xs font-mono text-muse-heading"/>
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-bold text-muse-heading mb-1">Pos Pengeluaran PDRB:</label>
+          <select id="modal-edit-pengeluaran" class="w-full p-2 rounded-lg bg-slate-50 border border-muse-borderDark/40 text-xs text-muse-heading">
+            <option value="net-ekspor" selected>Pos 6 • Net Ekspor Antar Daerah (49.98%)</option>
+            <option value="pmtb">Pos 4 • PMTB - Pembentukan Modal Tetap (31.38%)</option>
+            <option value="pk-p">Pos 2 • PK-P - Konsumsi Pemerintah (9.80%)</option>
+            <option value="pk-rt">Pos 1 • PK-RT - Konsumsi Rumah Tangga (7.06%)</option>
+            <option value="pk-lnprt">Pos 3 • PK-LNPRT (1.13%)</option>
+            <option value="inventori">Pos 5 • Perubahan Inventori (0.65%)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-bold text-muse-heading mb-1">Ringkasan Fenomena Ekonomi (Catatan Nerwilis):</label>
+          <textarea id="modal-edit-summary" rows="3" class="w-full p-2.5 rounded-lg bg-slate-50 border border-muse-borderDark/40 text-xs text-muse-heading focus:outline-none">Peningkatan frekuensi tongkang batubara dan CPO di Pelabuhan Bebatu mendorong pertumbuhan ekspor antar daerah pada Triwulan IV 2026.</textarea>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-2 pt-3 border-t border-muse-border">
+        <button onclick="toggleModal('modal-edit')" class="px-4 py-1.5 rounded-lg border border-muse-borderDark/40 text-xs font-semibold text-muse-heading hover:bg-slate-100 cursor-pointer">
+          Batal
+        </button>
+        <button onclick="saveCurationModal()" class="px-4 py-1.5 rounded-lg bg-blue-600 text-white text-xs font-bold shadow-muse-glow hover:bg-blue-700 cursor-pointer">
+          Simpan ke Sheet 6503
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: BLUEPRINT TECHSTACK & SYSTEM ARCHITECTURE                         -->
+  <!-- ========================================================================= -->
+  <div id="modal-techstack" class="fixed inset-0 bg-black/45 backdrop-blur-2xs z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-2xl rounded-2xl shadow-muse-card border border-muse-border p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-muse-border pb-3">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold">
+            <i data-lucide="layers" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h4 class="text-sm font-bold text-muse-heading">Blueprint Arsitektur & Techstack SIPENA-KTT</h4>
+            <p class="text-[11px] text-muse-muted">Next.js 15 App Router • Drizzle ORM • PostgreSQL • Gemini AI</p>
+          </div>
+        </div>
+        <button onclick="toggleTechStackModal()" class="p-1 rounded-lg hover:bg-slate-100 text-muse-muted">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <div class="space-y-4 text-xs">
+        <div class="p-3 bg-blue-50/50 rounded-xl border border-blue-100 text-blue-900 leading-relaxed">
+          <b>Single Source of Truth:</b> BPS Satker 65.04 Kabupaten Tana Tidung. Bobot sektor ekonomi didominasi oleh Batubara (37.8%) dan Sawit (23.4%) pada sisi Lapangan Usaha, serta Net Ekspor (49.98%) dan PMTB (31.38%) pada sisi Pengeluaran.
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="p-3 rounded-xl border border-muse-border bg-slate-50">
+            <p class="font-bold text-muse-heading mb-1">Frontend Layer</p>
+            <ul class="space-y-1 text-[11px] text-muse-muted">
+              <li>• Next.js 15.1.7 (React 19 Server Components)</li>
+              <li>• Tailwind CSS 3.4 (Muse Ant Design Tokens)</li>
+              <li>• Lucide React Icons & Inter / JetBrains Mono font</li>
+              <li>• TanStack Table v8 for Ledger & Faceted Filters</li>
+            </ul>
+          </div>
+
+          <div class="p-3 rounded-xl border border-muse-border bg-slate-50">
+            <p class="font-bold text-muse-heading mb-1">Backend & Pipeline Layer</p>
+            <ul class="space-y-1 text-[11px] text-muse-muted">
+              <li>• Drizzle ORM 0.39 + PostgreSQL 16 (Neon / Local)</li>
+              <li>• Scheduled Cron (05:00 WITA) H-1 Window Scraper</li>
+              <li>• Google Gemini AI SDK (`google-genai`) for Extraction</li>
+              <li>• ExcelJS for Google Sheet 6503 ODON direct export</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="p-3 rounded-xl border border-muse-border bg-slate-50">
+          <p class="font-bold text-muse-heading mb-1">Database Schema Mapping</p>
+          <div class="font-mono text-[10px] bg-slate-900 text-slate-100 p-2.5 rounded-lg overflow-x-auto">
+odon_entries (id, date, title, url, source, raw_content, ai_summary, status, verifier_id)<br/>
+odon_classifications (id, odon_id, kbli_2020, kbli_2025, expenditure_component, impact_direction, pdrb_weight)<br/>
+kbli_conversions (id, code_2020, title_2020, code_2025, title_2025, lampiran_ref)
+          </div>
+        </div>
+      </div>
+
+      <div class="flex justify-end pt-2">
+        <button onclick="toggleTechStackModal()" class="px-4 py-1.5 rounded-lg bg-blue-600 text-white font-bold text-xs">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: USULKAN TAUTAN BERITA PUBLIK -->
+  <div id="modal-submit" class="fixed inset-0 bg-black/45 backdrop-blur-2xs z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-md rounded-2xl shadow-muse-card border border-muse-border p-6 space-y-4">
+      <div class="flex items-center justify-between border-b border-muse-border pb-3">
+        <h4 class="text-sm font-bold text-muse-heading">Usulkan Tautan Berita Ekonomi KTT</h4>
+        <button onclick="toggleModal('modal-submit')" class="p-1 rounded-lg hover:bg-slate-100 text-muse-muted">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block font-bold text-muse-heading mb-1">Tautan Berita (URL):</label>
+          <input type="url" placeholder="https://kaltara.prokal.co/..." class="w-full p-2 rounded-lg bg-slate-50 border border-muse-borderDark/40 text-xs text-muse-heading"/>
+        </div>
+        <div>
+          <label class="block font-bold text-muse-heading mb-1">Catatan Fenomena (Opsional):</label>
+          <textarea rows="2" placeholder="Fenomena ekonomi menurut Anda..." class="w-full p-2 rounded-lg bg-slate-50 border border-muse-borderDark/40 text-xs text-muse-heading"></textarea>
+        </div>
+      </div>
+      <div class="flex items-center justify-end gap-2 pt-2">
+        <button onclick="toggleModal('modal-submit')" class="px-3.5 py-1.5 rounded-lg border border-muse-borderDark/40 text-xs font-semibold text-muse-heading hover:bg-slate-100">Batal</button>
+        <button onclick="toggleModal('modal-submit'); alert('Tautan berhasil dikirim ke antrean Meja Kurasi Nerwilis!');" class="px-4 py-1.5 rounded-lg bg-blue-600 text-white text-xs font-bold shadow-muse-glow">Kirim Usulan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- APPLICATION LOGIC SCRIPT -->
+  <script>
+    // Ground truth sample data (Sheet 6503 ODON 2026)
+    const odonData = [
+      {
+        id: 1,
+        date: "10/11/2026",
+        releaseDate: "09/11",
+        source: "Radar Tarakan",
+        sourceClass: "bg-blue-50 text-blue-700",
+        title: "Pelabuhan Bebatu Pacu Pengapalan Batubara dan Hasil Kelapa Sawit, Ekspor KTT Melonjak di Q4",
+        summary: "Frekuensi tongkang batubara dan CPO meningkat 14.8%. Transmisi langsung ke output PDRB Batubara dan Net Ekspor.",
+        kbliCode: "KBLI B (05100)",
+        kbliDesc: "Batubara • 37.8%",
+        kbli2025: "05101",
+        expenditureCode: "Net Ekspor (49.98%)",
+        expenditureDesc: "PMTB Logistik (31.38%)",
+        triwulan: "Q4",
+        status: "verified"
+      },
+      {
+        id: 2,
+        date: "07/11/2026",
+        releaseDate: "06/11",
+        source: "Benuanta",
+        sourceClass: "bg-purple-50 text-purple-700",
+        title: "Progres Pembangunan Pusat Pemerintahan Terpadu Tana Tidung Capai 82%, Target Rampung Akhir Tahun",
+        summary: "Realisasi belanja modal konstruksi gedung dan jalan lingkar pemkab mengerek penyerapan anggaran fisik daerah.",
+        kbliCode: "KBLI F (41011)",
+        kbliDesc: "Konstruksi • 18.5%",
+        kbli2025: "41011",
+        expenditureCode: "PMTB Fisik (31.38%)",
+        expenditureDesc: "PK-P Belanja Modal",
+        triwulan: "Q4",
+        status: "verified"
+      },
+      {
+        id: 3,
+        date: "06/11/2026",
+        releaseDate: "05/11",
+        source: "Tribun Kaltara",
+        sourceClass: "bg-amber-50 text-amber-700",
+        title: "Harga Tandan Buah Segar (TBS) Sawit di Petani Mandiri Sesayap Naik Jadi Rp 2.750 per Kilogram",
+        summary: "Kenaikan harga TBS meningkatkan daya beli petani kelapa sawit di Sesayap Hilir dan Betayau.",
+        kbliCode: "KBLI A (01262)",
+        kbliDesc: "Sawit • 23.4%",
+        kbli2025: "01262",
+        expenditureCode: "PK-RT Pangan (7.06%)",
+        expenditureDesc: "Net Ekspor CPO",
+        triwulan: "Q4",
+        status: "verified"
+      },
+      {
+        id: 4,
+        date: "05/11/2026",
+        releaseDate: "04/11",
+        source: "Fokus Borneo",
+        sourceClass: "bg-emerald-50 text-emerald-700",
+        title: "Disperindagkop Tana Tidung Gelar Operasi Pasar Murah Sembako Jelang Akhir Tahun di Tideng Pale",
+        summary: "Stabilisasi pasokan beras, minyak goreng, dan gula pasir untuk meredam potensi lonjakan inflasi bahan makanan.",
+        kbliCode: "KBLI G (47111)",
+        kbliDesc: "Perdagangan • 5.1%",
+        kbli2025: "47111",
+        expenditureCode: "PK-RT (Konsumsi)",
+        expenditureDesc: "PK-P Bansos Subsidi",
+        triwulan: "Q4",
+        status: "verified"
+      },
+      {
+        id: 5,
+        date: "04/11/2026",
+        releaseDate: "03/11",
+        source: "Radar Tarakan",
+        sourceClass: "bg-blue-50 text-blue-700",
+        title: "Bupati Ibrahim Ali Resmikan Jembatan Penghubung Antar Desa di Tana Lia, Mudahkan Angkutan Hasil Tani",
+        summary: "Infrastruktur konektivitas menurunkan ongkos angkut komoditas pertanian dan perikanan lokal.",
+        kbliCode: "KBLI F (42101)",
+        kbliDesc: "Konstruksi Jembatan",
+        kbli2025: "42101",
+        expenditureCode: "PMTB Infrastruktur (31.38%)",
+        expenditureDesc: "PK-P Belanja Modal",
+        triwulan: "Q4",
+        status: "verified"
+      }
+    ];
+
+    // Curation candidate pool (Scraped today H-1)
+    const curationCandidates = [
+      {
+        id: 101,
+        source: "Radar Tarakan",
+        title: "Pelabuhan Bebatu Pacu Pengapalan Batubara dan Sawit, Ekspor KTT Naik 14.8%",
+        summary: "Peningkatan frekuensi tongkang curah batubara dan CPO di Terminal Bebatu mendorong lonjakan ekspor triwulanan.",
+        kbli: "KBLI B (05100)",
+        pengeluaran: "Net Ekspor (49.98%)",
+        score: "96% Kecocokan PDRB",
+        recommended: true
+      },
+      {
+        id: 102,
+        source: "Benuanta",
+        title: "Dinas PUPR KTT Percepat Pengaspalan Jalan Poros Sesayap Menuju Pelabuhan Feri",
+        summary: "Belanja modal konstruksi infrastruktur konektivitas untuk mempercepat mobilitas logistik dan orang.",
+        kbli: "KBLI F (42101)",
+        pengeluaran: "PMTB Fisik (31.38%)",
+        score: "89% Kecocokan PDRB",
+        recommended: false
+      },
+      {
+        id: 103,
+        source: "Tribun Kaltara",
+        title: "Pemerintah Siapkan Bantuan Benih dan Pupuk Subsidi untuk 20 Kelompok Tani Betayau",
+        summary: "Stimulus produksi sektor pertanian tanaman pangan untuk menjaga pasokan beras lokal.",
+        kbli: "KBLI A (01111)",
+        pengeluaran: "PK-P Bansos (9.80%)",
+        score: "84% Kecocokan PDRB",
+        recommended: false
+      }
+    ];
+
+    // Sample KBLI 2020 ↔ 2025 data (from PDF)
+    const kbliData = [
+      { c20: "05100", d20: "Pertambangan Batubara", c25: "05101", d25: "Penambangan Batubara", st: "1 to 1 Mapping" },
+      { c20: "01262", d20: "Perkebunan Buah Kelapa Sawit", c25: "01262", d25: "Perkebunan Buah Kelapa Sawit", st: "Tetap" },
+      { c20: "41011", d20: "Konstruksi Gedung Tempat Tinggal", c25: "41011", d25: "Konstruksi Gedung Tempat Tinggal", st: "Tetap" },
+      { c20: "84111", d20: "Administrasi Pemerintahan Umum", c25: "84111", d25: "Administrasi Pemerintahan Umum", st: "Tetap" },
+      { c20: "47111", d20: "Perdagangan Eceran Berbagai Barang (Supermarket/Minimarket)", c25: "47111", d25: "Perdagangan Eceran Utama Makanan/Minuman", st: "Refined 2025" }
+    ];
+
+    let currentRole = 'admin';
+
+    // Switch View Tabs
+    function switchView(viewName) {
+      document.querySelectorAll('.view-panel').forEach(p => p.classList.add('hidden'));
+      document.querySelectorAll('.nav-link').forEach(btn => {
+        btn.classList.remove('bg-muse-card', 'shadow-muse-nav', 'text-muse-heading', 'font-bold', 'border');
+        btn.classList.add('text-muse-body');
+        const iconContainer = btn.querySelector('div');
+        if (iconContainer) {
+          iconContainer.className = "w-8 h-8 rounded-lg bg-slate-100 text-muse-heading flex items-center justify-center";
+        }
+      });
+
+      const activeView = document.getElementById(`view-${viewName}`);
+      const activeNav = document.getElementById(`nav-${viewName}`);
+      if (activeView) activeView.classList.remove('hidden');
+      if (activeNav) {
+        activeNav.classList.add('bg-muse-card', 'shadow-muse-nav', 'text-muse-heading', 'font-bold', 'border');
+        activeNav.classList.remove('text-muse-body');
+        const iconContainer = activeNav.querySelector('div');
+        if (iconContainer) {
+          iconContainer.className = "w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center shadow-muse-glow";
+        }
+      }
+
+      // Update breadcrumb
+      const titles = {
+        overview: "One Day One News",
+        curation: "Meja Kurasi Berita H-1",
+        ledger: "Buku Kerja Sheet 6503",
+        scrapers: "Radar 4 Portal Kaltara",
+        kbli: "Konversi KBLI 2020 ↔ 2025"
+      };
+      document.getElementById('active-breadcrumb').innerText = titles[viewName] || "ODON";
+      document.getElementById('page-title').innerText = titles[viewName] ? `${titles[viewName]} (BPS 65.04)` : "Monitoring Fenomena Ekonomi Harian";
+    }
+
+    // Role switcher
+    function setRole(role) {
+      currentRole = role;
+      const adminBtn = document.getElementById('role-admin-btn');
+      const publicBtn = document.getElementById('role-public-btn');
+      if (role === 'admin') {
+        adminBtn.className = "px-2.5 py-1 rounded-md bg-white shadow-xs text-muse-heading font-bold transition-all";
+        publicBtn.className = "px-2.5 py-1 rounded-md text-muse-muted hover:text-muse-heading font-medium transition-all";
+      } else {
+        publicBtn.className = "px-2.5 py-1 rounded-md bg-white shadow-xs text-muse-heading font-bold transition-all";
+        adminBtn.className = "px-2.5 py-1 rounded-md text-muse-muted hover:text-muse-heading font-medium transition-all";
+      }
+      renderTables();
+    }
+
+    // Render tables
+    function renderTables() {
+      const overviewTbody = document.getElementById('table-overview-body');
+      const ledgerTbody = document.getElementById('table-ledger-body');
+      
+      const rowsHtml = odonData.map(item => `
+        <tr class="hover:bg-slate-50 transition-colors">
+          <td class="py-3.5 px-4 text-center font-mono font-bold text-muse-heading">${item.id}</td>
+          <td class="py-3.5 px-4 font-mono font-semibold text-muse-heading">
+            ${item.date}
+            <span class="block text-[10px] text-muse-muted font-sans font-normal">Rilis: ${item.releaseDate}</span>
+          </td>
+          <td class="py-3.5 px-4">
+            <span class="px-2 py-0.5 rounded font-bold text-[11px] ${item.sourceClass}">${item.source}</span>
+          </td>
+          <td class="py-3.5 px-6">
+            <a href="#" class="font-bold text-muse-heading hover:text-blue-600 transition-colors leading-snug block">
+              ${item.title}
+            </a>
+            <p class="text-[11px] text-muse-muted mt-1 line-clamp-2">
+              ${item.summary}
+            </p>
+          </td>
+          <td class="py-3.5 px-4">
+            <span class="px-2 py-0.5 rounded-full bg-slate-100 text-muse-heading font-semibold text-[11px] block w-fit mb-1">
+              ${item.kbliCode}
+            </span>
+            <span class="text-[10px] text-muse-muted">${item.kbliDesc}</span>
+          </td>
+          <td class="py-3.5 px-4">
+            <span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 font-semibold text-[11px] block w-fit mb-1">
+              ${item.expenditureCode}
+            </span>
+            <span class="text-[10px] text-muse-muted">${item.expenditureDesc}</span>
+          </td>
+          <td class="py-3.5 px-4 text-center">
+            ${currentRole === 'admin' 
+              ? `<button onclick="openEditModal(${item.id})" class="p-1 rounded-md hover:bg-slate-200 text-muse-heading transition-colors" title="Koreksi Klasifikasi">
+                  <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+                </button>`
+              : `<span class="text-[10px] text-emerald-600 font-bold">Terverifikasi</span>`
+            }
+          </td>
+        </tr>
+      `).join('');
+
+      if (overviewTbody) overviewTbody.innerHTML = rowsHtml;
+      if (ledgerTbody) ledgerTbody.innerHTML = rowsHtml;
+      lucide.createIcons();
+    }
+
+    // Render Curation Cards
+    function renderCurationCards() {
+      const container = document.getElementById('curation-cards-container');
+      if (!container) return;
+      container.innerHTML = curationCandidates.map(c => `
+        <div class="bg-muse-card rounded-2xl p-5 shadow-muse-card border ${c.recommended ? 'border-blue-300 ring-2 ring-blue-500/20' : 'border-muse-border'} flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between pb-2 border-b border-muse-border">
+              <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-blue-50 text-blue-700">${c.source}</span>
+              ${c.recommended ? '<span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold">Rekomendasi Utama</span>' : ''}
+            </div>
+            <h4 class="font-bold text-muse-heading text-xs sm:text-sm mt-3 leading-snug">${c.title}</h4>
+            <p class="text-xs text-muse-muted mt-2 leading-relaxed">${c.summary}</p>
+            
+            <div class="mt-4 pt-3 border-t border-muse-border space-y-1.5 text-xs">
+              <div class="flex justify-between">
+                <span class="text-muse-muted">Mapping KBLI:</span>
+                <span class="font-bold text-muse-heading">${c.kbli}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-muse-muted">Pengeluaran:</span>
+                <span class="font-bold text-muse-heading">${c.pengeluaran}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-muse-muted">Relevansi:</span>
+                <span class="font-bold text-emerald-600 font-mono">${c.score}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-5 pt-3 border-t border-muse-border flex items-center justify-between">
+            <button class="text-xs text-muse-muted hover:text-muse-heading font-medium">Lihat Teks Lengkap</button>
+            <button onclick="approveCuration(${c.id})" class="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-muse-glow transition-all cursor-pointer">
+              Tetapkan Jadi ODON
+            </button>
+          </div>
+        </div>
+      `).join('');
+      lucide.createIcons();
+    }
+
+    // Render KBLI table
+    function renderKbliTable(data = kbliData) {
+      const tbody = document.getElementById('kbli-table-body');
+      if (!tbody) return;
+      tbody.innerHTML = data.map(k => `
+        <tr class="hover:bg-slate-50">
+          <td class="py-2.5 px-4 font-mono font-bold text-blue-600">${k.c20}</td>
+          <td class="py-2.5 px-4 text-muse-heading font-medium">${k.d20}</td>
+          <td class="py-2.5 px-4 font-mono font-bold text-emerald-600">${k.c25}</td>
+          <td class="py-2.5 px-4 text-muse-heading font-medium">${k.d25}</td>
+          <td class="py-2.5 px-4 text-muse-muted">${k.st}</td>
+        </tr>
+      `).join('');
+    }
+
+    // KBLI Search
+    function searchKbli(q) {
+      const lower = q.toLowerCase();
+      const filtered = kbliData.filter(k => k.c20.includes(lower) || k.d20.toLowerCase().includes(lower) || k.c25.includes(lower) || k.d25.toLowerCase().includes(lower));
+      renderKbliTable(filtered);
+    }
+
+    // Modal controls
+    function toggleModal(id) {
+      const el = document.getElementById(id);
+      if (el) el.classList.toggle('hidden');
+    }
+
+    function toggleTechStackModal() {
+      toggleModal('modal-techstack');
+    }
+
+    function openEditModal(id) {
+      const item = odonData.find(x => x.id === id) || odonData[0];
+      document.getElementById('modal-edit-title').innerText = item.title;
+      toggleModal('modal-edit');
+    }
+
+    function updateKbli2025Mapping(val) {
+      const map = {
+        "05100": "05101 (Penambangan Batubara)",
+        "01262": "01262 (Perkebunan Kelapa Sawit)",
+        "41011": "41011 (Konstruksi Gedung)",
+        "84111": "84111 (Administrasi Pemda)",
+        "47111": "47111 (Perdagangan Eceran)"
+      };
+      document.getElementById('modal-edit-kbli2025').value = map[val] || val;
+    }
+
+    function saveCurationModal() {
+      toggleModal('modal-edit');
+      alert('Data klasifikasi berhasil diperbarui dan disinkronkan ke Buku Kerja Sheet 6503!');
+    }
+
+    function approveCuration(id) {
+      alert(`Berita berhasil disetujui sebagai ODON Hari Ini dan dicatat ke Google Sheet 6503!`);
+      switchView('overview');
+    }
+
+    function triggerManualScraper() {
+      alert('Menjalankan scraping harian H-1 ke 4 portal Kaltara (Radar Tarakan, Benuanta, Fokus Borneo, Tribun Kaltara)... Selesai: 54 berita masuk antrean!');
+    }
+
+    function exportSheetExcel() {
+      alert('Mengunduh file ODON_6503_Tana_Tidung_2026.xlsx sesuai format standar BPS...');
+    }
+
+    function applyFilters() {
+      alert('Memfilter data buku kerja berdasarkan pilihan kriteria...');
+    }
+
+    function handleSearch(q) {
+      // Global search filter handler
+    }
+
+    // Initialize on load
+    document.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+      renderTables();
+      renderCurationCards();
+      renderKbliTable();
+    });
+  </script>
+</body>
+</html>

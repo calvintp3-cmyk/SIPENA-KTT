@@ -23,8 +23,22 @@ export const sourceMediaEnum = pgEnum("source_media_enum", [
   "radar_tarakan",
   "tribun_kaltara",
   "benuanta",
+  "fokus_borneo",
   "antara_kaltara",
   "national_media",
+]);
+
+export const odonStatusEnum = pgEnum("odon_status_enum", [
+  "draft",
+  "pending_curation",
+  "verified",
+  "archived",
+]);
+
+export const proposalStatusEnum = pgEnum("proposal_status_enum", [
+  "pending",
+  "accepted",
+  "rejected",
 ]);
 
 export const phenomenonStatusEnum = pgEnum("phenomenon_status_enum", [
@@ -250,6 +264,157 @@ export const auditLogsRelations = relations(auditLogs, ({ one }) => ({
   user: one(users, {
     fields: [auditLogs.userId],
     references: [users.id],
+  }),
+}));
+
+// ==========================================
+// 7. ODON ENTRIES (One Day One News - BPS 6504 Sheet Master)
+// ==========================================
+
+export const odonEntries = pgTable(
+  "odon_entries",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    articleId: uuid("article_id").references(() => articles.id, { onDelete: "set null" }),
+
+    // Tanggal H-1 Rilis Berita (Format Buku Kerja Sheet 6503)
+    entryDate: timestamp("entry_date", { withTimezone: true }).notNull(),
+    publishedDate: timestamp("published_date", { withTimezone: true }).notNull(),
+
+    // Sumber & Metadata
+    sourceMedia: sourceMediaEnum("source_media").notNull(),
+    sourceUrl: text("source_url").notNull(),
+    title: text("title").notNull(),
+
+    // Ringkasan Fenomena Ekonomi Resmi (Sintesis AI & Catatan Nerwilis)
+    economicPhenomenonSummary: text("economic_phenomenon_summary").notNull(),
+
+    // Temporal
+    quarter: quarterEnum("quarter").notNull(),
+    year: smallint("year").notNull(),
+
+    // Status Alur Kerja
+    status: odonStatusEnum("status").default("draft").notNull(),
+    curatorNotes: text("curator_notes"),
+
+    // Audit Verifikasi BPS
+    verifiedBy: uuid("verified_by").references(() => users.id, { onDelete: "set null" }),
+    verifiedAt: timestamp("verified_at", { withTimezone: true }),
+
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => ({
+    entryDateIdx: index("odon_entries_date_idx").on(table.entryDate),
+    quarterYearIdx: index("odon_entries_quarter_year_idx").on(table.year, table.quarter),
+    statusIdx: index("odon_entries_status_idx").on(table.status),
+  })
+);
+
+// ==========================================
+// 8. ODON CLASSIFICATIONS (Dual-Pillar Balance: KBLI & Pengeluaran)
+// ==========================================
+
+export const odonClassifications = pgTable(
+  "odon_classifications",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    odonId: uuid("odon_id")
+      .notNull()
+      .references(() => odonEntries.id, { onDelete: "cascade" }),
+
+    // Sisi Lapangan Usaha (KBLI)
+    kbliCategory: kbliCategoryEnum("kbli_category").notNull(),
+    kbliCode2020: varchar("kbli_code_2020", { length: 10 }), // e.g. "05100"
+    kbliTitle2020: varchar("kbli_title_2020", { length: 255 }), // e.g. "Pertambangan Batubara"
+    kbliCode2025: varchar("kbli_code_2025", { length: 10 }), // e.g. "05101"
+    kbliTitle2025: varchar("kbli_title_2025", { length: 255 }), // e.g. "Penambangan Batubara"
+    pdrbWeight: real("pdrb_weight"), // Bobot PDRB Tana Tidung 2025 (e.g. 0.3780)
+
+    // Sisi Pengeluaran
+    expenditureComponent: expenditureComponentEnum("expenditure_component").notNull(),
+    expenditureWeight: real("expenditure_weight"), // Bobot komponen pengeluaran (e.g. 0.4998)
+
+    // Arah & Dampak Transmisi
+    impactType: impactTypeEnum("impact_type").default("positif").notNull(),
+    impactNarrative: text("impact_narrative"),
+
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => ({
+    odonIdIdx: index("odon_classifications_odon_id_idx").on(table.odonId),
+    kbliIdx: index("odon_classifications_kbli_idx").on(table.kbliCategory),
+    expenditureIdx: index("odon_classifications_expenditure_idx").on(table.expenditureComponent),
+  })
+);
+
+// ==========================================
+// 9. KBLI 2020 ↔ 2025 CONVERSIONS (Crosswalk Resmi BPS RI)
+// ==========================================
+
+export const kbliConversions = pgTable(
+  "kbli_conversions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    code2020: varchar("code_2020", { length: 10 }).notNull(),
+    title2020: text("title_2020").notNull(),
+    code2025: varchar("code_2025", { length: 10 }).notNull(),
+    title2025: text("title_2025").notNull(),
+    lampiranRef: varchar("lampiran_ref", { length: 50 }).default("BPS0000").notNull(),
+    conversionType: varchar("conversion_type", { length: 50 }).default("1_to_1"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => ({
+    code2020Idx: index("kbli_conv_code_2020_idx").on(table.code2020),
+    code2025Idx: index("kbli_conv_code_2025_idx").on(table.code2025),
+  })
+);
+
+// ==========================================
+// 10. ARTICLE PROPOSALS (Crowdsourced / Non-Admin Submissions)
+// ==========================================
+
+export const articleProposals = pgTable(
+  "article_proposals",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    url: text("url").notNull(),
+    title: text("title"),
+    submitterName: varchar("submitter_name", { length: 255 }).default("Masyarakat / OPD").notNull(),
+    submitterAgency: varchar("submitter_agency", { length: 255 }),
+    submitterEmail: varchar("submitter_email", { length: 255 }),
+    economicNotes: text("economic_notes"),
+    status: proposalStatusEnum("status").default("pending").notNull(),
+    reviewedBy: uuid("reviewed_by").references(() => users.id, { onDelete: "set null" }),
+    reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => ({
+    statusIdx: index("proposals_status_idx").on(table.status),
+    createdAtIdx: index("proposals_created_at_idx").on(table.createdAt),
+  })
+);
+
+// ==========================================
+// 11. ODON RELATIONS
+// ==========================================
+
+export const odonEntriesRelations = relations(odonEntries, ({ one, many }) => ({
+  article: one(articles, {
+    fields: [odonEntries.articleId],
+    references: [articles.id],
+  }),
+  verifier: one(users, {
+    fields: [odonEntries.verifiedBy],
+    references: [users.id],
+  }),
+  classifications: many(odonClassifications),
+}));
+
+export const odonClassificationsRelations = relations(odonClassifications, ({ one }) => ({
+  entry: one(odonEntries, {
+    fields: [odonClassifications.odonId],
+    references: [odonEntries.id],
   }),
 }));
 
