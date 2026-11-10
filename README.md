@@ -22,6 +22,35 @@ Seluruh arsitektur, spesifikasi produk, skema basis data, dan sistem desain dido
 
 ---
 
+## 🛠️ Full-Stack Agent Skills Matrix (`.agents/skills/`)
+
+Untuk menjamin webapp ini dibangun hingga standar *enterprise-grade* dan siap pakai oleh seluruh staf BPS Tana Tidung, repositori ini dilengkapi 29 skill terstandarisasi:
+
+1. **Backend & Architecture**:
+   - `nextjs-app-router-patterns`: Pola Server Components, streaming, dan Server Actions aman.
+   - `tactical-ddd`: Pemodelan domain neraca ekonomi wilayah (PDRB Lapangan Usaha & Pengeluaran).
+   - `api-and-interface-design`: Desain kontrak API REST/JSON yang stabil dan konsisten.
+2. **Database & SQL Performance**:
+   - `postgresql-table-design`: Desain skema PostgreSQL 16 3NF, kunci komposit, indeks FK, dan tipe data eksak.
+   - `sql-optimization-patterns`: Eliminasi N+1 query, optimasi EXPLAIN ANALYZE, dan indexing strategis.
+3. **Security, Auth & Government Audit**:
+   - `security-and-hardening`: Pertahanan OWASP Top 10, sanitasi input, mitigasi prompt injection, dan rate limiting.
+   - `auth-implementation-patterns`: RBAC BPS (Admin, Editor/Analis, Viewer), session token aman, dan proteksi rute.
+   - `signed-audit-trails`: Jejak audit forensik terhadap persetujuan/penolakan data fenomena.
+   - `secrets-management`: Tata kelola kunci API Google Gemini dan rahasia webhook cron.
+4. **Testing & Web Automation**:
+   - `test-driven-development` & `e2e-testing-patterns`: Pengujian unit Drizzle ORM, validasi Zod, dan API route.
+   - `playwright-skill`: Otomasi scraping headless untuk portal berita lokal berbasis JavaScript dinamis.
+5. **Reliability, Workflow & Observability**:
+   - `error-handling-patterns` & `debugging-and-error-recovery`: Penanganan kegagalan scraping & ekstraksi AI tanpa *crash*.
+   - `observability-and-instrumentation`: Pemantauan log, cron heartbeat, dan health check server Biznet GIO.
+   - `planning-and-task-breakdown`: Metodologi pemecahan fitur ke langkah-langkah implementasi terukur.
+   - `code-review-and-quality` & `web-quality-audit`: Audit multi-dimensi sebelum rilis produksi.
+6. **UI/UX & Anti-Slop Frontend**:
+   - `antislop-ui`, `antislop-core`, `antislop-code`, `impeccable`, `taste-skill`, `ui-ux-pro-max`, `design-system`, `stitch-shadcn-ui`, `stitch-react-components`, `react-best-practices`.
+
+---
+
 ## 🎨 UI/UX Interactive Prototype
 
 Desain UI/UX telah didesain ulang agar **tidak "AI sleek"**, ergonomis untuk sesi kerja analis yang panjang, dan mencerminkan identitas resmi BPS:
@@ -36,7 +65,7 @@ Desain UI/UX telah didesain ulang agar **tidak "AI sleek"**, ergonomis untuk ses
 ```text
 f:\18 - SIPENA KTT\
 ├── .agents/
-│   └── skills/                   # 14 Skill agentik terkurasi (UI/UX, Anti-Slop, Taste, Stitch, Engineering)
+│   └── skills/                   # 29 Skill terkurasi (UI/UX, Backend, PostgreSQL, Security, Testing, Workflow)
 ├── design/
 │   ├── redesign-preview.html     # Prototipe interaktif UI/UX lengkap (HTML/Tailwind/Lucide)
 │   └── stitch-mvp/               # Desain awal dari Google Stitch (HTML & screen captures)
