@@ -3,6 +3,22 @@ import { SESSION_COOKIE_NAME, verifySessionToken } from "@/lib/session-token";
 
 const PUBLIC_PATHS = new Set(["/login", "/favicon.ico", "/robots.txt"]);
 
+function buildPublicOriginUrl(path: string, request: NextRequest): URL {
+  const forwardedHost = request.headers.get("x-forwarded-host");
+  const hostHeader = request.headers.get("host");
+  const rawHost = (forwardedHost ?? hostHeader ?? "").split(",")[0]?.trim();
+  const rawProto = (request.headers.get("x-forwarded-proto") ?? "")
+    .split(",")[0]
+    ?.trim()
+    .toLowerCase();
+  const proto = rawProto === "https" || rawProto === "http" ? rawProto : "http";
+
+  if (rawHost && /^[a-z0-9.-]+(:\d+)?$/i.test(rawHost)) {
+    return new URL(path, `${proto}://${rawHost}`);
+  }
+  return new URL(path, request.url);
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -18,8 +34,7 @@ export async function middleware(request: NextRequest) {
   const user = await verifySessionToken(token);
 
   if (!user) {
-    const loginUrl = new URL("/login", request.url);
-    return NextResponse.redirect(loginUrl);
+    return NextResponse.redirect(buildPublicOriginUrl("/login", request));
   }
 
   return NextResponse.next();
@@ -28,4 +43,3 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 };
-
