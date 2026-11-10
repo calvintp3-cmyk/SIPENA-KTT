@@ -97,11 +97,15 @@ openssl rand -hex 32
 Jadwal berikut mengeksekusi penarikan berita pukul **05:00 WITA** (`21:00 UTC` hari sebelumnya) dan ekstraksi Gemini Flash pukul **05:30 WITA** (`21:30 UTC`):
 
 ```cron
-# SIPENA-KTT — Scraping Berita Kaltara & Nasional (05:00 WITA / 21:00 UTC)
-0 21 * * * cd /var/www/sipena-ktt/current && /usr/bin/env NODE_ENV=production /usr/bin/npm run cron:ingest >> /var/log/sipena/ingest.log 2>&1
+# Server time zone note: sesuaikan jam dengan timezone host VPS (`timedatectl`).
+# Pada host WIB (+0700): 04:00 WIB = 05:00 WITA, 04:30 WIB = 05:30 WITA.
+# Pada host UTC (+0000): 21:00 UTC = 05:00 WITA, 21:30 UTC = 05:30 WITA.
 
-# SIPENA-KTT — Ekstraksi AI Taksonomi KBLI & Pengeluaran (05:30 WITA / 21:30 UTC)
-30 21 * * * cd /var/www/sipena-ktt/current && /usr/bin/env NODE_ENV=production /usr/bin/npm run cron:extract >> /var/log/sipena/extract.log 2>&1
+# SIPENA-KTT — Scraping Berita Kaltara & Nasional (05:00 WITA pada host WIB)
+0 4 * * * cd /var/www/sipena-ktt/current && /usr/bin/env NODE_ENV=production /usr/bin/npm run cron:ingest >> /var/log/sipena/ingest.log 2>&1
+
+# SIPENA-KTT — Ekstraksi AI Taksonomi KBLI & Pengeluaran (05:30 WITA pada host WIB)
+30 4 * * * cd /var/www/sipena-ktt/current && /usr/bin/env NODE_ENV=production /usr/bin/npm run cron:extract >> /var/log/sipena/extract.log 2>&1
 ```
 
 ### Pemecahan Masalah Cron & Log

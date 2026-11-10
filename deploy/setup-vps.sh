@@ -33,8 +33,8 @@ echo "[1/6] Ensuring log directory exists ($LOG_DIR)..."
 sudo mkdir -p "$LOG_DIR"
 sudo chown -R "$USER":"$USER" "$LOG_DIR"
 
-echo "[2/6] Installing Node dependencies cleanly..."
-npm ci
+echo "[2/6] Installing Node dependencies (including build/migration tools)..."
+npm ci --include=dev
 
 echo "[3/6] Running PostgreSQL schema migrations (sipena_ktt)..."
 npm run db:migrate
