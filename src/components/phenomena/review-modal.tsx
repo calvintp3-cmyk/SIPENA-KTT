@@ -246,11 +246,11 @@ function InspectionWorkbenchContent({
       className={`flex flex-col bg-[var(--bg-surface)] ${
         isDialog
           ? "h-full"
-          : "saas-card overflow-hidden rounded-2xl max-h-[calc(100vh-6rem)]"
+          : "saas-card max-h-[calc(100vh-5.5rem)] overflow-hidden rounded-2xl"
       }`}
     >
       {/* Top Meta & Headline Header */}
-      <div className="shrink-0 border-b border-[var(--border-hairline)] p-5">
+      <div className="shrink-0 border-b border-[var(--border-hairline)] p-4">
         <div className="flex items-center justify-between gap-2">
           <div className="flex flex-wrap items-center gap-2">
             <StatusBadge status={phenomenon.status} />
@@ -274,12 +274,12 @@ function InspectionWorkbenchContent({
 
         <h2
           id={isDialog ? "drawer-review-title" : undefined}
-          className="mt-3 text-base font-bold leading-snug tracking-tight text-[var(--text-primary)]"
+          className="mt-2.5 text-[15px] font-bold leading-snug tracking-tight text-[var(--text-primary)]"
         >
           {phenomenon.article.title}
         </h2>
 
-        <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2 text-xs">
+        <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs">
           {externalUrl ? (
             <a
               href={externalUrl}
@@ -305,7 +305,7 @@ function InspectionWorkbenchContent({
         <div
           role="tablist"
           aria-label="Bagian Inspeksi Fenomena"
-          className="-mb-5 mt-4 flex items-center gap-5 border-t border-[var(--border-hairline)] pt-1"
+          className="-mb-4 mt-3 flex items-center gap-5 border-t border-[var(--border-hairline)] pt-0.5"
         >
           <button
             type="button"
@@ -369,7 +369,7 @@ function InspectionWorkbenchContent({
       </div>
 
       {/* Scrollable Tab Body */}
-      <div className="flex-1 space-y-4 overflow-y-auto p-5 text-xs">
+      <div className="flex-1 space-y-3 overflow-y-auto p-4 text-xs">
         {activeSubTab === "classify" && (
           <>
             {!canEdit && (
@@ -381,7 +381,7 @@ function InspectionWorkbenchContent({
             <div>
               <label
                 htmlFor={isDialog ? "dialog-review-summary" : "split-review-summary"}
-                className="mb-1.5 block text-xs font-semibold text-[var(--text-primary)]"
+                className="mb-1 block text-xs font-semibold text-[var(--text-primary)]"
               >
                 Ringkasan Narasi Fenomena (Standar BPS){" "}
                 <span className="text-rose-600" aria-hidden="true">
@@ -391,14 +391,14 @@ function InspectionWorkbenchContent({
               <textarea
                 ref={summaryRef}
                 id={isDialog ? "dialog-review-summary" : "split-review-summary"}
-                rows={3}
+                rows={isDialog ? 3 : 2}
                 disabled={!canEdit}
                 required
                 minLength={10}
                 value={summary}
                 onChange={(e) => setSummary(e.target.value)}
                 onBlur={() => setSummaryTouched(true)}
-                className="input-modern w-full resize-y rounded-xl p-3 text-xs leading-relaxed disabled:opacity-65"
+                className="input-modern w-full resize-y rounded-xl p-2.5 text-xs leading-relaxed disabled:opacity-65"
               />
               {summaryTouched && summaryInvalid && (
                 <p className="mt-1 text-xs font-medium text-rose-700 dark:text-rose-300">
@@ -407,11 +407,11 @@ function InspectionWorkbenchContent({
               )}
             </div>
 
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
               <div>
                 <label
                   htmlFor={isDialog ? "dialog-review-kbli" : "split-review-kbli"}
-                  className="mb-1.5 block text-xs font-semibold text-[var(--text-primary)]"
+                  className="mb-1 block text-xs font-semibold text-[var(--text-primary)]"
                 >
                   Kategori KBLI (17 Sektor)
                 </label>
@@ -422,7 +422,7 @@ function InspectionWorkbenchContent({
                   onChange={(e) =>
                     setKbliCategory(e.target.value as KbliCode | "")
                   }
-                  className="input-modern h-10 w-full rounded-xl px-3 text-xs font-medium disabled:opacity-65"
+                  className="input-modern h-9 w-full rounded-xl px-2.5 text-xs font-medium disabled:opacity-65"
                 >
                   <option value="">-- Belum Terklasifikasi --</option>
                   {KBLI_LIST.map((item) => (
@@ -436,7 +436,7 @@ function InspectionWorkbenchContent({
               <div>
                 <label
                   htmlFor={isDialog ? "dialog-review-subsector" : "split-review-subsector"}
-                  className="mb-1.5 block text-xs font-semibold text-[var(--text-primary)]"
+                  className="mb-1 block text-xs font-semibold text-[var(--text-primary)]"
                 >
                   Rincian Subsektor
                 </label>
@@ -447,16 +447,16 @@ function InspectionWorkbenchContent({
                   value={kbliSubsector}
                   onChange={(e) => setKbliSubsector(e.target.value)}
                   placeholder="Misal: Perkebunan Kelapa Sawit"
-                  className="input-modern h-10 w-full rounded-xl px-3 text-xs placeholder:text-[var(--text-muted)] disabled:opacity-65"
+                  className="input-modern h-9 w-full rounded-xl px-2.5 text-xs placeholder:text-[var(--text-muted)] disabled:opacity-65"
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
               <div>
                 <label
                   htmlFor={isDialog ? "dialog-review-exp" : "split-review-exp"}
-                  className="mb-1.5 block text-xs font-semibold text-[var(--text-primary)]"
+                  className="mb-1 block text-xs font-semibold text-[var(--text-primary)]"
                 >
                   Komponen Pengeluaran
                 </label>
@@ -469,7 +469,7 @@ function InspectionWorkbenchContent({
                       e.target.value as ExpenditureCode | ""
                     )
                   }
-                  className="input-modern h-10 w-full rounded-xl px-3 text-xs font-medium disabled:opacity-65"
+                  className="input-modern h-9 w-full rounded-xl px-2.5 text-xs font-medium disabled:opacity-65"
                 >
                   <option value="">-- Pilih Komponen --</option>
                   {Object.values(EXPENDITURE_COMPONENTS).map((comp) => (
@@ -483,7 +483,7 @@ function InspectionWorkbenchContent({
               <div>
                 <label
                   htmlFor={isDialog ? "dialog-review-impact" : "split-review-impact"}
-                  className="mb-1.5 block text-xs font-semibold text-[var(--text-primary)]"
+                  className="mb-1 block text-xs font-semibold text-[var(--text-primary)]"
                 >
                   Arah Dampak Ekonomi
                 </label>
@@ -494,7 +494,7 @@ function InspectionWorkbenchContent({
                   onChange={(e) =>
                     setImpactType(e.target.value as ImpactDirection)
                   }
-                  className="input-modern h-10 w-full rounded-xl px-3 text-xs font-medium disabled:opacity-65"
+                  className="input-modern h-9 w-full rounded-xl px-2.5 text-xs font-medium disabled:opacity-65"
                 >
                   <option value="positif">Positif (Ekspansi/Tumbuh)</option>
                   <option value="negatif">Negatif (Kontraksi/Inflasi)</option>
@@ -548,7 +548,7 @@ function InspectionWorkbenchContent({
             <div>
               <label
                 htmlFor={isDialog ? "dialog-review-notes" : "split-review-notes"}
-                className="mb-1.5 block text-xs font-semibold text-[var(--text-primary)]"
+                className="mb-1 block text-xs font-semibold text-[var(--text-primary)]"
               >
                 Catatan Verifikator BPS (Opsional)
               </label>
@@ -559,7 +559,7 @@ function InspectionWorkbenchContent({
                 value={reviewerNotes}
                 onChange={(e) => setReviewerNotes(e.target.value)}
                 placeholder="Contoh: Terkonfirmasi data SP2D BPKAD Q1 2025"
-                className="input-modern h-10 w-full rounded-xl px-3 text-xs placeholder:text-[var(--text-muted)] disabled:opacity-65"
+                className="input-modern h-9 w-full rounded-xl px-2.5 text-xs placeholder:text-[var(--text-muted)] disabled:opacity-65"
               />
             </div>
           </>
@@ -637,7 +637,7 @@ function InspectionWorkbenchContent({
 
       {/* Sticky Verification Action Footer */}
       {canEdit ? (
-        <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-t border-[var(--border-hairline)] bg-[var(--bg-canvas)]/70 px-5 py-3.5">
+        <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-t border-[var(--border-hairline)] bg-[var(--bg-canvas)]/70 px-4 py-3">
           <div className="flex items-center gap-2">
             <button
               type="button"

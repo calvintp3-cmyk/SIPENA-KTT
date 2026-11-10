@@ -333,16 +333,16 @@ export function CurationTable({
   ).length;
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       {/* Interactive 4-Stat Metric Strip (Sapick & BlazeX Style) */}
       <section
         aria-label="Ringkasan Metrik Periode"
-        className="grid grid-cols-2 gap-3.5 lg:grid-cols-4 lg:gap-4"
+        className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4"
       >
         <button
           type="button"
           onClick={() => onChangeFilters({ ...filters, status: "" })}
-          className={`saas-card flex flex-col justify-between rounded-2xl p-5 text-left transition-all hover:border-slate-300 ${
+          className={`saas-card flex flex-col justify-between rounded-2xl p-4 text-left transition-all hover:border-slate-300 ${
             filters.status === "" && activeFilterCount === 0
               ? "ring-2 ring-emerald-600/25 border-emerald-200"
               : ""
@@ -350,14 +350,14 @@ export function CurationTable({
         >
           <div className="flex items-center justify-between gap-2">
             <span className="text-xs font-medium text-[var(--text-secondary)]">
-              Total Fenomena
+              Fenomena Ekonomi
             </span>
             <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[var(--bg-subtle)] text-[var(--text-secondary)]">
               <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
             </span>
           </div>
-          <div className="mt-3 flex items-baseline justify-between gap-2">
-            <span className="text-[26px] font-bold leading-none tracking-[-0.025em] text-[var(--text-primary)] tabular-nums">
+          <div className="mt-2.5 flex items-baseline justify-between gap-2">
+            <span className="text-[24px] font-bold leading-none tracking-[-0.025em] text-[var(--text-primary)] tabular-nums">
               {stats.totalEconomicPhenomena}
             </span>
             <span className="text-xs text-[var(--text-muted)]">
@@ -374,7 +374,7 @@ export function CurationTable({
               status: filters.status === "pending" ? "" : "pending",
             })
           }
-          className={`saas-card flex flex-col justify-between rounded-2xl p-5 text-left transition-all hover:border-amber-300 ${
+          className={`saas-card flex flex-col justify-between rounded-2xl p-4 text-left transition-all hover:border-amber-300 ${
             filters.status === "pending"
               ? "ring-2 ring-amber-500/30 border-amber-300"
               : ""
@@ -388,8 +388,8 @@ export function CurationTable({
               <Clock className="h-3.5 w-3.5" aria-hidden="true" />
             </span>
           </div>
-          <div className="mt-3 flex items-baseline justify-between gap-2">
-            <span className="text-[26px] font-bold leading-none tracking-[-0.025em] text-[var(--text-primary)] tabular-nums">
+          <div className="mt-2.5 flex items-baseline justify-between gap-2">
+            <span className="text-[24px] font-bold leading-none tracking-[-0.025em] text-[var(--text-primary)] tabular-nums">
               {stats.pendingCount}
             </span>
             <span className="rounded-lg border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-800 dark:border-amber-800/70 dark:bg-amber-950/70 dark:text-amber-200">
@@ -406,7 +406,7 @@ export function CurationTable({
               status: filters.status === "approved" ? "" : "approved",
             })
           }
-          className={`saas-card flex flex-col justify-between rounded-2xl p-5 text-left transition-all hover:border-emerald-300 ${
+          className={`saas-card flex flex-col justify-between rounded-2xl p-4 text-left transition-all hover:border-emerald-300 ${
             filters.status === "approved"
               ? "ring-2 ring-emerald-600/30 border-emerald-300"
               : ""
@@ -420,8 +420,8 @@ export function CurationTable({
               <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
             </span>
           </div>
-          <div className="mt-3 flex items-baseline justify-between gap-2">
-            <span className="text-[26px] font-bold leading-none tracking-[-0.025em] text-[var(--text-primary)] tabular-nums">
+          <div className="mt-2.5 flex items-baseline justify-between gap-2">
+            <span className="text-[24px] font-bold leading-none tracking-[-0.025em] text-[var(--text-primary)] tabular-nums">
               {stats.approvedCount}
             </span>
             <span className="rounded-lg border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-800 dark:border-emerald-800/70 dark:bg-emerald-950/70 dark:text-emerald-200">
@@ -433,7 +433,7 @@ export function CurationTable({
         <button
           type="button"
           onClick={clearAllFilters}
-          className="saas-card flex flex-col justify-between rounded-2xl p-5 text-left transition-all hover:border-slate-300"
+          className="saas-card flex flex-col justify-between rounded-2xl p-4 text-left transition-all hover:border-slate-300"
         >
           <div className="flex items-center justify-between gap-2">
             <span className="text-xs font-medium text-[var(--text-secondary)]">
@@ -443,10 +443,10 @@ export function CurationTable({
               <Layers className="h-3.5 w-3.5" aria-hidden="true" />
             </span>
           </div>
-          <div className="mt-3 flex items-baseline justify-between gap-2">
-            <span className="text-[26px] font-bold leading-none tracking-[-0.025em] text-[var(--text-primary)] tabular-nums">
+          <div className="mt-2.5 flex items-baseline justify-between gap-2">
+            <span className="text-[24px] font-bold leading-none tracking-[-0.025em] text-[var(--text-primary)] tabular-nums">
               {coveredKbliCount}
-              <span className="text-base font-medium text-[var(--text-muted)]">
+              <span className="text-sm font-medium text-[var(--text-muted)]">
                 {" "}
                 / 17
               </span>
@@ -458,8 +458,8 @@ export function CurationTable({
 
       {/* Unified Search & Filter Ribbon */}
       <search aria-label="Pencarian dan Penyaringan Fenomena Ekonomi">
-        <div className="saas-card space-y-3 rounded-2xl p-4">
-          <div className="flex flex-col justify-between gap-3 xl:flex-row xl:items-center">
+        <div className="saas-card space-y-2.5 rounded-2xl p-3.5">
+          <div className="flex flex-col justify-between gap-2.5 xl:flex-row xl:items-center">
             {/* Search Input */}
             <div className="relative flex-1 xl:max-w-md">
               <Search
@@ -477,10 +477,10 @@ export function CurationTable({
                 spellCheck={false}
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
-                placeholder="Cari judul, ringkasan, komoditas... (Ctrl+K)"
-                className="input-modern h-10 w-full rounded-xl pl-10 pr-9 text-xs placeholder:text-[var(--text-muted)]"
+                placeholder="Cari judul, ringkasan, komoditas..."
+                className="input-modern h-9 w-full rounded-xl pl-10 pr-10 text-xs placeholder:text-[var(--text-muted)]"
               />
-              {searchInput && (
+              {searchInput ? (
                 <button
                   type="button"
                   onClick={() => setSearchInput("")}
@@ -489,6 +489,13 @@ export function CurationTable({
                 >
                   <X className="h-3.5 w-3.5" aria-hidden="true" />
                 </button>
+              ) : (
+                <kbd
+                  aria-hidden="true"
+                  className="pointer-events-none absolute right-2.5 top-1/2 hidden -translate-y-1/2 rounded border border-[var(--border-subtle)] bg-[var(--bg-subtle)] px-1.5 py-0.5 font-mono text-[10px] text-[var(--text-muted)] sm:inline-block"
+                >
+                  /
+                </kbd>
               )}
             </div>
 
@@ -903,7 +910,7 @@ export function CurationTable({
         {/* Right Column: TellDesk Sticky Inline Inspection & Verification Pane */}
         <aside
           aria-label="Panel Inspeksi dan Verifikasi Fenomena"
-          className="sticky top-20 hidden xl:block"
+          className="sticky top-[76px] hidden xl:block"
         >
           <SplitInspectionPane
             phenomenon={activeItem}

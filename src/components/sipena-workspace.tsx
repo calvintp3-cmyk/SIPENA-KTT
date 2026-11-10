@@ -296,7 +296,7 @@ export function SipenaWorkspace({
       <main
         id="workspace-main"
         tabIndex={-1}
-        className="mx-auto w-full max-w-[1600px] flex-1 px-4 py-6 focus:outline-none sm:px-6 lg:px-8"
+        className="mx-auto w-full max-w-[1600px] flex-1 px-4 py-4 focus:outline-none sm:px-6 sm:py-5 lg:px-8"
       >
         {activeTab === "feed" && (
           <CurationTable

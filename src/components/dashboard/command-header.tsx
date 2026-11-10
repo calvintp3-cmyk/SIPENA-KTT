@@ -303,14 +303,14 @@ export function CommandHeader({
 
   return (
     <header className="sticky top-0 z-30 border-b border-[var(--border-hairline)] bg-[var(--bg-surface)]/95 backdrop-blur-md">
-      <div className="mx-auto flex h-16 max-w-[1600px] items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto flex h-16 max-w-[1600px] items-center justify-between gap-2 px-4 sm:gap-3 sm:px-6 lg:px-8">
         {/* Left: Mobile Trigger + Brand Identity */}
-        <div className="flex min-w-0 items-center gap-3">
+        <div className="flex min-w-0 items-center gap-2 sm:gap-3">
           <button
             type="button"
             onClick={onOpenMobileMenu}
             aria-label="Buka menu navigasi"
-            className="btn-secondary flex h-10 w-10 shrink-0 items-center justify-center rounded-xl lg:hidden"
+            className="btn-secondary flex h-9 w-9 shrink-0 items-center justify-center rounded-xl sm:h-10 sm:w-10 lg:hidden"
           >
             <Menu className="h-5 w-5" aria-hidden="true" />
           </button>
@@ -318,10 +318,11 @@ export function CommandHeader({
           <button
             type="button"
             onClick={() => onSelectTab("feed")}
+            aria-label="SIPENA-KTT, kembali ke Meja Kurasi"
             className="flex min-w-0 items-center gap-2.5 text-left"
           >
             <BrandMark size="sm" tone="emerald" />
-            <div className="flex items-center gap-2">
+            <div className="hidden items-center gap-2 min-[460px]:flex">
               <span className="truncate text-[15px] font-bold tracking-tight text-[var(--text-primary)]">
                 SIPENA-KTT
               </span>
@@ -420,7 +421,7 @@ export function CommandHeader({
           </div>
 
           {/* Period Quarter & Year Selector */}
-          <div className="flex h-9 items-center gap-1 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-2.5 text-xs shadow-xs">
+          <div className="flex h-9 items-center gap-1 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-2 text-xs shadow-xs sm:px-2.5">
             <label htmlFor="period-quarter" className="visually-hidden">
               Triwulan Kompilasi
             </label>
@@ -479,7 +480,7 @@ export function CommandHeader({
               onClick={onTriggerCrawl}
               disabled={isCrawling}
               title="Tarik berita ekonomi Kaltara terbaru dan ekstraksi otomatis"
-              className="btn-obsidian inline-flex h-9 items-center gap-1.5 rounded-xl px-3.5 text-xs font-semibold disabled:opacity-60"
+              className="btn-obsidian inline-flex h-9 w-9 items-center justify-center gap-1.5 rounded-xl px-0 text-xs font-semibold disabled:opacity-60 sm:w-auto sm:px-3.5"
             >
               <RefreshCw
                 className={`h-3.5 w-3.5 ${isCrawling ? "animate-spin" : ""}`}
