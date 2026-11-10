@@ -142,3 +142,4 @@ To eliminate context switching, clicking any phenomenon opens a **side-by-side s
 - **`A`**: Approve currently focused phenomenon in drawer.
 - **`R`**: Reject currently focused phenomenon in drawer.
 - All interactive controls have visible focus rings (`focus-visible:ring-2 focus-visible:ring-sky-500`).
+

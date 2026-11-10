@@ -118,3 +118,4 @@ npm run cron:extract
 - **Institusi**: Badan Pusat Statistik (BPS) Kabupaten Tana Tidung
 - **Fungsi**: Neraca Wilayah dan Analisis Statistik (Nerwilis)
 - **Repositori**: [calvintp3-cmyk/SIPENA-KTT](https://github.com/calvintp3-cmyk/SIPENA-KTT)
+
