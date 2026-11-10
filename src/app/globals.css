@@ -1,0 +1,18 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-inter: 'Inter', sans-serif;
+  --font-geist: 'Geist', sans-serif;
+  --font-jetbrains: 'JetBrains Mono', monospace;
+}
+
+body {
+  color: #F8FAFC;
+  background: #080C14;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
