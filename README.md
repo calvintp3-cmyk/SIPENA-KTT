@@ -19,6 +19,7 @@ Seluruh arsitektur, spesifikasi produk, skema basis data, dan sistem desain dido
 - [**`docs/architecture.md`**](./docs/architecture.md) — *System Architecture*: Tech stack, alur cron harian pada Ubuntu 24.04 (Biznet GIO VPS), reverse proxy Nginx, dan kontrak rute API.
 - [**`docs/schema.md`**](./docs/schema.md) — *Database Schema*: Tabel Drizzle ORM (`articles`, `economic_phenomena`, `users`, `audit_logs`), PostgreSQL native enums, dan validasi Zod untuk ekstraksi Gemini.
 - [**`docs/design-system.md`**](./docs/design-system.md) — *UI/UX Design System*: Standar visual anti-slop, ergonomi kontras slate BPS, tipografi tabular monospace (`tnum`), dan pedoman penelaahan berdampingan (*side-by-side drawer*).
+- [**`docs/deployment-guide.md`**](./docs/deployment-guide.md) — *Deployment Guide*: Panduan isolasi PM2 (`port 3002`), PostgreSQL produksi, Nginx reverse proxy, dan jadwal Crontab Ubuntu 24.04.
 
 ---
 
@@ -65,7 +66,10 @@ Desain UI/UX telah didesain ulang agar **tidak "AI sleek"**, ergonomis untuk ses
 ```text
 f:\18 - SIPENA KTT\
 ├── .agents/
-│   └── skills/                   # 29 Skill terkurasi (UI/UX, Backend, PostgreSQL, Security, Testing, Workflow)
+│   └── skills/                   # Skill terkurasi (UI/UX, Backend, PostgreSQL, Security, Testing, Workflow)
+├── deploy/
+│   ├── nginx-sipena.conf         # Template Nginx reverse proxy (port 3002 + auth rate-limit)
+│   └── setup-vps.sh              # Skrip deployment idempoten Ubuntu 24.04 (PM2 + migrasi DB)
 ├── design/
 │   ├── redesign-preview.html     # Prototipe interaktif UI/UX lengkap (HTML/Tailwind/Lucide)
 │   └── stitch-mvp/               # Desain awal dari Google Stitch (HTML & screen captures)
@@ -73,18 +77,25 @@ f:\18 - SIPENA KTT\
 │   ├── prd.md                    # Product Requirements Document
 │   ├── architecture.md           # Arsitektur sistem & alur background job VPS
 │   ├── schema.md                 # Skema Drizzle ORM & skema Zod LLM
-│   └── design-system.md          # Spesifikasi sistem desain & ergonomi UI
+│   ├── design-system.md          # Spesifikasi sistem desain & ergonomi UI
+│   └── deployment-guide.md       # Panduan operasional VPS, PM2, Nginx, dan Crontab
+├── scripts/
+│   ├── cron-ingest.ts            # CLI penarikan berita Kaltara & nasional
+│   └── cron-extract.ts           # CLI ekstraksi fenomena ekonomi via Gemini Flash
 ├── src/
-│   ├── app/                      # Next.js 15 App Router (Layout & Pages)
-│   ├── db/                       # Drizzle ORM client, pooling & schema
-│   │   ├── index.ts
-│   │   └── schema.ts
-│   └── types/                    # Domain types & validasi Zod
-│       └── index.ts
+│   ├── app/                      # Next.js 15 App Router (Login, Workspace, API routes, Health)
+│   ├── components/               # Dashboard, CurationTable (@tanstack/react-table), ReviewModal, ExportCenter
+│   ├── db/                       # Drizzle ORM client, queries, migrations, & seed BPS KTT
+│   ├── lib/                      # Auth HMAC, Rate limiter, Audit trail, Scrapers, AI Extractor, ExcelJS
+│   ├── middleware.ts             # Edge auth gate (redirect /login + security boundaries)
+│   └── types/                    # Domain types, serialized client DTOs & validasi Zod
+├── tests/                        # Unit & contract test suite Vitest (23 tests)
 ├── drizzle.config.ts             # Konfigurasi migrasi Drizzle Kit
-├── next.config.ts                # Konfigurasi Next.js
+├── ecosystem.config.cjs          # Konfigurasi PM2 (sipena-ktt @ 127.0.0.1:3002)
+├── next.config.ts                # Output standalone & HTTP security headers
 ├── package.json                  # Dependensi proyek & npm scripts
 ├── tsconfig.json                 # Konfigurasi TypeScript
+├── vitest.config.mts             # Konfigurasi pengujian Vitest
 └── README.md
 ```
 
@@ -121,8 +132,16 @@ npm run db:migrate
 npm run db:studio
 ```
 
-### 4. Menjalankan Server Pengembangan
+### 4. Menjalankan Uji Otomatis & Server Pengembangan
 ```bash
+# Uji unit & kontrak skema (Vitest)
+npm test
+
+# Validasi tipe TypeScript & build produksi standalone
+npm run typecheck
+npm run build
+
+# Server pengembangan
 npm run dev
 ```
 Akses aplikasi melalui peramban di `http://localhost:3000`.

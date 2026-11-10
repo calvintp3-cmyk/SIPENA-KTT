@@ -181,7 +181,8 @@ export const economicPhenomena = pgTable(
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => ({
-    articleIdIdx: index("phenomena_article_id_idx").on(table.articleId),
+    articleIdIdx: uniqueIndex("phenomena_article_id_idx").on(table.articleId),
+    verifiedByIdx: index("phenomena_verified_by_idx").on(table.verifiedBy),
     statusIdx: index("phenomena_status_idx").on(table.status),
     quarterYearIdx: index("phenomena_quarter_year_idx").on(table.year, table.quarter),
     kbliIdx: index("phenomena_kbli_idx").on(table.kbliCategory),

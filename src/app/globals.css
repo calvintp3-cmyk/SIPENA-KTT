@@ -2,18 +2,67 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --font-inter: 'Inter', sans-serif;
-  --font-geist: 'Geist', sans-serif;
-  --font-jetbrains: 'JetBrains Mono', monospace;
+@layer base {
+  body {
+    color: #F8FAFC;
+    background-color: #080C14;
+    caret-color: #38BDF8;
+  }
+
+  :where(a:any-link, button, input, select, textarea, summary, [tabindex="0"]):focus-visible {
+    outline: 2px solid #38BDF8;
+    outline-offset: 2px;
+  }
+
+  a {
+    text-underline-offset: 3px;
+  }
 }
 
-body {
-  color: #F8FAFC;
-  background: #080C14;
-}
-
+/* Tabular figures for KPI metrics, currency, percentages, and table columns */
 .tabular-nums {
   font-variant-numeric: tabular-nums;
 }
 
+/* Accessible visually-hidden utility with focus-within opt-out for skip links */
+.visually-hidden:where(:not(:focus-within, :active)) {
+  position: absolute !important;
+  clip-path: inset(50%) !important;
+  overflow: hidden !important;
+  width: 1px !important;
+  height: 1px !important;
+  margin: -1px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  white-space: nowrap !important;
+}
+
+/* Native top-layer modal scroll containment (modern-web-guidance) */
+dialog:modal {
+  overscroll-behavior: contain;
+}
+
+dialog::backdrop {
+  background: rgba(2, 6, 23, 0.78);
+  overflow: hidden;
+  overscroll-behavior: contain;
+}
+
+/* Subtle institutional scrollbar matching Deep Slate Canvas */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+::-webkit-scrollbar-track {
+  background: #080C14;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1E293B;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}

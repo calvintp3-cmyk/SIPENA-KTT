@@ -23,17 +23,22 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# Environment files
+# Environment & SSH Key files
 .env
 .env*.local
 .env.development
 .env.test
 .env.production
+*ssh*key*
+*.pem
+*.key
+*.ppk
 
 # Vercel & Editor
 .vercel
 .idea
 .vscode
+*.tsbuildinfo
 *.suo
 *.ntvs*
 *.njsproj

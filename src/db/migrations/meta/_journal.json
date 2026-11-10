@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1794285167583,
+      "tag": "0000_lively_starbolt",
+      "breakpoints": true
+    }
+  ]
+}

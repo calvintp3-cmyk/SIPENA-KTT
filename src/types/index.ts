@@ -91,17 +91,17 @@ export const phenomenonQuerySchema = z.object({
   expenditure_component: z.enum([
     "PK_RT", "PK_LNPRT", "PK_P", "PMTB", "PI", "EKSPOR", "IMPOR", "TIDAK_RELEVAN"
   ]).optional(),
-  search: z.string().trim().optional(),
+  search: z.string().trim().max(200).optional(),
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20)
 });
 
 export const updatePhenomenonSchema = z.object({
-  summary: z.string().min(10).optional(),
+  summary: z.string().min(10).max(5000).optional(),
   kbli_category: z.enum([
     "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M_N", "O", "P", "Q", "R_S_T_U"
   ]).nullable().optional(),
-  kbli_subsector: z.string().nullable().optional(),
+  kbli_subsector: z.string().max(150).nullable().optional(),
   expenditure_component: z.enum([
     "PK_RT", "PK_LNPRT", "PK_P", "PMTB", "PI", "EKSPOR", "IMPOR", "TIDAK_RELEVAN"
   ]).nullable().optional(),
