@@ -179,9 +179,13 @@ const INITIAL_CANDIDATES: CurationCandidate[] = [
   },
 ];
 
-export function MuseWorkspace() {
+interface MuseWorkspaceProps {
+  initialRole?: "admin" | "public";
+}
+
+export function MuseWorkspace({ initialRole = "public" }: MuseWorkspaceProps) {
   const [currentTab, setCurrentTab] = useState<MuseViewTab>("overview");
-  const [userRole, setUserRole] = useState<"admin" | "public">("admin");
+  const [userRole, setUserRole] = useState<"admin" | "public">(initialRole);
   const [spotlight, setSpotlight] = useState<OdonSpotlightData>(INITIAL_SPOTLIGHT);
   const [ledgerRows, setLedgerRows] = useState<OdonLedgerRow[]>(INITIAL_LEDGER_ROWS);
   const [candidates, setCandidates] = useState<CurationCandidate[]>(INITIAL_CANDIDATES);

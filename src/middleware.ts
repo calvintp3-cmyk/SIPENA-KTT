@@ -1,7 +1,13 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { SESSION_COOKIE_NAME, verifySessionToken } from "@/lib/session-token";
 
-const PUBLIC_PATHS = new Set(["/login", "/favicon.ico", "/icon.svg", "/robots.txt"]);
+const PUBLIC_PATHS = new Set([
+  "/login",
+  "/odon",
+  "/favicon.ico",
+  "/icon.svg",
+  "/robots.txt",
+]);
 
 function buildPublicOriginUrl(path: string, request: NextRequest): URL {
   const forwardedHost = request.headers.get("x-forwarded-host");
