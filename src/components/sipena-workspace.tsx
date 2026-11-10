@@ -27,12 +27,17 @@ import type {
 interface SipenaWorkspaceProps {
   user: AuthenticatedUser;
   initialStats: DashboardStatsPayload;
+  initialTab?: WorkspaceTab;
 }
 
-export function SipenaWorkspace({ user, initialStats }: SipenaWorkspaceProps) {
+export function SipenaWorkspace({
+  user,
+  initialStats,
+  initialTab = "feed",
+}: SipenaWorkspaceProps) {
   const router = useRouter();
 
-  const [activeTab, setActiveTab] = useState<WorkspaceTab>("feed");
+  const [activeTab, setActiveTab] = useState<WorkspaceTab>(initialTab);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const [quarter, setQuarter] = useState<PeriodQuarter>(initialStats.quarter);
@@ -155,6 +160,20 @@ export function SipenaWorkspace({ user, initialStats }: SipenaWorkspaceProps) {
     router.refresh();
   }
 
+  const selectTab = useCallback((nextTab: WorkspaceTab) => {
+    setActiveTab(nextTab);
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (nextTab === "feed") {
+        params.delete("tab");
+      } else {
+        params.set("tab", nextTab);
+      }
+      const query = params.toString();
+      window.history.replaceState(null, "", query ? `?${query}` : window.location.pathname);
+    }
+  }, []);
+
   function jumpToFeedWithFilter(patch: Partial<TableFilterState>) {
     setFilters({
       status: patch.status ?? "",
@@ -163,7 +182,7 @@ export function SipenaWorkspace({ user, initialStats }: SipenaWorkspaceProps) {
       source: patch.source ?? "",
       search: patch.search ?? "",
     });
-    setActiveTab("feed");
+    selectTab("feed");
   }
 
   const handleDataMutated = useCallback(
@@ -180,13 +199,20 @@ export function SipenaWorkspace({ user, initialStats }: SipenaWorkspaceProps) {
 
   const handleInspectFromOverview = useCallback(
     (item: SerializedPhenomenon) => {
+      setFilters({
+        status: item.status === "pending" ? "pending" : "",
+        kbliCategory: "",
+        expenditureComponent: "",
+        source: "",
+        search: "",
+      });
       setPreselectedFeedItem(item);
-      setActiveTab("feed");
+      selectTab("feed");
       if (typeof window !== "undefined" && window.innerWidth < 1280) {
         setMobileReviewItem(item);
       }
     },
-    []
+    [selectTab]
   );
 
   return (
@@ -202,7 +228,7 @@ export function SipenaWorkspace({ user, initialStats }: SipenaWorkspaceProps) {
       <CommandHeader
         user={user}
         activeTab={activeTab}
-        onSelectTab={setActiveTab}
+        onSelectTab={selectTab}
         onOpenMobileMenu={() => setMobileMenuOpen(true)}
         quarter={quarter}
         year={year}
@@ -221,7 +247,7 @@ export function SipenaWorkspace({ user, initialStats }: SipenaWorkspaceProps) {
         onClose={() => setMobileMenuOpen(false)}
         user={user}
         activeTab={activeTab}
-        onSelectTab={setActiveTab}
+        onSelectTab={selectTab}
         quarter={quarter}
         year={year}
         pendingCount={stats.pendingCount}
@@ -293,14 +319,14 @@ export function SipenaWorkspace({ user, initialStats }: SipenaWorkspaceProps) {
             onInspectPending={() =>
               jumpToFeedWithFilter({ status: "pending" })
             }
-            onOpenExport={() => setActiveTab("export")}
+            onOpenExport={() => selectTab("export")}
             onSelectKbli={(code: KbliCode) =>
               jumpToFeedWithFilter({ kbliCategory: code })
             }
             onSelectExpenditure={(code: ExpenditureCode) =>
               jumpToFeedWithFilter({ expenditureComponent: code })
             }
-            onOpenFeed={() => setActiveTab("feed")}
+            onOpenFeed={() => selectTab("feed")}
             onOpenReview={handleInspectFromOverview}
           />
         )}

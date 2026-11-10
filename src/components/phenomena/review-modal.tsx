@@ -52,6 +52,7 @@ function InspectionWorkbenchContent({
 }: InspectionPaneSharedProps) {
   const canEdit = user.role === "admin" || user.role === "editor";
   const summaryRef = useRef<HTMLTextAreaElement>(null);
+  const pendingFocusSummaryRef = useRef(false);
 
   const [activeSubTab, setActiveSubTab] = useState<InspectionTab>("classify");
   const [summary, setSummary] = useState("");
@@ -108,6 +109,13 @@ function InspectionWorkbenchContent({
     };
   }, [phenomenon]);
 
+  useEffect(() => {
+    if (activeSubTab === "classify" && pendingFocusSummaryRef.current) {
+      pendingFocusSummaryRef.current = false;
+      summaryRef.current?.focus();
+    }
+  }, [activeSubTab]);
+
   const summaryInvalid = summary.trim().length < 10;
 
   const submitVerification = useCallback(
@@ -115,8 +123,12 @@ function InspectionWorkbenchContent({
       if (!phenomenon || !canEdit || isSaving) return;
       if (summary.trim().length < 10) {
         setSummaryTouched(true);
-        setActiveSubTab("classify");
-        summaryRef.current?.focus();
+        if (activeSubTab !== "classify") {
+          pendingFocusSummaryRef.current = true;
+          setActiveSubTab("classify");
+        } else {
+          summaryRef.current?.focus();
+        }
         onError("Ringkasan narasi minimal 10 karakter sesuai standar BPS.");
         return;
       }
@@ -166,6 +178,7 @@ function InspectionWorkbenchContent({
       canEdit,
       isSaving,
       summary,
+      activeSubTab,
       kbliCategory,
       kbliSubsector,
       expenditureComponent,

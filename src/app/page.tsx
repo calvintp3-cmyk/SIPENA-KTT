@@ -5,16 +5,18 @@ import { economicPhenomena } from "@/db/schema";
 import { getDashboardStats } from "@/db/queries";
 import { getCurrentSessionUser } from "@/lib/auth";
 import { getQuarterFromDate } from "@/lib/utils";
+import type { WorkspaceTab } from "@/components/dashboard/command-header";
 import { SipenaWorkspace } from "@/components/sipena-workspace";
 import type { DashboardStatsPayload, PeriodQuarter } from "@/types/client";
 
 export const dynamic = "force-dynamic";
 
 interface PageProps {
-  searchParams: Promise<{ quarter?: string; year?: string }>;
+  searchParams: Promise<{ quarter?: string; year?: string; tab?: string }>;
 }
 
 const VALID_QUARTERS = new Set(["Q1", "Q2", "Q3", "Q4"]);
+const VALID_TABS = new Set<WorkspaceTab>(["feed", "overview", "export"]);
 
 export default async function HomePage({ searchParams }: PageProps) {
   const user = await getCurrentSessionUser();
@@ -23,6 +25,10 @@ export default async function HomePage({ searchParams }: PageProps) {
   }
 
   const sp = await searchParams;
+  const initialTab: WorkspaceTab =
+    sp.tab && VALID_TABS.has(sp.tab as WorkspaceTab)
+      ? (sp.tab as WorkspaceTab)
+      : "feed";
   let quarter: PeriodQuarter | undefined =
     sp.quarter && VALID_QUARTERS.has(sp.quarter)
       ? (sp.quarter as PeriodQuarter)
@@ -91,6 +97,7 @@ export default async function HomePage({ searchParams }: PageProps) {
         role: user.role,
       }}
       initialStats={serializedStats}
+      initialTab={initialTab}
     />
   );
 }

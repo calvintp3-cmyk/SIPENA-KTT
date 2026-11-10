@@ -187,6 +187,12 @@ export function CurationTable({
         return;
       }
 
+      if (e.key === "/" && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+        return;
+      }
+
       if (rows.length === 0) return;
 
       const currentIndex = activeItem

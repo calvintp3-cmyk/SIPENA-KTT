@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import {
   BarChart3,
+  Clock,
   FileSpreadsheet,
   Inbox,
   LogOut,
@@ -12,6 +13,7 @@ import {
 } from "lucide-react";
 import { BrandMark } from "@/components/brand-mark";
 import { ThemeToggle } from "@/components/theme-provider";
+import { formatIndonesianDate, formatShortDate } from "@/lib/utils";
 import type { AuthenticatedUser, PeriodQuarter } from "@/types/client";
 
 export type WorkspaceTab = "feed" | "overview" | "export";
@@ -266,6 +268,8 @@ export function CommandHeader({
   year,
   onChangePeriod,
   pendingCount,
+  unprocessedArticlesCount,
+  latestIngestedAt,
   isCrawling,
   onTriggerCrawl,
   onLogout,
@@ -388,8 +392,33 @@ export function CommandHeader({
           })}
         </nav>
 
-        {/* Right: Period Selector, Primary Obsidian CTA, Theme Switch & Operator Profile */}
+        {/* Right: Scraper Telemetry, Period Selector, Obsidian CTA, Theme Switch & Operator Profile */}
         <div className="flex items-center gap-2">
+          {/* Scraper Freshness Telemetry Pill */}
+          <div
+            title={
+              latestIngestedAt
+                ? `Penarikan berita terakhir: ${formatIndonesianDate(latestIngestedAt)}${unprocessedArticlesCount > 0 ? ` (${unprocessedArticlesCount} artikel antre diproses AI)` : ""}`
+                : "Belum ada catatan penarikan berita"
+            }
+            className="hidden h-9 items-center gap-1.5 rounded-xl border border-[var(--border-hairline)] bg-[var(--bg-canvas)] px-2.5 text-[11px] font-medium text-[var(--text-muted)] xl:inline-flex"
+          >
+            <Clock
+              className="h-3.5 w-3.5 shrink-0 text-emerald-700 dark:text-emerald-400"
+              aria-hidden="true"
+            />
+            <span className="tabular-nums">
+              {latestIngestedAt
+                ? formatShortDate(latestIngestedAt)
+                : "Belum ditarik"}
+            </span>
+            {unprocessedArticlesCount > 0 && (
+              <span className="rounded-md border border-amber-200 bg-amber-50 px-1.5 py-0.5 text-[10px] font-semibold text-amber-800 tabular-nums dark:border-amber-800/70 dark:bg-amber-950/70 dark:text-amber-200">
+                +{unprocessedArticlesCount} AI
+              </span>
+            )}
+          </div>
+
           {/* Period Quarter & Year Selector */}
           <div className="flex h-9 items-center gap-1 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-2.5 text-xs shadow-xs">
             <label htmlFor="period-quarter" className="visually-hidden">

@@ -78,9 +78,11 @@ export function KbliBadge({
     <div className="inline-flex max-w-full flex-wrap items-center gap-1.5">
       <span
         title={meta.fullName}
-        className={`inline-flex max-w-full items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-medium ${meta.badgeColor}`}
+        className="inline-flex max-w-full items-center gap-1.5 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-subtle)] px-2.5 py-1 text-xs font-medium text-[var(--text-secondary)]"
       >
-        <span className="font-mono text-[11px] font-bold">{shortCode}</span>
+        <span className="font-mono text-[11px] font-bold text-[var(--text-primary)]">
+          {shortCode}
+        </span>
         <span aria-hidden="true" className="opacity-40">
           &middot;
         </span>
