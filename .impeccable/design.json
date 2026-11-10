@@ -1,0 +1,150 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-10T14:10:00+08:00",
+  "title": "Design System: SIPENA-KTT",
+  "extensions": {
+    "colorMeta": {
+      "primary": {
+        "role": "primary",
+        "displayName": "BPS Cobalt Accent",
+        "canonical": "#0369a1",
+        "tonalRamp": ["#e0f2fe", "#bae6fd", "#7dd3fc", "#38bdf8", "#0284c7", "#0369a1", "#075985", "#0c4a6e"]
+      },
+      "maritime-navy": {
+        "role": "secondary",
+        "displayName": "Sovereign Maritime Navy",
+        "canonical": "#0a2540",
+        "tonalRamp": ["#eff6ff", "#dbeafe", "#93c5fd", "#3b82f6", "#1d4ed8", "#164470", "#0a2540", "#06182c"]
+      },
+      "canvas-light": {
+        "role": "neutral",
+        "displayName": "Daylight Archival Paper",
+        "canonical": "#f4f6fa",
+        "tonalRamp": ["#ffffff", "#f8fafc", "#f4f6fa", "#dce3ec", "#94a3b8", "#526075", "#334155", "#0f172a"]
+      },
+      "canvas-dark": {
+        "role": "neutral",
+        "displayName": "Obsidian Overtime Slate",
+        "canonical": "#080d16",
+        "tonalRamp": ["#f8fafc", "#cbd5e1", "#94a3b8", "#475569", "#1e293b", "#101827", "#0b1220", "#080d16"]
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display Metric", "purpose": "Focal period backlog and status counters." },
+      "headline": { "displayName": "View Header", "purpose": "Sticky command header h1 and drawer article headlines." },
+      "title": { "displayName": "Module Title", "purpose": "Question-led distribution panel and queue headers." },
+      "body": { "displayName": "Prose & Summary", "purpose": "Indonesian economic summaries and 65ch article reader copy." },
+      "label": { "displayName": "Tabular Telemetry", "purpose": "KBLI indices, timestamps, numeric metrics, and shortcuts." }
+    },
+    "shadows": [
+      {
+        "name": "card-seam",
+        "value": "0 1px 2px rgba(15, 23, 42, 0.04)",
+        "purpose": "Subtle grounding under analytical white panels in Light Mode."
+      },
+      {
+        "name": "elevated-overlay",
+        "value": "0 8px 24px -4px rgba(15, 23, 42, 0.1), 0 2px 6px rgba(15, 23, 42, 0.05)",
+        "purpose": "Reserved for review slide-over dialogs, skip links, and sign-in containers."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-standard",
+        "value": "cubic-bezier(0.2, 0, 0, 1)",
+        "purpose": "State transitions on hover, focus, and sidebar collapse (disabled under reduced-motion)."
+      }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Action Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Primary verification and Excel export CTA with >= 4.5:1 white text contrast.",
+      "html": "<button type=\"button\" class=\"ds-btn-primary\">Setujui &amp; Simpan</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 38px; padding: 8px 16px; border: none; border-radius: 8px; background: #0369a1; color: #ffffff; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: 12px; font-weight: 600; cursor: pointer; transition: background-color 0.15s ease; } .ds-btn-primary:hover { background: #075985; } .ds-btn-primary:focus-visible { outline: 2px solid #0284c7; outline-offset: 2px; }"
+    },
+    {
+      "name": "Secondary Surface Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Secondary filter reset, theme switch, and scraper refresh control.",
+      "html": "<button type=\"button\" class=\"ds-btn-secondary\">Reset Filter</button>",
+      "css": ".ds-btn-secondary { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 36px; padding: 8px 14px; border: 1px solid #94a3b8; border-radius: 8px; background: #ffffff; color: #0f172a; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: 12px; font-weight: 600; cursor: pointer; transition: background-color 0.15s ease; } .ds-btn-secondary:hover { background: #eff4f9; } .ds-btn-secondary:focus-visible { outline: 2px solid #0284c7; outline-offset: 2px; }"
+    },
+    {
+      "name": "Status Chip (Non-Color Cue)",
+      "kind": "chip",
+      "refersTo": "card-surface",
+      "description": "Accessible status badge pairing geometric check glyph with label text.",
+      "html": "<span class=\"ds-status-approved\"><svg width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" aria-hidden=\"true\"><polyline points=\"20 6 9 17 4 12\"/></svg> Disetujui</span>",
+      "css": ".ds-status-approved { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 6px; border: 1px solid #6ee7b7; background: #ecfdf5; color: #065f46; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: 11px; font-weight: 600; }"
+    },
+    {
+      "name": "Workstation Text Input",
+      "kind": "input",
+      "refersTo": "input-field",
+      "description": "Crisp search and verifier note field shifting from subtle recessed ground to pure surface on focus.",
+      "html": "<input type=\"search\" class=\"ds-input\" placeholder=\"Cari fenomena ekonomi...\" />",
+      "css": ".ds-input { width: 100%; min-height: 40px; padding: 8px 12px; border: 1px solid #94a3b8; border-radius: 8px; background: #f8fafc; color: #0f172a; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: 12px; } .ds-input:focus { background: #ffffff; border-color: #0284c7; outline: 2px solid #0284c7; outline-offset: 1px; }"
+    },
+    {
+      "name": "Sidebar Navigation Item",
+      "kind": "nav",
+      "refersTo": "button-primary",
+      "description": "Active Sovereign Maritime Navy left rail tab with clear foreground hierarchy.",
+      "html": "<div class=\"ds-nav-rail\"><button type=\"button\" class=\"ds-nav-item ds-nav-active\" aria-current=\"page\">Ringkasan Eksekutif</button><button type=\"button\" class=\"ds-nav-item\">Tabel Kurasi <span class=\"ds-nav-count\">12</span></button></div>",
+      "css": ".ds-nav-rail { background: #0a2540; padding: 12px; border-radius: 10px; width: 240px; display: flex; flex-direction: column; gap: 4px; } .ds-nav-item { display: flex; align-items: center; justify-content: space-between; min-height: 40px; padding: 8px 12px; border: none; border-radius: 8px; background: transparent; color: #b6c7da; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: 12px; font-weight: 500; text-align: left; cursor: pointer; } .ds-nav-item:hover { background: #133558; color: #ffffff; } .ds-nav-active { background: #164470; color: #ffffff; font-weight: 600; } .ds-nav-count { padding: 2px 6px; border-radius: 4px; background: rgba(251, 191, 36, 0.2); color: #fde68a; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "Civic Statistical Ledger",
+    "overview": "SIPENA-KTT serves Tim Neraca Wilayah dan Analisis Statistik (Nerwilis) at BPS Kabupaten Tana Tidung (65.04). The visual system mirrors an authoritative regional accounts dossier: crisp daylight surfaces led by cool paper neutrals, anchored along the left edge by a sovereign BPS Maritime Navy navigation spine, and engineered to shift cleanly into calibrated obsidian slate when toggled to Dark Mode for evening reconciliation sessions.",
+    "keyCharacteristics": [
+      "Daylight-first #f4f6fa canvas and pure #ffffff analytical paper paired with persistent #0a2540 navigation rail (#080d16 and #101827 in Dark Mode).",
+      "Two-font statistical discipline: Plus Jakarta Sans for Indonesian journalism prose and decisions, strictly paired with JetBrains Mono (tabular-nums) for KBLI indices, timestamps, counts, and numerical metrics.",
+      "Top-layer <dialog> review architecture placing raw media citations opposite human-in-the-loop taxonomy controls with keyboard triage (J/K, Enter, [A], [R], Esc).",
+      "Complete WCAG 2.1 AA contrast compliance (>= 4.5:1 body text, >= 3:1 structural control outlines) across Light and Dark modes, plus non-color iconography in status badges."
+    ],
+    "rules": [
+      {
+        "name": "The Cobalt Restraint Rule",
+        "body": "Primary cobalt ink and fills mark interactive triggers, active focus outlines, and drill-down destinations only. Categorical badges keep neutral surfaces paired with compact color index tiles so tabular scanning stays calm.",
+        "section": "colors"
+      },
+      {
+        "name": "The Dual-Theme Parity Rule",
+        "body": "Every semantic surface, input, scrollbar, dialog backdrop, and badge defines verified Light and Dark contrast tokens. Switching sipena-theme never leaves dark-on-dark or pale-on-white artifacts.",
+        "section": "colors"
+      },
+      {
+        "name": "The Earned Monospace Rule",
+        "body": "Monospace lettering appears strictly on identifiers, quantitative counters, timestamps, and keyboard shortcuts. Narrative headings and prose always render in Plus Jakarta Sans.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat-By-Default Rule",
+        "body": "Content tables and distribution panels separate via clean surface contrast and 1px seams. Only top-layer overlays and primary entry cards cast directional shadows.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do validate Contrast (>= 4.5:1 normal text, >= 3:1 borders and UI indicators) and full interactive layout across both Light (sipena-theme=light) and Dark (sipena-theme=dark) modes.",
+      "Do keep narrative copy strictly authentic to BPS Kab. Tana Tidung (65.04) operations with zero em dash characters (U+2014) and real Postgres-backed counts.",
+      "Do maintain visible labels and helpful empty, loading skeleton, error retry, and read-only viewer states on every module."
+    ],
+    "donts": [
+      "Don't apply pill rounding (rounded-full) to buttons, badges, inputs, or cards, or scatter colored border-left accent bars onto cards.",
+      "Don't introduce external font CDN links, unapproved images, AI buzzword copy, or infinite animate-pulse / glowing status dots.",
+      "Don't suppress focus rings or build non-semantic clickable <div> elements instead of native <button> and <a href> controls."
+    ]
+  }
+}
+

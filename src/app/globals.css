@@ -2,20 +2,131 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  color-scheme: light;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+  scrollbar-width: thin;
+  --bg-canvas: #f4f6fa;
+  --bg-surface: #ffffff;
+  --bg-subtle: #f8fafc;
+  --bg-hover: #eff4f9;
+  --bg-rail: #0a2540;
+  --bg-rail-hover: #133558;
+  --bg-rail-active: #164470;
+  --text-rail: #f8fafc;
+  --text-rail-muted: #b6c7da;
+  --border-rail: #1e4266;
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --text-muted: #526075;
+  --border-subtle: #dce3ec;
+  --border-strong: #94a3b8;
+  --accent-primary: #0369a1;
+  --accent-primary-hover: #075985;
+  --accent-text: #0369a1;
+  --accent-soft: #e0f2fe;
+  --accent-soft-border: #7dd3fc;
+  --focus-ring: #0284c7;
+  --backdrop-scrim: rgba(15, 23, 42, 0.48);
+  --shadow-card: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-elevated: 0 8px 24px -4px rgba(15, 23, 42, 0.1), 0 2px 6px rgba(15, 23, 42, 0.05);
+  --scrollbar-track: #eef2f7;
+  --scrollbar-thumb: #c4cfdc;
+  --scrollbar-thumb-hover: #94a3b8;
+}
+
+:root.dark,
+:root:has(> head > meta[name="color-scheme"][content="dark"]) {
+  color-scheme: dark;
+  --bg-canvas: #080d16;
+  --bg-surface: #101827;
+  --bg-subtle: #0c1320;
+  --bg-hover: #172236;
+  --bg-rail: #0b1220;
+  --bg-rail-hover: #142034;
+  --bg-rail-active: #1a2d49;
+  --text-rail: #f1f5f9;
+  --text-rail-muted: #94a3b8;
+  --border-rail: #1e293b;
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+  --border-subtle: #1e293b;
+  --border-strong: #475569;
+  --accent-primary: #0369a1;
+  --accent-primary-hover: #0284c7;
+  --accent-text: #38bdf8;
+  --accent-soft: rgba(56, 189, 248, 0.14);
+  --accent-soft-border: rgba(56, 189, 248, 0.35);
+  --focus-ring: #38bdf8;
+  --backdrop-scrim: rgba(2, 6, 23, 0.78);
+  --shadow-card: 0 1px 2px rgba(2, 6, 23, 0.35);
+  --shadow-elevated: 0 14px 36px rgba(2, 6, 23, 0.55);
+  --scrollbar-track: #080d16;
+  --scrollbar-thumb: #243247;
+  --scrollbar-thumb-hover: #3b4f6e;
+}
+
 @layer base {
-  body {
-    color: #F8FAFC;
-    background-color: #080C14;
-    caret-color: #38BDF8;
+  html {
+    background-color: var(--bg-canvas);
+    color: var(--text-primary);
   }
 
-  :where(a:any-link, button, input, select, textarea, summary, [tabindex="0"]):focus-visible {
-    outline: 2px solid #38BDF8;
+  body {
+    background-color: var(--bg-canvas);
+    color: var(--text-primary);
+    caret-color: var(--focus-ring);
+  }
+
+  /* Interactive pointer and disabled semantics (Antislop R-39) */
+  :where(
+      a[href],
+      button:not(:disabled),
+      summary,
+      select:not(:disabled),
+      input[type="checkbox"]:not(:disabled),
+      input[type="radio"]:not(:disabled),
+      label[for],
+      label:has(> input[type="checkbox"]:not(:disabled)),
+      label:has(> input[type="radio"]:not(:disabled)),
+      [role="button"]:not([aria-disabled="true"]),
+      [role="tab"]:not([aria-disabled="true"]),
+      [role="switch"]:not([aria-disabled="true"])
+    ) {
+    cursor: pointer;
+  }
+
+  :where(button:disabled, select:disabled, input:disabled, textarea:disabled) {
+    cursor: not-allowed;
+  }
+
+  /* Accessible keyboard focus indicator (R-32) */
+  :where(
+      a:any-link,
+      button,
+      input,
+      select,
+      textarea,
+      summary,
+      [tabindex="0"]
+    ):focus-visible {
+    outline: 2px solid var(--focus-ring);
     outline-offset: 2px;
+  }
+
+  /* Defer validation feedback until after interaction (modern-web-guidance) */
+  :where(input, select, textarea):user-invalid {
+    border-color: #e11d48;
   }
 
   a {
     text-underline-offset: 3px;
+  }
+
+  /* Restrict non-text selection strictly to chrome buttons, preserve data copyability */
+  button {
+    user-select: none;
   }
 }
 
@@ -43,26 +154,40 @@ dialog:modal {
 }
 
 dialog::backdrop {
-  background: rgba(2, 6, 23, 0.78);
+  background: var(--backdrop-scrim);
   overflow: hidden;
   overscroll-behavior: contain;
 }
 
-/* Subtle institutional scrollbar matching Deep Slate Canvas */
-::-webkit-scrollbar {
-  width: 7px;
-  height: 7px;
+/* Calm surface-aware scrollbar fallback for browsers without scrollbar-color */
+@supports not (scrollbar-color: auto) {
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--scrollbar-thumb-hover);
+  }
 }
 
-::-webkit-scrollbar-track {
-  background: #080C14;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #1E293B;
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+/* Respect reduced motion preferences strictly (R-39) */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

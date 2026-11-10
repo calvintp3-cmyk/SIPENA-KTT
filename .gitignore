@@ -3,8 +3,17 @@
 /.pnp
 .pnp.js
 
-# Raw skills archive (curated skills are stored in .agents/skills)
+# Raw skills archive & Python cache
 /000 - SKILLS_cleaned
+__pycache__/
+*.py[cod]
+
+# Impeccable runtime state (keep DESIGN.md, PRODUCT.md, .impeccable/design.json)
+.impeccable/review/
+.impeccable/mocks/
+.impeccable/questions/
+.impeccable/critique/*.png
+.impeccable/config.local.json
 
 # Testing
 /coverage

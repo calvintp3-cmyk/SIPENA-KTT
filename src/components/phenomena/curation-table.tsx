@@ -8,6 +8,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import {
+  AlertCircle,
   Check,
   ChevronLeft,
   ChevronRight,
@@ -87,12 +88,10 @@ export function CurationTable({
   const [focusedRowIdx, setFocusedRowIdx] = useState<number>(-1);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  // Sync local search input when parent clears or injects filters
   useEffect(() => {
     setSearchInput(filters.search);
   }, [filters.search]);
 
-  // Debounce search text propagation
   useEffect(() => {
     const timer = setTimeout(() => {
       if (searchInput !== filters.search) {
@@ -103,7 +102,6 @@ export function CurationTable({
     return () => clearTimeout(timer);
   }, [searchInput, filters, onChangeFilters]);
 
-  // Reset page when non-search filters or period change
   const filterSignature = `${quarter}-${year}-${filters.status}-${filters.kbliCategory}-${filters.expenditureComponent}-${filters.source}`;
   useEffect(() => {
     setPage(1);
@@ -153,7 +151,6 @@ export function CurationTable({
     void fetchRows();
   }, [fetchRows, refreshTrigger]);
 
-  // Keyboard shortcuts: Cmd/Ctrl+K to focus search, J/K + Enter to navigate rows
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
@@ -283,33 +280,37 @@ export function CurationTable({
       columnHelper.display({
         id: "select",
         header: () => (
-          <input
-            type="checkbox"
-            aria-label="Pilih semua baris halaman ini"
-            checked={rows.length > 0 && selectedIds.size === rows.length}
-            onChange={toggleSelectAll}
-            disabled={!canEdit || rows.length === 0}
-            className="h-3.5 w-3.5 rounded border-slate-700 bg-slate-900 text-sky-500"
-          />
+          <label className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center sm:min-h-0 sm:min-w-0">
+            <input
+              type="checkbox"
+              aria-label="Pilih semua baris halaman ini"
+              checked={rows.length > 0 && selectedIds.size === rows.length}
+              onChange={toggleSelectAll}
+              disabled={!canEdit || rows.length === 0}
+              className="h-4 w-4 rounded border-[var(--border-strong)] bg-[var(--bg-surface)] accent-[var(--accent-primary)]"
+            />
+          </label>
         ),
         cell: ({ row }) => (
-          <input
-            type="checkbox"
-            aria-label={`Pilih fenomena ${row.original.article.title}`}
-            checked={selectedIds.has(row.original.id)}
-            onChange={() => toggleSelectRow(row.original.id)}
-            disabled={!canEdit}
-            className="h-3.5 w-3.5 rounded border-slate-700 bg-slate-900 text-sky-500"
-          />
+          <label className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center sm:min-h-0 sm:min-w-0">
+            <input
+              type="checkbox"
+              aria-label={`Pilih fenomena ${row.original.article.title}`}
+              checked={selectedIds.has(row.original.id)}
+              onChange={() => toggleSelectRow(row.original.id)}
+              disabled={!canEdit}
+              className="h-4 w-4 rounded border-[var(--border-strong)] bg-[var(--bg-surface)] accent-[var(--accent-primary)]"
+            />
+          </label>
         ),
       }),
       columnHelper.accessor((row) => row.article.publishedDate, {
         id: "source_date",
         header: "Sumber & Tanggal",
         cell: ({ row }) => (
-          <div className="space-y-1 whitespace-nowrap font-mono text-[11px]">
+          <div className="max-w-[114px] space-y-1.5 whitespace-nowrap">
             <SourceMediaLabel source={row.original.article.source} />
-            <div className="text-slate-400 tabular-nums">
+            <div className="font-mono text-[11px] text-[var(--text-muted)] tabular-nums">
               {formatShortDate(row.original.article.publishedDate)}
             </div>
           </div>
@@ -319,22 +320,22 @@ export function CurationTable({
         id: "headline_summary",
         header: "Judul Berita & Ringkasan Ekonomi",
         cell: ({ row }) => (
-          <div className="min-w-[260px] max-w-xl">
+          <div className="min-w-[200px] max-w-[340px]">
             <button
               type="button"
               onClick={() => onOpenReview(row.original)}
-              className="text-left text-[13px] font-semibold leading-snug text-white transition-colors hover:text-sky-300"
+              className="text-left text-[13px] font-semibold leading-snug text-[var(--text-primary)] transition-colors hover:text-[var(--accent-text)]"
             >
               {row.original.article.title}
             </button>
-            <p className="mt-1 line-clamp-2 text-xs leading-snug text-slate-300">
+            <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-[var(--text-secondary)]">
               {row.original.summary}
             </p>
             {row.original.affectedCommodities &&
               row.original.affectedCommodities.length > 0 && (
-                <div className="mt-1 flex flex-wrap items-center gap-1.5 font-mono text-[10px] text-slate-400">
+                <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[11px] text-[var(--text-muted)]">
                   <span>Komoditas:</span>
-                  <span className="text-slate-200">
+                  <span className="font-medium text-[var(--text-primary)]">
                     {row.original.affectedCommodities.join(", ")}
                   </span>
                 </div>
@@ -346,7 +347,7 @@ export function CurationTable({
         id: "kbli",
         header: "Sektor KBLI",
         cell: ({ row }) => (
-          <div className="min-w-[140px]">
+          <div className="w-[152px] max-w-[160px]">
             <KbliBadge
               code={row.original.kbliCategory}
               subsector={row.original.kbliSubsector}
@@ -380,7 +381,7 @@ export function CurationTable({
         id: "actions",
         header: () => <span className="block text-right">Aksi</span>,
         cell: ({ row }) => (
-          <div className="flex items-center justify-end gap-1.5 whitespace-nowrap">
+          <div className="flex items-center justify-end gap-1 whitespace-nowrap">
             {canEdit && row.original.status === "pending" && (
               <>
                 <button
@@ -390,7 +391,7 @@ export function CurationTable({
                   }
                   aria-label={`Setujui cepat ${row.original.article.title}`}
                   title="Setujui cepat"
-                  className="inline-flex h-7 w-7 items-center justify-center rounded border border-emerald-800/70 bg-emerald-950/60 text-emerald-300 transition-colors hover:bg-emerald-900"
+                  className="inline-flex h-11 w-11 items-center justify-center rounded-md border border-emerald-300 bg-emerald-50 text-emerald-800 transition-colors hover:bg-emerald-100 dark:border-emerald-700/80 dark:bg-emerald-950/70 dark:text-emerald-200 dark:hover:bg-emerald-900 sm:h-7 sm:w-7"
                 >
                   <Check className="h-3.5 w-3.5" aria-hidden="true" />
                 </button>
@@ -401,7 +402,7 @@ export function CurationTable({
                   }
                   aria-label={`Tolak cepat ${row.original.article.title}`}
                   title="Tolak (non-ekonomi)"
-                  className="inline-flex h-7 w-7 items-center justify-center rounded border border-rose-800/70 bg-rose-950/60 text-rose-300 transition-colors hover:bg-rose-900"
+                  className="inline-flex h-11 w-11 items-center justify-center rounded-md border border-rose-300 bg-rose-50 text-rose-800 transition-colors hover:bg-rose-100 dark:border-rose-700/80 dark:bg-rose-950/70 dark:text-rose-200 dark:hover:bg-rose-900 sm:h-7 sm:w-7"
                 >
                   <X className="h-3.5 w-3.5" aria-hidden="true" />
                 </button>
@@ -410,7 +411,7 @@ export function CurationTable({
             <button
               type="button"
               onClick={() => onOpenReview(row.original)}
-              className="rounded border border-slate-700 bg-[#0D131F] px-2.5 py-1 text-xs font-medium text-sky-300 transition-colors hover:border-sky-700 hover:bg-[#1A2438]"
+              className="min-h-[44px] rounded-md border border-[var(--border-strong)] bg-[var(--bg-subtle)] px-3.5 py-1 text-xs font-semibold text-[var(--accent-text)] transition-colors hover:bg-[var(--bg-hover)] sm:min-h-[30px] sm:px-2.5"
             >
               {canEdit ? "Telaah" : "Detail"}
             </button>
@@ -435,183 +436,206 @@ export function CurationTable({
     getCoreRowModel: getCoreRowModel(),
   });
 
-  const hasActiveFilters =
-    filters.status !== "" ||
-    filters.kbliCategory !== "" ||
-    filters.expenditureComponent !== "" ||
-    filters.source !== "" ||
-    filters.search.trim() !== "";
+  const activeFilterCount = [
+    filters.status,
+    filters.kbliCategory,
+    filters.expenditureComponent,
+    filters.source,
+    filters.search.trim(),
+  ].filter(Boolean).length;
+
+  function clearAllFilters() {
+    setSearchInput("");
+    onChangeFilters({
+      status: "",
+      kbliCategory: "",
+      expenditureComponent: "",
+      source: "",
+      search: "",
+    });
+  }
 
   return (
     <div className="space-y-4">
-      {/* Multi-Filter Control Bar */}
-      <div className="space-y-3 rounded-lg border border-slate-800 bg-[#131B2B] p-3.5">
-        <div className="flex flex-col justify-between gap-3 md:flex-row md:items-center">
-          {/* Omni-Search Input */}
-          <div className="relative max-w-md flex-1">
-            <Search
-              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
-              aria-hidden="true"
-            />
-            <label htmlFor="curation-search" className="visually-hidden">
-              Cari judul berita, ringkasan ekonomi, atau komoditas
-            </label>
-            <input
-              ref={searchInputRef}
-              id="curation-search"
-              type="search"
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              placeholder="Cari judul berita, sawit, batubara, jalan... (Ctrl+K)"
-              className="w-full rounded border border-slate-700 bg-[#0D131F] py-1.5 pl-9 pr-3 text-xs text-white placeholder-slate-400 focus:border-sky-500 focus:outline-none"
-            />
-          </div>
-
-          {/* Quick Status Buttons */}
-          <div className="flex flex-wrap items-center gap-1.5 font-mono text-xs">
-            <span className="mr-1 text-[11px] text-slate-400">Status:</span>
-            {(
-              [
-                { value: "", label: "Semua" },
-                { value: "pending", label: "Pending" },
-                { value: "approved", label: "Disetujui" },
-                { value: "needs_revision", label: "Perlu Revisi" },
-                { value: "rejected", label: "Ditolak" },
-              ] as const
-            ).map((opt) => {
-              const active = filters.status === opt.value;
-              return (
+      {/* Unified Search & Taxonomy Filter Ribbon */}
+      <search aria-label="Pencarian dan Penyaringan Fenomena Ekonomi">
+        <div className="space-y-3 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4 shadow-card">
+          <div className="flex flex-col justify-between gap-3 xl:flex-row xl:items-center">
+            {/* Omni-Search Input */}
+            <div className="relative flex-1 xl:max-w-md">
+              <Search
+                className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-muted)]"
+                aria-hidden="true"
+              />
+              <label htmlFor="curation-search" className="visually-hidden">
+                Cari judul berita, ringkasan ekonomi, atau komoditas
+              </label>
+              <input
+                ref={searchInputRef}
+                id="curation-search"
+                type="search"
+                autoCorrect="off"
+                spellCheck={false}
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                placeholder="Cari judul, komoditas... (Ctrl+K)"
+                className="min-h-[44px] w-full rounded-lg border border-[var(--border-strong)] bg-[var(--bg-subtle)] py-2 pl-9 pr-12 text-xs text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:bg-[var(--bg-surface)] focus:outline-none sm:min-h-[38px] sm:pr-9"
+              />
+              {searchInput && (
                 <button
-                  key={opt.value || "all"}
                   type="button"
-                  onClick={() =>
-                    onChangeFilters({ ...filters, status: opt.value })
-                  }
-                  aria-pressed={active}
-                  className={`rounded border px-2.5 py-1 text-xs font-medium transition-colors ${
-                    active
-                      ? "border-[#0284C7] bg-[#0284C7] text-white"
-                      : "border-slate-800 bg-[#0D131F] text-slate-300 hover:bg-[#1A2438]"
-                  }`}
+                  onClick={() => setSearchInput("")}
+                  aria-label="Bersihkan kata kunci pencarian"
+                  className="absolute right-0.5 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded text-[var(--text-muted)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] sm:right-2 sm:h-7 sm:w-7"
                 >
-                  {opt.label}
+                  <X className="h-3.5 w-3.5" aria-hidden="true" />
                 </button>
-              );
-            })}
+              )}
+            </div>
+
+            {/* Segmented Status Buttons */}
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="mr-1 text-[11px] font-semibold text-[var(--text-muted)]">
+                Status:
+              </span>
+              {(
+                [
+                  { value: "", label: "Semua" },
+                  { value: "pending", label: "Pending" },
+                  { value: "approved", label: "Disetujui" },
+                  { value: "needs_revision", label: "Perlu Revisi" },
+                  { value: "rejected", label: "Ditolak" },
+                ] as const
+              ).map((opt) => {
+                const active = filters.status === opt.value;
+                return (
+                  <button
+                    key={opt.value || "all"}
+                    type="button"
+                    onClick={() =>
+                      onChangeFilters({ ...filters, status: opt.value })
+                    }
+                    aria-pressed={active}
+                    className={`min-h-[44px] rounded-lg border px-3 py-1 text-xs font-semibold transition-colors sm:min-h-[34px] ${
+                      active
+                        ? "border-[var(--accent-primary)] bg-[var(--accent-primary)] text-white"
+                        : "border-[var(--border-subtle)] bg-[var(--bg-subtle)] text-[var(--text-secondary)] hover:border-[var(--border-strong)] hover:bg-[var(--bg-hover)]"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
-        </div>
 
-        {/* Secondary Taxonomy Dropdowns */}
-        <div className="flex flex-wrap items-center gap-2 border-t border-slate-800 pt-2.5 font-mono text-xs">
-          <label htmlFor="filter-kbli" className="visually-hidden">
-            Filter Sektor KBLI
-          </label>
-          <select
-            id="filter-kbli"
-            value={filters.kbliCategory}
-            onChange={(e) =>
-              onChangeFilters({
-                ...filters,
-                kbliCategory: e.target.value as KbliCode | "",
-              })
-            }
-            className="rounded border border-slate-700 bg-[#0D131F] px-2.5 py-1 text-xs text-slate-200 focus:border-sky-500 focus:outline-none"
-          >
-            <option value="">Semua Sektor KBLI (A-U)</option>
-            {KBLI_LIST.map((item) => (
-              <option key={item.code} value={item.code}>
-                {item.fullName}
-              </option>
-            ))}
-          </select>
-
-          <label htmlFor="filter-expenditure" className="visually-hidden">
-            Filter Komponen Pengeluaran
-          </label>
-          <select
-            id="filter-expenditure"
-            value={filters.expenditureComponent}
-            onChange={(e) =>
-              onChangeFilters({
-                ...filters,
-                expenditureComponent: e.target.value as ExpenditureCode | "",
-              })
-            }
-            className="rounded border border-slate-700 bg-[#0D131F] px-2.5 py-1 text-xs text-slate-200 focus:border-sky-500 focus:outline-none"
-          >
-            <option value="">Semua Komponen Pengeluaran</option>
-            {Object.values(EXPENDITURE_COMPONENTS).map((comp) => (
-              <option key={comp.code} value={comp.code}>
-                {comp.label} - {comp.fullName}
-              </option>
-            ))}
-          </select>
-
-          <label htmlFor="filter-source" className="visually-hidden">
-            Filter Sumber Media
-          </label>
-          <select
-            id="filter-source"
-            value={filters.source}
-            onChange={(e) =>
-              onChangeFilters({
-                ...filters,
-                source: e.target.value as SourceMediaCode | "",
-              })
-            }
-            className="rounded border border-slate-700 bg-[#0D131F] px-2.5 py-1 text-xs text-slate-200 focus:border-sky-500 focus:outline-none"
-          >
-            <option value="">Semua Sumber Media</option>
-            {Object.entries(SOURCE_MEDIA_LABELS).map(([key, label]) => (
-              <option key={key} value={key}>
-                {label}
-              </option>
-            ))}
-          </select>
-
-          {hasActiveFilters && (
-            <button
-              type="button"
-              onClick={() => {
-                setSearchInput("");
+          {/* Secondary Taxonomy Selects & Count Summary */}
+          <div className="flex flex-wrap items-center gap-2 border-t border-[var(--border-subtle)] pt-3 text-xs">
+            <label htmlFor="filter-kbli" className="visually-hidden">
+              Filter Sektor KBLI
+            </label>
+            <select
+              id="filter-kbli"
+              value={filters.kbliCategory}
+              onChange={(e) =>
                 onChangeFilters({
-                  status: "",
-                  kbliCategory: "",
-                  expenditureComponent: "",
-                  source: "",
-                  search: "",
-                });
-              }}
-              className="inline-flex items-center gap-1 rounded border border-slate-700 bg-[#0D131F] px-2 py-1 text-[11px] text-slate-300 hover:bg-[#1A2438] hover:text-white"
+                  ...filters,
+                  kbliCategory: e.target.value as KbliCode | "",
+                })
+              }
+              className="min-h-[44px] max-w-full rounded-lg border border-[var(--border-strong)] bg-[var(--bg-subtle)] px-3 py-1.5 text-xs font-medium text-[var(--text-primary)] focus:outline-none sm:min-h-[38px]"
             >
-              <RotateCcw className="h-3 w-3" aria-hidden="true" />
-              <span>Reset Filter</span>
-            </button>
-          )}
+              <option value="">Semua Sektor KBLI (A-U)</option>
+              {KBLI_LIST.map((item) => (
+                <option key={item.code} value={item.code}>
+                  {item.fullName}
+                </option>
+              ))}
+            </select>
 
-          <div className="ml-auto text-[11px] text-slate-400 tabular-nums">
-            Total: <strong className="text-slate-100">{pagination.total}</strong>{" "}
-            entri
+            <label htmlFor="filter-expenditure" className="visually-hidden">
+              Filter Komponen Pengeluaran
+            </label>
+            <select
+              id="filter-expenditure"
+              value={filters.expenditureComponent}
+              onChange={(e) =>
+                onChangeFilters({
+                  ...filters,
+                  expenditureComponent: e.target.value as ExpenditureCode | "",
+                })
+              }
+              className="min-h-[44px] max-w-full rounded-lg border border-[var(--border-strong)] bg-[var(--bg-subtle)] px-3 py-1.5 text-xs font-medium text-[var(--text-primary)] focus:outline-none sm:min-h-[38px]"
+            >
+              <option value="">Semua Komponen Pengeluaran</option>
+              {Object.values(EXPENDITURE_COMPONENTS).map((comp) => (
+                <option key={comp.code} value={comp.code}>
+                  {comp.label} - {comp.fullName}
+                </option>
+              ))}
+            </select>
+
+            <label htmlFor="filter-source" className="visually-hidden">
+              Filter Sumber Media
+            </label>
+            <select
+              id="filter-source"
+              value={filters.source}
+              onChange={(e) =>
+                onChangeFilters({
+                  ...filters,
+                  source: e.target.value as SourceMediaCode | "",
+                })
+              }
+              className="min-h-[44px] max-w-full rounded-lg border border-[var(--border-strong)] bg-[var(--bg-subtle)] px-3 py-1.5 text-xs font-medium text-[var(--text-primary)] focus:outline-none sm:min-h-[38px]"
+            >
+              <option value="">Semua Sumber Media</option>
+              {Object.entries(SOURCE_MEDIA_LABELS).map(([key, label]) => (
+                <option key={key} value={key}>
+                  {label}
+                </option>
+              ))}
+            </select>
+
+            {activeFilterCount > 0 && (
+              <button
+                type="button"
+                onClick={clearAllFilters}
+                className="inline-flex min-h-[44px] items-center gap-1.5 rounded-lg border border-[var(--border-strong)] bg-[var(--bg-surface)] px-3 py-1.5 text-xs font-semibold text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] sm:min-h-[38px]"
+              >
+                <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
+                <span>Reset Filter ({activeFilterCount})</span>
+              </button>
+            )}
+
+            <div className="ml-auto font-mono text-xs text-[var(--text-muted)] tabular-nums">
+              Total:{" "}
+              <strong className="text-[var(--text-primary)]">
+                {pagination.total}
+              </strong>{" "}
+              entri
+            </div>
           </div>
         </div>
-      </div>
+      </search>
 
-      {/* Batch Action Bar (appears when checkboxes checked) */}
+      {/* Contextual Batch Verification Bar */}
       {canEdit && selectedIds.size > 0 && (
         <div
           role="region"
           aria-label="Aksi verifikasi massal"
-          className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-sky-700/80 bg-sky-950/50 px-4 py-2.5 text-xs"
+          className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[var(--accent-soft-border)] bg-[var(--accent-soft)] px-4 py-3 text-xs shadow-card"
         >
-          <span className="font-mono text-sky-200 tabular-nums">
-            <strong>{selectedIds.size}</strong> fenomena dipilih untuk verifikasi massal
+          <span className="font-medium text-[var(--text-primary)] tabular-nums">
+            <strong className="font-mono">{selectedIds.size}</strong> fenomena
+            dipilih untuk verifikasi massal
           </span>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
               disabled={isBatchSubmitting}
               onClick={() => void handleBatchAction("approved")}
-              className="inline-flex items-center gap-1.5 rounded bg-emerald-600 px-3 py-1.5 font-medium text-white hover:bg-emerald-500 disabled:opacity-60"
+              className="inline-flex min-h-[44px] items-center gap-1.5 rounded-lg bg-emerald-700 px-3.5 py-1.5 font-semibold text-white transition-colors hover:bg-emerald-800 disabled:opacity-60 sm:min-h-[36px]"
             >
               <Check className="h-3.5 w-3.5" aria-hidden="true" />
               <span>Setujui Terpilih ({selectedIds.size})</span>
@@ -620,26 +644,41 @@ export function CurationTable({
               type="button"
               disabled={isBatchSubmitting}
               onClick={() => void handleBatchAction("rejected")}
-              className="inline-flex items-center gap-1.5 rounded border border-rose-700 bg-rose-950 px-3 py-1.5 font-medium text-rose-200 hover:bg-rose-900 disabled:opacity-60"
+              className="inline-flex min-h-[44px] items-center gap-1.5 rounded-lg border border-rose-300 bg-rose-50 px-3.5 py-1.5 font-semibold text-rose-900 transition-colors hover:bg-rose-100 disabled:opacity-60 dark:border-rose-700 dark:bg-rose-950/80 dark:text-rose-200 dark:hover:bg-rose-900 sm:min-h-[36px]"
             >
               <X className="h-3.5 w-3.5" aria-hidden="true" />
               <span>Tolak Terpilih ({selectedIds.size})</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setSelectedIds(new Set())}
+              className="min-h-[44px] rounded-lg border border-[var(--border-strong)] bg-[var(--bg-surface)] px-3 py-1.5 font-medium text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] sm:min-h-[36px]"
+            >
+              Batal
             </button>
           </div>
         </div>
       )}
 
-      {/* Main Table Container */}
-      <div className="overflow-hidden rounded-lg border border-slate-800 bg-[#131B2B]">
+      {/* Main Responsive Data Table */}
+      <div className="overflow-hidden rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] shadow-card">
         {fetchError ? (
-          <div className="p-8 text-center text-xs">
-            <p className="font-medium text-rose-300">{fetchError}</p>
+          <div role="alert" className="p-10 text-center">
+            <AlertCircle
+              className="mx-auto h-7 w-7 text-rose-600 dark:text-rose-400"
+              aria-hidden="true"
+            />
+            <p className="mt-2 text-sm font-semibold text-[var(--text-primary)]">
+              Gagal Memuat Daftar Fenomena
+            </p>
+            <p className="mt-1 text-xs text-[var(--text-muted)]">{fetchError}</p>
             <button
               type="button"
               onClick={() => void fetchRows()}
-              className="mt-3 rounded border border-slate-700 bg-[#0D131F] px-3 py-1.5 text-slate-200 hover:bg-[#1A2438]"
+              className="mt-4 inline-flex min-h-[44px] items-center gap-2 rounded-lg bg-[var(--accent-primary)] px-4 py-2 text-xs font-semibold text-white hover:bg-[var(--accent-primary-hover)] sm:min-h-[38px]"
             >
-              Coba Muat Ulang
+              <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
+              <span>Coba Muat Ulang</span>
             </button>
           </div>
         ) : (
@@ -647,21 +686,22 @@ export function CurationTable({
             tabIndex={0}
             role="region"
             aria-labelledby="curation-table-caption"
+            aria-busy={isLoading}
             className="max-h-[68vh] overflow-auto"
           >
             <table className="w-full border-separate border-spacing-0 text-left text-xs">
               <caption id="curation-table-caption" className="visually-hidden">
-                Daftar Fenomena Ekonomi Kabupaten Tana Tidung Periode{" "}
-                {quarter} {year}
+                Daftar Fenomena Ekonomi Kabupaten Tana Tidung Periode {quarter}{" "}
+                {year}
               </caption>
-              <thead className="sticky top-0 z-10 bg-[#0D131F] font-mono text-[11px] uppercase text-slate-400">
+              <thead className="sticky top-0 z-10 bg-[var(--bg-subtle)] text-[11px] font-semibold uppercase tracking-wider text-[var(--text-muted)]">
                 {table.getHeaderGroups().map((headerGroup) => (
                   <tr key={headerGroup.id}>
                     {headerGroup.headers.map((header) => (
                       <th
                         key={header.id}
                         scope="col"
-                        className="border-b border-slate-800 px-3 py-2.5 font-semibold tracking-wide"
+                        className="border-b border-[var(--border-subtle)] px-2.5 py-3 first:pl-3.5 last:pr-3.5"
                       >
                         {header.isPlaceholder
                           ? null
@@ -674,15 +714,35 @@ export function CurationTable({
                   </tr>
                 ))}
               </thead>
-              <tbody className="divide-y divide-slate-800">
+              <tbody className="divide-y divide-[var(--border-subtle)]">
                 {isLoading ? (
-                  Array.from({ length: 5 }).map((_, i) => (
-                    <tr key={i} className="bg-[#0D131F]/40">
-                      <td
-                        colSpan={columns.length}
-                        className="px-4 py-4 font-mono text-xs text-slate-400"
-                      >
-                        Memuat data fenomena {quarter} {year}...
+                  Array.from({ length: 6 }).map((_, i) => (
+                    <tr key={i} className="bg-[var(--bg-surface)]">
+                      <td className="py-3.5 pl-3.5 pr-2.5">
+                        <div className="h-4 w-4 rounded bg-[var(--bg-subtle)]" />
+                      </td>
+                      <td className="px-2.5 py-3.5">
+                        <div className="h-5 w-24 rounded bg-[var(--bg-subtle)]" />
+                        <div className="mt-1.5 h-3 w-16 rounded bg-[var(--bg-subtle)]" />
+                      </td>
+                      <td className="px-2.5 py-3.5">
+                        <div className="h-4 w-3/4 rounded bg-[var(--bg-subtle)]" />
+                        <div className="mt-2 h-3 w-full rounded bg-[var(--bg-subtle)]" />
+                      </td>
+                      <td className="px-2.5 py-3.5">
+                        <div className="h-6 w-28 rounded bg-[var(--bg-subtle)]" />
+                      </td>
+                      <td className="px-2.5 py-3.5">
+                        <div className="h-6 w-16 rounded bg-[var(--bg-subtle)]" />
+                      </td>
+                      <td className="px-2.5 py-3.5">
+                        <div className="h-4 w-16 rounded bg-[var(--bg-subtle)]" />
+                      </td>
+                      <td className="px-2.5 py-3.5">
+                        <div className="h-6 w-20 rounded bg-[var(--bg-subtle)]" />
+                      </td>
+                      <td className="py-3.5 pl-2.5 pr-3.5 text-right">
+                        <div className="ml-auto h-8 w-16 rounded bg-[var(--bg-subtle)]" />
                       </td>
                     </tr>
                   ))
@@ -690,14 +750,28 @@ export function CurationTable({
                   <tr>
                     <td
                       colSpan={columns.length}
-                      className="px-6 py-12 text-center"
+                      className="px-6 py-14 text-center"
                     >
-                      <p className="text-sm font-medium text-slate-200">
-                        Tidak ada entri yang cocok dengan filter saat ini.
+                      <p className="text-sm font-semibold text-[var(--text-primary)]">
+                        {activeFilterCount > 0
+                          ? "Tidak ada entri yang cocok dengan filter saat ini."
+                          : `Belum ada data fenomena tercatat pada ${quarter} ${year}.`}
                       </p>
-                      <p className="mt-1 text-xs text-slate-400">
-                        Ubah kata kunci pencarian, periode triwulan, atau reset filter status untuk menampilkan seluruh fenomena.
+                      <p className="mx-auto mt-1 max-w-md text-xs text-[var(--text-muted)]">
+                        {activeFilterCount > 0
+                          ? "Ubah kata kunci pencarian atau reset filter untuk menampilkan seluruh fenomena pada periode ini."
+                          : "Pilih triwulan/tahun lain di bilah atas atau jalankan penarikan berita baru."}
                       </p>
+                      {activeFilterCount > 0 && (
+                        <button
+                          type="button"
+                          onClick={clearAllFilters}
+                          className="mt-4 inline-flex min-h-[44px] items-center gap-1.5 rounded-lg border border-[var(--border-strong)] bg-[var(--bg-subtle)] px-4 py-1.5 text-xs font-semibold text-[var(--text-primary)] hover:bg-[var(--bg-hover)] sm:min-h-[38px]"
+                        >
+                          <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
+                          <span>Reset Semua Filter</span>
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ) : (
@@ -706,14 +780,18 @@ export function CurationTable({
                     return (
                       <tr
                         key={row.id}
-                        className={`transition-colors hover:bg-[#1A2438]/75 ${
-                          index % 2 === 1 ? "bg-[#0D131F]/40" : ""
-                        } ${isKeyboardFocused ? "ring-1 ring-inset ring-sky-500" : ""}`}
+                        className={`transition-colors hover:bg-[var(--bg-hover)] ${
+                          index % 2 === 1 ? "bg-[var(--bg-subtle)]/55" : ""
+                        } ${
+                          isKeyboardFocused
+                            ? "ring-2 ring-inset ring-[var(--focus-ring)]"
+                            : ""
+                        }`}
                       >
                         {row.getVisibleCells().map((cell) => (
                           <td
                             key={cell.id}
-                            className="border-b border-slate-800/80 px-3 py-2.5 align-top"
+                            className="border-b border-[var(--border-subtle)] px-2.5 py-3 align-top first:pl-3.5 last:pr-3.5"
                           >
                             {flexRender(
                               cell.column.columnDef.cell,
@@ -730,21 +808,41 @@ export function CurationTable({
           </div>
         )}
 
-        {/* Pagination Footer */}
-        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-800 bg-[#0D131F] px-4 py-2.5 font-mono text-[11px] text-slate-400">
+        {/* Pagination & Shortcut Legend Footer */}
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[var(--border-subtle)] bg-[var(--bg-subtle)] px-4 py-3 font-mono text-[11px] text-[var(--text-muted)]">
           <span>
-            Halaman <strong className="text-slate-200">{pagination.page}</strong>{" "}
+            Halaman{" "}
+            <strong className="text-[var(--text-primary)]">
+              {pagination.page}
+            </strong>{" "}
             dari{" "}
-            <strong className="text-slate-200">{pagination.totalPages}</strong>{" "}
-            &middot; Pintasan tabel: <kbd className="rounded bg-slate-800 px-1 py-0.5 text-slate-200">J</kbd>/<kbd className="rounded bg-slate-800 px-1 py-0.5 text-slate-200">K</kbd> pilih baris, <kbd className="rounded bg-slate-800 px-1 py-0.5 text-slate-200">Enter</kbd> buka telaah
+            <strong className="text-[var(--text-primary)]">
+              {pagination.totalPages}
+            </strong>
+            <span className="hidden sm:inline">
+              {" "}
+              &middot; Pintasan:{" "}
+              <kbd className="rounded border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-1.5 py-0.5 text-[var(--text-primary)]">
+                J
+              </kbd>
+              /
+              <kbd className="rounded border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-1.5 py-0.5 text-[var(--text-primary)]">
+                K
+              </kbd>{" "}
+              pilih baris,{" "}
+              <kbd className="rounded border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-1.5 py-0.5 text-[var(--text-primary)]">
+                Enter
+              </kbd>{" "}
+              buka telaah
+            </span>
           </span>
 
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-2">
             <button
               type="button"
               disabled={page <= 1 || isLoading}
               onClick={() => setPage((p) => Math.max(1, p - 1))}
-              className="inline-flex items-center gap-1 rounded border border-slate-700 bg-[#131B2B] px-2.5 py-1 text-slate-200 hover:bg-[#1A2438] disabled:cursor-not-allowed disabled:opacity-45"
+              className="inline-flex min-h-[44px] items-center gap-1 rounded-lg border border-[var(--border-strong)] bg-[var(--bg-surface)] px-3 py-1.5 font-sans text-xs font-semibold text-[var(--text-primary)] hover:bg-[var(--bg-hover)] disabled:opacity-45 sm:min-h-[36px]"
             >
               <ChevronLeft className="h-3.5 w-3.5" aria-hidden="true" />
               <span>Sebelumnya</span>
@@ -755,7 +853,7 @@ export function CurationTable({
               onClick={() =>
                 setPage((p) => Math.min(pagination.totalPages, p + 1))
               }
-              className="inline-flex items-center gap-1 rounded border border-slate-700 bg-[#131B2B] px-2.5 py-1 text-slate-200 hover:bg-[#1A2438] disabled:cursor-not-allowed disabled:opacity-45"
+              className="inline-flex min-h-[44px] items-center gap-1 rounded-lg border border-[var(--border-strong)] bg-[var(--bg-surface)] px-3 py-1.5 font-sans text-xs font-semibold text-[var(--text-primary)] hover:bg-[var(--bg-hover)] disabled:opacity-45 sm:min-h-[36px]"
             >
               <span>Berikutnya</span>
               <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
@@ -766,4 +864,3 @@ export function CurationTable({
     </div>
   );
 }
-

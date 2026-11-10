@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { SESSION_COOKIE_NAME, verifySessionToken } from "@/lib/session-token";
 
-const PUBLIC_PATHS = new Set(["/login", "/favicon.ico", "/robots.txt"]);
+const PUBLIC_PATHS = new Set(["/login", "/favicon.ico", "/icon.svg", "/robots.txt"]);
 
 function buildPublicOriginUrl(path: string, request: NextRequest): URL {
   const forwardedHost = request.headers.get("x-forwarded-host");
@@ -41,5 +41,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|icon.svg).*)"],
 };

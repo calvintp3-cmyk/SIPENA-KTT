@@ -12,10 +12,9 @@ import {
 import {
   EXPENDITURE_COMPONENTS,
   KBLI_LIST,
-  SOURCE_MEDIA_LABELS,
 } from "@/lib/constants/taxonomy";
 import { formatIndonesianDate, safeExternalHref } from "@/lib/utils";
-import { StatusBadge } from "./status-badge";
+import { SourceMediaLabel, StatusBadge } from "./status-badge";
 import type {
   AuthenticatedUser,
   ExpenditureCode,
@@ -44,9 +43,11 @@ export function ReviewModal({
 }: ReviewModalProps) {
   const canEdit = user.role === "admin" || user.role === "editor";
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const summaryRef = useRef<HTMLTextAreaElement>(null);
   const pressedOutsideRef = useRef(false);
 
   const [summary, setSummary] = useState("");
+  const [summaryTouched, setSummaryTouched] = useState(false);
   const [kbliCategory, setKbliCategory] = useState<KbliCode | "">("");
   const [kbliSubsector, setKbliSubsector] = useState("");
   const [expenditureComponent, setExpenditureComponent] = useState<
@@ -60,13 +61,13 @@ export function ReviewModal({
   const [isLoadingDetail, setIsLoadingDetail] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Sync dialog open/close natively with showModal()
   useEffect(() => {
     const dialog = dialogRef.current;
     if (!dialog) return;
 
     if (phenomenon) {
       setSummary(phenomenon.summary);
+      setSummaryTouched(false);
       setKbliCategory(phenomenon.kbliCategory ?? "");
       setKbliSubsector(phenomenon.kbliSubsector ?? "");
       setExpenditureComponent(phenomenon.expenditureComponent ?? "");
@@ -79,7 +80,6 @@ export function ReviewModal({
         dialog.showModal();
       }
 
-      // Fetch forensic audit log history & latest full record
       setIsLoadingDetail(true);
       fetch(`/api/phenomena/${phenomenon.id}`, { cache: "no-store" })
         .then(async (res) => {
@@ -102,7 +102,6 @@ export function ReviewModal({
     }
   }, [phenomenon]);
 
-  // Listen to native close event so Esc / close() syncs React state
   useEffect(() => {
     const dialog = dialogRef.current;
     if (!dialog) return;
@@ -114,10 +113,14 @@ export function ReviewModal({
     return () => dialog.removeEventListener("close", handleClose);
   }, [onClose]);
 
+  const summaryInvalid = summary.trim().length < 10;
+
   const submitVerification = useCallback(
     async (targetStatus: PhenomenonStatus) => {
       if (!phenomenon || !canEdit || isSaving) return;
       if (summary.trim().length < 10) {
+        setSummaryTouched(true);
+        summaryRef.current?.focus();
         onError("Ringkasan narasi minimal 10 karakter sesuai standar BPS.");
         return;
       }
@@ -178,7 +181,6 @@ export function ReviewModal({
     ]
   );
 
-  // Keyboard shortcuts [A] Approve, [R] Reject inside drawer (disabled in form fields)
   useEffect(() => {
     if (!phenomenon || !canEdit) return;
     function onKeyDown(e: KeyboardEvent) {
@@ -237,31 +239,31 @@ export function ReviewModal({
         }
         pressedOutsideRef.current = false;
       }}
-      className="ml-auto mr-0 my-0 h-screen max-h-screen w-full max-w-4xl border-l border-slate-700 bg-[#0D131F] p-0 text-slate-100 shadow-2xl open:flex open:flex-col"
+      className="my-0 ml-auto mr-0 h-screen max-h-screen w-full max-w-5xl border-l border-[var(--border-subtle)] bg-[var(--bg-surface)] p-0 text-[var(--text-primary)] shadow-elevated open:flex open:flex-col"
     >
       {phenomenon && (
         <>
-          {/* Drawer Header */}
-          <div className="flex h-14 shrink-0 items-center justify-between border-b border-slate-800 bg-[#131B2B] px-5">
-            <div className="flex items-center gap-2.5">
-              <span className="rounded border border-sky-800 bg-[#002B49] px-2 py-0.5 font-mono text-xs font-medium text-sky-300">
+          {/* Sticky Drawer Header */}
+          <div className="flex min-h-14 shrink-0 items-center justify-between gap-3 border-b border-[var(--border-subtle)] bg-[var(--bg-subtle)] px-5 py-2.5">
+            <div className="flex flex-wrap items-center gap-2.5">
+              <span className="rounded-md border border-[var(--accent-soft-border)] bg-[var(--accent-soft)] px-2.5 py-0.5 text-xs font-semibold text-[var(--accent-text)]">
                 Telaah Fenomena
               </span>
               <StatusBadge status={phenomenon.status} />
-              <span className="hidden font-mono text-[11px] text-slate-400 sm:inline tabular-nums">
+              <span className="hidden font-mono text-xs text-[var(--text-muted)] sm:inline tabular-nums">
                 {phenomenon.quarter} {phenomenon.year}
               </span>
             </div>
 
             <div className="flex items-center gap-3">
               {canEdit && (
-                <span className="hidden font-mono text-[11px] text-slate-400 md:inline">
+                <span className="hidden font-mono text-[11px] text-[var(--text-muted)] md:inline">
                   Pintasan:{" "}
-                  <kbd className="rounded bg-slate-800 px-1.5 py-0.5 text-slate-200">
+                  <kbd className="rounded border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-1.5 py-0.5 text-[var(--text-primary)]">
                     A
                   </kbd>{" "}
                   Setujui &middot;{" "}
-                  <kbd className="rounded bg-slate-800 px-1.5 py-0.5 text-slate-200">
+                  <kbd className="rounded border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-1.5 py-0.5 text-[var(--text-primary)]">
                     R
                   </kbd>{" "}
                   Tolak
@@ -271,23 +273,20 @@ export function ReviewModal({
                 type="button"
                 onClick={() => dialogRef.current?.close()}
                 aria-label="Tutup panel telaah"
-                className="rounded p-1.5 text-slate-400 transition-colors hover:bg-[#1A2438] hover:text-white"
+                className="flex h-11 w-11 items-center justify-center rounded-lg border border-transparent text-[var(--text-muted)] transition-colors hover:border-[var(--border-subtle)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] sm:h-9 sm:w-9"
               >
                 <X className="h-5 w-5" aria-hidden="true" />
               </button>
             </div>
           </div>
 
-          {/* Two-Column Body */}
-          <div className="grid flex-1 grid-cols-1 divide-y divide-slate-800 overflow-y-auto md:grid-cols-2 md:divide-x md:divide-y-0">
-            {/* Left Column: Evidence (Original News + Audit Trail) */}
-            <div className="space-y-4 overflow-y-auto bg-[#080C14]/60 p-5">
-              <div className="flex items-center justify-between font-mono text-[11px] text-slate-400">
-                <span className="rounded border border-slate-700 bg-slate-800 px-2 py-0.5 text-slate-200">
-                  {SOURCE_MEDIA_LABELS[phenomenon.article.source] ??
-                    phenomenon.article.source}
-                </span>
-                <span>
+          {/* Two-Column Body: Source Evidence + Analyst Classification */}
+          <div className="grid flex-1 grid-cols-1 divide-y divide-[var(--border-subtle)] overflow-y-auto md:grid-cols-2 md:divide-x md:divide-y-0">
+            {/* Left Column: Evidence Reader & Audit Trail */}
+            <div className="space-y-5 overflow-y-auto bg-[var(--bg-subtle)] p-5 sm:p-6">
+              <div className="flex items-center justify-between gap-2">
+                <SourceMediaLabel source={phenomenon.article.source} />
+                <span className="font-mono text-xs text-[var(--text-muted)] tabular-nums">
                   {formatIndonesianDate(phenomenon.article.publishedDate)}
                 </span>
               </div>
@@ -295,7 +294,7 @@ export function ReviewModal({
               <div>
                 <h2
                   id="drawer-review-title"
-                  className="font-display text-base font-semibold leading-snug text-white"
+                  className="text-base font-bold leading-snug tracking-tight text-[var(--text-primary)] sm:text-lg"
                 >
                   {phenomenon.article.title}
                 </h2>
@@ -307,36 +306,36 @@ export function ReviewModal({
                       href={externalUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="mt-1.5 inline-flex items-center gap-1 font-mono text-[11px] text-sky-400 hover:underline"
+                      className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--accent-text)] hover:underline"
                     >
                       <span>Buka Artikel Asli di Portal Berita</span>
-                      <ExternalLink className="h-3 w-3" aria-hidden="true" />
+                      <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
                     </a>
                   );
                 })()}
               </div>
 
-              <div className="space-y-3 border-t border-slate-800 pt-4 text-xs leading-relaxed text-slate-300">
+              <div className="max-w-[65ch] space-y-3 border-t border-[var(--border-subtle)] pt-4 text-xs leading-[1.65] text-[var(--text-secondary)]">
                 {phenomenon.article.content.split(/\n+/).map((para, idx) => (
                   <p key={idx}>{para}</p>
                 ))}
               </div>
 
               {numericalEntries.length > 0 && (
-                <div className="border-t border-slate-800 pt-4">
-                  <h3 className="mb-2 font-mono text-[11px] uppercase tracking-wide text-slate-400">
+                <div className="border-t border-[var(--border-subtle)] pt-4">
+                  <h3 className="mb-2.5 text-[11px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
                     Ekstraksi Angka Nominal dari Berita
                   </h3>
-                  <div className="grid grid-cols-2 gap-2 font-mono text-[11px]">
+                  <div className="grid grid-cols-2 gap-2.5 font-mono text-xs">
                     {numericalEntries.map(([key, val]) => (
                       <div
                         key={key}
-                        className="rounded border border-slate-800 bg-[#0D131F] px-2.5 py-1.5"
+                        className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-3 py-2"
                       >
-                        <span className="block text-[10px] text-slate-400">
+                        <span className="block text-[10px] text-[var(--text-muted)]">
                           {key}
                         </span>
-                        <span className="font-semibold text-slate-100 tabular-nums">
+                        <span className="mt-0.5 block font-semibold text-[var(--text-primary)] tabular-nums">
                           {val !== null ? String(val) : "-"}
                         </span>
                       </div>
@@ -345,36 +344,37 @@ export function ReviewModal({
                 </div>
               )}
 
-              {/* Forensic Audit Trail */}
-              <div className="border-t border-slate-800 pt-4">
-                <div className="mb-2 flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wide text-slate-400">
+              {/* Forensic Verification Timeline */}
+              <div className="border-t border-[var(--border-subtle)] pt-4">
+                <div className="mb-2.5 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
                   <History className="h-3.5 w-3.5" aria-hidden="true" />
                   <span>Riwayat Audit Verifikasi</span>
                 </div>
                 {isLoadingDetail ? (
-                  <p className="font-mono text-[11px] text-slate-500">
-                    Memuat riwayat audit...
-                  </p>
+                  <div className="space-y-2" aria-busy="true">
+                    <div className="h-10 w-full rounded-lg bg-[var(--bg-surface)]" />
+                    <div className="h-10 w-4/5 rounded-lg bg-[var(--bg-surface)]" />
+                  </div>
                 ) : auditHistory.length === 0 ? (
-                  <p className="font-mono text-[11px] text-slate-500">
+                  <p className="text-xs text-[var(--text-muted)]">
                     Belum ada riwayat perubahan manual oleh analis.
                   </p>
                 ) : (
-                  <ul className="space-y-1.5 font-mono text-[11px]">
+                  <ul className="space-y-2 font-mono text-[11px]">
                     {auditHistory.map((log) => (
                       <li
                         key={log.id}
-                        className="rounded border border-slate-800 bg-[#0D131F] px-2.5 py-1.5 text-slate-300"
+                        className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-3 py-2 text-[var(--text-secondary)]"
                       >
                         <div className="flex items-center justify-between gap-2">
-                          <span className="font-semibold text-sky-300">
+                          <span className="font-semibold text-[var(--accent-text)]">
                             {log.action}
                           </span>
-                          <span className="text-[10px] text-slate-500">
+                          <span className="text-[10px] text-[var(--text-muted)] tabular-nums">
                             {formatIndonesianDate(log.createdAt)}
                           </span>
                         </div>
-                        <span className="text-[10px] text-slate-400">
+                        <span className="mt-0.5 block text-[10px] text-[var(--text-muted)]">
                           Oleh: {log.userName ?? "Sistem Otomatis"}
                         </span>
                       </li>
@@ -384,47 +384,71 @@ export function ReviewModal({
               </div>
             </div>
 
-            {/* Right Column: Editable Extraction Form */}
-            <div className="space-y-4 overflow-y-auto bg-[#131B2B] p-5 text-xs">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
-                <span className="font-display text-sm font-semibold text-white">
+            {/* Right Column: Editable Verification Form */}
+            <div className="space-y-4 overflow-y-auto bg-[var(--bg-surface)] p-5 text-xs sm:p-6">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--border-subtle)] pb-3">
+                <h3 className="text-sm font-bold text-[var(--text-primary)]">
                   Klasifikasi &amp; Verifikasi Analis
-                </span>
+                </h3>
                 {phenomenon.confidenceScore !== null && (
-                  <span className="rounded border border-emerald-800 bg-emerald-950 px-2 py-0.5 font-mono text-[10px] text-emerald-300 tabular-nums">
-                    Keyakinan AI: {phenomenon.confidenceScore.toFixed(2)}
+                  <span className="rounded-md border border-emerald-300 bg-emerald-50 px-2 py-0.5 font-mono text-[11px] font-semibold text-emerald-900 tabular-nums dark:border-emerald-700/80 dark:bg-emerald-950/70 dark:text-emerald-200">
+                    Skor Ekstraksi: {phenomenon.confidenceScore.toFixed(2)}
                   </span>
                 )}
               </div>
 
               {!canEdit && (
-                <div className="rounded border border-amber-800/70 bg-amber-950/50 px-3 py-2 text-[11px] text-amber-200">
-                  Akun Anda berstatus <strong>Viewer</strong> (hanya baca). Hubungi Admin/Analis Nerwilis untuk menyunting klasifikasi.
+                <div className="rounded-lg border border-amber-300 bg-amber-50 px-3.5 py-2.5 text-xs text-amber-900 dark:border-amber-700/80 dark:bg-amber-950/60 dark:text-amber-200">
+                  Akun Anda berstatus <strong>Viewer</strong> (hanya baca). Hubungi Admin atau Analis Nerwilis untuk menyunting klasifikasi.
                 </div>
               )}
 
               <div>
                 <label
                   htmlFor="review-summary"
-                  className="mb-1 block font-mono text-[11px] uppercase text-slate-400"
+                  className="mb-1 block text-xs font-semibold text-[var(--text-primary)]"
                 >
-                  Ringkasan Narasi Fenomena (Standar BPS)
+                  Ringkasan Narasi Fenomena (Standar BPS){" "}
+                  <span className="text-rose-600 dark:text-rose-400" aria-hidden="true">
+                    *
+                  </span>
                 </label>
+                <p id="review-summary-hint" className="mb-1.5 text-[11px] text-[var(--text-muted)]">
+                  Minimal 10 karakter menjelaskan pelaku, peristiwa, komoditas, dan dampak ekonomi.
+                </p>
                 <textarea
+                  ref={summaryRef}
                   id="review-summary"
                   rows={4}
                   disabled={!canEdit}
+                  required
+                  minLength={10}
+                  aria-invalid={summaryTouched && summaryInvalid ? "true" : "false"}
+                  aria-describedby={
+                    summaryTouched && summaryInvalid
+                      ? "review-summary-hint review-summary-error"
+                      : "review-summary-hint"
+                  }
                   value={summary}
                   onChange={(e) => setSummary(e.target.value)}
-                  className="w-full rounded border border-slate-700 bg-[#0D131F] p-2.5 text-xs leading-relaxed text-slate-100 focus:border-sky-500 focus:outline-none disabled:opacity-70"
+                  onBlur={() => setSummaryTouched(true)}
+                  className="w-full resize-y rounded-lg border border-[var(--border-strong)] bg-[var(--bg-subtle)] p-3 text-xs leading-relaxed text-[var(--text-primary)] focus:bg-[var(--bg-surface)] focus:outline-none disabled:opacity-65"
                 />
+                {summaryTouched && summaryInvalid && (
+                  <p
+                    id="review-summary-error"
+                    className="mt-1 text-xs font-medium text-rose-700 dark:text-rose-300"
+                  >
+                    Ringkasan harus berisi minimal 10 karakter.
+                  </p>
+                )}
               </div>
 
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
                 <div>
                   <label
                     htmlFor="review-kbli"
-                    className="mb-1 block font-mono text-[11px] uppercase text-slate-400"
+                    className="mb-1.5 block text-xs font-semibold text-[var(--text-primary)]"
                   >
                     Kategori KBLI (17 Sektor)
                   </label>
@@ -435,7 +459,7 @@ export function ReviewModal({
                     onChange={(e) =>
                       setKbliCategory(e.target.value as KbliCode | "")
                     }
-                    className="w-full rounded border border-slate-700 bg-[#0D131F] p-2 font-mono text-xs text-white focus:border-sky-500 focus:outline-none disabled:opacity-70"
+                    className="min-h-[44px] w-full rounded-lg border border-[var(--border-strong)] bg-[var(--bg-subtle)] px-3 py-2 text-xs font-medium text-[var(--text-primary)] focus:outline-none disabled:opacity-65 sm:min-h-[40px]"
                   >
                     <option value="">-- Tidak Terklasifikasi --</option>
                     {KBLI_LIST.map((item) => (
@@ -449,7 +473,7 @@ export function ReviewModal({
                 <div>
                   <label
                     htmlFor="review-subsector"
-                    className="mb-1 block font-mono text-[11px] uppercase text-slate-400"
+                    className="mb-1.5 block text-xs font-semibold text-[var(--text-primary)]"
                   >
                     Rincian Subsektor
                   </label>
@@ -460,16 +484,16 @@ export function ReviewModal({
                     value={kbliSubsector}
                     onChange={(e) => setKbliSubsector(e.target.value)}
                     placeholder="Misal: Perkebunan Kelapa Sawit"
-                    className="w-full rounded border border-slate-700 bg-[#0D131F] p-2 text-xs text-white focus:border-sky-500 focus:outline-none disabled:opacity-70"
+                    className="min-h-[44px] w-full rounded-lg border border-[var(--border-strong)] bg-[var(--bg-subtle)] px-3 py-2 text-xs text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:bg-[var(--bg-surface)] focus:outline-none disabled:opacity-65 sm:min-h-[40px]"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
                 <div>
                   <label
                     htmlFor="review-expenditure"
-                    className="mb-1 block font-mono text-[11px] uppercase text-slate-400"
+                    className="mb-1.5 block text-xs font-semibold text-[var(--text-primary)]"
                   >
                     Komponen Pengeluaran PDRB
                   </label>
@@ -482,7 +506,7 @@ export function ReviewModal({
                         e.target.value as ExpenditureCode | ""
                       )
                     }
-                    className="w-full rounded border border-slate-700 bg-[#0D131F] p-2 font-mono text-xs text-white focus:border-sky-500 focus:outline-none disabled:opacity-70"
+                    className="min-h-[44px] w-full rounded-lg border border-[var(--border-strong)] bg-[var(--bg-subtle)] px-3 py-2 text-xs font-medium text-[var(--text-primary)] focus:outline-none disabled:opacity-65 sm:min-h-[40px]"
                   >
                     <option value="">-- Pilih Komponen --</option>
                     {Object.values(EXPENDITURE_COMPONENTS).map((comp) => (
@@ -496,7 +520,7 @@ export function ReviewModal({
                 <div>
                   <label
                     htmlFor="review-impact"
-                    className="mb-1 block font-mono text-[11px] uppercase text-slate-400"
+                    className="mb-1.5 block text-xs font-semibold text-[var(--text-primary)]"
                   >
                     Arah Dampak Ekonomi
                   </label>
@@ -507,7 +531,7 @@ export function ReviewModal({
                     onChange={(e) =>
                       setImpactType(e.target.value as ImpactDirection)
                     }
-                    className="w-full rounded border border-slate-700 bg-[#0D131F] p-2 font-mono text-xs font-semibold text-slate-100 focus:border-sky-500 focus:outline-none disabled:opacity-70"
+                    className="min-h-[44px] w-full rounded-lg border border-[var(--border-strong)] bg-[var(--bg-subtle)] px-3 py-2 text-xs font-semibold text-[var(--text-primary)] focus:outline-none disabled:opacity-65 sm:min-h-[40px]"
                   >
                     <option value="positif">Positif (Ekspansi/Tumbuh)</option>
                     <option value="negatif">Negatif (Kontraksi/Inflasi)</option>
@@ -517,10 +541,10 @@ export function ReviewModal({
               </div>
 
               <fieldset disabled={!canEdit}>
-                <legend className="mb-1.5 font-mono text-[11px] uppercase text-slate-400">
+                <legend className="mb-2 text-xs font-semibold text-[var(--text-primary)]">
                   Transmisi Efek (Harga / Volume)
                 </legend>
-                <div className="grid grid-cols-2 gap-2 font-mono text-xs sm:grid-cols-4">
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                   {(
                     [
                       { value: "volume", label: "Volume" },
@@ -533,10 +557,10 @@ export function ReviewModal({
                     return (
                       <label
                         key={opt.value}
-                        className={`flex cursor-pointer items-center gap-1.5 rounded border p-2 transition-colors ${
+                        className={`flex min-h-[44px] items-center gap-2 rounded-lg border px-3 py-2 text-xs font-medium transition-colors sm:min-h-[40px] ${
                           checked
-                            ? "border-sky-500 bg-[#002B49]/60 text-sky-300"
-                            : "border-slate-700 bg-[#0D131F] text-slate-300 hover:bg-[#1A2438]"
+                            ? "border-[var(--accent-primary)] bg-[var(--accent-soft)] text-[var(--accent-text)]"
+                            : "border-[var(--border-strong)] bg-[var(--bg-subtle)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]"
                         }`}
                       >
                         <input
@@ -545,7 +569,7 @@ export function ReviewModal({
                           value={opt.value}
                           checked={checked}
                           onChange={() => setPriceVolumeEffect(opt.value)}
-                          className="text-sky-500"
+                          className="accent-[var(--accent-primary)]"
                         />
                         <span>{opt.label}</span>
                       </label>
@@ -557,7 +581,7 @@ export function ReviewModal({
               <div>
                 <label
                   htmlFor="review-notes"
-                  className="mb-1 block font-mono text-[11px] uppercase text-slate-400"
+                  className="mb-1.5 block text-xs font-semibold text-[var(--text-primary)]"
                 >
                   Catatan Verifikator BPS (Opsional)
                 </label>
@@ -568,22 +592,22 @@ export function ReviewModal({
                   value={reviewerNotes}
                   onChange={(e) => setReviewerNotes(e.target.value)}
                   placeholder="Contoh: Terkonfirmasi data SP2D BPKAD Q1 2025"
-                  className="w-full rounded border border-slate-700 bg-[#0D131F] p-2 text-xs text-white placeholder-slate-500 focus:border-sky-500 focus:outline-none disabled:opacity-70"
+                  className="min-h-[44px] w-full rounded-lg border border-[var(--border-strong)] bg-[var(--bg-subtle)] px-3 py-2 text-xs text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:bg-[var(--bg-surface)] focus:outline-none disabled:opacity-65 sm:min-h-[40px]"
                 />
               </div>
             </div>
           </div>
 
-          {/* Sticky Footer */}
-          <div className="flex min-h-14 shrink-0 flex-wrap items-center justify-between gap-2 border-t border-slate-800 bg-[#131B2B] px-5 py-2.5">
+          {/* Sticky Drawer Footer Actions */}
+          <div className="flex min-h-16 shrink-0 flex-wrap items-center justify-between gap-2 border-t border-[var(--border-subtle)] bg-[var(--bg-subtle)] px-5 py-3">
             {canEdit ? (
               <>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <button
                     type="button"
                     disabled={isSaving}
                     onClick={() => void submitVerification("rejected")}
-                    className="inline-flex items-center gap-1.5 rounded border border-rose-800 bg-rose-950/70 px-3.5 py-2 text-xs font-medium text-rose-200 transition-colors hover:bg-rose-900 disabled:opacity-50"
+                    className="inline-flex min-h-[44px] items-center gap-1.5 rounded-lg border border-rose-300 bg-rose-50 px-3.5 py-2 text-xs font-semibold text-rose-900 transition-colors hover:bg-rose-100 disabled:opacity-50 dark:border-rose-700/80 dark:bg-rose-950/75 dark:text-rose-200 dark:hover:bg-rose-900 sm:min-h-[40px]"
                   >
                     <XCircle className="h-4 w-4" aria-hidden="true" />
                     <span>Tolak (Non-Ekonomi) [R]</span>
@@ -592,7 +616,7 @@ export function ReviewModal({
                     type="button"
                     disabled={isSaving}
                     onClick={() => void submitVerification("needs_revision")}
-                    className="inline-flex items-center gap-1.5 rounded border border-slate-700 bg-[#0D131F] px-3 py-2 text-xs font-medium text-slate-200 transition-colors hover:bg-[#1A2438] disabled:opacity-50"
+                    className="inline-flex min-h-[44px] items-center gap-1.5 rounded-lg border border-[var(--border-strong)] bg-[var(--bg-surface)] px-3.5 py-2 text-xs font-semibold text-[var(--text-primary)] transition-colors hover:bg-[var(--bg-hover)] disabled:opacity-50 sm:min-h-[40px]"
                   >
                     <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
                     <span>Tandai Revisi</span>
@@ -603,7 +627,7 @@ export function ReviewModal({
                   type="button"
                   disabled={isSaving}
                   onClick={() => void submitVerification("approved")}
-                  className="inline-flex items-center gap-1.5 rounded bg-emerald-600 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-emerald-500 disabled:opacity-50"
+                  className="inline-flex min-h-[44px] items-center gap-1.5 rounded-lg bg-emerald-700 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-emerald-800 disabled:opacity-50 sm:min-h-[42px]"
                 >
                   <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
                   <span>
@@ -618,9 +642,9 @@ export function ReviewModal({
                 <button
                   type="button"
                   onClick={() => dialogRef.current?.close()}
-                  className="rounded border border-slate-700 bg-[#0D131F] px-4 py-2 text-xs font-medium text-slate-200 hover:bg-[#1A2438]"
+                  className="min-h-[44px] rounded-lg border border-[var(--border-strong)] bg-[var(--bg-surface)] px-4 py-2 text-xs font-semibold text-[var(--text-primary)] hover:bg-[var(--bg-hover)] sm:min-h-[40px]"
                 >
-                  Tutup
+                  Tutup Panel
                 </button>
               </div>
             )}
@@ -630,4 +654,3 @@ export function ReviewModal({
     </dialog>
   );
 }
-

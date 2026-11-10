@@ -1,30 +1,29 @@
 import type { Metadata } from "next";
-import { Geist, Inter, JetBrains_Mono } from "next/font/google";
+import { JetBrains_Mono, Plus_Jakarta_Sans } from "next/font/google";
+import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
 
-const inter = Inter({
+const plusJakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
-  variable: "--font-inter",
-  display: "swap",
-});
-
-const geist = Geist({
-  subsets: ["latin"],
-  variable: "--font-geist",
+  variable: "--font-jakarta",
+  weight: ["400", "500", "600", "700"],
   display: "swap",
 });
 
 const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
   variable: "--font-jetbrains",
+  weight: ["400", "500", "600", "700"],
   display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "SIPENA-KTT — Sistem Informasi Fenomena Ekonomi & Neraca Tana Tidung",
+  title: "SIPENA-KTT: Sistem Informasi Fenomena Ekonomi & Neraca Tana Tidung",
   description:
     "Platform kurasi fenomena ekonomi daerah untuk kompilasi PDRB Kabupaten Tana Tidung (BPS 65.04).",
 };
+
+const THEME_INIT_SCRIPT = `(function(){try{var s=localStorage.getItem('sipena-theme');var m=s==='dark'?'dark':'light';var r=document.documentElement;r.classList.toggle('dark',m==='dark');r.dataset.theme=m;var meta=document.querySelector('meta[name="color-scheme"]');if(meta)meta.setAttribute('content',m);}catch(e){}})();`;
 
 export default function RootLayout({
   children,
@@ -34,10 +33,15 @@ export default function RootLayout({
   return (
     <html
       lang="id"
-      className={`dark ${inter.variable} ${geist.variable} ${jetbrainsMono.variable}`}
+      suppressHydrationWarning
+      className={`${plusJakarta.variable} ${jetbrainsMono.variable}`}
     >
-      <body className="min-h-screen bg-[#080C14] font-sans text-slate-100 antialiased selection:bg-sky-500/20 selection:text-sky-200">
-        {children}
+      <head>
+        <meta name="color-scheme" content="light" />
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+      </head>
+      <body className="min-h-screen bg-[var(--bg-canvas)] font-sans text-[var(--text-primary)] antialiased selection:bg-[var(--accent-soft)] selection:text-[var(--text-primary)]">
+        <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
   );

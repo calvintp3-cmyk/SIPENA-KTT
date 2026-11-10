@@ -1,6 +1,6 @@
 "use client";
 
-import { Activity, Eye } from "lucide-react";
+import { ArrowRight, Eye } from "lucide-react";
 import { formatIndonesianDate } from "@/lib/utils";
 import { MetricsCards } from "./metrics-cards";
 import { SectorDistribution } from "./sector-distribution";
@@ -52,63 +52,75 @@ export function OverviewPanel({
         onOpenFeed={onOpenFeed}
       />
 
-      {/* Pending Curated Queue Preview */}
-      <section className="overflow-hidden rounded-lg border border-slate-800 bg-[#131B2B]">
-        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 bg-[#0D131F]/60 px-5 py-3.5">
-          <div className="flex items-center gap-2">
-            <Activity className="h-4 w-4 text-sky-400" aria-hidden="true" />
-            <h2 className="font-display text-sm font-semibold text-white">
-              Antrean Fenomena Menunggu Telaah Nerwilis ({stats.quarter}{" "}
-              {stats.year})
+      {/* Priority Pending Ledger */}
+      <section
+        aria-label="Antrean Fenomena Menunggu Telaah Nerwilis"
+        className="overflow-hidden rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] shadow-card"
+      >
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border-subtle)] bg-[var(--bg-subtle)] px-5 py-3.5">
+          <div>
+            <h2 className="text-sm font-bold tracking-tight text-[var(--text-primary)]">
+              Antrean Fenomena Menunggu Telaah ({stats.quarter} {stats.year})
             </h2>
+            <p className="mt-0.5 text-xs text-[var(--text-muted)]">
+              Kandidat terbaru hasil ekstraksi yang memerlukan verifikasi analis sebelum masuk rekonsiliasi PDRB.
+            </p>
           </div>
+
           <button
             type="button"
             onClick={onOpenFeed}
-            className="text-xs font-medium text-slate-300 hover:text-white hover:underline"
+            className="inline-flex min-h-[44px] items-center gap-1.5 rounded-lg border border-[var(--border-strong)] bg-[var(--bg-surface)] px-3.5 py-1.5 text-xs font-semibold text-[var(--text-primary)] transition-colors hover:bg-[var(--bg-hover)] sm:min-h-[36px]"
           >
-            Lihat seluruh data di Tabel Kurasi &rarr;
+            <span>Lihat Semua Data</span>
+            <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
           </button>
         </div>
 
         {stats.recentPending.length === 0 ? (
-          <div className="p-8 text-center">
-            <p className="text-sm font-medium text-slate-200">
+          <div className="p-10 text-center">
+            <p className="text-sm font-semibold text-[var(--text-primary)]">
               Tidak ada fenomena berstatus Pending pada {stats.quarter}{" "}
               {stats.year}.
             </p>
-            <p className="mt-1 text-xs text-slate-400">
-              Semua kandidat fenomena telah diverifikasi atau Anda dapat memeriksa arsip berita pada Tabel Kurasi Lengkap.
+            <p className="mx-auto mt-1 max-w-lg text-xs leading-relaxed text-[var(--text-muted)]">
+              Seluruh kandidat pada periode ini telah ditelaah atau Anda dapat meninjau riwayat keputusan melalui Tabel Kurasi Lengkap.
             </p>
             <button
               type="button"
               onClick={onOpenFeed}
-              className="mt-4 inline-flex items-center rounded border border-slate-700 bg-[#0D131F] px-3.5 py-1.5 text-xs font-medium text-sky-300 hover:bg-[#1A2438]"
+              className="mt-4 inline-flex min-h-[44px] items-center gap-1.5 rounded-lg border border-[var(--border-strong)] bg-[var(--bg-subtle)] px-4 py-2 text-xs font-semibold text-[var(--accent-text)] transition-colors hover:bg-[var(--bg-hover)] sm:min-h-[38px]"
             >
-              Periksa Tabel Kurasi
+              <span>Buka Tabel Kurasi Lengkap</span>
             </button>
           </div>
         ) : (
-          <div className="divide-y divide-slate-800 text-xs">
+          <div className="divide-y divide-[var(--border-subtle)]">
             {stats.recentPending.map((item) => (
               <div
                 key={item.id}
-                className="flex flex-col justify-between gap-3 p-4 transition-colors hover:bg-[#1A2438]/70 md:flex-row md:items-center"
+                className="flex flex-col justify-between gap-4 p-5 transition-colors hover:bg-[var(--bg-hover)]/75 md:flex-row md:items-center"
               >
-                <div className="max-w-3xl space-y-1.5">
+                <div className="max-w-3xl space-y-2">
                   <div className="flex flex-wrap items-center gap-2">
                     <SourceMediaLabel source={item.article.source} />
-                    <span className="font-mono text-[11px] text-slate-400">
+                    <span className="font-mono text-[11px] text-[var(--text-muted)] tabular-nums">
                       {formatIndonesianDate(item.article.publishedDate)}
                     </span>
                     <StatusBadge status={item.status} />
                   </div>
 
-                  <h3 className="text-sm font-semibold leading-snug text-white">
-                    {item.article.title}
+                  <h3 className="text-sm font-semibold leading-snug text-[var(--text-primary)]">
+                    <button
+                      type="button"
+                      onClick={() => onOpenReview(item)}
+                      className="text-left transition-colors hover:text-[var(--accent-text)]"
+                    >
+                      {item.article.title}
+                    </button>
                   </h3>
 
-                  <p className="text-xs leading-relaxed text-slate-300">
+                  <p className="max-w-2xl text-xs leading-relaxed text-[var(--text-secondary)]">
                     {item.summary}
                   </p>
 
@@ -126,7 +138,7 @@ export function OverviewPanel({
                   <button
                     type="button"
                     onClick={() => onOpenReview(item)}
-                    className="inline-flex items-center gap-1.5 rounded bg-[#0284C7] px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-sky-500"
+                    className="inline-flex min-h-[44px] w-full items-center justify-center gap-1.5 rounded-lg bg-[var(--accent-primary)] px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-[var(--accent-primary-hover)] sm:min-h-[40px] md:w-auto"
                   >
                     <Eye className="h-3.5 w-3.5" aria-hidden="true" />
                     <span>Telaah &amp; Verifikasi</span>
@@ -140,4 +152,3 @@ export function OverviewPanel({
     </div>
   );
 }
-
