@@ -1,80 +1,132 @@
-# UI/UX Design System Specification & Ergonomic Guidelines
-## SIPENA-KTT (Sistem Informasi Fenomena Ekonomi dan Neraca Tana Tidung)
-**Document Version:** 2.0.0  
-**Creative North Star:** Civic Statistical Ledger  
-**Design Standard:** Anti-Slop SaaS Workstation, Dual-Theme Daylight/Obsidian, BPS Official Identity  
-**Primary Persona:** Statistician & National Account Analyst (BPS Kabupaten Tana Tidung `65.04` / Nerwilis)  
+# SIPENA-KTT Design System & UI Architecture (`v3.0.0`)
 
-> Normative tokens and machine-readable specifications live in [`DESIGN.md`](../DESIGN.md) and [`.impeccable/design.json`](../.impeccable/design.json).
+**Product**: Sistem Informasi Fenomena Ekonomi dan Neraca Tana Tidung (SIPENA-KTT)  
+**Target Institution**: Fungsi Neraca Wilayah dan Analisis Statistik (Nerwilis), BPS Kabupaten Tana Tidung (`6504`)  
+**Aesthetic Direction**: **Sapick & SyncMaster Modern Light-First SaaS** (with TellDesk Split-View Curation Ergonomics)  
+**Corner Geometry**: **Rounded Modern** (`8px` chips, `12px` controls/buttons/inputs, `16px-20px` cards & panels)
 
 ---
 
-## 1. Design Philosophy: Civic Statistical Ledger
+## 1. Design Philosophy & Reference Synthesis
 
-AI-generated dashboards frequently collapse into distracting tropes:
-- Blue-to-purple gradients and blurred aurora orbs.
-- Excessive glassmorphism hiding contrast behind frosted cards.
-- Uniform pill-shaped chrome (`rounded-full`) on inputs, badges, and buttons.
-- Equal-weight 4-box metric rows with invented statistics or trending percentages.
-- Forced pitch-black themes for bright daytime government workstations.
+SIPENA-KTT `v3.0.0` replaces the legacy dark-sidebar government portal aesthetic with a **Light-First Modern SaaS Workstation** inspired by five reference architectures:
 
-### SIPENA-KTT Guiding Principles:
-1. **Daylight-First Authority, Overtime Comfort**: Institutional statistical work predominantly runs during daytime office hours (`08:00-17:00 WITA`), while quarterly reconciliation sprints extend into the evening. The workspace defaults to crisp Daylight surfaces (`#f4f6fa` canvas, `#ffffff` analytical paper) anchored by a Sovereign BPS Maritime Navy navigation rail (`#0a2540`), with a persistent, synchronized Dark Mode toggle (`sipena-theme=dark` over obsidian `#080d16` / `#101827`).
-2. **Sovereign Structural Asymmetry**: Modules use purposeful `7/5` grids built around actual analytical decisions rather than uniform 4-card rows: Quarterly Backlog Focus alongside Archive Coverage (`Overview`), 17-sector KBLI Ranking alongside Expenditure Transmission (`Sector Distribution`), and Export Workbench alongside 3-sheet Workbook Spec (`Export Center`).
-3. **Tabular Precision & Scannability**: Compact `44px`-oriented rows, strict `tabular-nums` alignment (`JetBrains Mono`), and calm neutral KBLI badges with index swatch tiles keep dense regional economic reviews calm and fast.
-4. **Evidence Next to Judgment**: Every review opens in a top-layer native `<dialog>` slide-over drawer (`max-w-5xl`) placing extracted Indonesian regional journalism beside editable BPS KBLI 2025 classification controls and forensic audit history.
-5. **Authentic Regional Context**: Reflects real Kabupaten Tana Tidung (`65.04`) drivers: palm oil (CPO/TBS), coal mining, coastal aquaculture, Sebawang governance infrastructure, municipal APBD disbursement, and Sesayap river logistics. Zero invented numbers or placeholder personas.
+| Reference Theme | Extracted Architectural & Visual Pattern in SIPENA-KTT |
+| :--- | :--- |
+| **Sapick Astro** | Pure white (`#FFFFFF`) elevated cards with soft diffused shadows (`--shadow-card`), **Obsidian Ink (`#0F172A`)** primary CTA buttons, and **Forest Emerald (`#059669` / `#047857`)** brand & verified badges. |
+| **SyncMaster Astro** | Ultra-clean phenomenon data rows separated by `1px` `#EEF0F4` hairlines (zero thick boxy table borders) and soft pastel status chips (`Disetujui`, `Pending`, `Perlu Revisi`, `Ditolak`). |
+| **TellDesk Astro** | **Split-View Curation Workbench** (`Meja Kurasi`): phenomenon feed on the left (`1fr`) paired with a sticky inline **Split Inspection & Verification Pane** on the right (`460px-520px`) with underline tabs. |
+| **BlazeX Astro** | Airy soft-neutral metric strip and calm horizontal sector proportion bars without gridline clutter. |
+| **AutomatePro Astro** | Generous `rounded-2xl` container geometry and subtle warm/mint header accent washes on the `/login` gateway. |
 
----
-
-## 2. Color Palette & Semantic Tokens (`src/app/globals.css`)
-
-### 2.1 Surface & Ink Hierarchy (Dual Theme, WCAG 2.1 AA Verified)
-| Token | Light Mode (`:root`) | Dark Mode (`:root.dark`) | Application |
-| :--- | :--- | :--- | :--- |
-| `--bg-canvas` | `#f4f6fa` | `#080d16` | Root application viewport canvas |
-| `--bg-rail` | `#0a2540` | `#0b1220` | Persistent left sidebar navigation & auth banner |
-| `--bg-surface` | `#ffffff` | `#101827` | Cards, curation data table, modals, review drawer |
-| `--bg-subtle` | `#f8fafc` | `#0c1320` | Sticky table headers, form inputs, article reading pane |
-| `--bg-hover` | `#eff4f9` | `#172236` | Interactive row hover, ghost button hover |
-| `--text-primary` | `#0f172a` | `#f8fafc` | Primary numbers, article titles, active labels |
-| `--text-secondary` | `#334155` | `#cbd5e1` | Summaries, body prose, input values |
-| `--text-muted` | `#526075` | `#94a3b8` | Metadata timestamps, subtitles, taxonomy hints |
-| `--border-subtle` | `#dce3ec` | `#1e293b` | `1px` structural panel seams and row dividers |
-| `--border-strong` | `#94a3b8` | `#475569` | Input outlines, control borders, active seams |
-
-### 2.2 Brand Accent & Economic Indicator Semantics
-| Token / Role | Light Mode | Dark Mode | Purpose |
-| :--- | :--- | :--- | :--- |
-| `--accent-primary` | `#0369a1` (`5.95:1` vs white) | `#0369a1` / text `#38bdf8` | Primary actions, active navigation focus, export CTA |
-| `--accent-hover` | `#075985` | `#0284c7` | Button hover elevation |
-| **Approved / Positif** | `#047857` / `#ecfdf5` | `#34d399` / `emerald-500/15` | Verified phenomena, positive growth indicator (`+` / Check glyph) |
-| **Pending / Audit** | `#b45309` / `#fffbeb` | `#fbbf24` / `amber-500/15` | AI extraction queue awaiting analyst review (Clock glyph) |
-| **Rejected / Negatif** | `#be123c` / `#fff1f2` | `#fb7185` / `rose-500/15` | Non-economic noise or negative economic shock (Cross glyph) |
-| **Needs Revision** | `#1d4ed8` / `#eff6ff` | `#60a5fa` / `blue-500/15` | Returned for taxonomy clarification (`RotateCcw` glyph) |
+### Core Design Rules
+1. **Light-First by Default**: `defaultTheme="light"` is enforced across `/login` and `/`. The interface never boots into dark mode unless explicitly toggled by the user.
+2. **Top Navbar Only (No Left Sidebar)**: A single `64px` sticky horizontal top navigation bar gives 100% of the horizontal viewport to the curation split-view and analytics grids.
+3. **Direct-to-Curation Default**: Logging in lands directly on **`Meja Kurasi`** (`activeTab = "feed"`) with a 4-stat Interactive Metric Strip above the Master-Detail Split-View Workbench.
+4. **Geometric Numeric Clarity**: All KPI metrics, percentages, and counts use `Plus Jakarta Sans` (`700`) with `font-variant-numeric: tabular-nums`. `JetBrains Mono` is strictly limited to `<kbd>` shortcut hints (`J`, `K`, `A`, `R`, `Ctrl+K`) and short technical codes (`KBLI A`, `6504`).
 
 ---
 
-## 3. Typography & Radius Discipline
+## 2. Three-Layer Token Architecture (`Primitive -> Semantic -> Component`)
 
-- **Primary Interface & Editorial Sans (`Plus Jakarta Sans`)**: Loaded cleanly via `next/font/google` (`--font-jakarta`), optimized for formal Indonesian administrative copy and multi-sentence news summaries (`13px` to `14px`, `line-height: 1.6`, `65ch` max measure in review prose).
-- **Numerical & Identifiers (`JetBrains Mono`)**: Loaded via `next/font/google` (`--font-mono`) paired with `.tabular-nums` (`font-variant-numeric: tabular-nums`), strictly applied to KBLI codes, years, quarters, article counts, confidence ratios, timestamps, and keyboard hints (`⌘K`, `J/K`, `A`, `R`).
-- **Corner Hierarchy**: `6px` (`rounded-md`) for badges/chips, `8px` (`rounded-lg`) for buttons/inputs/tabs, `12px` (`rounded-xl`) for structural cards/panels. Pill rounding (`rounded-full`) is confined solely to horizontal meter progress bars.
+### Layer 1: Primitive Tokens
+| Token | Value | Purpose |
+| :--- | :--- | :--- |
+| `--primitive-white` | `#FFFFFF` | Pure white card & navbar surface |
+| `--primitive-alabaster-50` | `#F7F8FA` | Primary app canvas background |
+| `--primitive-slate-100` | `#F1F5F9` | Secondary fill, inactive pill, table header tint |
+| `--primitive-slate-150` | `#EEF0F4` | Hairline row and card border |
+| `--primitive-slate-200` | `#E2E8F0` | Standard subtle card/button border |
+| `--primitive-slate-300` | `#CBD5E1` | Resting form input border |
+| `--primitive-slate-500` | `#64748B` | Muted metadata & caption text |
+| `--primitive-slate-600` | `#475569` | Secondary body & label text |
+| `--primitive-slate-800` | `#1E293B` | Obsidian hover state |
+| `--primitive-slate-900` | `#0F172A` | Obsidian Ink primary text & primary CTA fill |
+| `--primitive-emerald-50` | `#ECFDF5` | Mint-emerald active/verified surface tint |
+| `--primitive-emerald-200` | `#A7F3D0` | Mint-emerald badge & active row border |
+| `--primitive-emerald-600` | `#059669` | Primary brand accent & focus ring |
+| `--primitive-emerald-700` | `#047857` | Deep emerald badge text & hover accent |
+| `--primitive-amber-50` | `#FFFBEB` | Pending status pastel tint |
+| `--primitive-amber-200` | `#FDE68A` | Pending status pastel border |
+| `--primitive-amber-700` | `#B45309` | Pending status text (`6.0:1` contrast) |
+| `--primitive-indigo-50` | `#EFF6FF` | Needs-revision status pastel tint |
+| `--primitive-indigo-200` | `#BFDBFE` | Needs-revision status pastel border |
+| `--primitive-indigo-700` | `#1D4ED8` | Needs-revision status text (`6.7:1` contrast) |
+| `--primitive-rose-50` | `#FFF1F2` | Rejected/error pastel tint |
+| `--primitive-rose-200` | `#FECDD3` | Rejected/error pastel border |
+| `--primitive-rose-700` | `#BE123C` | Rejected/error text (`6.4:1` contrast) |
+
+### Layer 2: Semantic Tokens
+| Semantic Token | Light Mode Mapping | Usage |
+| :--- | :--- | :--- |
+| `--bg-canvas` | `var(--primitive-alabaster-50)` (`#F7F8FA`) | Page body background |
+| `--bg-surface` | `var(--primitive-white)` (`#FFFFFF`) | Cards, top navbar, split panes, modals |
+| `--bg-subtle` | `var(--primitive-slate-100)` (`#F1F5F9`) | Hover rows, filter pills, secondary fills |
+| `--bg-selected` | `var(--primitive-emerald-50)` (`#ECFDF5`) | Selected phenomenon row & active tab pill |
+| `--text-primary` | `var(--primitive-slate-900)` (`#0F172A`) | Headings, article titles, primary values |
+| `--text-secondary` | `var(--primitive-slate-600)` (`#475569`) | Summaries, descriptions, form labels |
+| `--text-muted` | `var(--primitive-slate-500)` (`#64748B`) | Timestamps, helper text, inactive tabs |
+| `--brand-primary` | `var(--primitive-emerald-600)` (`#059669`) | Brand mark, active indicator, focus ring |
+| `--brand-primary-hover` | `var(--primitive-emerald-700)` (`#047857`) | Brand hover & verified action fill |
+| `--cta-primary-bg` | `var(--primitive-slate-900)` (`#0F172A`) | Primary CTA fill (`Masuk`, `+ Tarik Berita`, `Unduh`) |
+| `--cta-primary-hover` | `var(--primitive-slate-800)` (`#1E293B`) | Primary CTA hover fill |
+| `--border-hairline` | `var(--primitive-slate-150)` (`#EEF0F4`) | Card borders & table row dividers |
+| `--border-subtle` | `var(--primitive-slate-200)` (`#E2E8F0`) | Secondary button & container borders |
+| `--border-input` | `var(--primitive-slate-300)` (`#CBD5E1`) | Form input, select, and textarea borders |
+
+### Layer 3: Component Tokens & Geometry
+| Token | Value | Applied Components |
+| :--- | :--- | :--- |
+| `--radius-sm` | `0.5rem` (`8px` / `rounded-lg`) | Pastel status badges, KBLI taxonomy pills, `<kbd>` hints |
+| `--radius-md` | `0.75rem` (`12px` / `rounded-xl`) | Buttons, text inputs, selects, search bar, top nav tabs |
+| `--radius-lg` | `1rem` (`16px` / `rounded-2xl`) | Metric cards, phenomenon list card, split detail pane |
+| `--radius-xl` | `1.25rem` (`20px`) | Login gateway card, mobile slide-over sheet |
+| `--shadow-xs` | `0 1px 2px 0 rgba(15, 23, 42, 0.04)` | Inputs, secondary buttons |
+| `--shadow-card` | `0 10px 30px -10px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.03)` | Elevated white cards & split inspection pane |
+| `--shadow-floating` | `0 20px 45px -15px rgba(15, 23, 42, 0.10), 0 4px 12px -2px rgba(15, 23, 42, 0.04)` | Login card, dropdown menus, dialogs |
 
 ---
 
-## 4. Key Workstation Modules
+## 3. Component State Matrix
 
-1. **Authenticated Gateway (`/login`)**: Split institutional dossier column (`BPS 65.04` context) opposite daylight/obsidian credential card with visible format hints (`email@bps6504.go.id`), client/server validation summary on submit/blur (`noValidate` + `role="alert"` + `aria-invalid`), and password visibility `aria-pressed` toggle.
-2. **Collapsible App Shell (`WorkspaceSidebar` + `CommandHeader` + `MobileNavDrawer`)**: Persistent `256px` / `74px` BPS Navy sidebar on `lg+`, native `<dialog>` slide-out navigation on mobile (`< lg`), active period selectors (`Q1-Q4`, year), cron freshness label, live Theme Toggle, manual pipeline trigger (`Ambil Berita`), and instant `.xlsx` download (`admin`/`editor` & `viewer` compliant).
-3. **Executive Overview (`metrics-cards.tsx`, `sector-distribution.tsx`, `overview-panel.tsx`)**: Asymmetric `7/5` quarterly triage focus & composition ratio beside Archive & Pipeline telemetry; interactive KBLI `17`-sector ranking matrix (clicking a sector filters directly into Curation) beside Expenditure impact split; Priority Pending queue for immediate slide-over inspection.
-4. **Curation Data Table (`curation-table.tsx`)**: Semantic `<search>` toolbar (`Ctrl+K` omni-search with clear trigger, segmented status filter tabs, KBLI/Expenditure `<select>`, reset filter action), keyboard row focus (`J`/`K`/`Enter` on `tabIndex={0}` rows), contextual bulk selection bar, structured loading skeletons (`aria-busy`), retryable error recovery, and viewer read-only lock notice.
-5. **Side-by-Side Review Drawer (`review-modal.tsx`)**: Top-layer native `<dialog>` slide-over (`light-dismiss` safe via dirty-state/backdrop checks, `Esc` closable) combining source article reading column (`65ch`), extracted currency/volume entities, audit timeline, and editable classification form (`[A]` Approve, `[R]` Reject).
-6. **Excel Export Studio (`export-center.tsx`)**: Asymmetric `7/5` period & sheet configurator alongside workbook structure specification and live 10-row formatted preview table with loading & error recovery states.
+Every interactive element implements all five states:
+
+| Component | Default | Hover | Active / Pressed | Focus-Visible | Disabled / Loading |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Primary Button (Obsidian)** | `#0F172A` bg, `#FFFFFF` text, `rounded-xl` | `#1E293B` bg, `-1px` translate | `#0F172A` bg, `scale(0.99)` | `2px` `#059669` ring + `2px` offset | `opacity: 0.55`, `cursor: not-allowed`, spinner |
+| **Approve Button (Emerald)** | `#059669` bg, `#FFFFFF` text, `rounded-xl` | `#047857` bg | `#065F46` bg | `2px` `#059669` ring + `2px` offset | `opacity: 0.55`, `cursor: not-allowed` |
+| **Secondary Button (White)** | `#FFFFFF` bg, `#0F172A` text, `1px` `#E2E8F0` border, `rounded-xl` | `#F8FAFC` bg, `#CBD5E1` border | `#F1F5F9` bg | `2px` `#059669` ring + `2px` offset | `opacity: 0.5`, `cursor: not-allowed` |
+| **Form Input / Select** | `#FFFFFF` bg, `1px` `#CBD5E1` border, `rounded-xl` | `#94A3B8` border | `#059669` border | `1px` `#059669` border + `3px` `rgba(5,150,105,0.16)` ring | `#F8FAFC` bg, `#94A3B8` text |
+| **Phenomenon Row** | `#FFFFFF` bg, `1px` `#EEF0F4` bottom hairline | `#F8FAFC` bg | `#ECFDF5` bg (`#059669` `3px` left bar) | `2px` inset `#059669` outline | `opacity: 0.6` |
+| **Top Nav Tab** | Transparent bg, `#475569` text, `rounded-xl` | `#F1F5F9` bg, `#0F172A` text | `#ECFDF5` pill bg, `#047857` text (`600`), `2px` `#059669` bottom indicator | `2px` `#059669` ring | `opacity: 0.4` |
 
 ---
 
-## 5. Accessibility, Theme Persistence & Browser Semantics
+## 4. Screen-by-Screen Layout Specifications
 
-- **Zero-FOUC Theme Initialization**: Inline bootstrap script in `src/app/layout.tsx` synchronizes `sipena-theme` (`light` / `dark`), `document.documentElement.classList`, and `<meta name="color-scheme">` prior to first paint; cross-tab changes sync via `storage` event.
-- **Native Controls & Keyboard Flows**: Native `<button>`, `<a href>`, `<dialog>`, `<table>`, `cursor: pointer` / `cursor: not-allowed` rules in `@layer base`, `:focus-visible` `2px` high-contrast outlines (`--focus-ring`), non-color status icons, minimum `40px-44px` interactive height targets on mobile viewports, and `prefers-reduced-motion: reduce` support.
+### 4.1 Authentication Gateway (`/login`)
+- **Canvas**: Soft Alabaster (`#F7F8FA`) with a subtle radial mint-emerald wash (`radial-gradient(circle at 50% 0%, rgba(5, 150, 105, 0.08), transparent 55%)`).
+- **Gateway Card**: Centered `max-w-[440px]` pure white card (`#FFFFFF`), `rounded-2xl`, `p-8 sm:p-10`, `border: 1px solid #EEF0F4`, `box-shadow: var(--shadow-floating)`.
+- **Header**: Emerald-tinted brand mark (`SIPENA-KTT`), concise title (`Masuk ke SIPENA-KTT`), and calm subtitle (`Ruang kerja kurasi berita ekonomi dan rekonsiliasi PDRB BPS Kabupaten Tana Tidung`).
+- **Form Ergonomics**: `rounded-xl` inputs (`h-11`), inline password visibility toggle, validation feedback shown only after user interaction (`touched` or submit attempt), and a full-width Obsidian Ink (`#0F172A`) submit CTA.
+
+### 4.2 Top Navigation Bar (`CommandHeader`)
+- **Height & Container**: `h-16` (`64px`) sticky header (`bg-white/90 backdrop-blur-md border-b border-[#EEF0F4]`), centered `max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8`.
+- **Left**: Brand mark + `SIPENA-KTT` + `6504` pill.
+- **Center**: 3 horizontal tabs (`Meja Kurasi` with pending badge, `Ringkasan Analitik`, `Pusat Ekspor Excel`).
+- **Right**: Period selector (`rounded-xl`), `+ Tarik Berita` Obsidian CTA (`canEdit`), and Operator profile chip with role badge & logout button.
+
+### 4.3 `Meja Kurasi` Split-View Workbench (`activeTab === "feed"`)
+1. **Interactive 4-Stat Metric Strip**: 4 `rounded-2xl` white cards (`Total Fenomena`, `Menunggu Verifikasi`, `Disetujui ke PDRB`, `Cakupan Sektor KBLI`). Clicking a card filters the feed below.
+2. **Unified Filter & Search Toolbar**: `rounded-2xl` white bar with `Ctrl+K` search input, status pill tabs (`Semua`, `Pending`, `Disetujui`, `Perlu Revisi`, `Ditolak`), KBLI sector dropdown, and Expenditure dropdown.
+3. **Master-Detail Split Grid (`xl:grid-cols-[1fr_480px] 2xl:grid-cols-[1fr_540px] gap-5`)**:
+   - **Left Pane (`CurationTable`)**: SyncMaster-style clean rows with checkbox, source/date caption, `15px` semibold headline, 2-line excerpt, calm KBLI & Expenditure chips (`rounded-lg`), and pastel status badge.
+   - **Right Pane (`SplitInspectionPane`)**: TellDesk-style sticky inspection & verification panel on desktop (`xl+`) with underline tabs (`Ringkasan & Klasifikasi`, `Teks Berita Asli`, `Riwayat Audit`), inline KBLI/Expenditure/Notes editor, and `[A] Setujui` (Emerald) / `[R] Tolak` / `Perlu Revisi` actions. On `< xl` viewports, opens in a native `<dialog>` slide-over sheet.
+
+### 4.4 `Ringkasan Analitik` (`activeTab === "overview"`)
+- Sapick & BlazeX style `rounded-2xl` white cards with generous `p-6` padding:
+  - **Distribusi 17 Kategori Lapangan Usaha (KBLI)**: Horizontal emerald/slate bars with `tabular-nums` counts and click-to-filter drill-down into `Meja Kurasi`.
+  - **Komponen Pengeluaran & Sebaran Sumber Media**: Clean proportion cards and recent verified phenomena feed.
+
+### 4.5 `Pusat Ekspor Excel` (`activeTab === "export"`)
+- `rounded-2xl` white configurator card (Period selector, verified-only toggle, Obsidian Ink `Unduh Kertas Kerja (.xlsx)` CTA), 3-sheet summary cards (`Ringkasan_Eksekutif`, `Matriks_KBLI_PDRB`, `Daftar_Fenomena_Audit`), and a clean live preview table.

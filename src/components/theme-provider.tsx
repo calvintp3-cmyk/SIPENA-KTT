@@ -11,7 +11,7 @@ import { Moon, Sun } from "lucide-react";
 
 export type ThemeMode = "light" | "dark";
 
-const STORAGE_KEY = "sipena-theme";
+const STORAGE_KEY = "sipena-theme-v3";
 
 interface ThemeContextValue {
   theme: ThemeMode;
@@ -106,14 +106,14 @@ export function ThemeToggle({ compact = false, className = "" }: ThemeToggleProp
       aria-label={isDark ? "Ubah tampilan ke mode terang" : "Ubah tampilan ke mode gelap"}
       aria-pressed={isDark}
       title={label}
-      className={`inline-flex min-h-[44px] items-center justify-center gap-2 rounded-lg border border-[var(--border-strong)] bg-[var(--bg-surface)] px-3 py-1.5 text-xs font-medium text-[var(--text-primary)] transition-colors hover:bg-[var(--bg-hover)] sm:min-h-[36px] ${className}`}
+      className={`btn-secondary inline-flex min-h-[40px] items-center justify-center gap-2 rounded-xl px-3 py-1.5 text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] sm:min-h-[36px] ${className}`}
     >
       {isDark ? (
-        <Sun className="h-3.5 w-3.5 text-amber-400" aria-hidden="true" />
+        <Sun className="h-3.5 w-3.5 text-amber-500" aria-hidden="true" />
       ) : (
-        <Moon className="h-3.5 w-3.5 text-[var(--accent-text)]" aria-hidden="true" />
+        <Moon className="h-3.5 w-3.5 text-emerald-700" aria-hidden="true" />
       )}
-      {!compact && <span className="hidden md:inline">{label}</span>}
+      {!compact && <span className="hidden sm:inline">{label}</span>}
     </button>
   );
 }

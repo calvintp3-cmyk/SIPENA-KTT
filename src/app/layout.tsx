@@ -20,10 +20,10 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "SIPENA-KTT: Sistem Informasi Fenomena Ekonomi & Neraca Tana Tidung",
   description:
-    "Platform kurasi fenomena ekonomi daerah untuk kompilasi PDRB Kabupaten Tana Tidung (BPS 65.04).",
+    "Platform kurasi fenomena ekonomi daerah dan analitik PDRB Kabupaten Tana Tidung (BPS 65.04).",
 };
 
-const THEME_INIT_SCRIPT = `(function(){try{var s=localStorage.getItem('sipena-theme');var m=s==='dark'?'dark':'light';var r=document.documentElement;r.classList.toggle('dark',m==='dark');r.dataset.theme=m;var meta=document.querySelector('meta[name="color-scheme"]');if(meta)meta.setAttribute('content',m);}catch(e){}})();`;
+const THEME_INIT_SCRIPT = `(function(){try{var s=localStorage.getItem('sipena-theme-v3');var m=s==='dark'?'dark':'light';var r=document.documentElement;r.classList.toggle('dark',m==='dark');r.dataset.theme=m;var meta=document.querySelector('meta[name="color-scheme"]');if(meta)meta.setAttribute('content',m);}catch(e){}})();`;
 
 export default function RootLayout({
   children,

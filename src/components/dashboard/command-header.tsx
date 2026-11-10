@@ -2,25 +2,19 @@
 
 import { useEffect, useRef } from "react";
 import {
-  ChevronRight,
-  Clock,
-  Download,
+  BarChart3,
   FileSpreadsheet,
-  LayoutDashboard,
+  Inbox,
   LogOut,
   Menu,
-  PanelLeftClose,
-  PanelLeftOpen,
   RefreshCw,
-  Table2,
   X,
 } from "lucide-react";
 import { BrandMark } from "@/components/brand-mark";
 import { ThemeToggle } from "@/components/theme-provider";
-import { formatIndonesianDate } from "@/lib/utils";
 import type { AuthenticatedUser, PeriodQuarter } from "@/types/client";
 
-export type WorkspaceTab = "dashboard" | "feed" | "export";
+export type WorkspaceTab = "feed" | "overview" | "export";
 
 const QUARTER_LABELS: Record<PeriodQuarter, string> = {
   Q1: "Triwulan I",
@@ -32,35 +26,8 @@ const QUARTER_LABELS: Record<PeriodQuarter, string> = {
 const ROLE_LABELS: Record<AuthenticatedUser["role"], string> = {
   admin: "Admin Nerwilis",
   editor: "Analis PDRB",
-  viewer: "Pimpinan / Viewer",
+  viewer: "Viewer",
 };
-
-const TAB_TITLES: Record<WorkspaceTab, { title: string; subtitle: string }> = {
-  dashboard: {
-    title: "Ringkasan Eksekutif",
-    subtitle: "Cakupan sektoral 17 KBLI, transmisi pengeluaran, dan antrean telaah prioritas.",
-  },
-  feed: {
-    title: "Tabel Kurasi & Verifikasi",
-    subtitle: "Penelaahan berita regional Kaltara, klasifikasi KBLI, dan audit keputusan analis.",
-  },
-  export: {
-    title: "Pusat Ekspor Diseminasi",
-    subtitle: "Penyusunan kertas kerja Excel tiga sheet standar forum rekonsiliasi PDRB.",
-  },
-};
-
-interface WorkspaceSidebarProps {
-  user: AuthenticatedUser;
-  activeTab: WorkspaceTab;
-  onSelectTab: (tab: WorkspaceTab) => void;
-  quarter: PeriodQuarter;
-  year: number;
-  pendingCount: number;
-  isCollapsed: boolean;
-  onToggleCollapse: () => void;
-  onLogout: () => void;
-}
 
 function getInitials(name: string) {
   return (
@@ -69,193 +36,6 @@ function getInitials(name: string) {
       .slice(0, 2)
       .map((p) => p[0]?.toUpperCase() ?? "")
       .join("") || "SP"
-  );
-}
-
-export function WorkspaceSidebar({
-  user,
-  activeTab,
-  onSelectTab,
-  quarter,
-  year,
-  pendingCount,
-  isCollapsed,
-  onToggleCollapse,
-  onLogout,
-}: WorkspaceSidebarProps) {
-  const initials = getInitials(user.name);
-
-  const navItems: Array<{
-    id: WorkspaceTab;
-    label: string;
-    icon: typeof LayoutDashboard;
-    badge?: number;
-  }> = [
-    { id: "dashboard", label: "Ringkasan Eksekutif", icon: LayoutDashboard },
-    {
-      id: "feed",
-      label: "Tabel Kurasi",
-      icon: Table2,
-      badge: pendingCount,
-    },
-    { id: "export", label: "Ekspor Excel", icon: FileSpreadsheet },
-  ];
-
-  return (
-    <aside
-      aria-label="Navigasi Utama Workstation"
-      className={`hidden shrink-0 flex-col justify-between border-r border-[var(--border-rail)] bg-[var(--bg-rail)] text-[var(--text-rail)] transition-[width] duration-150 lg:sticky lg:top-0 lg:flex lg:h-screen ${
-        isCollapsed ? "w-[74px]" : "w-64"
-      }`}
-    >
-      {/* Top: Brand + Collapse Switch */}
-      <div>
-        <div
-          className={`flex h-16 items-center border-b border-[var(--border-rail)] px-3.5 ${
-            isCollapsed ? "justify-center" : "justify-between"
-          }`}
-        >
-          <div className="flex min-w-0 items-center gap-2.5">
-            <BrandMark size="sm" tone="navy" />
-            {!isCollapsed && (
-              <div className="min-w-0">
-                <div className="truncate text-sm font-bold tracking-tight text-white">
-                  SIPENA-KTT
-                </div>
-                <div className="truncate font-mono text-[10px] text-sky-300">
-                  BPS KAB. 65.04
-                </div>
-              </div>
-            )}
-          </div>
-
-          {!isCollapsed && (
-            <button
-              type="button"
-              onClick={onToggleCollapse}
-              aria-label="Ciutkan panel navigasi samping"
-              aria-expanded={!isCollapsed}
-              title="Ciutkan sidebar"
-              className="flex h-8 w-8 items-center justify-center rounded-md text-[var(--text-rail-muted)] transition-colors hover:bg-[var(--bg-rail-hover)] hover:text-white"
-            >
-              <PanelLeftClose className="h-4 w-4" aria-hidden="true" />
-            </button>
-          )}
-        </div>
-
-        {isCollapsed && (
-          <div className="flex justify-center border-b border-[var(--border-rail)] py-2">
-            <button
-              type="button"
-              onClick={onToggleCollapse}
-              aria-label="Bentangkan panel navigasi samping"
-              aria-expanded={!isCollapsed}
-              title="Bentangkan sidebar"
-              className="flex h-8 w-8 items-center justify-center rounded-md text-[var(--text-rail-muted)] transition-colors hover:bg-[var(--bg-rail-hover)] hover:text-white"
-            >
-              <PanelLeftOpen className="h-4 w-4" aria-hidden="true" />
-            </button>
-          </div>
-        )}
-
-        {/* Active Period Scope Marker */}
-        {!isCollapsed && (
-          <div className="mx-3 mt-4 rounded-lg border border-[var(--border-rail)] bg-[var(--bg-rail-hover)]/60 px-3 py-2.5">
-            <div className="text-[10px] font-medium uppercase tracking-wider text-[var(--text-rail-muted)]">
-              Periode Kompilasi
-            </div>
-            <div className="mt-0.5 flex items-baseline justify-between font-mono text-xs font-semibold text-white">
-              <span>{QUARTER_LABELS[quarter]}</span>
-              <span className="tabular-nums text-sky-300">{year}</span>
-            </div>
-          </div>
-        )}
-
-        {/* Navigation Links */}
-        <nav aria-label="Modul Workstation" className="mt-4 space-y-1 px-2.5">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const active = activeTab === item.id;
-            return (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => onSelectTab(item.id)}
-                aria-current={active ? "page" : undefined}
-                title={isCollapsed ? item.label : undefined}
-                className={`group relative flex min-h-[42px] w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-xs font-medium transition-colors ${
-                  isCollapsed ? "justify-center px-2" : "justify-between"
-                } ${
-                  active
-                    ? "bg-[var(--bg-rail-active)] text-white"
-                    : "text-[var(--text-rail-muted)] hover:bg-[var(--bg-rail-hover)] hover:text-white"
-                }`}
-              >
-                <span className="flex min-w-0 items-center gap-3">
-                  <Icon
-                    className={`h-4 w-4 shrink-0 ${
-                      active ? "text-sky-300" : "text-[var(--text-rail-muted)] group-hover:text-white"
-                    }`}
-                    aria-hidden="true"
-                  />
-                  {!isCollapsed && <span className="truncate">{item.label}</span>}
-                </span>
-
-                {!isCollapsed && item.badge !== undefined && (
-                  <span
-                    className={`rounded px-1.5 py-0.5 font-mono text-[10px] font-semibold tabular-nums ${
-                      item.badge > 0
-                        ? "bg-amber-400/20 text-amber-200 ring-1 ring-inset ring-amber-400/40"
-                        : "bg-white/10 text-[var(--text-rail-muted)]"
-                    }`}
-                  >
-                    {item.badge}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </nav>
-      </div>
-
-      {/* Bottom: Operator Account + Logout */}
-      <div className="border-t border-[var(--border-rail)] p-3">
-        <div
-          className={`flex items-center gap-2.5 ${
-            isCollapsed ? "flex-col justify-center gap-2" : "justify-between"
-          }`}
-        >
-          <div className="flex min-w-0 items-center gap-2.5">
-            <div
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-sky-400/30 bg-[var(--bg-rail-hover)] font-mono text-xs font-semibold text-sky-200"
-              title={`${user.name} (${user.email})`}
-            >
-              {initials}
-            </div>
-            {!isCollapsed && (
-              <div className="min-w-0">
-                <div className="truncate text-xs font-semibold text-white">
-                  {user.name}
-                </div>
-                <div className="truncate font-mono text-[10px] text-[var(--text-rail-muted)]">
-                  {ROLE_LABELS[user.role]}
-                </div>
-              </div>
-            )}
-          </div>
-
-          <button
-            type="button"
-            onClick={onLogout}
-            aria-label="Keluar dari akun"
-            title="Keluar sesi"
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-[var(--border-rail)] bg-[var(--bg-rail-hover)]/70 text-[var(--text-rail-muted)] transition-colors hover:bg-rose-950/60 hover:text-rose-200"
-          >
-            <LogOut className="h-3.5 w-3.5" aria-hidden="true" />
-          </button>
-        </div>
-      </div>
-    </aside>
   );
 }
 
@@ -343,20 +123,20 @@ export function MobileNavDrawer({
         }
         pressedOutsideRef.current = false;
       }}
-      className="my-0 ml-0 mr-auto h-screen max-h-screen w-72 max-w-[85vw] border-r border-[var(--border-rail)] bg-[var(--bg-rail)] p-0 text-[var(--text-rail)] shadow-elevated open:flex open:flex-col open:justify-between"
+      className="my-0 ml-0 mr-auto h-screen max-h-screen w-80 max-w-[85vw] rounded-r-2xl border-r border-[var(--border-hairline)] bg-[var(--bg-surface)] p-0 text-[var(--text-primary)] shadow-floating open:flex open:flex-col open:justify-between"
     >
       <div>
-        <div className="flex h-16 items-center justify-between border-b border-[var(--border-rail)] px-4">
+        <div className="flex h-16 items-center justify-between border-b border-[var(--border-hairline)] px-4">
           <div className="flex items-center gap-2.5">
-            <BrandMark size="sm" tone="navy" />
+            <BrandMark size="sm" tone="emerald" />
             <div>
               <h2
                 id="mobile-drawer-title"
-                className="text-sm font-bold tracking-tight text-white"
+                className="text-sm font-bold tracking-tight text-[var(--text-primary)]"
               >
                 SIPENA-KTT
               </h2>
-              <span className="block font-mono text-[10px] text-sky-300">
+              <span className="block text-xs text-[var(--text-muted)]">
                 BPS Kab. Tana Tidung (65.04)
               </span>
             </div>
@@ -366,17 +146,17 @@ export function MobileNavDrawer({
             type="button"
             onClick={() => dialogRef.current?.close()}
             aria-label="Tutup menu navigasi"
-            className="flex h-11 w-11 items-center justify-center rounded-lg text-[var(--text-rail-muted)] hover:bg-[var(--bg-rail-hover)] hover:text-white"
+            className="flex h-10 w-10 items-center justify-center rounded-xl text-[var(--text-muted)] hover:bg-[var(--bg-subtle)] hover:text-[var(--text-primary)]"
           >
             <X className="h-5 w-5" aria-hidden="true" />
           </button>
         </div>
 
-        <div className="mx-3 mt-4 rounded-lg border border-[var(--border-rail)] bg-[var(--bg-rail-hover)]/60 px-3 py-2.5">
-          <div className="text-[10px] font-medium uppercase tracking-wider text-[var(--text-rail-muted)]">
+        <div className="mx-4 mt-4 rounded-xl border border-[var(--border-hairline)] bg-[var(--bg-canvas)] px-3.5 py-2.5">
+          <div className="text-[11px] font-medium text-[var(--text-muted)]">
             Periode Aktif
           </div>
-          <div className="mt-0.5 font-mono text-xs font-semibold text-white tabular-nums">
+          <div className="mt-0.5 text-sm font-semibold text-[var(--text-primary)] tabular-nums">
             {QUARTER_LABELS[quarter]} {year}
           </div>
         </div>
@@ -384,45 +164,45 @@ export function MobileNavDrawer({
         <nav aria-label="Menu Modul Seluler" className="mt-4 space-y-1 px-3">
           <button
             type="button"
-            onClick={() => pickTab("dashboard")}
-            aria-current={activeTab === "dashboard" ? "page" : undefined}
-            className={`flex min-h-[44px] w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium ${
-              activeTab === "dashboard"
-                ? "bg-[var(--bg-rail-active)] text-white"
-                : "text-[var(--text-rail-muted)] hover:bg-[var(--bg-rail-hover)] hover:text-white"
-            }`}
-          >
-            <LayoutDashboard className="h-4 w-4 shrink-0" aria-hidden="true" />
-            <span>Ringkasan Eksekutif</span>
-          </button>
-
-          <button
-            type="button"
             onClick={() => pickTab("feed")}
             aria-current={activeTab === "feed" ? "page" : undefined}
-            className={`flex min-h-[44px] w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm font-medium ${
+            className={`flex min-h-[44px] w-full items-center justify-between rounded-xl px-3.5 py-2.5 text-left text-sm font-medium transition-colors ${
               activeTab === "feed"
-                ? "bg-[var(--bg-rail-active)] text-white"
-                : "text-[var(--text-rail-muted)] hover:bg-[var(--bg-rail-hover)] hover:text-white"
+                ? "bg-emerald-50 font-semibold text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-200"
+                : "text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] hover:text-[var(--text-primary)]"
             }`}
           >
             <span className="flex items-center gap-3">
-              <Table2 className="h-4 w-4 shrink-0" aria-hidden="true" />
-              <span>Tabel Kurasi</span>
+              <Inbox className="h-4 w-4 shrink-0" aria-hidden="true" />
+              <span>Meja Kurasi</span>
             </span>
-            <span className="rounded bg-amber-400/20 px-2 py-0.5 font-mono text-xs font-semibold text-amber-200 tabular-nums">
+            <span className="rounded-lg border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-800 tabular-nums dark:border-amber-800/70 dark:bg-amber-950/70 dark:text-amber-200">
               {pendingCount}
             </span>
           </button>
 
           <button
             type="button"
+            onClick={() => pickTab("overview")}
+            aria-current={activeTab === "overview" ? "page" : undefined}
+            className={`flex min-h-[44px] w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-left text-sm font-medium transition-colors ${
+              activeTab === "overview"
+                ? "bg-emerald-50 font-semibold text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-200"
+                : "text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] hover:text-[var(--text-primary)]"
+            }`}
+          >
+            <BarChart3 className="h-4 w-4 shrink-0" aria-hidden="true" />
+            <span>Ringkasan Analitik</span>
+          </button>
+
+          <button
+            type="button"
             onClick={() => pickTab("export")}
             aria-current={activeTab === "export" ? "page" : undefined}
-            className={`flex min-h-[44px] w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium ${
+            className={`flex min-h-[44px] w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-left text-sm font-medium transition-colors ${
               activeTab === "export"
-                ? "bg-[var(--bg-rail-active)] text-white"
-                : "text-[var(--text-rail-muted)] hover:bg-[var(--bg-rail-hover)] hover:text-white"
+                ? "bg-emerald-50 font-semibold text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-200"
+                : "text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] hover:text-[var(--text-primary)]"
             }`}
           >
             <FileSpreadsheet className="h-4 w-4 shrink-0" aria-hidden="true" />
@@ -431,16 +211,16 @@ export function MobileNavDrawer({
         </nav>
       </div>
 
-      <div className="border-t border-[var(--border-rail)] p-4">
-        <div className="mb-3 flex items-center gap-2.5">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-sky-400/30 bg-[var(--bg-rail-hover)] font-mono text-xs font-semibold text-sky-200">
+      <div className="border-t border-[var(--border-hairline)] p-4">
+        <div className="mb-3 flex items-center gap-3">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 text-xs font-bold text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-200">
             {getInitials(user.name)}
           </div>
           <div className="min-w-0">
-            <div className="truncate text-xs font-semibold text-white">
+            <div className="truncate text-sm font-semibold text-[var(--text-primary)]">
               {user.name}
             </div>
-            <div className="truncate font-mono text-[10px] text-[var(--text-rail-muted)]">
+            <div className="truncate text-xs text-[var(--text-muted)]">
               {ROLE_LABELS[user.role]}
             </div>
           </div>
@@ -451,7 +231,7 @@ export function MobileNavDrawer({
             onClose();
             onLogout();
           }}
-          className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-lg border border-[var(--border-rail)] bg-[var(--bg-rail-hover)] px-3 py-2 text-xs font-semibold text-rose-200 hover:bg-rose-950/70"
+          className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-800 transition-colors hover:bg-rose-100 dark:border-rose-800/70 dark:bg-rose-950/60 dark:text-rose-200"
         >
           <LogOut className="h-4 w-4" aria-hidden="true" />
           <span>Keluar dari Sesi</span>
@@ -469,10 +249,12 @@ interface CommandHeaderProps {
   quarter: PeriodQuarter;
   year: number;
   onChangePeriod: (quarter: PeriodQuarter, year: number) => void;
+  pendingCount: number;
   unprocessedArticlesCount: number;
   latestIngestedAt: string | null;
   isCrawling: boolean;
   onTriggerCrawl: () => void;
+  onLogout: () => void;
 }
 
 export function CommandHeader({
@@ -483,68 +265,133 @@ export function CommandHeader({
   quarter,
   year,
   onChangePeriod,
-  unprocessedArticlesCount,
-  latestIngestedAt,
+  pendingCount,
   isCrawling,
   onTriggerCrawl,
+  onLogout,
 }: CommandHeaderProps) {
   const canOperate = user.role === "admin" || user.role === "editor";
-  const currentView = TAB_TITLES[activeTab];
+  const initials = getInitials(user.name);
+
+  const navTabs: Array<{
+    id: WorkspaceTab;
+    label: string;
+    icon: typeof Inbox;
+    badge?: number;
+  }> = [
+    {
+      id: "feed",
+      label: "Meja Kurasi",
+      icon: Inbox,
+      badge: pendingCount,
+    },
+    {
+      id: "overview",
+      label: "Ringkasan Analitik",
+      icon: BarChart3,
+    },
+    {
+      id: "export",
+      label: "Pusat Ekspor Excel",
+      icon: FileSpreadsheet,
+    },
+  ];
 
   return (
-    <header className="sticky top-0 z-30 border-b border-[var(--border-subtle)] bg-[var(--bg-surface)]">
-      <div className="flex min-h-16 flex-wrap items-center justify-between gap-3 px-4 py-2.5 lg:px-6">
-        {/* Left: Mobile Drawer Button + Breadcrumb View Identity */}
+    <header className="sticky top-0 z-30 border-b border-[var(--border-hairline)] bg-[var(--bg-surface)]/95 backdrop-blur-md">
+      <div className="mx-auto flex h-16 max-w-[1600px] items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
+        {/* Left: Mobile Trigger + Brand Identity */}
         <div className="flex min-w-0 items-center gap-3">
           <button
             type="button"
             onClick={onOpenMobileMenu}
-            aria-label="Buka menu navigasi utama"
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-[var(--border-strong)] bg-[var(--bg-surface)] text-[var(--text-primary)] hover:bg-[var(--bg-hover)] lg:hidden"
+            aria-label="Buka menu navigasi"
+            className="btn-secondary flex h-10 w-10 shrink-0 items-center justify-center rounded-xl lg:hidden"
           >
             <Menu className="h-5 w-5" aria-hidden="true" />
           </button>
 
-          <div className="min-w-0">
-            <div className="flex items-center gap-1.5 text-[11px] font-medium text-[var(--text-muted)]">
-              <span>Kalimantan Utara</span>
-              <ChevronRight className="h-3 w-3 shrink-0" aria-hidden="true" />
-              <span className="truncate font-mono text-[var(--text-secondary)]">
-                Kab. Tana Tidung 65.04
+          <button
+            type="button"
+            onClick={() => onSelectTab("feed")}
+            className="flex min-w-0 items-center gap-2.5 text-left"
+          >
+            <BrandMark size="sm" tone="emerald" />
+            <div className="flex items-center gap-2">
+              <span className="truncate text-[15px] font-bold tracking-tight text-[var(--text-primary)]">
+                SIPENA-KTT
               </span>
-              <ChevronRight className="hidden h-3 w-3 shrink-0 sm:inline" aria-hidden="true" />
-              <span className="hidden font-mono font-semibold text-[var(--accent-text)] sm:inline tabular-nums">
-                {quarter} {year}
+              <span className="hidden rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-subtle)] px-2 py-0.5 font-mono text-[11px] font-medium text-[var(--text-muted)] sm:inline-block">
+                65.04
               </span>
             </div>
-            <h1 className="truncate text-base font-bold tracking-tight text-[var(--text-primary)] sm:text-lg">
-              {currentView.title}
-            </h1>
-          </div>
+          </button>
         </div>
 
-        {/* Right: Operational Status, Period Switcher, Theme Switch, & Primary Actions */}
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Scraper Freshness Telemetry */}
-          <div className="hidden items-center gap-2 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-subtle)] px-3 py-1.5 font-mono text-[11px] text-[var(--text-secondary)] xl:flex">
-            <Clock className="h-3.5 w-3.5 text-[var(--text-muted)]" aria-hidden="true" />
-            <span>
-              {latestIngestedAt
-                ? `Tarik: ${formatIndonesianDate(latestIngestedAt)}`
-                : "Belum ada penarikan"}
-            </span>
-            {unprocessedArticlesCount > 0 && (
-              <>
-                <span className="text-[var(--border-strong)]">/</span>
-                <span className="font-semibold text-amber-700 dark:text-amber-300 tabular-nums">
-                  {unprocessedArticlesCount} antre AI
+        {/* Center: Primary Top Horizontal Navigation Tabs */}
+        <nav
+          aria-label="Navigasi Utama"
+          className="hidden h-full items-center gap-1 lg:flex"
+        >
+          {navTabs.map((tab) => {
+            const Icon = tab.icon;
+            const active = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => onSelectTab(tab.id)}
+                aria-current={active ? "page" : undefined}
+                className={`relative flex h-full items-center px-1 text-sm transition-colors ${
+                  active
+                    ? "font-semibold text-emerald-800 dark:text-emerald-300"
+                    : "font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                }`}
+              >
+                <span
+                  className={`inline-flex items-center gap-2 rounded-xl px-3.5 py-2 transition-colors ${
+                    active
+                      ? "bg-emerald-50/90 dark:bg-emerald-950/50"
+                      : "hover:bg-[var(--bg-subtle)]"
+                  }`}
+                >
+                  <Icon
+                    className={`h-4 w-4 shrink-0 ${
+                      active
+                        ? "text-emerald-600 dark:text-emerald-400"
+                        : "text-[var(--text-muted)]"
+                    }`}
+                    aria-hidden="true"
+                  />
+                  <span>{tab.label}</span>
+                  {tab.badge !== undefined && (
+                    <span
+                      className={`rounded-lg px-2 py-0.5 text-xs font-semibold tabular-nums ${
+                        tab.badge > 0
+                          ? "border border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800/70 dark:bg-amber-950/70 dark:text-amber-200"
+                          : "bg-[var(--bg-subtle)] text-[var(--text-muted)]"
+                      }`}
+                    >
+                      {tab.badge}
+                    </span>
+                  )}
                 </span>
-              </>
-            )}
-          </div>
 
+                {active && (
+                  <span
+                    aria-hidden="true"
+                    className="absolute inset-x-3 bottom-0 h-[2px] rounded-full bg-emerald-600 dark:bg-emerald-400"
+                  />
+                )}
+              </button>
+            );
+          })}
+        </nav>
+
+        {/* Right: Period Selector, Primary Obsidian CTA, Theme Switch & Operator Profile */}
+        <div className="flex items-center gap-2">
           {/* Period Quarter & Year Selector */}
-          <div className="flex min-h-[44px] items-center gap-1 rounded-lg border border-[var(--border-strong)] bg-[var(--bg-subtle)] px-2.5 py-1 font-mono text-xs sm:min-h-[36px]">
+          <div className="flex h-9 items-center gap-1 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-2.5 text-xs shadow-xs">
             <label htmlFor="period-quarter" className="visually-hidden">
               Triwulan Kompilasi
             </label>
@@ -554,23 +401,23 @@ export function CommandHeader({
               onChange={(e) =>
                 onChangePeriod(e.target.value as PeriodQuarter, year)
               }
-              className="min-h-[38px] bg-transparent py-0.5 font-semibold text-[var(--text-primary)] focus:outline-none sm:min-h-0"
+              className="bg-transparent font-semibold text-[var(--text-primary)] focus:outline-none"
             >
               <option value="Q1" className="bg-[var(--bg-surface)] text-[var(--text-primary)]">
-                Q1 (Jan-Mar)
+                Q1
               </option>
               <option value="Q2" className="bg-[var(--bg-surface)] text-[var(--text-primary)]">
-                Q2 (Apr-Jun)
+                Q2
               </option>
               <option value="Q3" className="bg-[var(--bg-surface)] text-[var(--text-primary)]">
-                Q3 (Jul-Sep)
+                Q3
               </option>
               <option value="Q4" className="bg-[var(--bg-surface)] text-[var(--text-primary)]">
-                Q4 (Okt-Des)
+                Q4
               </option>
             </select>
 
-            <span className="text-[var(--text-muted)]" aria-hidden="true">
+            <span className="text-[var(--border-input)]" aria-hidden="true">
               /
             </span>
 
@@ -583,7 +430,7 @@ export function CommandHeader({
               onChange={(e) =>
                 onChangePeriod(quarter, Number(e.target.value))
               }
-              className="min-h-[38px] bg-transparent py-0.5 font-semibold text-[var(--text-primary)] tabular-nums focus:outline-none sm:min-h-0"
+              className="bg-transparent font-semibold text-[var(--text-primary)] tabular-nums focus:outline-none"
             >
               <option value={2024} className="bg-[var(--bg-surface)] text-[var(--text-primary)]">
                 2024
@@ -597,42 +444,53 @@ export function CommandHeader({
             </select>
           </div>
 
-          <ThemeToggle />
-
           {canOperate && (
             <button
               type="button"
               onClick={onTriggerCrawl}
               disabled={isCrawling}
-              title="Jalankan scraper berita Kaltara dan ekstraksi fenomena"
-              className="inline-flex min-h-[44px] items-center gap-1.5 rounded-lg border border-[var(--border-strong)] bg-[var(--bg-surface)] px-3 py-1.5 text-xs font-semibold text-[var(--text-primary)] transition-colors hover:bg-[var(--bg-hover)] disabled:opacity-60 sm:min-h-[36px]"
+              title="Tarik berita ekonomi Kaltara terbaru dan ekstraksi otomatis"
+              className="btn-obsidian inline-flex h-9 items-center gap-1.5 rounded-xl px-3.5 text-xs font-semibold disabled:opacity-60"
             >
               <RefreshCw
-                className={`h-3.5 w-3.5 text-[var(--accent-text)] ${isCrawling ? "animate-spin" : ""}`}
+                className={`h-3.5 w-3.5 ${isCrawling ? "animate-spin" : ""}`}
                 aria-hidden="true"
               />
               <span className="hidden sm:inline">
-                {isCrawling ? "Menarik Berita..." : "Ambil Berita"}
+                {isCrawling ? "Menarik..." : "Tarik Berita"}
               </span>
             </button>
           )}
 
-          {activeTab !== "export" && (
+          <ThemeToggle compact />
+
+          {/* Operator Profile & Quick Logout */}
+          <div className="hidden items-center gap-2 border-l border-[var(--border-hairline)] pl-2.5 lg:flex">
+            <div
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 text-xs font-bold text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-200"
+              title={`${user.name} (${user.email})`}
+            >
+              {initials}
+            </div>
+            <div className="hidden min-w-0 2xl:block">
+              <div className="max-w-[120px] truncate text-xs font-semibold text-[var(--text-primary)]">
+                {user.name}
+              </div>
+              <div className="text-[11px] text-[var(--text-muted)]">
+                {ROLE_LABELS[user.role]}
+              </div>
+            </div>
             <button
               type="button"
-              onClick={() => onSelectTab("export")}
-              className="inline-flex min-h-[44px] items-center gap-1.5 rounded-lg bg-[var(--accent-primary)] px-3.5 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-[var(--accent-primary-hover)] sm:min-h-[36px]"
+              onClick={onLogout}
+              aria-label="Keluar dari akun"
+              title="Keluar sesi"
+              className="flex h-8 w-8 items-center justify-center rounded-xl text-[var(--text-muted)] transition-colors hover:bg-rose-50 hover:text-rose-700 dark:hover:bg-rose-950/60 dark:hover:text-rose-300"
             >
-              <Download className="h-3.5 w-3.5" aria-hidden="true" />
-              <span>Ekspor .xlsx</span>
+              <LogOut className="h-4 w-4" aria-hidden="true" />
             </button>
-          )}
+          </div>
         </div>
-      </div>
-
-      {/* Subtitle Context Ribbon on Mobile / Small Tablets */}
-      <div className="border-t border-[var(--border-subtle)] bg-[var(--bg-subtle)] px-4 py-1.5 text-[11px] text-[var(--text-muted)] lg:px-6">
-        {currentView.subtitle}
       </div>
     </header>
   );

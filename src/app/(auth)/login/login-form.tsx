@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AlertCircle, Eye, EyeOff, Lock, LogIn } from "lucide-react";
+import { AlertCircle, Eye, EyeOff, Loader2, Lock, LogIn } from "lucide-react";
 
 export function LoginForm() {
   const router = useRouter();
@@ -12,6 +12,8 @@ export function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [emailTouched, setEmailTouched] = useState(false);
+  const [passwordTouched, setPasswordTouched] = useState(false);
   const [emailError, setEmailError] = useState<string | null>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -23,7 +25,7 @@ export function LoginForm() {
       return "Masukkan alamat email pegawai terlebih dahulu.";
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
-      return "Masukkan format email yang benar, misalnya analis@bps6504.go.id.";
+      return "Gunakan format email yang benar, misalnya analis@bps6504.go.id.";
     }
     return null;
   }
@@ -38,6 +40,8 @@ export function LoginForm() {
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setErrorMsg(null);
+    setEmailTouched(true);
+    setPasswordTouched(true);
 
     const nextEmailErr = validateEmail(email);
     const nextPasswordErr = validatePassword(password);
@@ -79,7 +83,7 @@ export function LoginForm() {
       router.refresh();
     } catch {
       setErrorMsg(
-        "Koneksi ke server terputus. Pastikan layanan jaringan kantor aktif dan coba lagi."
+        "Koneksi ke server terputus. Pastikan jaringan kantor aktif dan coba lagi."
       );
       setIsSubmitting(false);
     }
@@ -91,7 +95,7 @@ export function LoginForm() {
         <div
           role="alert"
           aria-live="assertive"
-          className="flex items-start gap-2.5 rounded-lg border border-rose-300 bg-rose-50 p-3 text-xs leading-relaxed text-rose-900 dark:border-rose-800/80 dark:bg-rose-950/60 dark:text-rose-200"
+          className="flex items-start gap-2.5 rounded-xl border border-rose-200 bg-rose-50 px-3.5 py-3 text-xs leading-relaxed text-rose-800 dark:border-rose-800/80 dark:bg-rose-950/60 dark:text-rose-200"
         >
           <AlertCircle
             className="mt-0.5 h-4 w-4 shrink-0 text-rose-600 dark:text-rose-400"
@@ -102,18 +106,17 @@ export function LoginForm() {
       )}
 
       <div>
-        <label
-          htmlFor="email"
-          className="mb-1 block text-xs font-semibold text-[var(--text-primary)]"
-        >
-          Email Pegawai / Akun Kerja{" "}
-          <span className="text-rose-600 dark:text-rose-400" aria-hidden="true">
-            *
+        <div className="mb-1.5 flex items-center justify-between">
+          <label
+            htmlFor="email"
+            className="text-[13px] font-medium text-[var(--text-primary)]"
+          >
+            Email Pegawai
+          </label>
+          <span className="text-[11px] text-[var(--text-muted)]">
+            @bps6504.go.id
           </span>
-        </label>
-        <p id="email-hint" className="mb-1.5 text-[11px] text-[var(--text-muted)]">
-          Format: nama@bps6504.go.id
-        </p>
+        </div>
         <input
           ref={emailInputRef}
           id="email"
@@ -126,29 +129,30 @@ export function LoginForm() {
           enterKeyHint="next"
           required
           aria-required="true"
-          aria-invalid={emailError ? "true" : "false"}
-          aria-describedby={emailError ? "email-hint email-error" : "email-hint"}
+          aria-invalid={emailTouched && emailError ? "true" : "false"}
+          aria-describedby={emailTouched && emailError ? "email-error" : undefined}
           value={email}
           onChange={(e) => {
             const next = e.target.value;
             setEmail(next);
-            if (emailError) {
+            if (emailTouched) {
               setEmailError(validateEmail(next));
             }
           }}
           onBlur={() => {
             if (email.length > 0) {
+              setEmailTouched(true);
               setEmailError(validateEmail(email));
             }
           }}
-          placeholder="nama@bps6504.go.id"
-          className={`min-h-[44px] w-full rounded-lg border bg-[var(--bg-subtle)] px-3.5 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] transition-colors focus:bg-[var(--bg-surface)] focus:outline-none ${
-            emailError
-              ? "border-rose-600 focus:border-rose-600"
-              : "border-[var(--border-strong)] focus:border-[var(--focus-ring)]"
+          placeholder="analis@bps6504.go.id"
+          className={`input-modern h-11 w-full rounded-xl px-3.5 text-sm placeholder:text-[var(--text-muted)] ${
+            emailTouched && emailError
+              ? "border-rose-500 focus:border-rose-600 focus:shadow-[0_0_0_3px_rgba(225,29,72,0.14)]"
+              : ""
           }`}
         />
-        {emailError && (
+        {emailTouched && emailError && (
           <p
             id="email-error"
             className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-rose-700 dark:text-rose-300"
@@ -162,12 +166,9 @@ export function LoginForm() {
       <div>
         <label
           htmlFor="password"
-          className="mb-1.5 block text-xs font-semibold text-[var(--text-primary)]"
+          className="mb-1.5 block text-[13px] font-medium text-[var(--text-primary)]"
         >
-          Kata Sandi{" "}
-          <span className="text-rose-600 dark:text-rose-400" aria-hidden="true">
-            *
-          </span>
+          Kata Sandi
         </label>
         <div className="relative">
           <input
@@ -179,29 +180,39 @@ export function LoginForm() {
             enterKeyHint="done"
             required
             aria-required="true"
-            aria-invalid={passwordError ? "true" : "false"}
-            aria-describedby={passwordError ? "password-error" : undefined}
+            aria-invalid={passwordTouched && passwordError ? "true" : "false"}
+            aria-describedby={
+              passwordTouched && passwordError ? "password-error" : undefined
+            }
             value={password}
             onChange={(e) => {
               const next = e.target.value;
               setPassword(next);
-              if (passwordError) {
+              if (passwordTouched) {
                 setPasswordError(validatePassword(next));
               }
             }}
+            onBlur={() => {
+              if (password.length > 0) {
+                setPasswordTouched(true);
+                setPasswordError(validatePassword(password));
+              }
+            }}
             placeholder="Masukkan kata sandi akun"
-            className={`min-h-[44px] w-full rounded-lg border bg-[var(--bg-subtle)] py-2.5 pl-3.5 pr-12 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] transition-colors focus:bg-[var(--bg-surface)] focus:outline-none ${
-              passwordError
-                ? "border-rose-600 focus:border-rose-600"
-                : "border-[var(--border-strong)] focus:border-[var(--focus-ring)]"
+            className={`input-modern h-11 w-full rounded-xl pl-3.5 pr-12 text-sm placeholder:text-[var(--text-muted)] ${
+              passwordTouched && passwordError
+                ? "border-rose-500 focus:border-rose-600 focus:shadow-[0_0_0_3px_rgba(225,29,72,0.14)]"
+                : ""
             }`}
           />
           <button
             type="button"
             onClick={() => setShowPassword((prev) => !prev)}
-            aria-label={showPassword ? "Sembunyikan kata sandi" : "Tampilkan kata sandi"}
+            aria-label={
+              showPassword ? "Sembunyikan kata sandi" : "Tampilkan kata sandi"
+            }
             aria-pressed={showPassword}
-            className="absolute right-0.5 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-md text-[var(--text-muted)] transition-colors hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] sm:right-1.5 sm:h-9 sm:w-9"
+            className="absolute right-1 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-lg text-[var(--text-muted)] transition-colors hover:bg-[var(--bg-subtle)] hover:text-[var(--text-primary)]"
           >
             {showPassword ? (
               <EyeOff className="h-4 w-4" aria-hidden="true" />
@@ -210,7 +221,7 @@ export function LoginForm() {
             )}
           </button>
         </div>
-        {passwordError && (
+        {passwordTouched && passwordError && (
           <p
             id="password-error"
             className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-rose-700 dark:text-rose-300"
@@ -224,17 +235,21 @@ export function LoginForm() {
       <button
         type="submit"
         disabled={isSubmitting}
-        className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-lg bg-[var(--accent-primary)] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[var(--accent-primary-hover)] disabled:opacity-60"
+        className="btn-obsidian flex h-11 w-full items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold disabled:opacity-60"
       >
-        <LogIn className="h-4 w-4" aria-hidden="true" />
-        <span>{isSubmitting ? "Memverifikasi Kredensial..." : "Masuk ke Workstation"}</span>
+        {isSubmitting ? (
+          <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+        ) : (
+          <LogIn className="h-4 w-4" aria-hidden="true" />
+        )}
+        <span>
+          {isSubmitting ? "Memverifikasi Kredensial..." : "Masuk ke Ruang Kerja"}
+        </span>
       </button>
 
-      <div className="flex items-start gap-2 border-t border-[var(--border-subtle)] pt-4 text-[11px] leading-relaxed text-[var(--text-muted)]">
-        <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-        <span>
-          Sesi dilindungi cookie terenkripsi untuk fungsi Neraca Wilayah dan Analisis Statistik (Nerwilis).
-        </span>
+      <div className="flex items-center justify-center gap-1.5 pt-1 text-xs text-[var(--text-muted)]">
+        <Lock className="h-3.5 w-3.5 shrink-0 text-emerald-700 dark:text-emerald-400" aria-hidden="true" />
+        <span>Sesi terenkripsi &middot; Akses khusus Tim Nerwilis</span>
       </div>
     </form>
   );

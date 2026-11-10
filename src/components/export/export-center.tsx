@@ -8,7 +8,12 @@ import {
   SOURCE_MEDIA_LABELS,
 } from "@/lib/constants/taxonomy";
 import { formatShortDate } from "@/lib/utils";
-import { ImpactIndicator, StatusBadge } from "../phenomena/status-badge";
+import {
+  ExpenditureBadge,
+  ImpactIndicator,
+  KbliBadge,
+  StatusBadge,
+} from "../phenomena/status-badge";
 import type {
   PeriodQuarter,
   SerializedPhenomenon,
@@ -125,10 +130,10 @@ export function ExportCenter({
   return (
     <div className="space-y-6">
       {/* Top Workbench: Parameters (7 Cols) + Official Sheet Blueprint (5 Cols) */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
-        <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-5 shadow-card lg:col-span-7 sm:p-6">
-          <div className="border-b border-[var(--border-subtle)] pb-4">
-            <div className="mb-1 flex items-center gap-2 text-xs font-semibold text-emerald-700 dark:text-emerald-300">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-12">
+        <div className="saas-card rounded-2xl p-6 lg:col-span-7">
+          <div className="border-b border-[var(--border-hairline)] pb-4">
+            <div className="mb-1.5 flex items-center gap-2 text-xs font-semibold text-emerald-700 dark:text-emerald-400">
               <FileCheck2 className="h-4 w-4 shrink-0" aria-hidden="true" />
               <span>Format Resmi Diseminasi Nerwilis BPS Kab. Tana Tidung</span>
             </div>
@@ -153,7 +158,7 @@ export function ExportCenter({
                   id="export-year"
                   value={year}
                   onChange={(e) => setYear(Number(e.target.value))}
-                  className="min-h-[44px] w-full rounded-lg border border-[var(--border-strong)] bg-[var(--bg-subtle)] px-3 py-2 font-mono text-xs font-semibold text-[var(--text-primary)] focus:outline-none sm:min-h-[42px]"
+                  className="input-modern h-10 w-full rounded-xl px-3 text-xs font-semibold tabular-nums"
                 >
                   <option value={2024}>2024</option>
                   <option value={2025}>2025</option>
@@ -172,7 +177,7 @@ export function ExportCenter({
                   id="export-quarter"
                   value={quarter}
                   onChange={(e) => setQuarter(e.target.value as PeriodQuarter)}
-                  className="min-h-[44px] w-full rounded-lg border border-[var(--border-strong)] bg-[var(--bg-subtle)] px-3 py-2 font-mono text-xs font-semibold text-[var(--text-primary)] focus:outline-none sm:min-h-[42px]"
+                  className="input-modern h-10 w-full rounded-xl px-3 text-xs font-semibold"
                 >
                   <option value="Q1">Q1 (Jan-Mar)</option>
                   <option value="Q2">Q2 (Apr-Jun)</option>
@@ -194,7 +199,7 @@ export function ExportCenter({
                   onChange={(e) =>
                     setStatusScope(e.target.value as "approved" | "all")
                   }
-                  className="min-h-[44px] w-full rounded-lg border border-[var(--border-strong)] bg-[var(--bg-subtle)] px-3 py-2 text-xs font-semibold text-[var(--text-primary)] focus:outline-none sm:min-h-[42px]"
+                  className="input-modern h-10 w-full rounded-xl px-3 text-xs font-semibold"
                 >
                   <option value="approved">Hanya Disetujui</option>
                   <option value="all">Semua Status (Draft)</option>
@@ -202,10 +207,10 @@ export function ExportCenter({
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center justify-between gap-4 border-t border-[var(--border-subtle)] pt-4">
+            <div className="flex flex-wrap items-center justify-between gap-4 border-t border-[var(--border-hairline)] pt-4">
               <div className="space-y-0.5 text-xs">
                 <div className="text-[var(--text-muted)]">Nama berkas keluaran:</div>
-                <div className="font-mono font-semibold text-[var(--accent-text)] tabular-nums">
+                <div className="font-semibold text-emerald-800 tabular-nums dark:text-emerald-300">
                   Fenomena_Ekonomi_KTT_{quarter}_{year}.xlsx{" "}
                   <span className="font-normal text-[var(--text-muted)]">
                     ({totalMatches} entri cocok)
@@ -216,13 +221,13 @@ export function ExportCenter({
               <button
                 type="submit"
                 disabled={isDownloading}
-                className="inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-lg bg-[var(--accent-primary)] px-5 py-2.5 text-xs font-semibold text-white transition-colors hover:bg-[var(--accent-primary-hover)] disabled:opacity-60 sm:w-auto"
+                className="btn-obsidian inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl px-5 text-xs font-semibold disabled:opacity-60 sm:w-auto"
               >
                 <Download className="h-4 w-4" aria-hidden="true" />
                 <span>
                   {isDownloading
                     ? "Menyusun Workbook Excel..."
-                    : "Unduh Berkas Excel (.xlsx)"}
+                    : "Unduh Kertas Kerja (.xlsx)"}
                 </span>
               </button>
             </div>
@@ -230,12 +235,12 @@ export function ExportCenter({
         </div>
 
         {/* Workbook Structure Specification */}
-        <aside className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-5 shadow-card lg:col-span-5 sm:p-6">
-          <h3 className="border-b border-[var(--border-subtle)] pb-3 text-sm font-bold text-[var(--text-primary)]">
-            Struktur 3 Sheet Workbook Standar
+        <aside className="saas-card rounded-2xl p-6 lg:col-span-5">
+          <h3 className="border-b border-[var(--border-hairline)] pb-3.5 text-base font-bold tracking-tight text-[var(--text-primary)]">
+            Struktur 3 Sheet Workbook
           </h3>
-          <ol className="mt-4 space-y-3.5 text-xs">
-            <li className="border-b border-dashed border-[var(--border-subtle)] pb-3">
+          <ol className="mt-4 space-y-3 text-xs">
+            <li className="rounded-xl border border-[var(--border-hairline)] bg-[var(--bg-canvas)]/70 p-3.5">
               <span className="block font-semibold text-[var(--text-primary)]">
                 Sheet 1: Lapangan Usaha KBLI
               </span>
@@ -243,7 +248,7 @@ export function ExportCenter({
                 Pengelompokan 17 kategori A s.d. U beserta narasi fenomena, komoditas terdampak, transmisi harga/volume, dan tautan berita rujukan.
               </span>
             </li>
-            <li className="border-b border-dashed border-[var(--border-subtle)] pb-3">
+            <li className="rounded-xl border border-[var(--border-hairline)] bg-[var(--bg-canvas)]/70 p-3.5">
               <span className="block font-semibold text-[var(--text-primary)]">
                 Sheet 2: Komponen Pengeluaran PDRB
               </span>
@@ -251,7 +256,7 @@ export function ExportCenter({
                 Pemetaan PK-RT, PK-LNPRT, PK-P, PMTB, Perubahan Inventori, Ekspor, dan Impor antar-daerah.
               </span>
             </li>
-            <li>
+            <li className="rounded-xl border border-[var(--border-hairline)] bg-[var(--bg-canvas)]/70 p-3.5">
               <span className="block font-semibold text-[var(--text-primary)]">
                 Sheet 3: Ringkasan Eksekutif
               </span>
@@ -266,16 +271,16 @@ export function ExportCenter({
       {/* Live Pre-Download Preview Table */}
       <section
         aria-label="Pratinjau Data Sebelum Unduh"
-        className="overflow-hidden rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] shadow-card"
+        className="saas-card overflow-hidden rounded-2xl"
       >
-        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--border-subtle)] bg-[var(--bg-subtle)] px-5 py-3.5">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--border-hairline)] bg-[var(--bg-canvas)]/60 px-6 py-4">
           <div className="flex items-center gap-2">
-            <Table2 className="h-4 w-4 text-[var(--accent-text)]" aria-hidden="true" />
-            <h3 className="text-sm font-bold text-[var(--text-primary)]">
+            <Table2 className="h-4 w-4 text-emerald-700 dark:text-emerald-400" aria-hidden="true" />
+            <h3 className="text-base font-bold tracking-tight text-[var(--text-primary)]">
               Pratinjau Data Sebelum Unduh (Maks. 10 Baris Pertama)
             </h3>
           </div>
-          <span className="font-mono text-xs text-[var(--text-muted)] tabular-nums">
+          <span className="text-xs font-medium text-[var(--text-muted)] tabular-nums">
             {quarter} {year} &middot;{" "}
             {statusScope === "approved" ? "Hanya Disetujui" : "Semua Status"}
           </span>
@@ -293,7 +298,7 @@ export function ExportCenter({
             <button
               type="button"
               onClick={() => void loadPreview()}
-              className="mt-3 inline-flex min-h-[44px] items-center gap-1.5 rounded-lg border border-[var(--border-strong)] bg-[var(--bg-subtle)] px-3.5 py-1.5 text-xs font-semibold text-[var(--text-primary)] hover:bg-[var(--bg-hover)] sm:min-h-[38px]"
+              className="btn-secondary mt-3 inline-flex h-9 items-center gap-1.5 rounded-xl px-3.5 text-xs font-semibold"
             >
               <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
               <span>Muat Ulang Pratinjau</span>
@@ -312,48 +317,48 @@ export function ExportCenter({
                 Pratinjau fenomena ekonomi untuk ekspor Excel {quarter} {year}
               </caption>
               <thead>
-                <tr className="border-b border-[var(--border-subtle)] bg-[var(--bg-subtle)] text-[11px] font-semibold uppercase tracking-wider text-[var(--text-muted)]">
-                  <th scope="col" className="px-4 py-3">
+                <tr className="border-b border-[var(--border-hairline)] bg-[var(--bg-canvas)]/40 text-xs font-semibold text-[var(--text-secondary)]">
+                  <th scope="col" className="px-5 py-3.5">
                     Tanggal &amp; Sumber
                   </th>
-                  <th scope="col" className="px-4 py-3">
+                  <th scope="col" className="px-4 py-3.5">
                     Sektor KBLI
                   </th>
-                  <th scope="col" className="px-4 py-3">
+                  <th scope="col" className="px-4 py-3.5">
                     Pengeluaran
                   </th>
-                  <th scope="col" className="px-4 py-3">
+                  <th scope="col" className="px-4 py-3.5">
                     Ringkasan Narasi BPS
                   </th>
-                  <th scope="col" className="px-4 py-3">
+                  <th scope="col" className="px-4 py-3.5">
                     Dampak
                   </th>
-                  <th scope="col" className="px-4 py-3">
+                  <th scope="col" className="px-5 py-3.5">
                     Status
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[var(--border-subtle)]">
+              <tbody className="divide-y divide-[var(--border-hairline)]">
                 {isLoadingPreview ? (
                   Array.from({ length: 4 }).map((_, i) => (
                     <tr key={i}>
-                      <td className="px-4 py-3.5">
-                        <div className="h-4 w-20 rounded bg-[var(--bg-subtle)]" />
+                      <td className="px-5 py-4">
+                        <div className="h-4 w-20 rounded-lg bg-[var(--bg-subtle)]" />
                       </td>
-                      <td className="px-4 py-3.5">
-                        <div className="h-4 w-28 rounded bg-[var(--bg-subtle)]" />
+                      <td className="px-4 py-4">
+                        <div className="h-5 w-28 rounded-lg bg-[var(--bg-subtle)]" />
                       </td>
-                      <td className="px-4 py-3.5">
-                        <div className="h-4 w-16 rounded bg-[var(--bg-subtle)]" />
+                      <td className="px-4 py-4">
+                        <div className="h-5 w-16 rounded-lg bg-[var(--bg-subtle)]" />
                       </td>
-                      <td className="px-4 py-3.5">
-                        <div className="h-4 w-full rounded bg-[var(--bg-subtle)]" />
+                      <td className="px-4 py-4">
+                        <div className="h-4 w-full rounded-lg bg-[var(--bg-subtle)]" />
                       </td>
-                      <td className="px-4 py-3.5">
-                        <div className="h-4 w-16 rounded bg-[var(--bg-subtle)]" />
+                      <td className="px-4 py-4">
+                        <div className="h-5 w-20 rounded-lg bg-[var(--bg-subtle)]" />
                       </td>
-                      <td className="px-4 py-3.5">
-                        <div className="h-5 w-20 rounded bg-[var(--bg-subtle)]" />
+                      <td className="px-5 py-4">
+                        <div className="h-6 w-20 rounded-lg bg-[var(--bg-subtle)]" />
                       </td>
                     </tr>
                   ))
@@ -361,7 +366,7 @@ export function ExportCenter({
                   <tr>
                     <td
                       colSpan={6}
-                      className="px-6 py-10 text-center text-[var(--text-muted)]"
+                      className="px-6 py-12 text-center text-[var(--text-muted)]"
                     >
                       Belum ada fenomena ekonomi berstatus{" "}
                       <strong className="text-[var(--text-primary)]">
@@ -376,39 +381,40 @@ export function ExportCenter({
                   previewRows.map((row) => (
                     <tr
                       key={row.id}
-                      className="transition-colors hover:bg-[var(--bg-hover)]"
+                      className="transition-colors hover:bg-[var(--bg-canvas)]/65"
                     >
-                      <td className="whitespace-nowrap px-4 py-3 font-mono text-[11px] text-[var(--text-secondary)] tabular-nums">
+                      <td className="whitespace-nowrap px-5 py-3.5 text-xs text-[var(--text-secondary)] tabular-nums">
                         <div className="font-semibold text-[var(--text-primary)]">
                           {formatShortDate(row.article.publishedDate)}
                         </div>
-                        <div className="mt-0.5 text-[10px] text-[var(--text-muted)]">
+                        <div className="mt-0.5 text-[11px] text-[var(--text-muted)]">
                           {SOURCE_MEDIA_LABELS[row.article.source] ??
                             row.article.source}
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-xs font-medium text-[var(--accent-text)]">
-                        {row.kbliCategory
-                          ? KBLI_CATEGORIES[row.kbliCategory]?.shortName ??
-                            row.kbliCategory
-                          : "-"}
+                      <td className="px-4 py-3.5">
+                        <KbliBadge code={row.kbliCategory} compact />
                       </td>
-                      <td className="px-4 py-3 font-mono text-xs font-semibold text-[var(--text-primary)]">
-                        {row.expenditureComponent
-                          ? EXPENDITURE_COMPONENTS[row.expenditureComponent]
-                              ?.label ?? row.expenditureComponent
-                          : "-"}
+                      <td className="px-4 py-3.5">
+                        {row.expenditureComponent ? (
+                          <ExpenditureBadge code={row.expenditureComponent} />
+                        ) : (
+                          <span className="text-xs text-[var(--text-muted)]">
+                            -
+                          </span>
+                        )}
                       </td>
-                      <td className="max-w-md px-4 py-3 text-xs leading-relaxed text-[var(--text-secondary)]">
+                      <td className="max-w-md px-4 py-3.5 text-xs leading-relaxed text-[var(--text-secondary)]">
                         <p className="line-clamp-2">{row.summary}</p>
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3.5">
                         <ImpactIndicator
                           impact={row.impactType}
                           effect={row.priceVolumeEffect}
+                          inline
                         />
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-5 py-3.5">
                         <StatusBadge status={row.status} />
                       </td>
                     </tr>

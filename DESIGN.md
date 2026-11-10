@@ -1,210 +1,206 @@
 ---
 name: SIPENA-KTT
-description: Civic statistical precision workspace for BPS Kabupaten Tana Tidung (65.04) quarterly PDRB curation.
+description: Sapick & SyncMaster inspired Light-First SaaS economic curation workstation for BPS Kabupaten Tana Tidung (65.04).
 colors:
-  primary: "#0369a1"
-  primary-hover: "#075985"
-  maritime-navy: "#0a2540"
-  canvas-light: "#f4f6fa"
-  surface-light: "#ffffff"
-  subtle-light: "#f8fafc"
-  ink-primary: "#0f172a"
-  ink-secondary: "#334155"
-  ink-muted: "#526075"
-  border-light: "#dce3ec"
-  border-strong-light: "#94a3b8"
-  canvas-dark: "#080d16"
-  surface-dark: "#101827"
-  accent-sky-dark: "#38bdf8"
+  obsidian-ink: "#0f172a"
+  obsidian-hover: "#1e293b"
+  emerald-brand: "#059669"
+  emerald-deep: "#047857"
+  emerald-soft: "#ecfdf5"
+  emerald-border: "#a7f3d0"
+  canvas-light: "#f7f8fa"
+  surface-white: "#ffffff"
+  surface-subtle: "#f1f5f9"
+  surface-hover: "#f3f4f6"
+  text-primary: "#0f172a"
+  text-secondary: "#475569"
+  text-muted: "#64748b"
+  border-hairline: "#eef0f4"
+  border-subtle: "#e2e8f0"
+  border-strong: "#cbd5e1"
   danger-ring: "#e11d48"
 typography:
   display:
     fontFamily: "Plus Jakarta Sans, system-ui, sans-serif"
-    fontSize: "1.875rem"
+    fontSize: "2rem"
     fontWeight: 700
-    lineHeight: 1.2
-    letterSpacing: "-0.025em"
+    lineHeight: 1.15
+    letterSpacing: "-0.03em"
   headline:
     fontFamily: "Plus Jakarta Sans, system-ui, sans-serif"
-    fontSize: "1.125rem"
-    fontWeight: 700
+    fontSize: "1.25rem"
+    fontWeight: 600
     lineHeight: 1.3
     letterSpacing: "-0.02em"
   title:
     fontFamily: "Plus Jakarta Sans, system-ui, sans-serif"
-    fontSize: "0.875rem"
-    fontWeight: 700
+    fontSize: "0.9375rem"
+    fontWeight: 600
     lineHeight: 1.4
     letterSpacing: "-0.01em"
   body:
     fontFamily: "Plus Jakarta Sans, system-ui, sans-serif"
-    fontSize: "0.8125rem"
+    fontSize: "0.875rem"
     fontWeight: 400
-    lineHeight: 1.6
+    lineHeight: 1.65
     letterSpacing: "0em"
-  label:
-    fontFamily: "JetBrains Mono, ui-monospace, monospace"
-    fontSize: "0.75rem"
-    fontWeight: 600
-    lineHeight: 1.3
-    letterSpacing: "0em"
-  micro:
+  metric:
     fontFamily: "Plus Jakarta Sans, system-ui, sans-serif"
+    fontSize: "1.75rem"
+    fontWeight: 700
+    lineHeight: 1.2
+    letterSpacing: "-0.025em"
+  caption:
+    fontFamily: "Plus Jakarta Sans, system-ui, sans-serif"
+    fontSize: "0.75rem"
+    fontWeight: 500
+    lineHeight: 1.4
+    letterSpacing: "0em"
+  kbd-code:
+    fontFamily: "JetBrains Mono, ui-monospace, monospace"
     fontSize: "11px"
     fontWeight: 600
-    lineHeight: 1.4
-    letterSpacing: "0.02em"
-  badge-code:
-    fontFamily: "JetBrains Mono, ui-monospace, monospace"
-    fontSize: "10px"
-    fontWeight: 700
     lineHeight: 1.2
     letterSpacing: "0em"
 rounded:
-  xs: "4px"
-  sm: "6px"
-  md: "8px"
-  lg: "12px"
+  sm: "8px"
+  md: "12px"
+  lg: "16px"
+  xl: "20px"
 spacing:
   xs: "8px"
   sm: "12px"
   md: "16px"
-  lg: "20px"
-  xl: "24px"
+  lg: "24px"
+  xl: "32px"
 components:
   button-primary:
-    backgroundColor: "{colors.primary}"
-    textColor: "{colors.surface-light}"
+    backgroundColor: "{colors.obsidian-ink}"
+    textColor: "{colors.surface-white}"
     rounded: "{rounded.md}"
-    padding: "8px 16px"
+    padding: "10px 18px"
   button-primary-hover:
-    backgroundColor: "{colors.primary-hover}"
+    backgroundColor: "{colors.obsidian-hover}"
+  button-accent:
+    backgroundColor: "{colors.emerald-brand}"
+    textColor: "{colors.surface-white}"
+    rounded: "{rounded.md}"
+    padding: "10px 18px"
   button-secondary:
-    backgroundColor: "{colors.surface-light}"
-    textColor: "{colors.ink-primary}"
+    backgroundColor: "{colors.surface-white}"
+    textColor: "{colors.text-primary}"
     rounded: "{rounded.md}"
-    padding: "8px 14px"
+    padding: "10px 16px"
   card-surface:
-    backgroundColor: "{colors.surface-light}"
-    textColor: "{colors.ink-primary}"
+    backgroundColor: "{colors.surface-white}"
+    textColor: "{colors.text-primary}"
     rounded: "{rounded.lg}"
-    padding: "20px"
+    padding: "24px"
   input-field:
-    backgroundColor: "{colors.subtle-light}"
-    textColor: "{colors.ink-primary}"
+    backgroundColor: "{colors.surface-subtle}"
+    textColor: "{colors.text-primary}"
     rounded: "{rounded.md}"
-    padding: "8px 12px"
+    padding: "10px 14px"
 ---
 
 # Design System: SIPENA-KTT
 
 ## Overview
 
-**Creative North Star: "Civic Statistical Ledger"**
+**Creative North Star: "Editorial Emerald & Obsidian SaaS" (Sapick & SyncMaster Direction)**
 
-SIPENA-KTT serves Tim Neraca Wilayah dan Analisis Statistik (Nerwilis) at BPS Kabupaten Tana Tidung (`65.04`). The visual system mirrors an authoritative regional accounts dossier: crisp daylight surfaces led by cool paper neutrals, anchored along the left edge by a sovereign BPS Maritime Navy navigation spine, and engineered to shift cleanly into calibrated obsidian slate when toggled to Dark Mode for evening reconciliation sessions.
-
-Information hierarchy centers on editorial evidence next to analytical judgment. Uniform card grids, neon purple-blue gradients, pill-shaped form chrome, and generic glass overlays are explicitly rejected in favor of structured asymmetry, scannable tabular rows, and restrained interaction depth.
+SIPENA-KTT is a modern, high-craft SaaS curation workstation built for Tim Neraca Wilayah dan Analisis Statistik (Nerwilis) at BPS Kabupaten Tana Tidung (`65.04`). Synthesizing the visual DNA of **Sapick Astro** and **SyncMaster Astro** (supported by split-inbox ergonomics from **TellDesk Astro**), the system replaces heavy government sidebars, rigid dark boxes, and terminal monospace clutter with an airy Light-First workspace.
 
 **Key Characteristics:**
-- Daylight-first `#f4f6fa` canvas and pure `#ffffff` analytical paper paired with persistent `#0a2540` navigation rail (`#080d16` and `#101827` in Dark Mode).
-- Two-font statistical discipline: Plus Jakarta Sans for Indonesian journalism prose and decisions, strictly paired with JetBrains Mono (`tabular-nums`) for KBLI indices, timestamps, counts, and numerical metrics.
-- Top-layer `<dialog>` review architecture placing raw media citations opposite human-in-the-loop taxonomy controls with keyboard triage (`J/K`, `Enter`, `[A]`, `[R]`, `Esc`).
-- Complete WCAG 2.1 AA contrast compliance (`>= 4.5:1` body text, `>= 3:1` structural control outlines) across Light and Dark modes, plus non-color iconography in status badges.
+- **Pure White & Alabaster Tonal Layering**: Crisp `#ffffff` work surfaces floating cleanly over a calm `#f7f8fa` canvas with `1px` `#eef0f4` hairlines and soft diffused elevation (`0 10px 30px -10px rgba(15, 23, 42, 0.05)`).
+- **Obsidian Ink + Fresh Emerald Accent**: High-authority Obsidian Ink (`#0f172a`) for primary action buttons paired with Sapick Forest Emerald (`#059669` / `#047857`) for brand identity, active workspace states, and verified data signals.
+- **Top Navbar + Direct-to-Curation Split Workspace**: Zero left sidebar. A sleek `64px` top navigation bar gives 100% horizontal room to the `Meja Kurasi` split-view (clean SyncMaster list on the left, live article reader & KBLI verification editor on the right).
+- **Friendly Geometric Typography (`Plus Jakarta Sans`)**: Headlines, article summaries, and `tabular-nums` KPI counters all use Plus Jakarta Sans for a cohesive modern SaaS feel, reserving `JetBrains Mono` strictly for keyboard shortcut keycaps (`Ctrl+K`, `J`, `K`, `A`, `R`).
+- **Rounded Modern Geometry**: `12px` (`rounded-xl`) on buttons, inputs, and segmented controls; `16px` to `20px` (`rounded-2xl`) on cards and split panes; `8px` (`rounded-lg`) on soft pastel status chips.
 
 ## Colors
 
-The palette rests on high-contrast neutral ink and cool archival paper, using deep maritime navy for institutional navigation and one calibrated cobalt accent for primary actions.
+### Three-Layer Token Architecture (`Primitive -> Semantic -> Component`)
 
-### Primary
-- **BPS Cobalt Accent** (`#0369a1`, hover `#075985`; `#38bdf8` text in Dark Mode): Primary verification actions, Excel export triggers, active filters, and focus rings (`5.95:1` white-on-cobalt contrast in both modes).
-- **Sovereign Maritime Navy** (`#0a2540`; `#0b1220` in Dark Mode): Dedicated left workspace navigation rail and split authentication context column.
+#### 1. Primitive Tokens
+- **Slate / Obsidian**: `slate-900` (`#0f172a`), `slate-800` (`#1e293b`), `slate-600` (`#475569`), `slate-500` (`#64748b`), `slate-200` (`#e2e8f0`), `slate-100` (`#f1f5f9`), `alabaster-50` (`#f7f8fa`), `white` (`#ffffff`).
+- **Emerald (Brand & Verified)**: `emerald-700` (`#047857`), `emerald-600` (`#059669`), `emerald-500` (`#10b981`), `emerald-200` (`#a7f3d0`), `emerald-50` (`#ecfdf5`).
+- **Amber (Pending Queue)**: `amber-800` (`#92400e`), `amber-200` (`#fde68a`), `amber-50` (`#fffbeb`).
+- **Blue (Needs Revision)**: `blue-800` (`#1e40af`), `blue-200` (`#bfdbfe`), `blue-50` (`#eff6ff`).
+- **Rose (Rejected / Negative Shock)**: `rose-800` (`#9f1239`), `rose-600` (`#e11d48`), `rose-200` (`#fecdd3`), `rose-50` (`#fff1f2`).
 
-### Neutral
-- **Daylight Canvas** (`#f4f6fa`; Dark `#080d16`): Base application viewport behind analytical modules.
-- **Analytical Paper Surface** (`#ffffff`; Dark `#101827`): Elevated tables, overview bands, review drawer, and export workbench cards.
-- **Recessed Control Well** (`#f8fafc`; Dark `#0c1320`): Table sticky headers, form inputs, and source article reader pane.
-- **Ink Primary / Secondary / Muted** (`#0f172a` / `#334155` / `#526075`; Dark `#f8fafc` / `#cbd5e1` / `#94a3b8`): Strict tonal steps maintaining comfortable long-session legibility above WCAG AA floors.
-- **Hairline / Strong Borders** (`#dce3ec` / `#94a3b8`; Dark `#1e293b` / `#475569`): Thin 1px boundaries defining containers and interactive fields cleanly without heavy shadows.
+#### 2. Semantic Tokens
+- `--bg-canvas`: `#f7f8fa` (Main page background)
+- `--bg-surface`: `#ffffff` (Primary cards, top navbar, split panes)
+- `--bg-subtle`: `#f1f5f9` (Recessed inputs, filter wells, secondary pills)
+- `--bg-hover`: `#f3f4f6` (Row hover and ghost button hover)
+- `--bg-active`: `#ecfdf5` (Selected curation row & active filter tint)
+- `--text-primary`: `#0f172a` (`17.4:1` on white)
+- `--text-secondary`: `#475569` (`7.5:1` on white)
+- `--text-muted`: `#64748b` (`4.75:1` on white, WCAG AA verified)
+- `--border-hairline`: `#eef0f4` (Row dividers & card seams)
+- `--border-subtle`: `#e2e8f0` (Card & input default boundaries)
+- `--border-strong`: `#cbd5e1` (Interactive button & active input borders)
+- `--cta-primary`: `#0f172a` (Obsidian primary CTA fill)
+- `--cta-primary-hover`: `#1e293b` (Obsidian hover fill)
+- `--accent-primary`: `#059669` (Sapick Emerald brand accent)
+- `--accent-primary-hover`: `#047857` (Deep Emerald hover/text accent, `5.48:1` on white)
+- `--focus-ring`: `#059669` (`2px` keyboard focus ring)
+
+#### 3. Component Tokens
+- `--btn-primary-bg`: `var(--cta-primary)`
+- `--btn-primary-text`: `#ffffff`
+- `--btn-accent-bg`: `var(--accent-primary)`
+- `--card-bg`: `var(--bg-surface)`
+- `--card-border`: `var(--border-hairline)`
+- `--card-shadow`: `0 10px 30px -10px rgba(15, 23, 42, 0.05), 0 1px 3px rgba(15, 23, 42, 0.03)`
+- `--input-bg`: `var(--bg-subtle)`
+- `--input-focus-bg`: `var(--bg-surface)`
 
 ### Named Rules
-**The Cobalt Restraint Rule.** Primary cobalt ink and fills mark interactive triggers, active focus outlines, and drill-down destinations only. Categorical badges keep neutral surfaces paired with compact color index tiles so tabular scanning stays calm.
-**The Dual-Theme Parity Rule.** Every semantic surface, input, scrollbar, dialog backdrop, and badge defines verified Light and Dark contrast tokens. Switching `sipena-theme` never leaves dark-on-dark or pale-on-white artifacts.
+**The Obsidian & Emerald Harmony Rule.** Primary structural CTAs (`Masuk ke Workstation`, `Tarik Berita`, `Unduh Kertas Kerja .xlsx`) use Obsidian Ink (`#0f172a`) for crisp executive authority, while verification approvals (`Setujui Fenomena`) and active workspace indicators use Forest Emerald (`#059669` / `#047857`).
+**The Calm Taxonomy Rule.** KBLI 17-sector tags never use loud rainbow blocks. In list views, they appear as refined neutral chips (`#f1f5f9` background, `#0f172a` bold code + `#475569` sector name) with subtle semantic dots so the page stays serene.
 
 ## Typography
 
-**Display Font:** Plus Jakarta Sans (with system-ui, sans-serif fallback)
-**Body Font:** Plus Jakarta Sans (with system-ui, sans-serif fallback)
-**Label/Mono Font:** JetBrains Mono (with ui-monospace, monospace fallback)
-
-**Character:** Plus Jakarta Sans brings balanced geometric legibility to dense Indonesian economic summaries and headlines, while JetBrains Mono aligns multi-row tables, dates, scores, and sector indices vertically.
+**Primary UI, Display & Metric Font:** Plus Jakarta Sans (`400`, `500`, `600`, `700`)
+**Keyboard Hint Font:** JetBrains Mono (`500`, `600`)
 
 ### Hierarchy
-- **Display** (`700`, `1.875rem` to `2.25rem`, `1.2` line-height, `-0.025em` tracking): Focal quarterly backlog counters and authentication banner heading.
-- **Headline** (`700`, `1.125rem`, `1.3` line-height, `-0.02em` tracking): Sticky workspace view header (`h1`) and drawer article title.
-- **Title** (`700`, `0.875rem`, `1.4` line-height): Panel headings such as KBLI distribution questions and priority queue headers.
-- **Body** (`400`/`500`, `0.8125rem` to `0.875rem`, `1.6`–`1.65` line-height, `65ch` max measure in review prose): News narrative summaries and article body reading columns.
-- **Mono Telemetry** (`600`, `0.6875rem` to `0.75rem`, `tabular-nums`): KBLI codes, expenditure labels, dates, row counts, and keyboard hint keycaps.
-
-### Named Rules
-**The Earned Monospace Rule.** Monospace lettering appears strictly on identifiers, quantitative counters, timestamps, and keyboard shortcuts. Narrative headings and prose always render in Plus Jakarta Sans.
+- **Display / Auth Hero** (`700`, `1.875rem` to `2.25rem`, `1.15` line-height, `-0.03em` tracking): Login hero heading and primary analytical callouts.
+- **Metric Counter** (`700`, `1.5rem` to `1.875rem`, `tabular-nums`, `-0.025em` tracking): Interactive KPI strip counters (`Total`, `Menunggu Telaah`, `Disetujui`, `Ditolak`).
+- **Headline (`H1` / `H2`)** (`600`, `1.125rem` to `1.25rem`, `1.3` line-height, `-0.02em` tracking): Section titles and selected article title inside the Split Inspection Pane.
+- **List Item Title** (`600`, `0.9375rem` / `15px`, `1.4` line-height): Phenomenon headline inside the `Meja Kurasi` list.
+- **Body Prose** (`400`, `0.875rem` / `14px`, `1.65` line-height, `65ch` max measure): Economic summaries and full source news text.
+- **Caption & Metadata** (`500`, `0.75rem` / `12px`, `1.4` line-height): Media outlet names, publication dates (`tabular-nums`), and subsector labels (never cramped `10px` all-caps).
 
 ## Layout
 
-Desktop (`lg+`) divides cleanly into a collapsible Sovereign Navy navigation rail (`256px` expanded / `74px` collapsed) beside a fluid workspace column capped at `1440px` (`16px` mobile / `24px` desktop gutters). Mobile (`< 1024px`) promotes full-width work surfaces and opens navigation inside a native top-layer `<dialog>` drawer (`288px`).
+1. **Top Navigation Bar (`64px` height, sticky)**:
+   - Left: Refined emerald-and-obsidian `BrandMark` + `SIPENA-KTT` title + compact `BPS 65.04` badge.
+   - Center: Segmented/pill navigation (`Meja Kurasi`, `Ringkasan Analitik`, `Ekspor Excel`) with smooth active state.
+   - Right: Inline Period Selector (`Triwulan I-IV` + `Tahun`), `+ Tarik Berita` primary button, and Operator Profile chip with logout action.
+2. **Direct-to-Curation Workspace (`Meja Kurasi`, Default Landing Tab)**:
+   - **Top Metric Strip**: 4 interactive metric cards (`Semua Fenomena`, `Menunggu Telaah`, `Disetujui`, `Perlu Revisi / Ditolak`) that filter the feed in one click.
+   - **Search & Filter Bar**: Clean `rounded-xl` search input (`Ctrl+K`) + compact KBLI, Expenditure, and Media Source selectors.
+   - **Master-Detail Split View (`12-column` grid on `xl+`)**:
+     - **Left Pane (`7 columns` or `55%` width)**: SyncMaster-inspired clean list where each item shows the news headline (`15px` semi-bold), 2-line summary, subtle KBLI & Expenditure chips, source/date metadata, and pastel status pill.
+     - **Right Pane (`5 columns` or `45%` width, sticky)**: TellDesk-inspired live Inspection & Verification Workbench with underline tabs (`Ringkasan & Klasifikasi`, `Teks Berita Asli`, `Riwayat Audit`), inline KBLI/Expenditure editors, and sticky action bar (`Setujui [A]`, `Perlu Revisi`, `Tolak [R]`). On screens `< 1280px`, clicking a row opens the same inspector in a smooth native `<dialog>` slide-over sheet.
 
-Analytical modules use purposeful 12-column asymmetry (`7/5` splits across KPI action strip, KBLI vs. Expenditure breakdown, and Export configuration vs. Workbook specification) rather than symmetrical four-box templates. Vertical section spacing stays grounded at `24px` (`gap-4` / `space-y-6`).
+## Elevation & Shapes
 
-## Elevation & Depth
-
-Surfaces sit primarily flat within structural `1px` hairline borders (`--border-subtle`). Soft offset elevation (`--shadow-card` and `--shadow-elevated`) applies selectively to floating authentication cards, bulk-action bars, skip links, and the slide-over `<dialog>` review drawer. Background blur glassmorphism and colored outer glows are excluded.
-
-### Shadow Vocabulary
-- **Card Seam** (`box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04)`): Barely perceptible grounding under analytical white panels in Light Mode.
-- **Elevated Surface** (`box-shadow: 0 8px 24px -4px rgba(15, 23, 42, 0.1), 0 2px 6px rgba(15, 23, 42, 0.05)`): Reserved strictly for modal drawers, skip links, and sign-in containers.
-
-### Named Rules
-**The Flat-By-Default Rule.** Content tables and distribution panels separate via clean surface contrast and `1px` seams. Only top-layer overlays and primary entry cards cast directional shadows.
-
-## Shapes
-
-Corner geometry steps intentionally by component weight:
-- **Compact Tags & Badges** (`6px` radius / `rounded-md`): KBLI index tiles, status chips, source badges, and compact action triggers.
-- **Interactive Controls & Inputs** (`8px` radius / `rounded-lg`): Primary buttons, period selectors, segmented status filters, text inputs, and sidebar items.
-- **Structural Panels** (`12px` radius / `rounded-xl`): Dashboard workspace cards, data table frames, and authentication form containers.
-- **Progress Meters Only**: Full pill rounding (`rounded-full`) is limited solely to horizontal progress bars and proportion tracks.
-
-## Components
-
-### Buttons
-- **Shape:** Deliberately rectangular with soft corners (`8px` radius).
-- **Primary:** Solid `#0369a1` cobalt fill (`#ffffff` label, `8px 16px` padding, `min-height: 40px` mobile / `36px` desktop), shifting to `#075985` on hover (`#0284c7` hover in Dark Mode).
-- **Secondary / Ghost:** Surface `#ffffff` (`#101827` dark) with `1px` `--border-strong` border, shifting to `--bg-hover` on hover.
-
-### Chips & Status Badges
-- **Style:** `1px` tinted semantic borders with soft paper/tinted fill (`6px` radius) pairing an explicit geometric icon glyph (`Check`, `Clock`, `X`, `RotateCcw`) alongside Bahasa Indonesia status text.
-- **KBLI Identification:** Neutral chip holding a high-contrast colored letter square (`A`, `B`, `F`) next to the sector title.
-
-### Cards / Containers
-- **Corner Style:** `12px` radius (`rounded-xl`).
-- **Background:** Crisp `#ffffff` (`--bg-surface`) over `#f4f6fa` canvas (`--bg-canvas`), internal padding `20px`.
-- **Border:** `1px solid var(--border-subtle)`.
-
-### Inputs / Fields
-- **Style:** `8px` radius (`rounded-lg`), `--bg-subtle` fill shifting to `--bg-surface` on focus, `1px solid var(--border-strong)`.
-- **Focus & Validation:** High-contrast `2px` `--focus-ring` outline (`outline-offset: 2px`) on `:focus-visible`; deferred error feedback via `:user-invalid` and explicit validation text beneath fields after interaction/submit.
-
-### Navigation
-- **Style:** Persistent collapsible Sovereign BPS Navy (`#0a2540`) left rail on desktop with `aria-current="page"` state and mobile `<dialog>` slide-out drawer.
+- **Cards & Split Containers**: `16px` (`rounded-2xl`), `#ffffff` background, `1px solid #eef0f4`, and `--card-shadow` (`0 10px 30px -10px rgba(15, 23, 42, 0.05)`).
+- **Buttons, Inputs & Selects**: `12px` (`rounded-xl`), `min-height: 40px` desktop / `44px` mobile.
+- **Status & Taxonomy Chips**: `8px` (`rounded-lg`), soft pastel fills with `1px` tinted borders.
 
 ## Do's and Don'ts
 
 ### Do:
-- **Do** validate Contrast (`>= 4.5:1` normal text, `>= 3:1` borders and UI indicators) and full interactive layout across both Light (`sipena-theme=light`) and Dark (`sipena-theme=dark`) modes.
-- **Do** keep narrative copy strictly authentic to BPS Kab. Tana Tidung (`65.04`) operations with zero em dash characters (`U+2014`) and real Postgres-backed counts.
-- **Do** maintain visible labels and helpful empty, loading skeleton, error retry, and read-only `viewer` states on every module.
+- **Do** keep the interface Light-First (`#f7f8fa` canvas, `#ffffff` cards) with generous padding (`20px` to `28px`) and soft hairline dividers (`#eef0f4`).
+- **Do** land authenticated users directly on `Meja Kurasi` with the first item pre-selected in the desktop Split Inspection Pane so the screen feels alive and immediately actionable.
+- **Do** maintain WCAG 2.1 AA contrast (`>= 4.5:1`), keyboard navigation (`J`/`K`, `A`/`R`, `Ctrl+K`), and `44px` mobile tap targets.
 
 ### Don't:
-- **Don't** apply pill rounding (`rounded-full`) to buttons, badges, inputs, or cards, or scatter colored `border-left` accent bars onto cards.
-- **Don't** introduce external font CDN links, unapproved images, AI buzzword copy, or infinite `animate-pulse` / glowing status dots.
-- **Don't** suppress focus rings or build non-semantic clickable `<div>` elements instead of native `<button>` and `<a href>` controls.
+- **Don't** use dark navy sidebars, thick `#94a3b8` box borders on cards, or multi-colored saturated KBLI square blocks.
+- **Don't** use monospace fonts for KPI numbers or prose labels, or use `10px` uppercase tracked labels across forms.
+- **Don't** introduce em dashes (`U+2014`), AI buzzwords, or unverified metrics.

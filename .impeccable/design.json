@@ -1,150 +1,390 @@
 {
-  "schemaVersion": 2,
-  "generatedAt": "2026-11-10T14:10:00+08:00",
-  "title": "Design System: SIPENA-KTT",
-  "extensions": {
+  "url": "https://sipena-ktt.caplinlab.my.id",
+  "capturedAt": "2026-11-10T07:35:00.000Z",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "tokens": {
+    "colors": [
+      {
+        "value": "rgb(15, 23, 42)",
+        "hex": "#0f172a",
+        "count": 210,
+        "roles": ["text", "background"],
+        "role": "obsidian-ink-primary"
+      },
+      {
+        "value": "rgb(255, 255, 255)",
+        "hex": "#ffffff",
+        "count": 195,
+        "roles": ["background", "text"],
+        "role": "surface-pure-white"
+      },
+      {
+        "value": "rgb(247, 248, 250)",
+        "hex": "#f7f8fa",
+        "count": 140,
+        "roles": ["background"],
+        "role": "canvas-soft-alabaster"
+      },
+      {
+        "value": "rgb(5, 150, 105)",
+        "hex": "#059669",
+        "count": 88,
+        "roles": ["text", "border", "background"],
+        "role": "emerald-brand-primary"
+      },
+      {
+        "value": "rgb(4, 120, 87)",
+        "hex": "#047857",
+        "count": 64,
+        "roles": ["text", "background"],
+        "role": "emerald-brand-deep"
+      },
+      {
+        "value": "rgb(71, 85, 105)",
+        "hex": "#475569",
+        "count": 124,
+        "roles": ["text"],
+        "role": "slate-secondary"
+      },
+      {
+        "value": "rgb(100, 116, 139)",
+        "hex": "#64748b",
+        "count": 96,
+        "roles": ["text"],
+        "role": "slate-muted"
+      },
+      {
+        "value": "rgb(238, 240, 244)",
+        "hex": "#eef0f4",
+        "count": 165,
+        "roles": ["border"],
+        "role": "hairline-divider"
+      },
+      {
+        "value": "rgb(226, 232, 240)",
+        "hex": "#e2e8f0",
+        "count": 112,
+        "roles": ["border"],
+        "role": "border-subtle"
+      },
+      {
+        "value": "rgb(236, 253, 245)",
+        "hex": "#ecfdf5",
+        "count": 52,
+        "roles": ["background"],
+        "role": "emerald-soft-tint"
+      },
+      {
+        "value": "rgb(255, 251, 235)",
+        "hex": "#fffbeb",
+        "count": 38,
+        "roles": ["background"],
+        "role": "amber-soft-tint"
+      },
+      {
+        "value": "rgb(239, 246, 255)",
+        "hex": "#eff6ff",
+        "count": 30,
+        "roles": ["background"],
+        "role": "indigo-soft-tint"
+      },
+      {
+        "value": "rgb(255, 241, 242)",
+        "hex": "#fff1f2",
+        "count": 22,
+        "roles": ["background"],
+        "role": "rose-soft-tint"
+      }
+    ],
     "colorMeta": {
-      "primary": {
-        "role": "primary",
-        "displayName": "BPS Cobalt Accent",
-        "canonical": "#0369a1",
-        "tonalRamp": ["#e0f2fe", "#bae6fd", "#7dd3fc", "#38bdf8", "#0284c7", "#0369a1", "#075985", "#0c4a6e"]
+      "obsidian-ink-primary": {
+        "hex": "#0f172a",
+        "confidence": "high",
+        "usage": "Primary typography, active headings, and primary SaaS CTA button fills (Sapick & SyncMaster pattern)"
       },
-      "maritime-navy": {
-        "role": "secondary",
-        "displayName": "Sovereign Maritime Navy",
-        "canonical": "#0a2540",
-        "tonalRamp": ["#eff6ff", "#dbeafe", "#93c5fd", "#3b82f6", "#1d4ed8", "#164470", "#0a2540", "#06182c"]
+      "emerald-brand-primary": {
+        "hex": "#059669",
+        "confidence": "high",
+        "usage": "Brand accent, active navigation tab underline, focus ring, and verified economic phenomenon indicators"
       },
-      "canvas-light": {
-        "role": "neutral",
-        "displayName": "Daylight Archival Paper",
-        "canonical": "#f4f6fa",
-        "tonalRamp": ["#ffffff", "#f8fafc", "#f4f6fa", "#dce3ec", "#94a3b8", "#526075", "#334155", "#0f172a"]
+      "canvas-soft-alabaster": {
+        "hex": "#f7f8fa",
+        "confidence": "high",
+        "usage": "Main workspace canvas background providing gentle contrast beneath pure white cards"
       },
-      "canvas-dark": {
-        "role": "neutral",
-        "displayName": "Obsidian Overtime Slate",
-        "canonical": "#080d16",
-        "tonalRamp": ["#f8fafc", "#cbd5e1", "#94a3b8", "#475569", "#1e293b", "#101827", "#0b1220", "#080d16"]
+      "surface-pure-white": {
+        "hex": "#ffffff",
+        "confidence": "high",
+        "usage": "Elevated card surfaces, top navigation bar, split-view list & detail panes, and login card"
       }
     },
+    "typography": [
+      {
+        "family": "Plus Jakarta Sans",
+        "size": "28px",
+        "weight": "700",
+        "lineHeight": "34px",
+        "letterSpacing": "-0.56px",
+        "count": 4,
+        "scale": "display"
+      },
+      {
+        "family": "Plus Jakarta Sans",
+        "size": "20px",
+        "weight": "600",
+        "lineHeight": "28px",
+        "letterSpacing": "-0.3px",
+        "count": 12,
+        "scale": "headline"
+      },
+      {
+        "family": "Plus Jakarta Sans",
+        "size": "16px",
+        "weight": "600",
+        "lineHeight": "24px",
+        "letterSpacing": "-0.16px",
+        "count": 28,
+        "scale": "title"
+      },
+      {
+        "family": "Plus Jakarta Sans",
+        "size": "14px",
+        "weight": "400",
+        "lineHeight": "22px",
+        "letterSpacing": "0px",
+        "count": 120,
+        "scale": "body"
+      },
+      {
+        "family": "Plus Jakarta Sans",
+        "size": "26px",
+        "weight": "700",
+        "lineHeight": "30px",
+        "letterSpacing": "-0.65px",
+        "fontVariantNumeric": "tabular-nums",
+        "count": 8,
+        "scale": "metric"
+      },
+      {
+        "family": "Plus Jakarta Sans",
+        "size": "12px",
+        "weight": "500",
+        "lineHeight": "18px",
+        "letterSpacing": "0px",
+        "count": 64,
+        "scale": "caption"
+      },
+      {
+        "family": "JetBrains Mono",
+        "size": "11.5px",
+        "weight": "500",
+        "lineHeight": "16px",
+        "letterSpacing": "0px",
+        "count": 18,
+        "scale": "kbd-code"
+      }
+    ],
     "typographyMeta": {
-      "display": { "displayName": "Display Metric", "purpose": "Focal period backlog and status counters." },
-      "headline": { "displayName": "View Header", "purpose": "Sticky command header h1 and drawer article headlines." },
-      "title": { "displayName": "Module Title", "purpose": "Question-led distribution panel and queue headers." },
-      "body": { "displayName": "Prose & Summary", "purpose": "Indonesian economic summaries and 65ch article reader copy." },
-      "label": { "displayName": "Tabular Telemetry", "purpose": "KBLI indices, timestamps, numeric metrics, and shortcuts." }
+      "display": {
+        "family": "Plus Jakarta Sans",
+        "size": "28px",
+        "weight": "700",
+        "lineHeight": "34px",
+        "confidence": "high"
+      },
+      "headline": {
+        "family": "Plus Jakarta Sans",
+        "size": "20px",
+        "weight": "600",
+        "lineHeight": "28px",
+        "confidence": "high"
+      },
+      "title": {
+        "family": "Plus Jakarta Sans",
+        "size": "16px",
+        "weight": "600",
+        "lineHeight": "24px",
+        "confidence": "high"
+      },
+      "body": {
+        "family": "Plus Jakarta Sans",
+        "size": "14px",
+        "weight": "400",
+        "lineHeight": "22px",
+        "confidence": "high"
+      },
+      "metric": {
+        "family": "Plus Jakarta Sans",
+        "size": "26px",
+        "weight": "700",
+        "lineHeight": "30px",
+        "fontVariantNumeric": "tabular-nums",
+        "confidence": "high"
+      },
+      "caption": {
+        "family": "Plus Jakarta Sans",
+        "size": "12px",
+        "weight": "500",
+        "lineHeight": "18px",
+        "confidence": "high"
+      },
+      "kbd-code": {
+        "family": "JetBrains Mono",
+        "size": "11.5px",
+        "weight": "500",
+        "lineHeight": "16px",
+        "confidence": "high"
+      }
     },
+    "spacing": {
+      "values": [4, 8, 12, 16, 20, 24, 32, 48],
+      "base": 4,
+      "baseConfidence": "high"
+    },
+    "radii": ["8px", "12px", "16px", "20px", "9999px"],
     "shadows": [
       {
-        "name": "card-seam",
-        "value": "0 1px 2px rgba(15, 23, 42, 0.04)",
-        "purpose": "Subtle grounding under analytical white panels in Light Mode."
+        "value": "0 1px 2px 0 rgba(15, 23, 42, 0.04)",
+        "name": "xs-control"
       },
       {
-        "name": "elevated-overlay",
-        "value": "0 8px 24px -4px rgba(15, 23, 42, 0.1), 0 2px 6px rgba(15, 23, 42, 0.05)",
-        "purpose": "Reserved for review slide-over dialogs, skip links, and sign-in containers."
-      }
-    ],
-    "motion": [
+        "value": "0 10px 30px -10px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.03)",
+        "name": "card-diffused"
+      },
       {
-        "name": "ease-standard",
-        "value": "cubic-bezier(0.2, 0, 0, 1)",
-        "purpose": "State transitions on hover, focus, and sidebar collapse (disabled under reduced-motion)."
+        "value": "0 20px 45px -15px rgba(15, 23, 42, 0.10), 0 4px 12px -2px rgba(15, 23, 42, 0.04)",
+        "name": "floating-elevated"
       }
     ],
-    "breakpoints": [
-      { "name": "sm", "value": "640px" },
-      { "name": "md", "value": "768px" },
-      { "name": "lg", "value": "1024px" },
-      { "name": "xl", "value": "1280px" }
-    ]
+    "borders": [
+      "1px solid rgb(238, 240, 244)",
+      "1px solid rgb(226, 232, 240)",
+      "1px solid rgb(167, 243, 208)"
+    ],
+    "transitions": [
+      "all 0.16s cubic-bezier(0.22, 1, 0.36, 1)"
+    ],
+    "customProperties": {
+      "--bg-canvas": "#f7f8fa",
+      "--bg-surface": "#ffffff",
+      "--bg-subtle": "#f1f5f9",
+      "--bg-selected": "#ecfdf5",
+      "--text-primary": "#0f172a",
+      "--text-secondary": "#475569",
+      "--text-muted": "#64748b",
+      "--brand-primary": "#059669",
+      "--brand-primary-hover": "#047857",
+      "--cta-primary-bg": "#0f172a",
+      "--cta-primary-hover": "#1e293b",
+      "--border-hairline": "#eef0f4",
+      "--border-subtle": "#e2e8f0",
+      "--border-input": "#cbd5e1",
+      "--radius-sm": "0.5rem",
+      "--radius-md": "0.75rem",
+      "--radius-lg": "1rem",
+      "--radius-xl": "1.25rem"
+    }
+  },
+  "layout": {
+    "landmarks": [
+      {
+        "tag": "header",
+        "role": "banner",
+        "rect": { "x": 0, "y": 0, "w": 1440, "h": 64 }
+      },
+      {
+        "tag": "main",
+        "role": "main",
+        "rect": { "x": 0, "y": 64, "w": 1440, "h": 836 }
+      }
+    ],
+    "navPattern": "top-bar-horizontal",
+    "gridSystems": [
+      {
+        "columns": "1fr 480px",
+        "gap": "20px",
+        "rect": { "x": 32, "y": 210, "w": 1376, "h": 660 }
+      }
+    ],
+    "whitespaceRatio": 0.42
   },
   "components": [
     {
-      "name": "Primary Action Button",
-      "kind": "button",
-      "refersTo": "button-primary",
-      "description": "Primary verification and Excel export CTA with >= 4.5:1 white text contrast.",
-      "html": "<button type=\"button\" class=\"ds-btn-primary\">Setujui &amp; Simpan</button>",
-      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 38px; padding: 8px 16px; border: none; border-radius: 8px; background: #0369a1; color: #ffffff; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: 12px; font-weight: 600; cursor: pointer; transition: background-color 0.15s ease; } .ds-btn-primary:hover { background: #075985; } .ds-btn-primary:focus-visible { outline: 2px solid #0284c7; outline-offset: 2px; }"
+      "type": "button-primary-obsidian",
+      "styles": {
+        "backgroundColor": "rgb(15, 23, 42)",
+        "color": "rgb(255, 255, 255)",
+        "borderRadius": "12px",
+        "padding": "10px 18px",
+        "fontSize": "14px",
+        "fontWeight": "600",
+        "border": "1px solid rgb(15, 23, 42)"
+      }
     },
     {
-      "name": "Secondary Surface Button",
-      "kind": "button",
-      "refersTo": "button-secondary",
-      "description": "Secondary filter reset, theme switch, and scraper refresh control.",
-      "html": "<button type=\"button\" class=\"ds-btn-secondary\">Reset Filter</button>",
-      "css": ".ds-btn-secondary { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 36px; padding: 8px 14px; border: 1px solid #94a3b8; border-radius: 8px; background: #ffffff; color: #0f172a; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: 12px; font-weight: 600; cursor: pointer; transition: background-color 0.15s ease; } .ds-btn-secondary:hover { background: #eff4f9; } .ds-btn-secondary:focus-visible { outline: 2px solid #0284c7; outline-offset: 2px; }"
+      "type": "button-verified-emerald",
+      "styles": {
+        "backgroundColor": "rgb(5, 150, 105)",
+        "color": "rgb(255, 255, 255)",
+        "borderRadius": "12px",
+        "padding": "10px 18px",
+        "fontSize": "14px",
+        "fontWeight": "600",
+        "border": "1px solid rgb(4, 120, 87)"
+      }
     },
     {
-      "name": "Status Chip (Non-Color Cue)",
-      "kind": "chip",
-      "refersTo": "card-surface",
-      "description": "Accessible status badge pairing geometric check glyph with label text.",
-      "html": "<span class=\"ds-status-approved\"><svg width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" aria-hidden=\"true\"><polyline points=\"20 6 9 17 4 12\"/></svg> Disetujui</span>",
-      "css": ".ds-status-approved { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 6px; border: 1px solid #6ee7b7; background: #ecfdf5; color: #065f46; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: 11px; font-weight: 600; }"
+      "type": "card-elevated",
+      "styles": {
+        "backgroundColor": "rgb(255, 255, 255)",
+        "borderRadius": "16px",
+        "padding": "24px",
+        "border": "1px solid rgb(238, 240, 244)",
+        "boxShadow": "0 10px 30px -10px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.03)"
+      }
     },
     {
-      "name": "Workstation Text Input",
-      "kind": "input",
-      "refersTo": "input-field",
-      "description": "Crisp search and verifier note field shifting from subtle recessed ground to pure surface on focus.",
-      "html": "<input type=\"search\" class=\"ds-input\" placeholder=\"Cari fenomena ekonomi...\" />",
-      "css": ".ds-input { width: 100%; min-height: 40px; padding: 8px 12px; border: 1px solid #94a3b8; border-radius: 8px; background: #f8fafc; color: #0f172a; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: 12px; } .ds-input:focus { background: #ffffff; border-color: #0284c7; outline: 2px solid #0284c7; outline-offset: 1px; }"
+      "type": "input-rounded-modern",
+      "styles": {
+        "backgroundColor": "rgb(255, 255, 255)",
+        "color": "rgb(15, 23, 42)",
+        "borderRadius": "12px",
+        "padding": "10px 14px",
+        "fontSize": "14px",
+        "border": "1px solid rgb(203, 213, 225)"
+      }
     },
     {
-      "name": "Sidebar Navigation Item",
-      "kind": "nav",
-      "refersTo": "button-primary",
-      "description": "Active Sovereign Maritime Navy left rail tab with clear foreground hierarchy.",
-      "html": "<div class=\"ds-nav-rail\"><button type=\"button\" class=\"ds-nav-item ds-nav-active\" aria-current=\"page\">Ringkasan Eksekutif</button><button type=\"button\" class=\"ds-nav-item\">Tabel Kurasi <span class=\"ds-nav-count\">12</span></button></div>",
-      "css": ".ds-nav-rail { background: #0a2540; padding: 12px; border-radius: 10px; width: 240px; display: flex; flex-direction: column; gap: 4px; } .ds-nav-item { display: flex; align-items: center; justify-content: space-between; min-height: 40px; padding: 8px 12px; border: none; border-radius: 8px; background: transparent; color: #b6c7da; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: 12px; font-weight: 500; text-align: left; cursor: pointer; } .ds-nav-item:hover { background: #133558; color: #ffffff; } .ds-nav-active { background: #164470; color: #ffffff; font-weight: 600; } .ds-nav-count { padding: 2px 6px; border-radius: 4px; background: rgba(251, 191, 36, 0.2); color: #fde68a; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; }"
+      "type": "badge-status-pastel",
+      "styles": {
+        "backgroundColor": "rgb(236, 253, 245)",
+        "color": "rgb(4, 120, 87)",
+        "borderRadius": "8px",
+        "padding": "4px 10px",
+        "fontSize": "12px",
+        "fontWeight": "600",
+        "border": "1px solid rgb(167, 243, 208)"
+      }
+    },
+    {
+      "type": "top-nav-tab-active",
+      "styles": {
+        "backgroundColor": "rgb(236, 253, 245)",
+        "color": "rgb(4, 120, 87)",
+        "borderRadius": "12px",
+        "padding": "8px 14px",
+        "fontSize": "14px",
+        "fontWeight": "600",
+        "borderBottom": "2px solid rgb(5, 150, 105)"
+      }
     }
   ],
   "narrative": {
-    "northStar": "Civic Statistical Ledger",
-    "overview": "SIPENA-KTT serves Tim Neraca Wilayah dan Analisis Statistik (Nerwilis) at BPS Kabupaten Tana Tidung (65.04). The visual system mirrors an authoritative regional accounts dossier: crisp daylight surfaces led by cool paper neutrals, anchored along the left edge by a sovereign BPS Maritime Navy navigation spine, and engineered to shift cleanly into calibrated obsidian slate when toggled to Dark Mode for evening reconciliation sessions.",
-    "keyCharacteristics": [
-      "Daylight-first #f4f6fa canvas and pure #ffffff analytical paper paired with persistent #0a2540 navigation rail (#080d16 and #101827 in Dark Mode).",
-      "Two-font statistical discipline: Plus Jakarta Sans for Indonesian journalism prose and decisions, strictly paired with JetBrains Mono (tabular-nums) for KBLI indices, timestamps, counts, and numerical metrics.",
-      "Top-layer <dialog> review architecture placing raw media citations opposite human-in-the-loop taxonomy controls with keyboard triage (J/K, Enter, [A], [R], Esc).",
-      "Complete WCAG 2.1 AA contrast compliance (>= 4.5:1 body text, >= 3:1 structural control outlines) across Light and Dark modes, plus non-color iconography in status badges."
-    ],
-    "rules": [
-      {
-        "name": "The Cobalt Restraint Rule",
-        "body": "Primary cobalt ink and fills mark interactive triggers, active focus outlines, and drill-down destinations only. Categorical badges keep neutral surfaces paired with compact color index tiles so tabular scanning stays calm.",
-        "section": "colors"
-      },
-      {
-        "name": "The Dual-Theme Parity Rule",
-        "body": "Every semantic surface, input, scrollbar, dialog backdrop, and badge defines verified Light and Dark contrast tokens. Switching sipena-theme never leaves dark-on-dark or pale-on-white artifacts.",
-        "section": "colors"
-      },
-      {
-        "name": "The Earned Monospace Rule",
-        "body": "Monospace lettering appears strictly on identifiers, quantitative counters, timestamps, and keyboard shortcuts. Narrative headings and prose always render in Plus Jakarta Sans.",
-        "section": "typography"
-      },
-      {
-        "name": "The Flat-By-Default Rule",
-        "body": "Content tables and distribution panels separate via clean surface contrast and 1px seams. Only top-layer overlays and primary entry cards cast directional shadows.",
-        "section": "elevation"
-      }
-    ],
-    "dos": [
-      "Do validate Contrast (>= 4.5:1 normal text, >= 3:1 borders and UI indicators) and full interactive layout across both Light (sipena-theme=light) and Dark (sipena-theme=dark) modes.",
-      "Do keep narrative copy strictly authentic to BPS Kab. Tana Tidung (65.04) operations with zero em dash characters (U+2014) and real Postgres-backed counts.",
-      "Do maintain visible labels and helpful empty, loading skeleton, error retry, and read-only viewer states on every module."
-    ],
-    "donts": [
-      "Don't apply pill rounding (rounded-full) to buttons, badges, inputs, or cards, or scatter colored border-left accent bars onto cards.",
-      "Don't introduce external font CDN links, unapproved images, AI buzzword copy, or infinite animate-pulse / glowing status dots.",
-      "Don't suppress focus rings or build non-semantic clickable <div> elements instead of native <button> and <a href> controls."
-    ]
+    "vibe": "Modern Light-First SaaS Curation & Analytics Platform (Sapick & SyncMaster Inspired)",
+    "summary": "SIPENA-KTT combines the airy, light-first analytical polish of Sapick Astro and SyncMaster Astro with the split-view inspection ergonomics of TellDesk Astro. A soft alabaster canvas (#F7F8FA) elevates pure white rounded-2xl cards (#FFFFFF) with diffused shadows and hairline dividers (#EEF0F4). Obsidian Ink (#0F172A) anchors primary actions while Forest Emerald (#059669 / #047857) signals verified economic data and active navigation.",
+    "VoiceAndTone": "Clear, calm, and high-trust Bahasa Indonesia. Avoids bureaucratic stiffness and terminal jargon."
   }
 }
-

@@ -55,11 +55,11 @@ export function OverviewPanel({
       {/* Priority Pending Ledger */}
       <section
         aria-label="Antrean Fenomena Menunggu Telaah Nerwilis"
-        className="overflow-hidden rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] shadow-card"
+        className="saas-card overflow-hidden rounded-2xl"
       >
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border-subtle)] bg-[var(--bg-subtle)] px-5 py-3.5">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border-hairline)] bg-[var(--bg-canvas)]/60 px-6 py-4">
           <div>
-            <h2 className="text-sm font-bold tracking-tight text-[var(--text-primary)]">
+            <h2 className="text-base font-bold tracking-tight text-[var(--text-primary)]">
               Antrean Fenomena Menunggu Telaah ({stats.quarter} {stats.year})
             </h2>
             <p className="mt-0.5 text-xs text-[var(--text-muted)]">
@@ -70,9 +70,9 @@ export function OverviewPanel({
           <button
             type="button"
             onClick={onOpenFeed}
-            className="inline-flex min-h-[44px] items-center gap-1.5 rounded-lg border border-[var(--border-strong)] bg-[var(--bg-surface)] px-3.5 py-1.5 text-xs font-semibold text-[var(--text-primary)] transition-colors hover:bg-[var(--bg-hover)] sm:min-h-[36px]"
+            className="btn-secondary inline-flex h-9 items-center gap-1.5 rounded-xl px-3.5 text-xs font-semibold"
           >
-            <span>Lihat Semua Data</span>
+            <span>Lihat Semua di Meja Kurasi</span>
             <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
           </button>
         </div>
@@ -84,52 +84,53 @@ export function OverviewPanel({
               {stats.year}.
             </p>
             <p className="mx-auto mt-1 max-w-lg text-xs leading-relaxed text-[var(--text-muted)]">
-              Seluruh kandidat pada periode ini telah ditelaah atau Anda dapat meninjau riwayat keputusan melalui Tabel Kurasi Lengkap.
+              Seluruh kandidat pada periode ini telah ditelaah atau Anda dapat meninjau riwayat keputusan di Meja Kurasi.
             </p>
             <button
               type="button"
               onClick={onOpenFeed}
-              className="mt-4 inline-flex min-h-[44px] items-center gap-1.5 rounded-lg border border-[var(--border-strong)] bg-[var(--bg-subtle)] px-4 py-2 text-xs font-semibold text-[var(--accent-text)] transition-colors hover:bg-[var(--bg-hover)] sm:min-h-[38px]"
+              className="btn-secondary mt-4 inline-flex h-10 items-center gap-1.5 rounded-xl px-4 text-xs font-semibold"
             >
-              <span>Buka Tabel Kurasi Lengkap</span>
+              <span>Buka Meja Kurasi</span>
             </button>
           </div>
         ) : (
-          <div className="divide-y divide-[var(--border-subtle)]">
+          <div className="divide-y divide-[var(--border-hairline)]">
             {stats.recentPending.map((item) => (
               <div
                 key={item.id}
-                className="flex flex-col justify-between gap-4 p-5 transition-colors hover:bg-[var(--bg-hover)]/75 md:flex-row md:items-center"
+                className="flex flex-col justify-between gap-4 p-5 transition-colors hover:bg-[var(--bg-canvas)]/65 md:flex-row md:items-center sm:px-6"
               >
                 <div className="max-w-3xl space-y-2">
                   <div className="flex flex-wrap items-center gap-2">
                     <SourceMediaLabel source={item.article.source} />
-                    <span className="font-mono text-[11px] text-[var(--text-muted)] tabular-nums">
+                    <span className="text-xs text-[var(--text-muted)] tabular-nums">
                       {formatIndonesianDate(item.article.publishedDate)}
                     </span>
                     <StatusBadge status={item.status} />
                   </div>
 
-                  <h3 className="text-sm font-semibold leading-snug text-[var(--text-primary)]">
+                  <h3 className="text-[15px] font-semibold leading-snug text-[var(--text-primary)]">
                     <button
                       type="button"
                       onClick={() => onOpenReview(item)}
-                      className="text-left transition-colors hover:text-[var(--accent-text)]"
+                      className="text-left transition-colors hover:text-emerald-800 dark:hover:text-emerald-300"
                     >
                       {item.article.title}
                     </button>
                   </h3>
 
-                  <p className="max-w-2xl text-xs leading-relaxed text-[var(--text-secondary)]">
+                  <p className="max-w-2xl text-[13px] leading-relaxed text-[var(--text-secondary)]">
                     {item.summary}
                   </p>
 
-                  <div className="flex flex-wrap items-center gap-3 pt-1">
-                    <KbliBadge code={item.kbliCategory} />
+                  <div className="flex flex-wrap items-center gap-2 pt-1">
+                    <KbliBadge code={item.kbliCategory} compact />
                     <ExpenditureBadge code={item.expenditureComponent} />
                     <ImpactIndicator
                       impact={item.impactType}
                       effect={item.priceVolumeEffect}
+                      inline
                     />
                   </div>
                 </div>
@@ -138,10 +139,10 @@ export function OverviewPanel({
                   <button
                     type="button"
                     onClick={() => onOpenReview(item)}
-                    className="inline-flex min-h-[44px] w-full items-center justify-center gap-1.5 rounded-lg bg-[var(--accent-primary)] px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-[var(--accent-primary-hover)] sm:min-h-[40px] md:w-auto"
+                    className="btn-obsidian inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-xl px-4 text-xs font-semibold md:w-auto"
                   >
                     <Eye className="h-3.5 w-3.5" aria-hidden="true" />
-                    <span>Telaah &amp; Verifikasi</span>
+                    <span>Telaah di Meja Kurasi</span>
                   </button>
                 </div>
               </div>

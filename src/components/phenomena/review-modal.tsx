@@ -4,8 +4,11 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   CheckCircle2,
   ExternalLink,
+  FileText,
   History,
+  Inbox,
   RotateCcw,
+  SlidersHorizontal,
   X,
   XCircle,
 } from "lucide-react";
@@ -26,26 +29,31 @@ import type {
   SerializedPhenomenon,
 } from "@/types/client";
 
-interface ReviewModalProps {
+type InspectionTab = "classify" | "article" | "audit";
+
+interface InspectionPaneSharedProps {
   phenomenon: SerializedPhenomenon | null;
   user: AuthenticatedUser;
-  onClose: () => void;
   onSaved: (message: string) => void;
   onError: (message: string) => void;
+  onClose?: () => void;
+  isDialog?: boolean;
+  enableKeyboardShortcuts?: boolean;
 }
 
-export function ReviewModal({
+function InspectionWorkbenchContent({
   phenomenon,
   user,
-  onClose,
   onSaved,
   onError,
-}: ReviewModalProps) {
+  onClose,
+  isDialog = false,
+  enableKeyboardShortcuts = false,
+}: InspectionPaneSharedProps) {
   const canEdit = user.role === "admin" || user.role === "editor";
-  const dialogRef = useRef<HTMLDialogElement>(null);
   const summaryRef = useRef<HTMLTextAreaElement>(null);
-  const pressedOutsideRef = useRef(false);
 
+  const [activeSubTab, setActiveSubTab] = useState<InspectionTab>("classify");
   const [summary, setSummary] = useState("");
   const [summaryTouched, setSummaryTouched] = useState(false);
   const [kbliCategory, setKbliCategory] = useState<KbliCode | "">("");
@@ -62,56 +70,43 @@ export function ReviewModal({
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    const dialog = dialogRef.current;
-    if (!dialog) return;
+    if (!phenomenon) return;
+    setActiveSubTab("classify");
+    setSummary(phenomenon.summary);
+    setSummaryTouched(false);
+    setKbliCategory(phenomenon.kbliCategory ?? "");
+    setKbliSubsector(phenomenon.kbliSubsector ?? "");
+    setExpenditureComponent(phenomenon.expenditureComponent ?? "");
+    setImpactType(phenomenon.impactType ?? "positif");
+    setPriceVolumeEffect(phenomenon.priceVolumeEffect ?? "volume");
+    setReviewerNotes(phenomenon.reviewerNotes ?? "");
+    setAuditHistory([]);
 
-    if (phenomenon) {
-      setSummary(phenomenon.summary);
-      setSummaryTouched(false);
-      setKbliCategory(phenomenon.kbliCategory ?? "");
-      setKbliSubsector(phenomenon.kbliSubsector ?? "");
-      setExpenditureComponent(phenomenon.expenditureComponent ?? "");
-      setImpactType(phenomenon.impactType ?? "positif");
-      setPriceVolumeEffect(phenomenon.priceVolumeEffect ?? "volume");
-      setReviewerNotes(phenomenon.reviewerNotes ?? "");
-      setAuditHistory([]);
+    let cancelled = false;
+    setIsLoadingDetail(true);
+    fetch(`/api/phenomena/${phenomenon.id}`, { cache: "no-store" })
+      .then(async (res) => {
+        if (!res.ok) return null;
+        return (await res.json()) as {
+          auditLogs?: SerializedAuditLog[];
+        };
+      })
+      .then((detail) => {
+        if (!cancelled && detail?.auditLogs) {
+          setAuditHistory(detail.auditLogs);
+        }
+      })
+      .catch(() => {
+        // Non-blocking audit history fetch failure
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoadingDetail(false);
+      });
 
-      if (!dialog.open) {
-        dialog.showModal();
-      }
-
-      setIsLoadingDetail(true);
-      fetch(`/api/phenomena/${phenomenon.id}`, { cache: "no-store" })
-        .then(async (res) => {
-          if (!res.ok) return null;
-          return (await res.json()) as {
-            auditLogs?: SerializedAuditLog[];
-          };
-        })
-        .then((detail) => {
-          if (detail?.auditLogs) {
-            setAuditHistory(detail.auditLogs);
-          }
-        })
-        .catch(() => {
-          // Non-blocking audit history fetch failure
-        })
-        .finally(() => setIsLoadingDetail(false));
-    } else if (dialog.open) {
-      dialog.close();
-    }
-  }, [phenomenon]);
-
-  useEffect(() => {
-    const dialog = dialogRef.current;
-    if (!dialog) return;
-    const handleClose = () => {
-      dialog.returnValue = "";
-      onClose();
+    return () => {
+      cancelled = true;
     };
-    dialog.addEventListener("close", handleClose);
-    return () => dialog.removeEventListener("close", handleClose);
-  }, [onClose]);
+  }, [phenomenon]);
 
   const summaryInvalid = summary.trim().length < 10;
 
@@ -120,6 +115,7 @@ export function ReviewModal({
       if (!phenomenon || !canEdit || isSaving) return;
       if (summary.trim().length < 10) {
         setSummaryTouched(true);
+        setActiveSubTab("classify");
         summaryRef.current?.focus();
         onError("Ringkasan narasi minimal 10 karakter sesuai standar BPS.");
         return;
@@ -182,10 +178,13 @@ export function ReviewModal({
   );
 
   useEffect(() => {
-    if (!phenomenon || !canEdit) return;
+    if (!phenomenon || !canEdit || !enableKeyboardShortcuts) return;
     function onKeyDown(e: KeyboardEvent) {
       const tag = document.activeElement?.tagName;
       if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") {
+        return;
+      }
+      if (!isDialog && document.querySelector("dialog[open]")) {
         return;
       }
       if (e.key.toLowerCase() === "a" && !e.ctrlKey && !e.metaKey) {
@@ -198,7 +197,544 @@ export function ReviewModal({
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [phenomenon, canEdit, submitVerification]);
+  }, [phenomenon, canEdit, enableKeyboardShortcuts, isDialog, submitVerification]);
+
+  if (!phenomenon) {
+    return (
+      <div className="saas-card flex min-h-[420px] flex-col items-center justify-center rounded-2xl p-8 text-center">
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
+          <Inbox className="h-5 w-5" aria-hidden="true" />
+        </div>
+        <h3 className="mt-4 text-base font-semibold text-[var(--text-primary)]">
+          Pilih Fenomena untuk Ditelaah
+        </h3>
+        <p className="mt-1.5 max-w-xs text-xs leading-relaxed text-[var(--text-muted)]">
+          Klik salah satu berita di daftar sebelah kiri atau gunakan tombol{" "}
+          <kbd className="rounded border border-[var(--border-subtle)] bg-[var(--bg-subtle)] px-1.5 py-0.5 font-mono text-[11px] text-[var(--text-primary)]">
+            J
+          </kbd>{" "}
+          /{" "}
+          <kbd className="rounded border border-[var(--border-subtle)] bg-[var(--bg-subtle)] px-1.5 py-0.5 font-mono text-[11px] text-[var(--text-primary)]">
+            K
+          </kbd>{" "}
+          untuk memeriksa dan menyetujui klasifikasi PDRB.
+        </p>
+      </div>
+    );
+  }
+
+  const externalUrl = safeExternalHref(phenomenon.article.url);
+  const numericalEntries = phenomenon.keyNumericalData
+    ? Object.entries(phenomenon.keyNumericalData)
+    : [];
+
+  return (
+    <div
+      className={`flex flex-col bg-[var(--bg-surface)] ${
+        isDialog
+          ? "h-full"
+          : "saas-card overflow-hidden rounded-2xl max-h-[calc(100vh-6rem)]"
+      }`}
+    >
+      {/* Top Meta & Headline Header */}
+      <div className="shrink-0 border-b border-[var(--border-hairline)] p-5">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <StatusBadge status={phenomenon.status} />
+            <SourceMediaLabel source={phenomenon.article.source} />
+            <span className="text-xs text-[var(--text-muted)] tabular-nums">
+              {formatIndonesianDate(phenomenon.article.publishedDate)}
+            </span>
+          </div>
+
+          {onClose && (
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Tutup panel telaah"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-[var(--text-muted)] transition-colors hover:bg-[var(--bg-subtle)] hover:text-[var(--text-primary)]"
+            >
+              <X className="h-4 w-4" aria-hidden="true" />
+            </button>
+          )}
+        </div>
+
+        <h2
+          id={isDialog ? "drawer-review-title" : undefined}
+          className="mt-3 text-base font-bold leading-snug tracking-tight text-[var(--text-primary)]"
+        >
+          {phenomenon.article.title}
+        </h2>
+
+        <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2 text-xs">
+          {externalUrl ? (
+            <a
+              href={externalUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 font-medium text-emerald-700 hover:text-emerald-800 hover:underline dark:text-emerald-400"
+            >
+              <span>Buka sumber asli</span>
+              <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+            </a>
+          ) : (
+            <span className="text-[var(--text-muted)]">Input manual internal</span>
+          )}
+
+          {phenomenon.confidenceScore !== null && (
+            <span className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-subtle)]/70 px-2 py-0.5 text-[11px] font-medium text-[var(--text-secondary)] tabular-nums">
+              Skor AI: {Math.round(phenomenon.confidenceScore * 100)}%
+            </span>
+          )}
+        </div>
+
+        {/* TellDesk-Style Underline Sub-Tabs */}
+        <div
+          role="tablist"
+          aria-label="Bagian Inspeksi Fenomena"
+          className="-mb-5 mt-4 flex items-center gap-5 border-t border-[var(--border-hairline)] pt-1"
+        >
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeSubTab === "classify"}
+            onClick={() => setActiveSubTab("classify")}
+            className={`relative inline-flex items-center gap-1.5 py-2.5 text-xs transition-colors ${
+              activeSubTab === "classify"
+                ? "font-semibold text-emerald-800 dark:text-emerald-300"
+                : "font-medium text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+            }`}
+          >
+            <SlidersHorizontal className="h-3.5 w-3.5" aria-hidden="true" />
+            <span>Ringkasan &amp; Klasifikasi</span>
+            {activeSubTab === "classify" && (
+              <span className="absolute inset-x-0 bottom-0 h-[2px] rounded-full bg-emerald-600 dark:bg-emerald-400" />
+            )}
+          </button>
+
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeSubTab === "article"}
+            onClick={() => setActiveSubTab("article")}
+            className={`relative inline-flex items-center gap-1.5 py-2.5 text-xs transition-colors ${
+              activeSubTab === "article"
+                ? "font-semibold text-emerald-800 dark:text-emerald-300"
+                : "font-medium text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+            }`}
+          >
+            <FileText className="h-3.5 w-3.5" aria-hidden="true" />
+            <span>Teks Berita Asli</span>
+            {activeSubTab === "article" && (
+              <span className="absolute inset-x-0 bottom-0 h-[2px] rounded-full bg-emerald-600 dark:bg-emerald-400" />
+            )}
+          </button>
+
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeSubTab === "audit"}
+            onClick={() => setActiveSubTab("audit")}
+            className={`relative inline-flex items-center gap-1.5 py-2.5 text-xs transition-colors ${
+              activeSubTab === "audit"
+                ? "font-semibold text-emerald-800 dark:text-emerald-300"
+                : "font-medium text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+            }`}
+          >
+            <History className="h-3.5 w-3.5" aria-hidden="true" />
+            <span>Riwayat Audit</span>
+            {auditHistory.length > 0 && (
+              <span className="rounded-md bg-[var(--bg-subtle)] px-1.5 py-0.2 text-[10px] font-semibold tabular-nums">
+                {auditHistory.length}
+              </span>
+            )}
+            {activeSubTab === "audit" && (
+              <span className="absolute inset-x-0 bottom-0 h-[2px] rounded-full bg-emerald-600 dark:bg-emerald-400" />
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* Scrollable Tab Body */}
+      <div className="flex-1 space-y-4 overflow-y-auto p-5 text-xs">
+        {activeSubTab === "classify" && (
+          <>
+            {!canEdit && (
+              <div className="rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-2.5 text-xs text-amber-800 dark:border-amber-800/70 dark:bg-amber-950/60 dark:text-amber-200">
+                Akun berstatus <strong>Viewer</strong> (hanya baca). Hubungi Admin atau Analis Nerwilis untuk menyunting klasifikasi.
+              </div>
+            )}
+
+            <div>
+              <label
+                htmlFor={isDialog ? "dialog-review-summary" : "split-review-summary"}
+                className="mb-1.5 block text-xs font-semibold text-[var(--text-primary)]"
+              >
+                Ringkasan Narasi Fenomena (Standar BPS){" "}
+                <span className="text-rose-600" aria-hidden="true">
+                  *
+                </span>
+              </label>
+              <textarea
+                ref={summaryRef}
+                id={isDialog ? "dialog-review-summary" : "split-review-summary"}
+                rows={3}
+                disabled={!canEdit}
+                required
+                minLength={10}
+                value={summary}
+                onChange={(e) => setSummary(e.target.value)}
+                onBlur={() => setSummaryTouched(true)}
+                className="input-modern w-full resize-y rounded-xl p-3 text-xs leading-relaxed disabled:opacity-65"
+              />
+              {summaryTouched && summaryInvalid && (
+                <p className="mt-1 text-xs font-medium text-rose-700 dark:text-rose-300">
+                  Ringkasan harus berisi minimal 10 karakter.
+                </p>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div>
+                <label
+                  htmlFor={isDialog ? "dialog-review-kbli" : "split-review-kbli"}
+                  className="mb-1.5 block text-xs font-semibold text-[var(--text-primary)]"
+                >
+                  Kategori KBLI (17 Sektor)
+                </label>
+                <select
+                  id={isDialog ? "dialog-review-kbli" : "split-review-kbli"}
+                  disabled={!canEdit}
+                  value={kbliCategory}
+                  onChange={(e) =>
+                    setKbliCategory(e.target.value as KbliCode | "")
+                  }
+                  className="input-modern h-10 w-full rounded-xl px-3 text-xs font-medium disabled:opacity-65"
+                >
+                  <option value="">-- Belum Terklasifikasi --</option>
+                  {KBLI_LIST.map((item) => (
+                    <option key={item.code} value={item.code}>
+                      {item.fullName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label
+                  htmlFor={isDialog ? "dialog-review-subsector" : "split-review-subsector"}
+                  className="mb-1.5 block text-xs font-semibold text-[var(--text-primary)]"
+                >
+                  Rincian Subsektor
+                </label>
+                <input
+                  id={isDialog ? "dialog-review-subsector" : "split-review-subsector"}
+                  type="text"
+                  disabled={!canEdit}
+                  value={kbliSubsector}
+                  onChange={(e) => setKbliSubsector(e.target.value)}
+                  placeholder="Misal: Perkebunan Kelapa Sawit"
+                  className="input-modern h-10 w-full rounded-xl px-3 text-xs placeholder:text-[var(--text-muted)] disabled:opacity-65"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div>
+                <label
+                  htmlFor={isDialog ? "dialog-review-exp" : "split-review-exp"}
+                  className="mb-1.5 block text-xs font-semibold text-[var(--text-primary)]"
+                >
+                  Komponen Pengeluaran
+                </label>
+                <select
+                  id={isDialog ? "dialog-review-exp" : "split-review-exp"}
+                  disabled={!canEdit}
+                  value={expenditureComponent}
+                  onChange={(e) =>
+                    setExpenditureComponent(
+                      e.target.value as ExpenditureCode | ""
+                    )
+                  }
+                  className="input-modern h-10 w-full rounded-xl px-3 text-xs font-medium disabled:opacity-65"
+                >
+                  <option value="">-- Pilih Komponen --</option>
+                  {Object.values(EXPENDITURE_COMPONENTS).map((comp) => (
+                    <option key={comp.code} value={comp.code}>
+                      {comp.label} - {comp.fullName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label
+                  htmlFor={isDialog ? "dialog-review-impact" : "split-review-impact"}
+                  className="mb-1.5 block text-xs font-semibold text-[var(--text-primary)]"
+                >
+                  Arah Dampak Ekonomi
+                </label>
+                <select
+                  id={isDialog ? "dialog-review-impact" : "split-review-impact"}
+                  disabled={!canEdit}
+                  value={impactType}
+                  onChange={(e) =>
+                    setImpactType(e.target.value as ImpactDirection)
+                  }
+                  className="input-modern h-10 w-full rounded-xl px-3 text-xs font-medium disabled:opacity-65"
+                >
+                  <option value="positif">Positif (Ekspansi/Tumbuh)</option>
+                  <option value="negatif">Negatif (Kontraksi/Inflasi)</option>
+                  <option value="netral">Netral / Terkendali</option>
+                </select>
+              </div>
+            </div>
+
+            <fieldset disabled={!canEdit}>
+              <legend className="mb-1.5 text-xs font-semibold text-[var(--text-primary)]">
+                Transmisi Efek (Harga / Volume)
+              </legend>
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                {(
+                  [
+                    { value: "volume", label: "Volume" },
+                    { value: "harga", label: "Harga" },
+                    { value: "keduanya", label: "Keduanya" },
+                    { value: "tidak_langsung", label: "Tak Langsung" },
+                  ] as const
+                ).map((opt) => {
+                  const checked = priceVolumeEffect === opt.value;
+                  return (
+                    <label
+                      key={opt.value}
+                      className={`flex h-9 items-center justify-center gap-1.5 rounded-xl border px-2.5 text-xs font-medium transition-colors ${
+                        checked
+                          ? "border-emerald-300 bg-emerald-50 font-semibold text-emerald-800 dark:border-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-200"
+                          : "border-[var(--border-subtle)] bg-[var(--bg-canvas)] text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)]"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name={
+                          isDialog
+                            ? "dialogPriceVolumeEffect"
+                            : "splitPriceVolumeEffect"
+                        }
+                        value={opt.value}
+                        checked={checked}
+                        onChange={() => setPriceVolumeEffect(opt.value)}
+                        className="sr-only"
+                      />
+                      <span>{opt.label}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            </fieldset>
+
+            <div>
+              <label
+                htmlFor={isDialog ? "dialog-review-notes" : "split-review-notes"}
+                className="mb-1.5 block text-xs font-semibold text-[var(--text-primary)]"
+              >
+                Catatan Verifikator BPS (Opsional)
+              </label>
+              <input
+                id={isDialog ? "dialog-review-notes" : "split-review-notes"}
+                type="text"
+                disabled={!canEdit}
+                value={reviewerNotes}
+                onChange={(e) => setReviewerNotes(e.target.value)}
+                placeholder="Contoh: Terkonfirmasi data SP2D BPKAD Q1 2025"
+                className="input-modern h-10 w-full rounded-xl px-3 text-xs placeholder:text-[var(--text-muted)] disabled:opacity-65"
+              />
+            </div>
+          </>
+        )}
+
+        {activeSubTab === "article" && (
+          <div className="space-y-4">
+            <div className="max-w-[65ch] space-y-3 text-[13px] leading-[1.7] text-[var(--text-secondary)]">
+              {phenomenon.article.content.split(/\n+/).map((para, idx) => (
+                <p key={idx}>{para}</p>
+              ))}
+            </div>
+
+            {numericalEntries.length > 0 && (
+              <div className="border-t border-[var(--border-hairline)] pt-4">
+                <h3 className="mb-2.5 text-xs font-semibold text-[var(--text-primary)]">
+                  Angka Nominal Terekstrak
+                </h3>
+                <div className="grid grid-cols-2 gap-2.5">
+                  {numericalEntries.map(([key, val]) => (
+                    <div
+                      key={key}
+                      className="rounded-xl border border-[var(--border-hairline)] bg-[var(--bg-canvas)] px-3 py-2"
+                    >
+                      <span className="block text-[11px] text-[var(--text-muted)]">
+                        {key}
+                      </span>
+                      <span className="mt-0.5 block text-xs font-semibold text-[var(--text-primary)] tabular-nums">
+                        {val !== null ? String(val) : "-"}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeSubTab === "audit" && (
+          <div className="space-y-2.5">
+            {isLoadingDetail ? (
+              <div className="space-y-2" aria-busy="true">
+                <div className="h-12 w-full rounded-xl bg-[var(--bg-subtle)]" />
+                <div className="h-12 w-4/5 rounded-xl bg-[var(--bg-subtle)]" />
+              </div>
+            ) : auditHistory.length === 0 ? (
+              <div className="rounded-xl border border-[var(--border-hairline)] bg-[var(--bg-canvas)] p-5 text-center text-xs text-[var(--text-muted)]">
+                Belum ada riwayat perubahan manual oleh analis pada entri ini.
+              </div>
+            ) : (
+              <ul className="space-y-2">
+                {auditHistory.map((log) => (
+                  <li
+                    key={log.id}
+                    className="rounded-xl border border-[var(--border-hairline)] bg-[var(--bg-canvas)] px-3.5 py-2.5"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-semibold text-emerald-800 dark:text-emerald-300">
+                        {log.action}
+                      </span>
+                      <span className="text-[11px] text-[var(--text-muted)] tabular-nums">
+                        {formatIndonesianDate(log.createdAt)}
+                      </span>
+                    </div>
+                    <span className="mt-0.5 block text-[11px] text-[var(--text-secondary)]">
+                      Oleh: {log.userName ?? "Sistem Otomatis"}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Sticky Verification Action Footer */}
+      {canEdit ? (
+        <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-t border-[var(--border-hairline)] bg-[var(--bg-canvas)]/70 px-5 py-3.5">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              disabled={isSaving}
+              onClick={() => void submitVerification("rejected")}
+              className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 px-3 text-xs font-semibold text-rose-800 transition-colors hover:bg-rose-100 disabled:opacity-50 dark:border-rose-800/70 dark:bg-rose-950/70 dark:text-rose-200"
+            >
+              <XCircle className="h-3.5 w-3.5" aria-hidden="true" />
+              <span>Tolak</span>
+              <kbd className="hidden rounded bg-white/80 px-1 font-mono text-[10px] text-rose-700 sm:inline dark:bg-black/30 dark:text-rose-300">
+                R
+              </kbd>
+            </button>
+            <button
+              type="button"
+              disabled={isSaving}
+              onClick={() => void submitVerification("needs_revision")}
+              className="btn-secondary inline-flex h-10 items-center gap-1.5 rounded-xl px-3 text-xs font-semibold disabled:opacity-50"
+            >
+              <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
+              <span>Revisi</span>
+            </button>
+          </div>
+
+          <button
+            type="button"
+            disabled={isSaving}
+            onClick={() => void submitVerification("approved")}
+            className="btn-emerald inline-flex h-10 items-center gap-1.5 rounded-xl px-4 text-xs font-semibold disabled:opacity-50"
+          >
+            <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
+            <span>{isSaving ? "Menyimpan..." : "Setujui"}</span>
+            <kbd className="hidden rounded bg-black/15 px-1 font-mono text-[10px] text-white sm:inline">
+              A
+            </kbd>
+          </button>
+        </div>
+      ) : (
+        onClose && (
+          <div className="flex shrink-0 justify-end border-t border-[var(--border-hairline)] bg-[var(--bg-canvas)]/70 px-5 py-3.5">
+            <button
+              type="button"
+              onClick={onClose}
+              className="btn-secondary h-10 rounded-xl px-4 text-xs font-semibold"
+            >
+              Tutup Panel
+            </button>
+          </div>
+        )
+      )}
+    </div>
+  );
+}
+
+export function SplitInspectionPane({
+  phenomenon,
+  user,
+  onSaved,
+  onError,
+}: Omit<InspectionPaneSharedProps, "onClose" | "isDialog">) {
+  return (
+    <InspectionWorkbenchContent
+      phenomenon={phenomenon}
+      user={user}
+      onSaved={onSaved}
+      onError={onError}
+      isDialog={false}
+      enableKeyboardShortcuts={true}
+    />
+  );
+}
+
+interface ReviewModalProps {
+  phenomenon: SerializedPhenomenon | null;
+  user: AuthenticatedUser;
+  onClose: () => void;
+  onSaved: (message: string) => void;
+  onError: (message: string) => void;
+}
+
+export function ReviewModal({
+  phenomenon,
+  user,
+  onClose,
+  onSaved,
+  onError,
+}: ReviewModalProps) {
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const pressedOutsideRef = useRef(false);
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    if (phenomenon && !dialog.open) {
+      dialog.showModal();
+    } else if (!phenomenon && dialog.open) {
+      dialog.close();
+    }
+  }, [phenomenon]);
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    const handleClose = () => {
+      dialog.returnValue = "";
+      onClose();
+    };
+    dialog.addEventListener("close", handleClose);
+    return () => dialog.removeEventListener("close", handleClose);
+  }, [onClose]);
 
   function isPointerOutsideDialog(
     e: React.PointerEvent<HTMLDialogElement>,
@@ -212,10 +748,6 @@ export function ReviewModal({
       e.clientY > r.bottom
     );
   }
-
-  const numericalEntries = phenomenon?.keyNumericalData
-    ? Object.entries(phenomenon.keyNumericalData)
-    : [];
 
   return (
     <dialog
@@ -239,417 +771,18 @@ export function ReviewModal({
         }
         pressedOutsideRef.current = false;
       }}
-      className="my-0 ml-auto mr-0 h-screen max-h-screen w-full max-w-5xl border-l border-[var(--border-subtle)] bg-[var(--bg-surface)] p-0 text-[var(--text-primary)] shadow-elevated open:flex open:flex-col"
+      className="my-0 ml-auto mr-0 h-screen max-h-screen w-full max-w-xl rounded-l-2xl border-l border-[var(--border-hairline)] bg-[var(--bg-surface)] p-0 text-[var(--text-primary)] shadow-floating open:flex open:flex-col"
     >
       {phenomenon && (
-        <>
-          {/* Sticky Drawer Header */}
-          <div className="flex min-h-14 shrink-0 items-center justify-between gap-3 border-b border-[var(--border-subtle)] bg-[var(--bg-subtle)] px-5 py-2.5">
-            <div className="flex flex-wrap items-center gap-2.5">
-              <span className="rounded-md border border-[var(--accent-soft-border)] bg-[var(--accent-soft)] px-2.5 py-0.5 text-xs font-semibold text-[var(--accent-text)]">
-                Telaah Fenomena
-              </span>
-              <StatusBadge status={phenomenon.status} />
-              <span className="hidden font-mono text-xs text-[var(--text-muted)] sm:inline tabular-nums">
-                {phenomenon.quarter} {phenomenon.year}
-              </span>
-            </div>
-
-            <div className="flex items-center gap-3">
-              {canEdit && (
-                <span className="hidden font-mono text-[11px] text-[var(--text-muted)] md:inline">
-                  Pintasan:{" "}
-                  <kbd className="rounded border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-1.5 py-0.5 text-[var(--text-primary)]">
-                    A
-                  </kbd>{" "}
-                  Setujui &middot;{" "}
-                  <kbd className="rounded border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-1.5 py-0.5 text-[var(--text-primary)]">
-                    R
-                  </kbd>{" "}
-                  Tolak
-                </span>
-              )}
-              <button
-                type="button"
-                onClick={() => dialogRef.current?.close()}
-                aria-label="Tutup panel telaah"
-                className="flex h-11 w-11 items-center justify-center rounded-lg border border-transparent text-[var(--text-muted)] transition-colors hover:border-[var(--border-subtle)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] sm:h-9 sm:w-9"
-              >
-                <X className="h-5 w-5" aria-hidden="true" />
-              </button>
-            </div>
-          </div>
-
-          {/* Two-Column Body: Source Evidence + Analyst Classification */}
-          <div className="grid flex-1 grid-cols-1 divide-y divide-[var(--border-subtle)] overflow-y-auto md:grid-cols-2 md:divide-x md:divide-y-0">
-            {/* Left Column: Evidence Reader & Audit Trail */}
-            <div className="space-y-5 overflow-y-auto bg-[var(--bg-subtle)] p-5 sm:p-6">
-              <div className="flex items-center justify-between gap-2">
-                <SourceMediaLabel source={phenomenon.article.source} />
-                <span className="font-mono text-xs text-[var(--text-muted)] tabular-nums">
-                  {formatIndonesianDate(phenomenon.article.publishedDate)}
-                </span>
-              </div>
-
-              <div>
-                <h2
-                  id="drawer-review-title"
-                  className="text-base font-bold leading-snug tracking-tight text-[var(--text-primary)] sm:text-lg"
-                >
-                  {phenomenon.article.title}
-                </h2>
-                {(() => {
-                  const externalUrl = safeExternalHref(phenomenon.article.url);
-                  if (!externalUrl) return null;
-                  return (
-                    <a
-                      href={externalUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--accent-text)] hover:underline"
-                    >
-                      <span>Buka Artikel Asli di Portal Berita</span>
-                      <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
-                    </a>
-                  );
-                })()}
-              </div>
-
-              <div className="max-w-[65ch] space-y-3 border-t border-[var(--border-subtle)] pt-4 text-xs leading-[1.65] text-[var(--text-secondary)]">
-                {phenomenon.article.content.split(/\n+/).map((para, idx) => (
-                  <p key={idx}>{para}</p>
-                ))}
-              </div>
-
-              {numericalEntries.length > 0 && (
-                <div className="border-t border-[var(--border-subtle)] pt-4">
-                  <h3 className="mb-2.5 text-[11px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
-                    Ekstraksi Angka Nominal dari Berita
-                  </h3>
-                  <div className="grid grid-cols-2 gap-2.5 font-mono text-xs">
-                    {numericalEntries.map(([key, val]) => (
-                      <div
-                        key={key}
-                        className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-3 py-2"
-                      >
-                        <span className="block text-[10px] text-[var(--text-muted)]">
-                          {key}
-                        </span>
-                        <span className="mt-0.5 block font-semibold text-[var(--text-primary)] tabular-nums">
-                          {val !== null ? String(val) : "-"}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Forensic Verification Timeline */}
-              <div className="border-t border-[var(--border-subtle)] pt-4">
-                <div className="mb-2.5 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
-                  <History className="h-3.5 w-3.5" aria-hidden="true" />
-                  <span>Riwayat Audit Verifikasi</span>
-                </div>
-                {isLoadingDetail ? (
-                  <div className="space-y-2" aria-busy="true">
-                    <div className="h-10 w-full rounded-lg bg-[var(--bg-surface)]" />
-                    <div className="h-10 w-4/5 rounded-lg bg-[var(--bg-surface)]" />
-                  </div>
-                ) : auditHistory.length === 0 ? (
-                  <p className="text-xs text-[var(--text-muted)]">
-                    Belum ada riwayat perubahan manual oleh analis.
-                  </p>
-                ) : (
-                  <ul className="space-y-2 font-mono text-[11px]">
-                    {auditHistory.map((log) => (
-                      <li
-                        key={log.id}
-                        className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-3 py-2 text-[var(--text-secondary)]"
-                      >
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="font-semibold text-[var(--accent-text)]">
-                            {log.action}
-                          </span>
-                          <span className="text-[10px] text-[var(--text-muted)] tabular-nums">
-                            {formatIndonesianDate(log.createdAt)}
-                          </span>
-                        </div>
-                        <span className="mt-0.5 block text-[10px] text-[var(--text-muted)]">
-                          Oleh: {log.userName ?? "Sistem Otomatis"}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            </div>
-
-            {/* Right Column: Editable Verification Form */}
-            <div className="space-y-4 overflow-y-auto bg-[var(--bg-surface)] p-5 text-xs sm:p-6">
-              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--border-subtle)] pb-3">
-                <h3 className="text-sm font-bold text-[var(--text-primary)]">
-                  Klasifikasi &amp; Verifikasi Analis
-                </h3>
-                {phenomenon.confidenceScore !== null && (
-                  <span className="rounded-md border border-emerald-300 bg-emerald-50 px-2 py-0.5 font-mono text-[11px] font-semibold text-emerald-900 tabular-nums dark:border-emerald-700/80 dark:bg-emerald-950/70 dark:text-emerald-200">
-                    Skor Ekstraksi: {phenomenon.confidenceScore.toFixed(2)}
-                  </span>
-                )}
-              </div>
-
-              {!canEdit && (
-                <div className="rounded-lg border border-amber-300 bg-amber-50 px-3.5 py-2.5 text-xs text-amber-900 dark:border-amber-700/80 dark:bg-amber-950/60 dark:text-amber-200">
-                  Akun Anda berstatus <strong>Viewer</strong> (hanya baca). Hubungi Admin atau Analis Nerwilis untuk menyunting klasifikasi.
-                </div>
-              )}
-
-              <div>
-                <label
-                  htmlFor="review-summary"
-                  className="mb-1 block text-xs font-semibold text-[var(--text-primary)]"
-                >
-                  Ringkasan Narasi Fenomena (Standar BPS){" "}
-                  <span className="text-rose-600 dark:text-rose-400" aria-hidden="true">
-                    *
-                  </span>
-                </label>
-                <p id="review-summary-hint" className="mb-1.5 text-[11px] text-[var(--text-muted)]">
-                  Minimal 10 karakter menjelaskan pelaku, peristiwa, komoditas, dan dampak ekonomi.
-                </p>
-                <textarea
-                  ref={summaryRef}
-                  id="review-summary"
-                  rows={4}
-                  disabled={!canEdit}
-                  required
-                  minLength={10}
-                  aria-invalid={summaryTouched && summaryInvalid ? "true" : "false"}
-                  aria-describedby={
-                    summaryTouched && summaryInvalid
-                      ? "review-summary-hint review-summary-error"
-                      : "review-summary-hint"
-                  }
-                  value={summary}
-                  onChange={(e) => setSummary(e.target.value)}
-                  onBlur={() => setSummaryTouched(true)}
-                  className="w-full resize-y rounded-lg border border-[var(--border-strong)] bg-[var(--bg-subtle)] p-3 text-xs leading-relaxed text-[var(--text-primary)] focus:bg-[var(--bg-surface)] focus:outline-none disabled:opacity-65"
-                />
-                {summaryTouched && summaryInvalid && (
-                  <p
-                    id="review-summary-error"
-                    className="mt-1 text-xs font-medium text-rose-700 dark:text-rose-300"
-                  >
-                    Ringkasan harus berisi minimal 10 karakter.
-                  </p>
-                )}
-              </div>
-
-              <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
-                <div>
-                  <label
-                    htmlFor="review-kbli"
-                    className="mb-1.5 block text-xs font-semibold text-[var(--text-primary)]"
-                  >
-                    Kategori KBLI (17 Sektor)
-                  </label>
-                  <select
-                    id="review-kbli"
-                    disabled={!canEdit}
-                    value={kbliCategory}
-                    onChange={(e) =>
-                      setKbliCategory(e.target.value as KbliCode | "")
-                    }
-                    className="min-h-[44px] w-full rounded-lg border border-[var(--border-strong)] bg-[var(--bg-subtle)] px-3 py-2 text-xs font-medium text-[var(--text-primary)] focus:outline-none disabled:opacity-65 sm:min-h-[40px]"
-                  >
-                    <option value="">-- Tidak Terklasifikasi --</option>
-                    {KBLI_LIST.map((item) => (
-                      <option key={item.code} value={item.code}>
-                        {item.fullName}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="review-subsector"
-                    className="mb-1.5 block text-xs font-semibold text-[var(--text-primary)]"
-                  >
-                    Rincian Subsektor
-                  </label>
-                  <input
-                    id="review-subsector"
-                    type="text"
-                    disabled={!canEdit}
-                    value={kbliSubsector}
-                    onChange={(e) => setKbliSubsector(e.target.value)}
-                    placeholder="Misal: Perkebunan Kelapa Sawit"
-                    className="min-h-[44px] w-full rounded-lg border border-[var(--border-strong)] bg-[var(--bg-subtle)] px-3 py-2 text-xs text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:bg-[var(--bg-surface)] focus:outline-none disabled:opacity-65 sm:min-h-[40px]"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
-                <div>
-                  <label
-                    htmlFor="review-expenditure"
-                    className="mb-1.5 block text-xs font-semibold text-[var(--text-primary)]"
-                  >
-                    Komponen Pengeluaran PDRB
-                  </label>
-                  <select
-                    id="review-expenditure"
-                    disabled={!canEdit}
-                    value={expenditureComponent}
-                    onChange={(e) =>
-                      setExpenditureComponent(
-                        e.target.value as ExpenditureCode | ""
-                      )
-                    }
-                    className="min-h-[44px] w-full rounded-lg border border-[var(--border-strong)] bg-[var(--bg-subtle)] px-3 py-2 text-xs font-medium text-[var(--text-primary)] focus:outline-none disabled:opacity-65 sm:min-h-[40px]"
-                  >
-                    <option value="">-- Pilih Komponen --</option>
-                    {Object.values(EXPENDITURE_COMPONENTS).map((comp) => (
-                      <option key={comp.code} value={comp.code}>
-                        {comp.label} - {comp.fullName}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="review-impact"
-                    className="mb-1.5 block text-xs font-semibold text-[var(--text-primary)]"
-                  >
-                    Arah Dampak Ekonomi
-                  </label>
-                  <select
-                    id="review-impact"
-                    disabled={!canEdit}
-                    value={impactType}
-                    onChange={(e) =>
-                      setImpactType(e.target.value as ImpactDirection)
-                    }
-                    className="min-h-[44px] w-full rounded-lg border border-[var(--border-strong)] bg-[var(--bg-subtle)] px-3 py-2 text-xs font-semibold text-[var(--text-primary)] focus:outline-none disabled:opacity-65 sm:min-h-[40px]"
-                  >
-                    <option value="positif">Positif (Ekspansi/Tumbuh)</option>
-                    <option value="negatif">Negatif (Kontraksi/Inflasi)</option>
-                    <option value="netral">Netral / Terkendali</option>
-                  </select>
-                </div>
-              </div>
-
-              <fieldset disabled={!canEdit}>
-                <legend className="mb-2 text-xs font-semibold text-[var(--text-primary)]">
-                  Transmisi Efek (Harga / Volume)
-                </legend>
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                  {(
-                    [
-                      { value: "volume", label: "Volume" },
-                      { value: "harga", label: "Harga" },
-                      { value: "keduanya", label: "Keduanya" },
-                      { value: "tidak_langsung", label: "Tak Langsung" },
-                    ] as const
-                  ).map((opt) => {
-                    const checked = priceVolumeEffect === opt.value;
-                    return (
-                      <label
-                        key={opt.value}
-                        className={`flex min-h-[44px] items-center gap-2 rounded-lg border px-3 py-2 text-xs font-medium transition-colors sm:min-h-[40px] ${
-                          checked
-                            ? "border-[var(--accent-primary)] bg-[var(--accent-soft)] text-[var(--accent-text)]"
-                            : "border-[var(--border-strong)] bg-[var(--bg-subtle)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]"
-                        }`}
-                      >
-                        <input
-                          type="radio"
-                          name="priceVolumeEffect"
-                          value={opt.value}
-                          checked={checked}
-                          onChange={() => setPriceVolumeEffect(opt.value)}
-                          className="accent-[var(--accent-primary)]"
-                        />
-                        <span>{opt.label}</span>
-                      </label>
-                    );
-                  })}
-                </div>
-              </fieldset>
-
-              <div>
-                <label
-                  htmlFor="review-notes"
-                  className="mb-1.5 block text-xs font-semibold text-[var(--text-primary)]"
-                >
-                  Catatan Verifikator BPS (Opsional)
-                </label>
-                <input
-                  id="review-notes"
-                  type="text"
-                  disabled={!canEdit}
-                  value={reviewerNotes}
-                  onChange={(e) => setReviewerNotes(e.target.value)}
-                  placeholder="Contoh: Terkonfirmasi data SP2D BPKAD Q1 2025"
-                  className="min-h-[44px] w-full rounded-lg border border-[var(--border-strong)] bg-[var(--bg-subtle)] px-3 py-2 text-xs text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:bg-[var(--bg-surface)] focus:outline-none disabled:opacity-65 sm:min-h-[40px]"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Sticky Drawer Footer Actions */}
-          <div className="flex min-h-16 shrink-0 flex-wrap items-center justify-between gap-2 border-t border-[var(--border-subtle)] bg-[var(--bg-subtle)] px-5 py-3">
-            {canEdit ? (
-              <>
-                <div className="flex flex-wrap items-center gap-2">
-                  <button
-                    type="button"
-                    disabled={isSaving}
-                    onClick={() => void submitVerification("rejected")}
-                    className="inline-flex min-h-[44px] items-center gap-1.5 rounded-lg border border-rose-300 bg-rose-50 px-3.5 py-2 text-xs font-semibold text-rose-900 transition-colors hover:bg-rose-100 disabled:opacity-50 dark:border-rose-700/80 dark:bg-rose-950/75 dark:text-rose-200 dark:hover:bg-rose-900 sm:min-h-[40px]"
-                  >
-                    <XCircle className="h-4 w-4" aria-hidden="true" />
-                    <span>Tolak (Non-Ekonomi) [R]</span>
-                  </button>
-                  <button
-                    type="button"
-                    disabled={isSaving}
-                    onClick={() => void submitVerification("needs_revision")}
-                    className="inline-flex min-h-[44px] items-center gap-1.5 rounded-lg border border-[var(--border-strong)] bg-[var(--bg-surface)] px-3.5 py-2 text-xs font-semibold text-[var(--text-primary)] transition-colors hover:bg-[var(--bg-hover)] disabled:opacity-50 sm:min-h-[40px]"
-                  >
-                    <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
-                    <span>Tandai Revisi</span>
-                  </button>
-                </div>
-
-                <button
-                  type="button"
-                  disabled={isSaving}
-                  onClick={() => void submitVerification("approved")}
-                  className="inline-flex min-h-[44px] items-center gap-1.5 rounded-lg bg-emerald-700 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-emerald-800 disabled:opacity-50 sm:min-h-[42px]"
-                >
-                  <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
-                  <span>
-                    {isSaving
-                      ? "Menyimpan..."
-                      : "Setujui & Simpan Verifikasi [A]"}
-                  </span>
-                </button>
-              </>
-            ) : (
-              <div className="ml-auto">
-                <button
-                  type="button"
-                  onClick={() => dialogRef.current?.close()}
-                  className="min-h-[44px] rounded-lg border border-[var(--border-strong)] bg-[var(--bg-surface)] px-4 py-2 text-xs font-semibold text-[var(--text-primary)] hover:bg-[var(--bg-hover)] sm:min-h-[40px]"
-                >
-                  Tutup Panel
-                </button>
-              </div>
-            )}
-          </div>
-        </>
+        <InspectionWorkbenchContent
+          phenomenon={phenomenon}
+          user={user}
+          onClose={() => dialogRef.current?.close()}
+          onSaved={onSaved}
+          onError={onError}
+          isDialog={true}
+          enableKeyboardShortcuts={true}
+        />
       )}
     </dialog>
   );

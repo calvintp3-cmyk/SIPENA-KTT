@@ -1,19 +1,17 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {
-  createColumnHelper,
-  flexRender,
-  getCoreRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   AlertCircle,
   Check,
+  CheckCircle2,
   ChevronLeft,
   ChevronRight,
+  Clock,
+  Layers,
   RotateCcw,
   Search,
+  Sparkles,
   X,
 } from "lucide-react";
 import {
@@ -29,8 +27,10 @@ import {
   SourceMediaLabel,
   StatusBadge,
 } from "./status-badge";
+import { SplitInspectionPane } from "./review-modal";
 import type {
   AuthenticatedUser,
+  DashboardStatsPayload,
   ExpenditureCode,
   KbliCode,
   PaginationMeta,
@@ -52,23 +52,25 @@ interface CurationTableProps {
   user: AuthenticatedUser;
   quarter: PeriodQuarter;
   year: number;
+  stats: DashboardStatsPayload;
   filters: TableFilterState;
   onChangeFilters: (next: TableFilterState) => void;
   refreshTrigger: number;
-  onOpenReview: (item: SerializedPhenomenon) => void;
+  preselectedItem: SerializedPhenomenon | null;
+  onOpenMobileReview: (item: SerializedPhenomenon) => void;
   onDataMutated: (message: string, tone?: "success" | "error") => void;
 }
-
-const columnHelper = createColumnHelper<SerializedPhenomenon>();
 
 export function CurationTable({
   user,
   quarter,
   year,
+  stats,
   filters,
   onChangeFilters,
   refreshTrigger,
-  onOpenReview,
+  preselectedItem,
+  onOpenMobileReview,
   onDataMutated,
 }: CurationTableProps) {
   const canEdit = user.role === "admin" || user.role === "editor";
@@ -85,8 +87,16 @@ export function CurationTable({
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isBatchSubmitting, setIsBatchSubmitting] = useState(false);
-  const [focusedRowIdx, setFocusedRowIdx] = useState<number>(-1);
+  const [activeItem, setActiveItem] = useState<SerializedPhenomenon | null>(
+    preselectedItem
+  );
   const searchInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (preselectedItem) {
+      setActiveItem(preselectedItem);
+    }
+  }, [preselectedItem]);
 
   useEffect(() => {
     setSearchInput(filters.search);
@@ -106,7 +116,6 @@ export function CurationTable({
   useEffect(() => {
     setPage(1);
     setSelectedIds(new Set());
-    setFocusedRowIdx(-1);
   }, [filterSignature]);
 
   const fetchRows = useCallback(async () => {
@@ -138,6 +147,15 @@ export function CurationTable({
       setRows(payload.data);
       setPagination(payload.pagination);
       setSelectedIds(new Set());
+
+      setActiveItem((prev) => {
+        if (payload.data.length === 0) return null;
+        if (prev) {
+          const refreshedMatch = payload.data.find((r) => r.id === prev.id);
+          if (refreshedMatch) return refreshedMatch;
+        }
+        return payload.data[0];
+      });
     } catch {
       setFetchError(
         "Gagal memuat daftar fenomena ekonomi. Periksa koneksi database atau muat ulang."
@@ -171,21 +189,24 @@ export function CurationTable({
 
       if (rows.length === 0) return;
 
+      const currentIndex = activeItem
+        ? rows.findIndex((r) => r.id === activeItem.id)
+        : -1;
+
       if (e.key.toLowerCase() === "j") {
         e.preventDefault();
-        setFocusedRowIdx((idx) => Math.min(rows.length - 1, idx + 1));
+        const nextIdx = Math.min(rows.length - 1, currentIndex + 1);
+        setActiveItem(rows[nextIdx]);
       } else if (e.key.toLowerCase() === "k") {
         e.preventDefault();
-        setFocusedRowIdx((idx) => Math.max(0, idx - 1));
-      } else if (e.key === "Enter" && focusedRowIdx >= 0 && rows[focusedRowIdx]) {
-        e.preventDefault();
-        onOpenReview(rows[focusedRowIdx]);
+        const prevIdx = Math.max(0, currentIndex <= 0 ? 0 : currentIndex - 1);
+        setActiveItem(rows[prevIdx]);
       }
     }
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [rows, focusedRowIdx, onOpenReview]);
+  }, [rows, activeItem]);
 
   const toggleSelectAll = useCallback(() => {
     if (rows.length === 0) return;
@@ -275,166 +296,12 @@ export function CurationTable({
     [canEdit, onDataMutated]
   );
 
-  const columns = useMemo(
-    () => [
-      columnHelper.display({
-        id: "select",
-        header: () => (
-          <label className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center sm:min-h-0 sm:min-w-0">
-            <input
-              type="checkbox"
-              aria-label="Pilih semua baris halaman ini"
-              checked={rows.length > 0 && selectedIds.size === rows.length}
-              onChange={toggleSelectAll}
-              disabled={!canEdit || rows.length === 0}
-              className="h-4 w-4 rounded border-[var(--border-strong)] bg-[var(--bg-surface)] accent-[var(--accent-primary)]"
-            />
-          </label>
-        ),
-        cell: ({ row }) => (
-          <label className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center sm:min-h-0 sm:min-w-0">
-            <input
-              type="checkbox"
-              aria-label={`Pilih fenomena ${row.original.article.title}`}
-              checked={selectedIds.has(row.original.id)}
-              onChange={() => toggleSelectRow(row.original.id)}
-              disabled={!canEdit}
-              className="h-4 w-4 rounded border-[var(--border-strong)] bg-[var(--bg-surface)] accent-[var(--accent-primary)]"
-            />
-          </label>
-        ),
-      }),
-      columnHelper.accessor((row) => row.article.publishedDate, {
-        id: "source_date",
-        header: "Sumber & Tanggal",
-        cell: ({ row }) => (
-          <div className="max-w-[114px] space-y-1.5 whitespace-nowrap">
-            <SourceMediaLabel source={row.original.article.source} />
-            <div className="font-mono text-[11px] text-[var(--text-muted)] tabular-nums">
-              {formatShortDate(row.original.article.publishedDate)}
-            </div>
-          </div>
-        ),
-      }),
-      columnHelper.accessor((row) => row.article.title, {
-        id: "headline_summary",
-        header: "Judul Berita & Ringkasan Ekonomi",
-        cell: ({ row }) => (
-          <div className="min-w-[200px] max-w-[340px]">
-            <button
-              type="button"
-              onClick={() => onOpenReview(row.original)}
-              className="text-left text-[13px] font-semibold leading-snug text-[var(--text-primary)] transition-colors hover:text-[var(--accent-text)]"
-            >
-              {row.original.article.title}
-            </button>
-            <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-[var(--text-secondary)]">
-              {row.original.summary}
-            </p>
-            {row.original.affectedCommodities &&
-              row.original.affectedCommodities.length > 0 && (
-                <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[11px] text-[var(--text-muted)]">
-                  <span>Komoditas:</span>
-                  <span className="font-medium text-[var(--text-primary)]">
-                    {row.original.affectedCommodities.join(", ")}
-                  </span>
-                </div>
-              )}
-          </div>
-        ),
-      }),
-      columnHelper.accessor("kbliCategory", {
-        id: "kbli",
-        header: "Sektor KBLI",
-        cell: ({ row }) => (
-          <div className="w-[152px] max-w-[160px]">
-            <KbliBadge
-              code={row.original.kbliCategory}
-              subsector={row.original.kbliSubsector}
-            />
-          </div>
-        ),
-      }),
-      columnHelper.accessor("expenditureComponent", {
-        id: "expenditure",
-        header: "Pengeluaran",
-        cell: ({ row }) => (
-          <ExpenditureBadge code={row.original.expenditureComponent} />
-        ),
-      }),
-      columnHelper.accessor("impactType", {
-        id: "impact",
-        header: "Dampak",
-        cell: ({ row }) => (
-          <ImpactIndicator
-            impact={row.original.impactType}
-            effect={row.original.priceVolumeEffect}
-          />
-        ),
-      }),
-      columnHelper.accessor("status", {
-        id: "status",
-        header: "Status",
-        cell: ({ row }) => <StatusBadge status={row.original.status} />,
-      }),
-      columnHelper.display({
-        id: "actions",
-        header: () => <span className="block text-right">Aksi</span>,
-        cell: ({ row }) => (
-          <div className="flex items-center justify-end gap-1 whitespace-nowrap">
-            {canEdit && row.original.status === "pending" && (
-              <>
-                <button
-                  type="button"
-                  onClick={() =>
-                    void handleQuickDecision(row.original.id, "approved")
-                  }
-                  aria-label={`Setujui cepat ${row.original.article.title}`}
-                  title="Setujui cepat"
-                  className="inline-flex h-11 w-11 items-center justify-center rounded-md border border-emerald-300 bg-emerald-50 text-emerald-800 transition-colors hover:bg-emerald-100 dark:border-emerald-700/80 dark:bg-emerald-950/70 dark:text-emerald-200 dark:hover:bg-emerald-900 sm:h-7 sm:w-7"
-                >
-                  <Check className="h-3.5 w-3.5" aria-hidden="true" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() =>
-                    void handleQuickDecision(row.original.id, "rejected")
-                  }
-                  aria-label={`Tolak cepat ${row.original.article.title}`}
-                  title="Tolak (non-ekonomi)"
-                  className="inline-flex h-11 w-11 items-center justify-center rounded-md border border-rose-300 bg-rose-50 text-rose-800 transition-colors hover:bg-rose-100 dark:border-rose-700/80 dark:bg-rose-950/70 dark:text-rose-200 dark:hover:bg-rose-900 sm:h-7 sm:w-7"
-                >
-                  <X className="h-3.5 w-3.5" aria-hidden="true" />
-                </button>
-              </>
-            )}
-            <button
-              type="button"
-              onClick={() => onOpenReview(row.original)}
-              className="min-h-[44px] rounded-md border border-[var(--border-strong)] bg-[var(--bg-subtle)] px-3.5 py-1 text-xs font-semibold text-[var(--accent-text)] transition-colors hover:bg-[var(--bg-hover)] sm:min-h-[30px] sm:px-2.5"
-            >
-              {canEdit ? "Telaah" : "Detail"}
-            </button>
-          </div>
-        ),
-      }),
-    ],
-    [
-      rows.length,
-      selectedIds,
-      toggleSelectAll,
-      toggleSelectRow,
-      handleQuickDecision,
-      canEdit,
-      onOpenReview,
-    ]
-  );
-
-  const table = useReactTable({
-    data: rows,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-  });
+  function handleSelectRow(item: SerializedPhenomenon) {
+    setActiveItem(item);
+    if (typeof window !== "undefined" && window.innerWidth < 1280) {
+      onOpenMobileReview(item);
+    }
+  }
 
   const activeFilterCount = [
     filters.status,
@@ -455,16 +322,142 @@ export function CurationTable({
     });
   }
 
+  const coveredKbliCount = stats.kbliDistribution.filter(
+    (s) => s.count > 0
+  ).length;
+
   return (
-    <div className="space-y-4">
-      {/* Unified Search & Taxonomy Filter Ribbon */}
+    <div className="space-y-5">
+      {/* Interactive 4-Stat Metric Strip (Sapick & BlazeX Style) */}
+      <section
+        aria-label="Ringkasan Metrik Periode"
+        className="grid grid-cols-2 gap-3.5 lg:grid-cols-4 lg:gap-4"
+      >
+        <button
+          type="button"
+          onClick={() => onChangeFilters({ ...filters, status: "" })}
+          className={`saas-card flex flex-col justify-between rounded-2xl p-5 text-left transition-all hover:border-slate-300 ${
+            filters.status === "" && activeFilterCount === 0
+              ? "ring-2 ring-emerald-600/25 border-emerald-200"
+              : ""
+          }`}
+        >
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-xs font-medium text-[var(--text-secondary)]">
+              Total Fenomena
+            </span>
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[var(--bg-subtle)] text-[var(--text-secondary)]">
+              <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
+            </span>
+          </div>
+          <div className="mt-3 flex items-baseline justify-between gap-2">
+            <span className="text-[26px] font-bold leading-none tracking-[-0.025em] text-[var(--text-primary)] tabular-nums">
+              {stats.totalEconomicPhenomena}
+            </span>
+            <span className="text-xs text-[var(--text-muted)]">
+              {quarter} {year}
+            </span>
+          </div>
+        </button>
+
+        <button
+          type="button"
+          onClick={() =>
+            onChangeFilters({
+              ...filters,
+              status: filters.status === "pending" ? "" : "pending",
+            })
+          }
+          className={`saas-card flex flex-col justify-between rounded-2xl p-5 text-left transition-all hover:border-amber-300 ${
+            filters.status === "pending"
+              ? "ring-2 ring-amber-500/30 border-amber-300"
+              : ""
+          }`}
+        >
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-xs font-medium text-[var(--text-secondary)]">
+              Menunggu Verifikasi
+            </span>
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg border border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-950/60 dark:text-amber-300">
+              <Clock className="h-3.5 w-3.5" aria-hidden="true" />
+            </span>
+          </div>
+          <div className="mt-3 flex items-baseline justify-between gap-2">
+            <span className="text-[26px] font-bold leading-none tracking-[-0.025em] text-[var(--text-primary)] tabular-nums">
+              {stats.pendingCount}
+            </span>
+            <span className="rounded-lg border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-800 dark:border-amber-800/70 dark:bg-amber-950/70 dark:text-amber-200">
+              Antrean
+            </span>
+          </div>
+        </button>
+
+        <button
+          type="button"
+          onClick={() =>
+            onChangeFilters({
+              ...filters,
+              status: filters.status === "approved" ? "" : "approved",
+            })
+          }
+          className={`saas-card flex flex-col justify-between rounded-2xl p-5 text-left transition-all hover:border-emerald-300 ${
+            filters.status === "approved"
+              ? "ring-2 ring-emerald-600/30 border-emerald-300"
+              : ""
+          }`}
+        >
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-xs font-medium text-[var(--text-secondary)]">
+              Disetujui ke PDRB
+            </span>
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
+              <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
+            </span>
+          </div>
+          <div className="mt-3 flex items-baseline justify-between gap-2">
+            <span className="text-[26px] font-bold leading-none tracking-[-0.025em] text-[var(--text-primary)] tabular-nums">
+              {stats.approvedCount}
+            </span>
+            <span className="rounded-lg border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-800 dark:border-emerald-800/70 dark:bg-emerald-950/70 dark:text-emerald-200">
+              Siap Ekspor
+            </span>
+          </div>
+        </button>
+
+        <button
+          type="button"
+          onClick={clearAllFilters}
+          className="saas-card flex flex-col justify-between rounded-2xl p-5 text-left transition-all hover:border-slate-300"
+        >
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-xs font-medium text-[var(--text-secondary)]">
+              Cakupan Sektor KBLI
+            </span>
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[var(--bg-subtle)] text-[var(--text-secondary)]">
+              <Layers className="h-3.5 w-3.5" aria-hidden="true" />
+            </span>
+          </div>
+          <div className="mt-3 flex items-baseline justify-between gap-2">
+            <span className="text-[26px] font-bold leading-none tracking-[-0.025em] text-[var(--text-primary)] tabular-nums">
+              {coveredKbliCount}
+              <span className="text-base font-medium text-[var(--text-muted)]">
+                {" "}
+                / 17
+              </span>
+            </span>
+            <span className="text-xs text-[var(--text-muted)]">Sektor</span>
+          </div>
+        </button>
+      </section>
+
+      {/* Unified Search & Filter Ribbon */}
       <search aria-label="Pencarian dan Penyaringan Fenomena Ekonomi">
-        <div className="space-y-3 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4 shadow-card">
+        <div className="saas-card space-y-3 rounded-2xl p-4">
           <div className="flex flex-col justify-between gap-3 xl:flex-row xl:items-center">
-            {/* Omni-Search Input */}
+            {/* Search Input */}
             <div className="relative flex-1 xl:max-w-md">
               <Search
-                className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-muted)]"
+                className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-muted)]"
                 aria-hidden="true"
               />
               <label htmlFor="curation-search" className="visually-hidden">
@@ -478,26 +471,23 @@ export function CurationTable({
                 spellCheck={false}
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
-                placeholder="Cari judul, komoditas... (Ctrl+K)"
-                className="min-h-[44px] w-full rounded-lg border border-[var(--border-strong)] bg-[var(--bg-subtle)] py-2 pl-9 pr-12 text-xs text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:bg-[var(--bg-surface)] focus:outline-none sm:min-h-[38px] sm:pr-9"
+                placeholder="Cari judul, ringkasan, komoditas... (Ctrl+K)"
+                className="input-modern h-10 w-full rounded-xl pl-10 pr-9 text-xs placeholder:text-[var(--text-muted)]"
               />
               {searchInput && (
                 <button
                   type="button"
                   onClick={() => setSearchInput("")}
                   aria-label="Bersihkan kata kunci pencarian"
-                  className="absolute right-0.5 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded text-[var(--text-muted)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] sm:right-2 sm:h-7 sm:w-7"
+                  className="absolute right-1.5 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-lg text-[var(--text-muted)] hover:bg-[var(--bg-subtle)] hover:text-[var(--text-primary)]"
                 >
                   <X className="h-3.5 w-3.5" aria-hidden="true" />
                 </button>
               )}
             </div>
 
-            {/* Segmented Status Buttons */}
+            {/* Segmented Status Filter Pills */}
             <div className="flex flex-wrap items-center gap-1.5">
-              <span className="mr-1 text-[11px] font-semibold text-[var(--text-muted)]">
-                Status:
-              </span>
               {(
                 [
                   { value: "", label: "Semua" },
@@ -516,10 +506,10 @@ export function CurationTable({
                       onChangeFilters({ ...filters, status: opt.value })
                     }
                     aria-pressed={active}
-                    className={`min-h-[44px] rounded-lg border px-3 py-1 text-xs font-semibold transition-colors sm:min-h-[34px] ${
+                    className={`h-9 rounded-xl px-3.5 text-xs font-semibold transition-all ${
                       active
-                        ? "border-[var(--accent-primary)] bg-[var(--accent-primary)] text-white"
-                        : "border-[var(--border-subtle)] bg-[var(--bg-subtle)] text-[var(--text-secondary)] hover:border-[var(--border-strong)] hover:bg-[var(--bg-hover)]"
+                        ? "bg-[#0F172A] text-white shadow-xs dark:bg-emerald-500 dark:text-slate-950"
+                        : "bg-[var(--bg-subtle)] text-[var(--text-secondary)] hover:bg-slate-200/70 hover:text-[var(--text-primary)] dark:hover:bg-slate-800"
                     }`}
                   >
                     {opt.label}
@@ -529,8 +519,8 @@ export function CurationTable({
             </div>
           </div>
 
-          {/* Secondary Taxonomy Selects & Count Summary */}
-          <div className="flex flex-wrap items-center gap-2 border-t border-[var(--border-subtle)] pt-3 text-xs">
+          {/* Secondary Taxonomy Filters */}
+          <div className="flex flex-wrap items-center gap-2 border-t border-[var(--border-hairline)] pt-3 text-xs">
             <label htmlFor="filter-kbli" className="visually-hidden">
               Filter Sektor KBLI
             </label>
@@ -543,7 +533,7 @@ export function CurationTable({
                   kbliCategory: e.target.value as KbliCode | "",
                 })
               }
-              className="min-h-[44px] max-w-full rounded-lg border border-[var(--border-strong)] bg-[var(--bg-subtle)] px-3 py-1.5 text-xs font-medium text-[var(--text-primary)] focus:outline-none sm:min-h-[38px]"
+              className="input-modern h-9 max-w-full rounded-xl px-3 text-xs font-medium"
             >
               <option value="">Semua Sektor KBLI (A-U)</option>
               {KBLI_LIST.map((item) => (
@@ -565,7 +555,7 @@ export function CurationTable({
                   expenditureComponent: e.target.value as ExpenditureCode | "",
                 })
               }
-              className="min-h-[44px] max-w-full rounded-lg border border-[var(--border-strong)] bg-[var(--bg-subtle)] px-3 py-1.5 text-xs font-medium text-[var(--text-primary)] focus:outline-none sm:min-h-[38px]"
+              className="input-modern h-9 max-w-full rounded-xl px-3 text-xs font-medium"
             >
               <option value="">Semua Komponen Pengeluaran</option>
               {Object.values(EXPENDITURE_COMPONENTS).map((comp) => (
@@ -587,7 +577,7 @@ export function CurationTable({
                   source: e.target.value as SourceMediaCode | "",
                 })
               }
-              className="min-h-[44px] max-w-full rounded-lg border border-[var(--border-strong)] bg-[var(--bg-subtle)] px-3 py-1.5 text-xs font-medium text-[var(--text-primary)] focus:outline-none sm:min-h-[38px]"
+              className="input-modern h-9 max-w-full rounded-xl px-3 text-xs font-medium"
             >
               <option value="">Semua Sumber Media</option>
               {Object.entries(SOURCE_MEDIA_LABELS).map(([key, label]) => (
@@ -601,19 +591,19 @@ export function CurationTable({
               <button
                 type="button"
                 onClick={clearAllFilters}
-                className="inline-flex min-h-[44px] items-center gap-1.5 rounded-lg border border-[var(--border-strong)] bg-[var(--bg-surface)] px-3 py-1.5 text-xs font-semibold text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] sm:min-h-[38px]"
+                className="btn-secondary inline-flex h-9 items-center gap-1.5 rounded-xl px-3 text-xs font-semibold"
               >
                 <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
-                <span>Reset Filter ({activeFilterCount})</span>
+                <span>Reset ({activeFilterCount})</span>
               </button>
             )}
 
-            <div className="ml-auto font-mono text-xs text-[var(--text-muted)] tabular-nums">
-              Total:{" "}
-              <strong className="text-[var(--text-primary)]">
+            <div className="ml-auto text-xs text-[var(--text-muted)] tabular-nums">
+              Menampilkan{" "}
+              <strong className="font-semibold text-[var(--text-primary)]">
                 {pagination.total}
               </strong>{" "}
-              entri
+              fenomena
             </div>
           </div>
         </div>
@@ -624,18 +614,20 @@ export function CurationTable({
         <div
           role="region"
           aria-label="Aksi verifikasi massal"
-          className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[var(--accent-soft-border)] bg-[var(--accent-soft)] px-4 py-3 text-xs shadow-card"
+          className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-emerald-200 bg-emerald-50/90 px-5 py-3 text-xs shadow-xs dark:border-emerald-800/70 dark:bg-emerald-950/50"
         >
           <span className="font-medium text-[var(--text-primary)] tabular-nums">
-            <strong className="font-mono">{selectedIds.size}</strong> fenomena
-            dipilih untuk verifikasi massal
+            <strong className="font-bold text-emerald-800 dark:text-emerald-300">
+              {selectedIds.size}
+            </strong>{" "}
+            fenomena dipilih untuk verifikasi massal
           </span>
           <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
               disabled={isBatchSubmitting}
               onClick={() => void handleBatchAction("approved")}
-              className="inline-flex min-h-[44px] items-center gap-1.5 rounded-lg bg-emerald-700 px-3.5 py-1.5 font-semibold text-white transition-colors hover:bg-emerald-800 disabled:opacity-60 sm:min-h-[36px]"
+              className="btn-emerald inline-flex h-9 items-center gap-1.5 rounded-xl px-3.5 font-semibold disabled:opacity-60"
             >
               <Check className="h-3.5 w-3.5" aria-hidden="true" />
               <span>Setujui Terpilih ({selectedIds.size})</span>
@@ -644,7 +636,7 @@ export function CurationTable({
               type="button"
               disabled={isBatchSubmitting}
               onClick={() => void handleBatchAction("rejected")}
-              className="inline-flex min-h-[44px] items-center gap-1.5 rounded-lg border border-rose-300 bg-rose-50 px-3.5 py-1.5 font-semibold text-rose-900 transition-colors hover:bg-rose-100 disabled:opacity-60 dark:border-rose-700 dark:bg-rose-950/80 dark:text-rose-200 dark:hover:bg-rose-900 sm:min-h-[36px]"
+              className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 px-3.5 font-semibold text-rose-800 transition-colors hover:bg-rose-100 disabled:opacity-60 dark:border-rose-800 dark:bg-rose-950/80 dark:text-rose-200"
             >
               <X className="h-3.5 w-3.5" aria-hidden="true" />
               <span>Tolak Terpilih ({selectedIds.size})</span>
@@ -652,7 +644,7 @@ export function CurationTable({
             <button
               type="button"
               onClick={() => setSelectedIds(new Set())}
-              className="min-h-[44px] rounded-lg border border-[var(--border-strong)] bg-[var(--bg-surface)] px-3 py-1.5 font-medium text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] sm:min-h-[36px]"
+              className="btn-secondary h-9 rounded-xl px-3 font-medium"
             >
               Batal
             </button>
@@ -660,206 +652,260 @@ export function CurationTable({
         </div>
       )}
 
-      {/* Main Responsive Data Table */}
-      <div className="overflow-hidden rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] shadow-card">
-        {fetchError ? (
-          <div role="alert" className="p-10 text-center">
-            <AlertCircle
-              className="mx-auto h-7 w-7 text-rose-600 dark:text-rose-400"
-              aria-hidden="true"
-            />
-            <p className="mt-2 text-sm font-semibold text-[var(--text-primary)]">
-              Gagal Memuat Daftar Fenomena
-            </p>
-            <p className="mt-1 text-xs text-[var(--text-muted)]">{fetchError}</p>
-            <button
-              type="button"
-              onClick={() => void fetchRows()}
-              className="mt-4 inline-flex min-h-[44px] items-center gap-2 rounded-lg bg-[var(--accent-primary)] px-4 py-2 text-xs font-semibold text-white hover:bg-[var(--accent-primary-hover)] sm:min-h-[38px]"
-            >
-              <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
-              <span>Coba Muat Ulang</span>
-            </button>
+      {/* Master-Detail Split-View Workbench (SyncMaster List + TellDesk Inline Pane) */}
+      <div className="grid grid-cols-1 items-start gap-5 xl:grid-cols-[minmax(0,1fr)_480px] 2xl:grid-cols-[minmax(0,1fr)_530px]">
+        {/* Left Column: SyncMaster Clean Phenomenon Feed */}
+        <div className="saas-card overflow-hidden rounded-2xl">
+          {/* Feed Header */}
+          <div className="flex items-center justify-between gap-3 border-b border-[var(--border-hairline)] bg-[var(--bg-canvas)]/60 px-5 py-3">
+            <div className="flex items-center gap-3">
+              <label className="inline-flex items-center">
+                <input
+                  type="checkbox"
+                  aria-label="Pilih semua baris halaman ini"
+                  checked={rows.length > 0 && selectedIds.size === rows.length}
+                  onChange={toggleSelectAll}
+                  disabled={!canEdit || rows.length === 0}
+                  className="h-4 w-4 rounded border-[var(--border-input)] bg-[var(--bg-surface)] accent-emerald-600"
+                />
+              </label>
+              <span className="text-xs font-semibold text-[var(--text-primary)]">
+                Daftar Fenomena Ekonomi
+              </span>
+            </div>
+
+            <span className="hidden text-xs text-[var(--text-muted)] sm:inline">
+              Navigasi:{" "}
+              <kbd className="rounded border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-1.5 py-0.5 font-mono text-[11px] text-[var(--text-primary)]">
+                J
+              </kbd>{" "}
+              /{" "}
+              <kbd className="rounded border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-1.5 py-0.5 font-mono text-[11px] text-[var(--text-primary)]">
+                K
+              </kbd>
+            </span>
           </div>
-        ) : (
-          <div
-            tabIndex={0}
-            role="region"
-            aria-labelledby="curation-table-caption"
-            aria-busy={isLoading}
-            className="max-h-[68vh] overflow-auto"
-          >
-            <table className="w-full border-separate border-spacing-0 text-left text-xs">
-              <caption id="curation-table-caption" className="visually-hidden">
-                Daftar Fenomena Ekonomi Kabupaten Tana Tidung Periode {quarter}{" "}
-                {year}
-              </caption>
-              <thead className="sticky top-0 z-10 bg-[var(--bg-subtle)] text-[11px] font-semibold uppercase tracking-wider text-[var(--text-muted)]">
-                {table.getHeaderGroups().map((headerGroup) => (
-                  <tr key={headerGroup.id}>
-                    {headerGroup.headers.map((header) => (
-                      <th
-                        key={header.id}
-                        scope="col"
-                        className="border-b border-[var(--border-subtle)] px-2.5 py-3 first:pl-3.5 last:pr-3.5"
+
+          {fetchError ? (
+            <div role="alert" className="p-10 text-center">
+              <AlertCircle
+                className="mx-auto h-7 w-7 text-rose-600 dark:text-rose-400"
+                aria-hidden="true"
+              />
+              <p className="mt-2 text-sm font-semibold text-[var(--text-primary)]">
+                Gagal Memuat Daftar Fenomena
+              </p>
+              <p className="mt-1 text-xs text-[var(--text-muted)]">{fetchError}</p>
+              <button
+                type="button"
+                onClick={() => void fetchRows()}
+                className="btn-obsidian mt-4 inline-flex h-10 items-center gap-2 rounded-xl px-4 text-xs font-semibold"
+              >
+                <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
+                <span>Coba Muat Ulang</span>
+              </button>
+            </div>
+          ) : isLoading ? (
+            <div className="divide-y divide-[var(--border-hairline)]" aria-busy="true">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="space-y-2.5 px-5 py-4">
+                  <div className="flex items-center justify-between">
+                    <div className="h-5 w-32 rounded-lg bg-[var(--bg-subtle)]" />
+                    <div className="h-6 w-20 rounded-lg bg-[var(--bg-subtle)]" />
+                  </div>
+                  <div className="h-4 w-4/5 rounded-lg bg-[var(--bg-subtle)]" />
+                  <div className="h-3 w-full rounded-lg bg-[var(--bg-subtle)]" />
+                  <div className="flex gap-2 pt-1">
+                    <div className="h-6 w-36 rounded-lg bg-[var(--bg-subtle)]" />
+                    <div className="h-6 w-20 rounded-lg bg-[var(--bg-subtle)]" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : rows.length === 0 ? (
+            <div className="px-6 py-16 text-center">
+              <p className="text-sm font-semibold text-[var(--text-primary)]">
+                {activeFilterCount > 0
+                  ? "Tidak ada fenomena yang cocok dengan filter saat ini."
+                  : `Belum ada data fenomena tercatat pada ${quarter} ${year}.`}
+              </p>
+              <p className="mx-auto mt-1.5 max-w-md text-xs leading-relaxed text-[var(--text-muted)]">
+                {activeFilterCount > 0
+                  ? "Ubah kata kunci pencarian atau reset filter untuk menampilkan seluruh fenomena pada periode ini."
+                  : "Pilih triwulan/tahun lain di bilah atas atau klik Tarik Berita untuk mengambil berita ekonomi terbaru."}
+              </p>
+              {activeFilterCount > 0 && (
+                <button
+                  type="button"
+                  onClick={clearAllFilters}
+                  className="btn-secondary mt-4 inline-flex h-10 items-center gap-1.5 rounded-xl px-4 text-xs font-semibold"
+                >
+                  <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
+                  <span>Reset Semua Filter</span>
+                </button>
+              )}
+            </div>
+          ) : (
+            <div
+              role="list"
+              aria-label={`Daftar Fenomena Ekonomi ${quarter} ${year}`}
+              className="divide-y divide-[var(--border-hairline)]"
+            >
+              {rows.map((item) => {
+                const isSelected = activeItem?.id === item.id;
+                const isChecked = selectedIds.has(item.id);
+                return (
+                  <article
+                    key={item.id}
+                    role="listitem"
+                    onClick={() => handleSelectRow(item)}
+                    className={`group relative cursor-pointer border-l-[3px] px-5 py-4 transition-colors ${
+                      isSelected
+                        ? "border-l-emerald-600 bg-emerald-50/55 dark:border-l-emerald-400 dark:bg-emerald-950/25"
+                        : "border-l-transparent hover:bg-[#F8FAFC] dark:hover:bg-slate-800/40"
+                    }`}
+                  >
+                    {/* Top Row: Checkbox + Source + Date | Status + Quick Actions */}
+                    <div className="flex items-center justify-between gap-2">
+                      <div
+                        className="flex items-center gap-2.5"
+                        onClick={(e) => e.stopPropagation()}
                       >
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext()
-                            )}
-                      </th>
-                    ))}
-                  </tr>
-                ))}
-              </thead>
-              <tbody className="divide-y divide-[var(--border-subtle)]">
-                {isLoading ? (
-                  Array.from({ length: 6 }).map((_, i) => (
-                    <tr key={i} className="bg-[var(--bg-surface)]">
-                      <td className="py-3.5 pl-3.5 pr-2.5">
-                        <div className="h-4 w-4 rounded bg-[var(--bg-subtle)]" />
-                      </td>
-                      <td className="px-2.5 py-3.5">
-                        <div className="h-5 w-24 rounded bg-[var(--bg-subtle)]" />
-                        <div className="mt-1.5 h-3 w-16 rounded bg-[var(--bg-subtle)]" />
-                      </td>
-                      <td className="px-2.5 py-3.5">
-                        <div className="h-4 w-3/4 rounded bg-[var(--bg-subtle)]" />
-                        <div className="mt-2 h-3 w-full rounded bg-[var(--bg-subtle)]" />
-                      </td>
-                      <td className="px-2.5 py-3.5">
-                        <div className="h-6 w-28 rounded bg-[var(--bg-subtle)]" />
-                      </td>
-                      <td className="px-2.5 py-3.5">
-                        <div className="h-6 w-16 rounded bg-[var(--bg-subtle)]" />
-                      </td>
-                      <td className="px-2.5 py-3.5">
-                        <div className="h-4 w-16 rounded bg-[var(--bg-subtle)]" />
-                      </td>
-                      <td className="px-2.5 py-3.5">
-                        <div className="h-6 w-20 rounded bg-[var(--bg-subtle)]" />
-                      </td>
-                      <td className="py-3.5 pl-2.5 pr-3.5 text-right">
-                        <div className="ml-auto h-8 w-16 rounded bg-[var(--bg-subtle)]" />
-                      </td>
-                    </tr>
-                  ))
-                ) : rows.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={columns.length}
-                      className="px-6 py-14 text-center"
-                    >
-                      <p className="text-sm font-semibold text-[var(--text-primary)]">
-                        {activeFilterCount > 0
-                          ? "Tidak ada entri yang cocok dengan filter saat ini."
-                          : `Belum ada data fenomena tercatat pada ${quarter} ${year}.`}
-                      </p>
-                      <p className="mx-auto mt-1 max-w-md text-xs text-[var(--text-muted)]">
-                        {activeFilterCount > 0
-                          ? "Ubah kata kunci pencarian atau reset filter untuk menampilkan seluruh fenomena pada periode ini."
-                          : "Pilih triwulan/tahun lain di bilah atas atau jalankan penarikan berita baru."}
-                      </p>
-                      {activeFilterCount > 0 && (
-                        <button
-                          type="button"
-                          onClick={clearAllFilters}
-                          className="mt-4 inline-flex min-h-[44px] items-center gap-1.5 rounded-lg border border-[var(--border-strong)] bg-[var(--bg-subtle)] px-4 py-1.5 text-xs font-semibold text-[var(--text-primary)] hover:bg-[var(--bg-hover)] sm:min-h-[38px]"
-                        >
-                          <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
-                          <span>Reset Semua Filter</span>
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ) : (
-                  table.getRowModel().rows.map((row, index) => {
-                    const isKeyboardFocused = index === focusedRowIdx;
-                    return (
-                      <tr
-                        key={row.id}
-                        className={`transition-colors hover:bg-[var(--bg-hover)] ${
-                          index % 2 === 1 ? "bg-[var(--bg-subtle)]/55" : ""
-                        } ${
-                          isKeyboardFocused
-                            ? "ring-2 ring-inset ring-[var(--focus-ring)]"
-                            : ""
+                        <input
+                          type="checkbox"
+                          aria-label={`Pilih fenomena ${item.article.title}`}
+                          checked={isChecked}
+                          onChange={() => toggleSelectRow(item.id)}
+                          disabled={!canEdit}
+                          className="h-4 w-4 rounded border-[var(--border-input)] bg-[var(--bg-surface)] accent-emerald-600"
+                        />
+                        <SourceMediaLabel source={item.article.source} />
+                        <span className="text-xs text-[var(--text-muted)] tabular-nums">
+                          {formatShortDate(item.article.publishedDate)}
+                        </span>
+                      </div>
+
+                      <div
+                        className="flex items-center gap-1.5"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {canEdit && item.status === "pending" && (
+                          <div className="hidden items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100 sm:flex">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                void handleQuickDecision(item.id, "approved")
+                              }
+                              aria-label={`Setujui cepat ${item.article.title}`}
+                              title="Setujui cepat"
+                              className="flex h-7 w-7 items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-700 transition-colors hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300"
+                            >
+                              <Check className="h-3.5 w-3.5" aria-hidden="true" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                void handleQuickDecision(item.id, "rejected")
+                              }
+                              aria-label={`Tolak cepat ${item.article.title}`}
+                              title="Tolak (non-ekonomi)"
+                              className="flex h-7 w-7 items-center justify-center rounded-lg border border-rose-200 bg-rose-50 text-rose-700 transition-colors hover:bg-rose-100 dark:border-rose-800 dark:bg-rose-950/70 dark:text-rose-300"
+                            >
+                              <X className="h-3.5 w-3.5" aria-hidden="true" />
+                            </button>
+                          </div>
+                        )}
+                        <StatusBadge status={item.status} />
+                      </div>
+                    </div>
+
+                    {/* Headline & Summary */}
+                    <div className="mt-2.5 pl-6">
+                      <h3
+                        className={`text-[15px] font-semibold leading-snug transition-colors ${
+                          isSelected
+                            ? "text-emerald-900 dark:text-emerald-200"
+                            : "text-[var(--text-primary)] group-hover:text-emerald-800 dark:group-hover:text-emerald-300"
                         }`}
                       >
-                        {row.getVisibleCells().map((cell) => (
-                          <td
-                            key={cell.id}
-                            className="border-b border-[var(--border-subtle)] px-2.5 py-3 align-top first:pl-3.5 last:pr-3.5"
-                          >
-                            {flexRender(
-                              cell.column.columnDef.cell,
-                              cell.getContext()
-                            )}
-                          </td>
-                        ))}
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
-        )}
+                        {item.article.title}
+                      </h3>
 
-        {/* Pagination & Shortcut Legend Footer */}
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[var(--border-subtle)] bg-[var(--bg-subtle)] px-4 py-3 font-mono text-[11px] text-[var(--text-muted)]">
-          <span>
-            Halaman{" "}
-            <strong className="text-[var(--text-primary)]">
-              {pagination.page}
-            </strong>{" "}
-            dari{" "}
-            <strong className="text-[var(--text-primary)]">
-              {pagination.totalPages}
-            </strong>
-            <span className="hidden sm:inline">
-              {" "}
-              &middot; Pintasan:{" "}
-              <kbd className="rounded border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-1.5 py-0.5 text-[var(--text-primary)]">
-                J
-              </kbd>
-              /
-              <kbd className="rounded border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-1.5 py-0.5 text-[var(--text-primary)]">
-                K
-              </kbd>{" "}
-              pilih baris,{" "}
-              <kbd className="rounded border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-1.5 py-0.5 text-[var(--text-primary)]">
-                Enter
-              </kbd>{" "}
-              buka telaah
+                      <p className="mt-1 line-clamp-2 text-[13px] leading-relaxed text-[var(--text-secondary)]">
+                        {item.summary}
+                      </p>
+
+                      {/* Taxonomy & Impact Chips */}
+                      <div className="mt-3 flex flex-wrap items-center gap-1.5">
+                        <KbliBadge
+                          code={item.kbliCategory}
+                          subsector={item.kbliSubsector}
+                          compact
+                        />
+                        <ExpenditureBadge code={item.expenditureComponent} />
+                        <ImpactIndicator
+                          impact={item.impactType}
+                          effect={item.priceVolumeEffect}
+                          inline
+                        />
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Pagination Footer */}
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[var(--border-hairline)] bg-[var(--bg-canvas)]/60 px-5 py-3 text-xs text-[var(--text-muted)]">
+            <span className="tabular-nums">
+              Halaman{" "}
+              <strong className="font-semibold text-[var(--text-primary)]">
+                {pagination.page}
+              </strong>{" "}
+              dari{" "}
+              <strong className="font-semibold text-[var(--text-primary)]">
+                {pagination.totalPages}
+              </strong>
             </span>
-          </span>
 
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              disabled={page <= 1 || isLoading}
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              className="inline-flex min-h-[44px] items-center gap-1 rounded-lg border border-[var(--border-strong)] bg-[var(--bg-surface)] px-3 py-1.5 font-sans text-xs font-semibold text-[var(--text-primary)] hover:bg-[var(--bg-hover)] disabled:opacity-45 sm:min-h-[36px]"
-            >
-              <ChevronLeft className="h-3.5 w-3.5" aria-hidden="true" />
-              <span>Sebelumnya</span>
-            </button>
-            <button
-              type="button"
-              disabled={page >= pagination.totalPages || isLoading}
-              onClick={() =>
-                setPage((p) => Math.min(pagination.totalPages, p + 1))
-              }
-              className="inline-flex min-h-[44px] items-center gap-1 rounded-lg border border-[var(--border-strong)] bg-[var(--bg-surface)] px-3 py-1.5 font-sans text-xs font-semibold text-[var(--text-primary)] hover:bg-[var(--bg-hover)] disabled:opacity-45 sm:min-h-[36px]"
-            >
-              <span>Berikutnya</span>
-              <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                disabled={page <= 1 || isLoading}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                className="btn-secondary inline-flex h-9 items-center gap-1 rounded-xl px-3 text-xs font-semibold disabled:opacity-45"
+              >
+                <ChevronLeft className="h-3.5 w-3.5" aria-hidden="true" />
+                <span>Sebelumnya</span>
+              </button>
+              <button
+                type="button"
+                disabled={page >= pagination.totalPages || isLoading}
+                onClick={() =>
+                  setPage((p) => Math.min(pagination.totalPages, p + 1))
+                }
+                className="btn-secondary inline-flex h-9 items-center gap-1 rounded-xl px-3 text-xs font-semibold disabled:opacity-45"
+              >
+                <span>Berikutnya</span>
+                <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
+              </button>
+            </div>
           </div>
         </div>
+
+        {/* Right Column: TellDesk Sticky Inline Inspection & Verification Pane */}
+        <aside
+          aria-label="Panel Inspeksi dan Verifikasi Fenomena"
+          className="sticky top-20 hidden xl:block"
+        >
+          <SplitInspectionPane
+            phenomenon={activeItem}
+            user={user}
+            onSaved={(msg) => onDataMutated(msg, "success")}
+            onError={(msg) => onDataMutated(msg, "error")}
+          />
+        </aside>
       </div>
     </div>
   );
