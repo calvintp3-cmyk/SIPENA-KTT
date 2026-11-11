@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { economicPhenomena } from "@/db/schema";
 import { canEditPhenomena, getCurrentSessionUser } from "@/lib/auth";
 import { getClientIp, recordAuditLog } from "@/lib/audit";
+import { resolveDbUserId } from "@/lib/db-user";
 import { batchVerificationSchema } from "@/types";
 
 export async function POST(request: Request) {
@@ -30,6 +31,7 @@ export async function POST(request: Request) {
 
     const { ids, action, reviewer_notes } = parsed.data;
     const ipAddress = getClientIp(request);
+    const verifierUserId = await resolveDbUserId(user);
 
     const updatedCount = await db.transaction(async (tx) => {
       const existingRows = await tx
@@ -47,7 +49,7 @@ export async function POST(request: Request) {
         .set({
           status: action,
           reviewerNotes: reviewer_notes ?? undefined,
-          verifiedBy: user.id,
+          verifiedBy: verifierUserId,
           verifiedAt: now,
           updatedAt: now,
         })
@@ -57,7 +59,7 @@ export async function POST(request: Request) {
       for (const row of existingRows) {
         await recordAuditLog(tx, {
           phenomenonId: row.id,
-          userId: user.id,
+          userId: verifierUserId,
           action: auditAction,
           previousValues: { status: row.status },
           newValues: { status: action, reviewerNotes: reviewer_notes ?? null },

@@ -74,14 +74,33 @@ export async function POST(request: Request) {
       (email === "viewer" || email === "viewer@bps6504.go.id") && password === "viewer";
 
     if (isQuickAdmin || isQuickViewer) {
-      const role = isQuickAdmin ? ("admin" as const) : ("viewer" as const);
-      const name = isQuickAdmin
-        ? "Koordinator Nerwilis (Admin)"
-        : "Kepala BPS Tana Tidung (Viewer)";
+      const fallbackRole = isQuickAdmin ? ("admin" as const) : ("viewer" as const);
       const userEmail = isQuickAdmin ? "admin@bps6504.go.id" : "viewer@bps6504.go.id";
-      const userId = isQuickAdmin
-        ? "00000000-0000-0000-0000-000000000001"
-        : "00000000-0000-0000-0000-000000000003";
+      const [dbUser] = await db
+        .select({
+          id: users.id,
+          email: users.email,
+          name: users.name,
+          role: users.role,
+          nip: users.nip,
+        })
+        .from(users)
+        .where(eq(users.email, userEmail))
+        .limit(1);
+
+      const role = dbUser?.role ?? fallbackRole;
+      const name =
+        dbUser?.name ??
+        (isQuickAdmin
+          ? "Koordinator Nerwilis (Admin)"
+          : "Kepala BPS Tana Tidung (Viewer)");
+      const userId =
+        dbUser?.id ??
+        (isQuickAdmin
+          ? "00000000-0000-0000-0000-000000000001"
+          : "00000000-0000-0000-0000-000000000003");
+      const nip =
+        dbUser?.nip ?? (isQuickAdmin ? "199204152014101001" : "197911032002121003");
 
       resetRateLimitKey(accountKey);
 
@@ -99,7 +118,7 @@ export async function POST(request: Request) {
           email: userEmail,
           name,
           role,
-          nip: isQuickAdmin ? "199204152014101001" : "197911032002121003",
+          nip,
         },
       });
 

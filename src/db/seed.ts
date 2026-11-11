@@ -4,9 +4,24 @@ dotenv.config({ path: ".env" });
 
 import bcrypt from "bcryptjs";
 import { db, pool } from "./index";
-import { users, articles, economicPhenomena, auditLogs } from "./schema";
+import {
+  users,
+  articles,
+  economicPhenomena,
+  auditLogs,
+  odonEntries,
+  odonClassifications,
+  kbliConversions,
+  articleProposals,
+} from "./schema";
 import { normalizeAndHashUrl } from "../lib/url-hash";
-import { eq } from "drizzle-orm";
+import {
+  getExpenditureWeightPercent,
+  getSectorWeightPercent,
+} from "../lib/constants/taxonomy";
+import { resolveFullKbli2020To2025 } from "../lib/kbli/crosswalk-server";
+import lampiran5Data from "../lib/kbli/lampiran5-2020-2025.json";
+import { count, eq } from "drizzle-orm";
 
 async function seed() {
   console.log("Seeding SIPENA-KTT PostgreSQL database...");
@@ -367,6 +382,32 @@ async function seed() {
         reviewerNotes: "Mendukung perluasan cakupan kategori J.",
       },
     },
+    {
+      url: "https://fokusborneo.com/daerah/tana-tidung/pelabuhan-bebatu-pacu-pengapalan-batubara-q1-2025/",
+      title: "Terminal Khusus Pelabuhan Bebatu Pacu Pengapalan Batubara dan Komoditas Perkebunan Tana Tidung",
+      source: "fokus_borneo" as const,
+      publishedDate: new Date("2025-03-29T09:00:00+08:00"),
+      author: "Redaksi Fokus Borneo",
+      content:
+        "SESAYAP HILIR — Aktivitas muat tongkang batubara dan komoditas turunan kelapa sawit melalui kawasan Pelabuhan Bebatu Kabupaten Tana Tidung menunjukkan tren penguatan sepanjang akhir Triwulan I 2025 didukung membaiknya alur pelayaran Sungai Sesayap.",
+      phenomenon: {
+        isEconomicPhenomenon: true,
+        summary:
+          "Kelancaran bongkar muat tongkang batubara dan komoditas kelapa sawit di Pelabuhan Bebatu Kecamatan Sesayap Hilir menjaga kelancaran arus pengiriman barang keluar daerah Kabupaten Tana Tidung pada Triwulan I 2025.",
+        kbliCategory: "B" as const,
+        kbliSubsector: "Pertambangan Batu Bara",
+        expenditureComponent: "EKSPOR" as const,
+        impactType: "positif" as const,
+        priceVolumeEffect: "volume" as const,
+        affectedCommodities: ["Batu Bara", "Kelapa Sawit"],
+        keyNumericalData: { triwulan: "Q1", tahun: 2025 },
+        quarter: "Q1" as const,
+        year: 2025,
+        confidenceScore: 0.96,
+        status: "approved" as const,
+        reviewerNotes: "Selaras dengan dominasi Sektor B (37.80%) dan Net Ekspor (49.98%).",
+      },
+    },
   ];
 
   for (const entry of seedDataset) {
@@ -441,6 +482,264 @@ async function seed() {
         ipAddress: "127.0.0.1",
       });
     }
+  }
+
+  // 4. Seed Official KBLI 2020 <-> 2025 Crosswalk (Lampiran 5 BPS0000)
+  const [{ value: kbliTotal }] = await db
+    .select({ value: count() })
+    .from(kbliConversions);
+  const rawCrosswalk = lampiran5Data as Array<{
+    c20: string;
+    t20: string;
+    c25: string;
+    t25: string;
+    pdrb: string;
+    k25: string;
+    type: string;
+  }>;
+
+  if (Number(kbliTotal) < rawCrosswalk.length) {
+    if (Number(kbliTotal) > 0) {
+      await db.delete(kbliConversions);
+    }
+    const chunkSize = 500;
+    for (let i = 0; i < rawCrosswalk.length; i += chunkSize) {
+      const slice = rawCrosswalk.slice(i, i + chunkSize).map((item) => ({
+        code2020: item.c20,
+        title2020: item.t20,
+        code2025: item.c25,
+        title2025: item.t25,
+        lampiranRef: "BPS0000-L5",
+        conversionType: item.type,
+      }));
+      await db.insert(kbliConversions).values(slice);
+    }
+    console.log(`Seeded ${rawCrosswalk.length} KBLI 2020 <-> 2025 crosswalk records.`);
+  }
+
+  // 5. Seed Initial Verified ODON Sheet 6503 Entries if table is empty
+  const [{ value: odonTotal }] = await db
+    .select({ value: count() })
+    .from(odonEntries);
+
+  if (Number(odonTotal) === 0) {
+    const [adminUser] = await db
+      .select({ id: users.id })
+      .from(users)
+      .where(eq(users.email, "admin@bps6504.go.id"))
+      .limit(1);
+    const odonVerifierId = adminUser?.id ?? verifierId;
+
+    const odonSeedItems = [
+      {
+        url: "https://fokusborneo.com/daerah/tana-tidung/pelabuhan-bebatu-pacu-pengapalan-batubara-q1-2025/",
+        entryDate: new Date("2025-03-30T07:15:00+08:00"),
+        publishedDate: new Date("2025-03-29T09:00:00+08:00"),
+        sourceMedia: "fokus_borneo" as const,
+        title: "Terminal Khusus Pelabuhan Bebatu Pacu Pengapalan Batubara dan Komoditas Perkebunan Tana Tidung",
+        summary:
+          "Kelancaran bongkar muat tongkang batubara dan komoditas kelapa sawit di Pelabuhan Bebatu Kecamatan Sesayap Hilir menjaga kelancaran arus pengiriman barang keluar daerah Kabupaten Tana Tidung pada Triwulan I 2025.",
+        quarter: "Q1" as const,
+        year: 2025,
+        kbliCode2020: "05100",
+        kbliCategory: "B" as const,
+        expenditureComponent: "EKSPOR" as const,
+        impactType: "positif" as const,
+        impactNarrative: "Pengiriman komoditas primer melalui alur Pelabuhan Bebatu menopang Net Ekspor KTT.",
+      },
+      {
+        url: "https://kaltara.antaranews.com/berita/410234/realisasi-thr-asn-pemkab-tana-tidung-2025",
+        entryDate: new Date("2025-03-22T07:15:00+08:00"),
+        publishedDate: new Date("2025-03-21T11:00:00+08:00"),
+        sourceMedia: "antara_kaltara" as const,
+        title: "Pemkab Tana Tidung Cairkan Rp 18,4 Miliar THR ASN dan PPPK Jelang Lebaran 2025",
+        summary:
+          "BPKAD Kabupaten Tana Tidung merealisasikan pencairan THR senilai Rp 18,4 Miliar bagi 1.850 ASN dan PPPK pada Maret 2025, mendorong Belanja Pegawai (PK-P) serta konsumsi rumah tangga menjelang Idulfitri.",
+        quarter: "Q1" as const,
+        year: 2025,
+        kbliCode2020: "84119",
+        kbliCategory: "O" as const,
+        expenditureComponent: "PK_P" as const,
+        impactType: "positif" as const,
+        impactNarrative: "Realisasi belanja pegawai APBD mendorong konsumsi pemerintah (PK-P) Triwulan I.",
+      },
+      {
+        url: "https://kaltara.tribunnews.com/2025/03/25/dishub-ktt-tambah-jadwal-speedboat-tideng-pale-tarakan",
+        entryDate: new Date("2025-03-26T07:15:00+08:00"),
+        publishedDate: new Date("2025-03-25T16:10:00+08:00"),
+        sourceMedia: "tribun_kaltara" as const,
+        title: "Dishub Tana Tidung Tambah Jadwal Operasional Speedboat Reguler Rute Tideng Pale - Tarakan",
+        summary:
+          "Dinas Perhubungan Tana Tidung menambah 2 jadwal keberangkatan harian speedboat reguler rute Tideng Pale - Tarakan dari Pelabuhan Sedulun menjelang Idulfitri 1446 H.",
+        quarter: "Q1" as const,
+        year: 2025,
+        kbliCode2020: "50211",
+        kbliCategory: "H" as const,
+        expenditureComponent: "PK_RT" as const,
+        impactType: "positif" as const,
+        impactNarrative: "Kenaikan frekuensi penumpang transportasi sungai rute Pelabuhan Sedulun - Tarakan.",
+      },
+      {
+        url: "https://korankaltara.com/panen-udang-windu-tambak-tana-lia-meningkat-q1-2025",
+        entryDate: new Date("2025-03-19T07:15:00+08:00"),
+        publishedDate: new Date("2025-03-18T09:30:00+08:00"),
+        sourceMedia: "koran_kaltara" as const,
+        title: "Produksi Tambak Udang Windu dan Bandeng di Kecamatan Tana Lia Naik 12% pada Awal 2025",
+        summary:
+          "Hasil panen perikanan budidaya air payau (udang windu dan bandeng) di Kecamatan Tana Lia tumbuh 12% pada Triwulan I 2025, meningkatkan pengiriman komoditas perikanan keluar daerah.",
+        quarter: "Q1" as const,
+        year: 2025,
+        kbliCode2020: "03251",
+        kbliCategory: "A" as const,
+        expenditureComponent: "EKSPOR" as const,
+        impactType: "positif" as const,
+        impactNarrative: "Peningkatan output budidaya tambak air payau di wilayah pesisir Tana Lia.",
+      },
+      {
+        url: "https://radartarakan.jawapos.com/tana-tidung/2025/03/14/pembangunan-gedung-rsud-akhmad-berahim-tahap-lanjutan",
+        entryDate: new Date("2025-03-15T07:15:00+08:00"),
+        publishedDate: new Date("2025-03-14T13:10:00+08:00"),
+        sourceMedia: "radar_tarakan" as const,
+        title: "Proyek Lanjutan Gedung Layanan Terpadu RSUD Akhmad Berahim Masuk Tahap Struktur",
+        summary:
+          "Proyek konstruksi gedung layanan terpadu RSUD Akhmad Berahim bernilai Rp 29 Miliar memasuki tahap struktur dengan serapan 85 tenaga kerja pada Triwulan I 2025.",
+        quarter: "Q1" as const,
+        year: 2025,
+        kbliCode2020: "41015",
+        kbliCategory: "F" as const,
+        expenditureComponent: "PMTB" as const,
+        impactType: "positif" as const,
+        impactNarrative: "Pembentukan modal tetap bruto berupa bangunan fasilitas kesehatan daerah.",
+      },
+      {
+        url: "https://benuanta.co.id/2025/03/10/pabrik-kelapa-sawit-sesayap-perluas-kapasitas-olah-cpo",
+        entryDate: new Date("2025-03-11T07:15:00+08:00"),
+        publishedDate: new Date("2025-03-10T15:00:00+08:00"),
+        sourceMedia: "benuanta" as const,
+        title: "Pabrik Kelapa Sawit di Sesayap Tingkatkan Kapasitas Olah CPO Menjadi 45 Ton per Jam",
+        summary:
+          "Penambahan lini boiler baru pada pabrik kelapa sawit di Sesayap meningkatkan kapasitas pengolahan TBS menjadi 45 ton/jam (naik 50%), mendorong Industri Pengolahan CPO dan PMTB mesin.",
+        quarter: "Q1" as const,
+        year: 2025,
+        kbliCode2020: "10431",
+        kbliCategory: "C" as const,
+        expenditureComponent: "PMTB" as const,
+        impactType: "positif" as const,
+        impactNarrative: "Ekspansi kapasitas industri pengolahan CPO (3.54% PDRB) dan belanja mesin.",
+      },
+      {
+        url: "https://kaltara.tribunnews.com/2025/03/05/harga-beras-premium-pasar-imaddudin-tideng-pale-terjaga",
+        entryDate: new Date("2025-03-06T07:15:00+08:00"),
+        publishedDate: new Date("2025-03-05T10:15:00+08:00"),
+        sourceMedia: "tribun_kaltara" as const,
+        title: "Operasi Pasar Murah Bulog Jaga Stabilitas Harga Beras dan Minyak Goreng di Tideng Pale",
+        summary:
+          "Penyaluran 25 ton beras SPHP dan 4.000 liter minyak goreng melalui operasi pasar di Pasar Imaddudin Tideng Pale menjaga stabilitas harga pangan eceran pada awal Ramadan.",
+        quarter: "Q1" as const,
+        year: 2025,
+        kbliCode2020: "47111",
+        kbliCategory: "G" as const,
+        expenditureComponent: "PK_RT" as const,
+        impactType: "netral" as const,
+        impactNarrative: "Stabilisasi harga komoditas pangan rumah tangga melalui perdagangan eceran.",
+      },
+      {
+        url: "https://radartarakan.jawapos.com/tana-tidung/2025/02/20/pln-tideng-pale-tambah-kapasitas-trafo-gardu-induk",
+        entryDate: new Date("2025-02-21T07:15:00+08:00"),
+        publishedDate: new Date("2025-02-20T08:40:00+08:00"),
+        sourceMedia: "radar_tarakan" as const,
+        title: "PLN ULP Tideng Pale Tambah Kapasitas Pembangkit & Trafo Untuk Kawasan Pusat Pemerintahan",
+        summary:
+          "PLN melakukan penambahan kapasitas daya 2 MW dan penggantian trafo distribusi untuk melayani kawasan perkantoran serta sambungan rumah tangga di Kecamatan Sesayap.",
+        quarter: "Q1" as const,
+        year: 2025,
+        kbliCode2020: "35111",
+        kbliCategory: "D" as const,
+        expenditureComponent: "PMTB" as const,
+        impactType: "positif" as const,
+        impactNarrative: "Penambahan kapasitas infrastruktur ketenagalistrikan di ibu kota KTT.",
+      },
+    ];
+
+    for (const item of odonSeedItems) {
+      const { canonicalUrl, urlHash } = normalizeAndHashUrl(item.url);
+      const [articleRow] = await db
+        .select({ id: articles.id })
+        .from(articles)
+        .where(eq(articles.urlHash, urlHash))
+        .limit(1);
+
+      const resolvedKbli = resolveFullKbli2020To2025(item.kbliCode2020);
+
+      const [insertedEntry] = await db
+        .insert(odonEntries)
+        .values({
+          articleId: articleRow?.id ?? null,
+          entryDate: item.entryDate,
+          publishedDate: item.publishedDate,
+          sourceMedia: item.sourceMedia,
+          sourceUrl: canonicalUrl,
+          title: item.title,
+          economicPhenomenonSummary: item.summary,
+          quarter: item.quarter,
+          year: item.year,
+          status: "verified",
+          curatorNotes: "Seeded Sheet 6503 baseline (SSoT KBLI 2025 & PDRB ADHB 2025).",
+          verifiedBy: odonVerifierId,
+          verifiedAt: item.entryDate,
+        })
+        .returning({ id: odonEntries.id });
+
+      if (insertedEntry) {
+        await db.insert(odonClassifications).values({
+          odonId: insertedEntry.id,
+          kbliCategory: item.kbliCategory,
+          kbliCode2020: item.kbliCode2020,
+          kbliTitle2020: resolvedKbli?.title2020 ?? item.kbliCode2020,
+          kbliCode2025: resolvedKbli?.code2025 ?? item.kbliCode2020,
+          kbliTitle2025: resolvedKbli?.title2025 ?? item.kbliCode2020,
+          pdrbWeight: Number((getSectorWeightPercent(item.kbliCategory) / 100).toFixed(4)),
+          expenditureComponent: item.expenditureComponent,
+          expenditureWeight: Number(
+            (getExpenditureWeightPercent(item.expenditureComponent) / 100).toFixed(4)
+          ),
+          impactType: item.impactType,
+          impactNarrative: item.impactNarrative,
+        });
+      }
+    }
+    console.log(`Seeded ${odonSeedItems.length} verified ODON Sheet 6503 records.`);
+  }
+
+  // 6. Seed Sample Article Proposals (Crowdsourced Moderation Queue) if empty
+  const [{ value: proposalTotal }] = await db
+    .select({ value: count() })
+    .from(articleProposals);
+
+  if (Number(proposalTotal) === 0) {
+    await db.insert(articleProposals).values([
+      {
+        url: "https://radartarakan.jawapos.com/tana-tidung/2025/03/28/pemkab-ktt-resmikan-sentra-pengolahan-kayu-tana-lia",
+        title: "Pemkab Tana Tidung Dorong Hilirisasi Penggergajian Kayu Rakyat di Kecamatan Tana Lia",
+        submitterName: "Dinas Perindagkop & UKM Kab. Tana Tidung",
+        submitterAgency: "OPD Pemkab Tana Tidung",
+        submitterEmail: "disperindagkop@tanatidungkab.go.id",
+        economicNotes:
+          "Penguatan kapasitas usaha penggergajian kayu (KBLI C 16101) dan suplai bahan baku pemanfaatan kayu hutan produksi (KBLI A 02111 -> 02102).",
+        status: "pending",
+      },
+      {
+        url: "https://fokusborneo.com/daerah/tana-tidung/distribusi-bbm-solar-tideng-pale-lancar-pasca-perbaikan-dermaga/",
+        title: "Distribusi BBM Solar untuk Angkutan Sungai di Dermaga Tideng Pale Kembali Lancar",
+        submitterName: "Hendra Wijaya",
+        submitterAgency: "Asosiasi Angkutan Sungai KTT",
+        submitterEmail: null,
+        economicNotes:
+          "Kelancaran pasokan BBM menekan biaya operasional speedboat reguler dan kapal barang angkutan Sungai Sesayap (KBLI H 50211 / 50221).",
+        status: "pending",
+      },
+    ]);
+    console.log("Seeded 2 initial article_proposals for moderation queue.");
   }
 
   console.log("Seeding completed successfully!");

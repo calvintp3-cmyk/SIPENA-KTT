@@ -5,6 +5,7 @@ import { db } from "@/db";
 import { articles, auditLogs, economicPhenomena, users } from "@/db/schema";
 import { canEditPhenomena, getCurrentSessionUser } from "@/lib/auth";
 import { getClientIp, recordAuditLog } from "@/lib/audit";
+import { resolveDbUserId } from "@/lib/db-user";
 import { updatePhenomenonSchema } from "@/types";
 
 const uuidParamSchema = z.string().uuid();
@@ -105,6 +106,7 @@ export async function PATCH(
 
     const payload = parsed.data;
     const ipAddress = getClientIp(request);
+    const verifierUserId = await resolveDbUserId(user);
 
     const updated = await db.transaction(async (tx) => {
       const [existing] = await tx
@@ -138,7 +140,7 @@ export async function PATCH(
         status: payload.status,
         reviewerNotes:
           payload.reviewer_notes !== undefined ? payload.reviewer_notes : existing.reviewerNotes,
-        verifiedBy: isFinalDecision ? user.id : existing.verifiedBy,
+        verifiedBy: isFinalDecision ? verifierUserId : existing.verifiedBy,
         verifiedAt: isFinalDecision ? now : existing.verifiedAt,
         updatedAt: now,
       };
@@ -158,7 +160,7 @@ export async function PATCH(
 
       await recordAuditLog(tx, {
         phenomenonId: id,
-        userId: user.id,
+        userId: verifierUserId,
         action,
         previousValues: {
           status: existing.status,

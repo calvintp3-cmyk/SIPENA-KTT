@@ -6,10 +6,26 @@ import { LoginForm } from "./login-form";
 
 export const dynamic = "force-dynamic";
 
-export default async function LoginPage() {
+function sanitizeNextPath(rawNext?: string): string {
+  if (!rawNext) return "/";
+  const trimmed = rawNext.trim();
+  if (trimmed.startsWith("/") && !trimmed.startsWith("//")) {
+    return trimmed;
+  }
+  return "/";
+}
+
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ next?: string }>;
+}) {
+  const params = searchParams ? await searchParams : undefined;
+  const safeNext = sanitizeNextPath(params?.next);
+
   const user = await getCurrentSessionUser();
   if (user) {
-    redirect("/");
+    redirect(safeNext);
   }
 
   return (
@@ -53,7 +69,7 @@ export default async function LoginPage() {
 
           <div className="my-6 border-t border-[var(--border-hairline)]" />
 
-          <LoginForm />
+          <LoginForm redirectTo={safeNext} />
         </div>
 
         <p className="mt-5 text-center text-xs text-[var(--text-muted)]">

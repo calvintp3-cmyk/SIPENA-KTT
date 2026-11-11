@@ -1,16 +1,23 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Clock, Download, Shield, Eye } from "lucide-react";
-import { MUSE_NAV_GROUPS, type MuseViewTab } from "./muse-sidebar";
+import Link from "next/link";
+import { Clock, Download, Shield, Eye, LayoutGrid, LogOut } from "lucide-react";
+import { PORTAL_SOURCES } from "@/lib/constants/taxonomy";
+import { getMuseNavGroups, type MuseViewTab } from "./muse-sidebar";
 
 interface MuseNavbarProps {
   currentTab: MuseViewTab;
   onTabChange?: (tab: MuseViewTab) => void;
   userRole: "admin" | "public";
+  hasAdminSession: boolean;
+  sessionRole?: "admin" | "editor" | "viewer" | null;
   onRoleChange: (role: "admin" | "public") => void;
   onExportExcel: () => void;
   onOpenSubmitModal?: () => void;
+  onLogout?: () => void;
+  pendingCandidatesCount?: number;
+  pendingProposalsCount?: number;
 }
 
 const ADMIN_TAB_TITLES: Record<
@@ -43,11 +50,11 @@ const ADMIN_TAB_TITLES: Record<
   },
   kbli: {
     breadcrumb: "Kamus KBLI 2025",
-    title: "Mesin Pencari Crosswalk KBLI 2020 ↔ KBLI 2025",
+    title: "Mesin Pencari Crosswalk KBLI 2020 <-> KBLI 2025 (BPS0000)",
   },
   scrapers: {
     breadcrumb: "Radar Crawler",
-    title: "Status Bot Scraper 5 Portal Berita Daerah Kaltara",
+    title: `Status Bot Scraper ${PORTAL_SOURCES.length} Portal Berita Kaltara & Nasional`,
   },
   methodology: {
     breadcrumb: "SOP Nerwilis",
@@ -67,17 +74,21 @@ export function MuseNavbar({
   currentTab,
   onTabChange,
   userRole,
+  hasAdminSession,
+  sessionRole,
   onRoleChange,
   onExportExcel,
+  onLogout,
+  pendingCandidatesCount = 0,
+  pendingProposalsCount = 0,
 }: MuseNavbarProps) {
   const [timeString, setTimeString] = useState("08:00:00 WITA");
 
-  const isAdmin = userRole === "admin";
+  const isAdmin = userRole === "admin" && hasAdminSession;
 
   useEffect(() => {
     const updateTime = () => {
       const now = new Date();
-      // WITA is UTC+8
       const utc = now.getTime() + now.getTimezoneOffset() * 60000;
       const wita = new Date(utc + 3600000 * 8);
       const hours = String(wita.getHours()).padStart(2, "0");
@@ -126,17 +137,56 @@ export function MuseNavbar({
             </div>
           </div>
 
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="flex items-center gap-2.5 shrink-0">
             {clock}
-            <button
-              type="button"
-              onClick={() => onRoleChange("admin")}
-              className="ui-btn ui-btn-primary"
-              title="Masuk sebagai Petugas BPS Nerwilis"
-            >
-              <Shield className="w-3.5 h-3.5" aria-hidden="true" />
-              <span>Masuk Petugas BPS</span>
-            </button>
+
+            {sessionRole === "viewer" && (
+              <button
+                type="button"
+                onClick={onExportExcel}
+                className="ui-btn ui-btn-secondary"
+                title="Unduh Buku Kerja ODON format Sheet 6503 (.xlsx)"
+              >
+                <Download className="w-3.5 h-3.5 text-blue-600" aria-hidden="true" />
+                <span className="hidden md:inline">Ekspor Sheet 6503</span>
+              </button>
+            )}
+
+            {hasAdminSession ? (
+              <button
+                type="button"
+                onClick={() => onRoleChange("admin")}
+                className="ui-btn ui-btn-primary"
+                title="Kembali ke Workspace Admin Nerwilis"
+              >
+                <LayoutGrid className="w-3.5 h-3.5" aria-hidden="true" />
+                <span>Mode Admin Nerwilis</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => onRoleChange("admin")}
+                className="ui-btn ui-btn-primary"
+                title="Masuk sebagai Petugas BPS Nerwilis"
+              >
+                <Shield className="w-3.5 h-3.5" aria-hidden="true" />
+                <span>
+                  {sessionRole === "viewer" ? "Ganti Akun Kurator" : "Masuk Petugas BPS"}
+                </span>
+              </button>
+            )}
+
+            {sessionRole && onLogout && (
+              <button
+                type="button"
+                onClick={onLogout}
+                title="Keluar sesi"
+                aria-label="Keluar sesi"
+                className="ui-icon-btn"
+              >
+                <LogOut className="w-3.5 h-3.5" aria-hidden="true" />
+              </button>
+            )}
           </div>
         </div>
       </header>
@@ -147,7 +197,11 @@ export function MuseNavbar({
   // 2. ADMIN NAVBAR
   // ========================================================
   const meta = ADMIN_TAB_TITLES[currentTab] || ADMIN_TAB_TITLES.overview;
-  const mobileItems = MUSE_NAV_GROUPS.flatMap((g) => g.items);
+  const mobileItems = getMuseNavGroups({
+    pendingCandidatesCount,
+    pendingProposalsCount,
+    portalsCount: PORTAL_SOURCES.length,
+  }).flatMap((g) => g.items);
 
   return (
     <header className={HEADER_SHELL}>
@@ -168,10 +222,14 @@ export function MuseNavbar({
 
         {/* Controls */}
         <div className="flex items-center gap-2.5">
-          <div className="hidden xl:inline-flex ui-badge ui-badge-success h-9 px-3 num">
+          <Link
+            href="/"
+            className="hidden xl:inline-flex ui-badge ui-badge-success h-9 px-3 num hover:bg-emerald-100 transition-colors"
+            title="Buka Workstation Triwulanan SIPENA-KTT (/)"
+          >
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 ui-dot-live" aria-hidden="true" />
-            <span>SIPENA-KTT ADMIN</span>
-          </div>
+            <span>MEJA KURASI (/)</span>
+          </Link>
 
           {clock}
 

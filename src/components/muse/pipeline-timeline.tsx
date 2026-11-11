@@ -2,39 +2,49 @@
 
 import React from "react";
 import { Check, Cpu, UserCheck, FileSpreadsheet } from "lucide-react";
+import type { OdonKpiSummaryDto } from "@/types/odon";
 
-const STEPS = [
-  {
-    icon: Check,
-    dot: "bg-emerald-500 shadow-[0_0_0_4px_rgba(16,185,129,0.15)]",
-    iconBox: "bg-emerald-50 text-emerald-600 ring-emerald-600/20",
-    title: "05:00 WITA — Scraper H-1 Selesai",
-    desc: "Menjaring 54 artikel dari Radar Tarakan, Benuanta, Fokus Borneo & Tribun.",
-  },
-  {
-    icon: Cpu,
-    dot: "bg-blue-500 shadow-[0_0_0_4px_rgba(59,130,246,0.15)]",
-    iconBox: "bg-blue-50 text-blue-600 ring-blue-600/20",
-    title: "05:30 WITA — Ekstraksi AI Gemini",
-    desc: "Mencocokkan bobot sektor KTT & membuang noise non-ekonomi.",
-  },
-  {
-    icon: UserCheck,
-    dot: "bg-indigo-500 shadow-[0_0_0_4px_rgba(99,102,241,0.15)]",
-    iconBox: "bg-indigo-50 text-indigo-600 ring-indigo-600/20",
-    title: "07:15 WITA — Validasi Nerwilis",
-    desc: "1 berita terpilih dan diklasifikasikan ke KBLI & Pengeluaran.",
-  },
-  {
-    icon: FileSpreadsheet,
-    dot: "bg-amber-500 shadow-[0_0_0_4px_rgba(245,158,11,0.15)]",
-    iconBox: "bg-amber-50 text-amber-600 ring-amber-600/20",
-    title: "Sinkronisasi Sheet 6503",
-    desc: "Data terverifikasi siap diekspor ke naskah publikasi PDRB Triwulanan.",
-  },
-];
+interface PipelineTimelineProps {
+  kpis?: OdonKpiSummaryDto;
+}
 
-export function PipelineTimeline() {
+export function PipelineTimeline({ kpis }: PipelineTimelineProps) {
+  const portalsCount = kpis?.activePortalsCount ?? 7;
+  const articlesCount = kpis?.totalArticlesCount ?? 0;
+  const pendingCount = kpis?.pendingCandidatesCount ?? 0;
+  const verifiedCount = kpis?.verifiedCount ?? 0;
+
+  const steps = [
+    {
+      icon: Check,
+      dot: "bg-emerald-500 shadow-[0_0_0_4px_rgba(16,185,129,0.15)]",
+      iconBox: "bg-emerald-50 text-emerald-600 ring-emerald-600/20",
+      title: `05:00 WITA • Scraper ${portalsCount} Portal`,
+      desc: `Total ${articlesCount} artikel terjaring dari Koran Kaltara, Radar Tarakan, Tribun, Benuanta, Fokus Borneo, Antara & Media Nasional.`,
+    },
+    {
+      icon: Cpu,
+      dot: "bg-blue-500 shadow-[0_0_0_4px_rgba(59,130,246,0.15)]",
+      iconBox: "bg-blue-50 text-blue-600 ring-blue-600/20",
+      title: "05:30 WITA • Ekstraksi AI Gemini",
+      desc: `Mencocokkan bobot sektor PDRB KTT & menandai ${pendingCount} kandidat menunggu di Meja Kurasi AI.`,
+    },
+    {
+      icon: UserCheck,
+      dot: "bg-indigo-500 shadow-[0_0_0_4px_rgba(99,102,241,0.15)]",
+      iconBox: "bg-indigo-50 text-indigo-600 ring-indigo-600/20",
+      title: "Validasi Human-in-the-Loop Nerwilis",
+      desc: "Petugas BPS memvalidasi KBLI 2020 <-> KBLI 2025 dan Pos Pengeluaran sebelum penetapan harian.",
+    },
+    {
+      icon: FileSpreadsheet,
+      dot: "bg-amber-500 shadow-[0_0_0_4px_rgba(245,158,11,0.15)]",
+      iconBox: "bg-amber-50 text-amber-600 ring-amber-600/20",
+      title: "Sinkronisasi Sheet 6503",
+      desc: `${verifiedCount} entri terverifikasi tersimpan di PostgreSQL dan siap diekspor ke .xlsx resmi BPS.`,
+    },
+  ];
+
   return (
     <div className="ui-card p-5 sm:p-6">
       <div className="flex flex-wrap items-center justify-between gap-2 pb-4 border-b border-slate-200/80">
@@ -43,9 +53,9 @@ export function PipelineTimeline() {
       </div>
 
       <ol className="mt-5">
-        {STEPS.map((s, i) => {
+        {steps.map((s, i) => {
           const Icon = s.icon;
-          const last = i === STEPS.length - 1;
+          const last = i === steps.length - 1;
           return (
             <li key={s.title} className="relative flex gap-3.5 pb-5 last:pb-0">
               {!last && (

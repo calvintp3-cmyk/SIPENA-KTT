@@ -249,6 +249,78 @@ export const EXPENDITURE_COMPONENTS = {
   },
 } as const;
 
+export const SOURCE_MEDIA_VALUES = [
+  "koran_kaltara",
+  "radar_tarakan",
+  "tribun_kaltara",
+  "benuanta",
+  "fokus_borneo",
+  "antara_kaltara",
+  "national_media",
+] as const;
+
+export type SourceMediaValue = (typeof SOURCE_MEDIA_VALUES)[number];
+
+export interface PortalSourceMeta {
+  source: SourceMediaValue;
+  label: string;
+  url: string;
+  scope: "regional" | "national";
+  schedule: string;
+}
+
+export const PORTAL_SOURCES: readonly PortalSourceMeta[] = [
+  {
+    source: "koran_kaltara",
+    label: "Koran Kaltara",
+    url: "https://korankaltara.com/category/daerah/tana-tidung/",
+    scope: "regional",
+    schedule: "05:00 WITA",
+  },
+  {
+    source: "radar_tarakan",
+    label: "Radar Tarakan",
+    url: "https://radartarakan.jawapos.com/tana-tidung",
+    scope: "regional",
+    schedule: "05:00 WITA",
+  },
+  {
+    source: "tribun_kaltara",
+    label: "Tribun Kaltara",
+    url: "https://kaltara.tribunnews.com/tag/tana-tidung",
+    scope: "regional",
+    schedule: "05:00 WITA",
+  },
+  {
+    source: "benuanta",
+    label: "Benuanta",
+    url: "https://benuanta.co.id",
+    scope: "regional",
+    schedule: "05:00 WITA",
+  },
+  {
+    source: "fokus_borneo",
+    label: "Fokus Borneo",
+    url: "https://fokusborneo.com/category/advetorial/pemkab-tana-tidung/",
+    scope: "regional",
+    schedule: "05:00 WITA",
+  },
+  {
+    source: "antara_kaltara",
+    label: "Antara Kaltara",
+    url: "https://kaltara.antaranews.com/tana-tidung",
+    scope: "regional",
+    schedule: "05:00 WITA",
+  },
+  {
+    source: "national_media",
+    label: "Media Nasional",
+    url: "https://www.antaranews.com/ekonomi",
+    scope: "national",
+    schedule: "05:00 WITA",
+  },
+];
+
 export const SOURCE_MEDIA_LABELS: Record<string, string> = {
   koran_kaltara: "Koran Kaltara",
   radar_tarakan: "Radar Tarakan",
@@ -261,34 +333,189 @@ export const SOURCE_MEDIA_LABELS: Record<string, string> = {
 
 // ==========================================
 // PDRB TANA TIDUNG 2025 SINGLE SOURCE OF TRUTH
+// Source: BPS Kab. Tana Tidung — Distribusi PDRB ADHB 2025 (Seri 2010)
 // ==========================================
-export const PDRB_KTT_WEIGHTS = {
-  // Sisi Lapangan Usaha (KBLI) - Distribusi Persentase 2025
-  lapanganUsaha: {
-    B: { code: "B", name: "Pertambangan dan Penggalian (Batubara)", weight: 37.80, isDominant: true },
-    A: { code: "A", name: "Pertanian, Kehutanan, dan Perikanan (Sawit)", weight: 23.41, isDominant: true },
-    F: { code: "F", name: "Konstruksi (Infrastruktur Fisik)", weight: 18.46, isDominant: true },
-    O: { code: "O", name: "Administrasi Pemerintahan & Pemkab KTT", weight: 8.47, isDominant: true },
-    G: { code: "G", name: "Perdagangan Besar & Eceran", weight: 5.06, isDominant: false },
-    H: { code: "H", name: "Transportasi dan Pergudangan", weight: 2.61, isDominant: false },
-    C: { code: "C", name: "Industri Pengolahan", weight: 1.52, isDominant: false },
-    OTHER: { code: "OTHER", name: "Sektor Lainnya Gabungan", weight: 2.67, isDominant: false },
+export const PDRB_LAPANGAN_USAHA_2025: Record<
+  KbliMeta["code"],
+  { code: KbliMeta["code"]; name: string; weight: number }
+> = {
+  A: { code: "A", name: "Pertanian, Kehutanan, dan Perikanan", weight: 23.41 },
+  B: { code: "B", name: "Pertambangan dan Penggalian", weight: 37.80 },
+  C: { code: "C", name: "Industri Pengolahan", weight: 3.54 },
+  D: { code: "D", name: "Pengadaan Listrik dan Gas", weight: 0.02 },
+  E: {
+    code: "E",
+    name: "Pengadaan Air, Pengolahan Sampah, Limbah dan Daur Ulang",
+    weight: 0.01,
   },
-  // Top 4 Sektor menyumbang 88.14% PDRB KTT
-  top4LapanganUsahaShare: 88.14,
+  F: { code: "F", name: "Konstruksi", weight: 18.46 },
+  G: {
+    code: "G",
+    name: "Perdagangan Besar dan Eceran; Reparasi Mobil, dan Sepeda Motor",
+    weight: 5.06,
+  },
+  H: { code: "H", name: "Transportasi dan Pergudangan", weight: 0.64 },
+  I: { code: "I", name: "Penyediaan Akomodasi dan Makan Minum", weight: 0.19 },
+  J: { code: "J", name: "Informasi dan Komunikasi", weight: 0.04 },
+  K: { code: "K", name: "Jasa Keuangan", weight: 0.10 },
+  L: { code: "L", name: "Real Estate", weight: 0.53 },
+  M_N: { code: "M_N", name: "Jasa Perusahaan", weight: 0.01 },
+  O: {
+    code: "O",
+    name: "Administrasi Pemerintahan, Pertahanan, dan Jaminan Sosial Wajib",
+    weight: 8.47,
+  },
+  P: { code: "P", name: "Jasa Pendidikan", weight: 1.29 },
+  Q: { code: "Q", name: "Jasa Kesehatan dan Kegiatan Sosial", weight: 0.06 },
+  R_S_T_U: { code: "R_S_T_U", name: "Jasa Lainnya", weight: 0.36 },
+};
 
-  // Sisi Pengeluaran PDRB - Distribusi Persentase 2025
-  pengeluaran: {
-    NET_EKSPOR: { code: "NET_EKSPOR", label: "Pos 6 • Net Ekspor Antar Daerah", weight: 49.98, isDominant: true },
-    PMTB: { code: "PMTB", label: "Pos 4 • Pembentukan Modal Tetap Bruto (Investasi Fisik)", weight: 31.38, isDominant: true },
-    PK_P: { code: "PK_P", label: "Pos 2 • Pengeluaran Konsumsi Pemerintah", weight: 9.80, isDominant: false },
-    PK_RT: { code: "PK_RT", label: "Pos 1 • Pengeluaran Konsumsi Rumah Tangga", weight: 7.06, isDominant: false },
-    PK_LNPRT: { code: "PK_LNPRT", label: "Pos 3 • Pengeluaran Konsumsi LNPRT", weight: 1.13, isDominant: false },
-    PI: { code: "PI", label: "Pos 5 • Perubahan Inventori", weight: 0.65, isDominant: false },
+export const PDRB_PENGELUARAN_2025 = {
+  PK_RT: {
+    code: "PK_RT",
+    label: "PK-RT",
+    name: "Konsumsi Rumah Tangga",
+    weight: 7.06,
   },
-  // Net Ekspor + PMTB menyumbang 81.36% PDRB KTT
+  PK_LNPRT: {
+    code: "PK_LNPRT",
+    label: "PK-LNPRT",
+    name: "Konsumsi Lembaga Nonprofit yang Melayani Rumah Tangga",
+    weight: 1.31,
+  },
+  PK_P: {
+    code: "PK_P",
+    label: "PK-P",
+    name: "Konsumsi Pemerintah",
+    weight: 9.80,
+  },
+  PMTB: {
+    code: "PMTB",
+    label: "PMTB",
+    name: "Pembentukan Modal Tetap Bruto",
+    weight: 31.38,
+  },
+  PI: {
+    code: "PI",
+    label: "PI",
+    name: "Perubahan Inventori",
+    weight: 0.48,
+  },
+  NET_EKSPOR: {
+    code: "NET_EKSPOR",
+    label: "Net Ekspor",
+    name: "Net Ekspor Barang dan Jasa",
+    weight: 49.98,
+  },
+} as const;
+
+export const PDRB_KTT_WEIGHTS = {
+  // Sisi Lapangan Usaha (KBLI Seri 2010) - Distribusi Persentase ADHB 2025
+  lapanganUsaha: {
+    B: {
+      code: "B",
+      name: "Pertambangan dan Penggalian (Batubara)",
+      weight: 37.80,
+      isDominant: true,
+    },
+    A: {
+      code: "A",
+      name: "Pertanian, Kehutanan, dan Perikanan (Sawit, Kayu, Perikanan)",
+      weight: 23.41,
+      isDominant: true,
+    },
+    F: {
+      code: "F",
+      name: "Konstruksi (Infrastruktur Fisik)",
+      weight: 18.46,
+      isDominant: true,
+    },
+    O: {
+      code: "O",
+      name: "Administrasi Pemerintahan, Pertahanan & Jaminan Sosial Wajib",
+      weight: 8.47,
+      isDominant: true,
+    },
+    G: {
+      code: "G",
+      name: "Perdagangan Besar & Eceran; Reparasi Mobil & Motor",
+      weight: 5.06,
+      isDominant: false,
+    },
+    C: { code: "C", name: "Industri Pengolahan", weight: 3.54, isDominant: false },
+    P: { code: "P", name: "Jasa Pendidikan", weight: 1.29, isDominant: false },
+    H: { code: "H", name: "Transportasi dan Pergudangan", weight: 0.64, isDominant: false },
+    OTHER: {
+      code: "OTHER",
+      name: "Sektor Lainnya Gabungan (D, E, I, J, K, L, M_N, Q, R_S_T_U)",
+      weight: 1.32,
+      isDominant: false,
+    },
+  },
+  // Top 4 Sektor (B + A + F + O) menyumbang 88.14% PDRB ADHB 2025 KTT
+  top4LapanganUsahaShare: 88.14,
+  nonMigasShare: 98.10,
+
+  // Sisi Pengeluaran PDRB - Distribusi Persentase ADHB 2025
+  pengeluaran: {
+    NET_EKSPOR: {
+      code: "NET_EKSPOR",
+      label: "Pos 6 • Net Ekspor Barang dan Jasa",
+      weight: 49.98,
+      isDominant: true,
+    },
+    PMTB: {
+      code: "PMTB",
+      label: "Pos 4 • Pembentukan Modal Tetap Bruto (PMTB)",
+      weight: 31.38,
+      isDominant: true,
+    },
+    PK_P: {
+      code: "PK_P",
+      label: "Pos 3 • Konsumsi Pemerintah (PK-P)",
+      weight: 9.80,
+      isDominant: false,
+    },
+    PK_RT: {
+      code: "PK_RT",
+      label: "Pos 1 • Konsumsi Rumah Tangga (PK-RT)",
+      weight: 7.06,
+      isDominant: false,
+    },
+    PK_LNPRT: {
+      code: "PK_LNPRT",
+      label: "Pos 2 • Konsumsi LNPRT (PK-LNPRT)",
+      weight: 1.31,
+      isDominant: false,
+    },
+    PI: {
+      code: "PI",
+      label: "Pos 5 • Perubahan Inventori (PI)",
+      weight: 0.48,
+      isDominant: false,
+    },
+  },
+  // Net Ekspor Barang dan Jasa + PMTB menyumbang 81.36% PDRB ADHB 2025 KTT
   top2PengeluaranShare: 81.36,
 } as const;
+
+export function getSectorWeightPercent(category: string | null | undefined): number {
+  if (!category) return 0;
+  const meta = PDRB_LAPANGAN_USAHA_2025[category as KbliMeta["code"]];
+  return meta ? meta.weight : 0;
+}
+
+export function getExpenditureWeightPercent(
+  component: string | null | undefined
+): number {
+  if (!component) return 0;
+  if (component === "EKSPOR" || component === "IMPOR" || component === "NET_EKSPOR") {
+    return PDRB_PENGELUARAN_2025.NET_EKSPOR.weight;
+  }
+  const meta =
+    PDRB_PENGELUARAN_2025[component as keyof typeof PDRB_PENGELUARAN_2025];
+  return meta ? meta.weight : 0;
+}
 
 export const STATUS_META: Record<
   string,

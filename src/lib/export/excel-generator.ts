@@ -423,3 +423,122 @@ export async function generatePdrbPhenomenaWorkbook(params: {
   return Buffer.from(arrayBuffer);
 }
 
+export interface OdonSheet6503ExportRow {
+  entryDate: string;
+  releaseDate: string;
+  source: string;
+  sourceUrl: string;
+  title: string;
+  summary: string;
+  kbliCategory: string;
+  kbliCode2020: string;
+  kbliTitle2020: string;
+  kbliCode2025: string;
+  kbliTitle2025: string;
+  pdrbWeightPercent: number;
+  expenditureComponent: string;
+  expenditureWeightPercent: number;
+  impactType: string;
+  quarter: string;
+  year: number;
+  verifierName: string | null;
+}
+
+export async function generateOdonSheet6503Workbook(params: {
+  rows: OdonSheet6503ExportRow[];
+  generatedAt?: Date;
+}): Promise<Buffer> {
+  const { rows, generatedAt = new Date() } = params;
+  const workbook = new ExcelJS.Workbook();
+  workbook.creator = "SIPENA-KTT ODON 6504 — BPS Kabupaten Tana Tidung";
+  workbook.created = generatedAt;
+
+  const sheet = workbook.addWorksheet("Sheet 6503 ODON", {
+    views: [{ state: "frozen", ySplit: 4 }],
+  });
+
+  const widths = [6, 14, 12, 18, 38, 48, 12, 14, 14, 14, 22, 14, 14, 14, 34, 22];
+  sheet.columns = widths.map((width) => ({ width }));
+
+  applyBannerHeader(
+    sheet,
+    "BUKU KERJA MASTER ODON (ONE DAY ONE NEWS) — SHEET 6503 BPS KABUPATEN TANA TIDUNG (65.04)",
+    `KBLI 2020 <-> KBLI 2025 (BPS0000) & Bobot Distribusi PDRB ADHB 2025 (Seri 2010) · Dihasilkan: ${formatShortDate(generatedAt)}`,
+    widths.length
+  );
+
+  const headerRow = sheet.addRow([
+    "No",
+    "Tanggal Entri",
+    "Rilis H-1",
+    "Kanal Media",
+    "Judul Berita",
+    "Ringkasan Fenomena Ekonomi",
+    "Kategori PDRB",
+    "KBLI 2020",
+    "KBLI 2025",
+    "Bobot KBLI (%)",
+    "Komponen Pengeluaran",
+    "Bobot Pengeluaran (%)",
+    "Arah Dampak",
+    "Periode",
+    "Tautan URL Berita",
+    "Verifikator BPS",
+  ]);
+  styleTableHeaderRow(headerRow);
+
+  rows.forEach((item, idx) => {
+    const expMeta =
+      EXPENDITURE_COMPONENTS[item.expenditureComponent as ExpenditureCode] ?? null;
+    const expLabel = expMeta ? `${expMeta.label} (${item.expenditureComponent})` : item.expenditureComponent;
+
+    const r = sheet.addRow([
+      idx + 1,
+      sanitizeSpreadsheetText(item.entryDate),
+      sanitizeSpreadsheetText(item.releaseDate),
+      sanitizeSpreadsheetText(item.source),
+      sanitizeSpreadsheetText(item.title),
+      sanitizeSpreadsheetText(item.summary),
+      sanitizeSpreadsheetText(item.kbliCategory),
+      sanitizeSpreadsheetText(item.kbliCode2020),
+      sanitizeSpreadsheetText(item.kbliCode2025),
+      `${item.pdrbWeightPercent.toFixed(2)}%`,
+      sanitizeSpreadsheetText(expLabel),
+      `${item.expenditureWeightPercent.toFixed(2)}%`,
+      formatImpactLabel(item.impactType),
+      `${item.quarter} ${item.year}`,
+      sanitizeSpreadsheetText(item.sourceUrl),
+      sanitizeSpreadsheetText(item.verifierName ?? "Tim Nerwilis 6504"),
+    ]);
+
+    r.eachCell((cell, colNumber) => {
+      cell.border = THIN_BORDER;
+      cell.font = { name: "Calibri", size: 10, color: { argb: "FF0F172A" } };
+      cell.alignment = {
+        vertical: "top",
+        horizontal:
+          colNumber === 1 ||
+          colNumber === 7 ||
+          colNumber === 8 ||
+          colNumber === 9 ||
+          colNumber === 10 ||
+          colNumber === 12 ||
+          colNumber === 14
+            ? "center"
+            : "left",
+        wrapText: true,
+      };
+      if (idx % 2 === 1) {
+        cell.fill = {
+          type: "pattern",
+          pattern: "solid",
+          fgColor: { argb: ZEBRA_FILL_ARGB },
+        };
+      }
+    });
+  });
+
+  const arrayBuffer = await workbook.xlsx.writeBuffer();
+  return Buffer.from(arrayBuffer);
+}
+

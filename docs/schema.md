@@ -12,14 +12,30 @@
 The application enforces domain-specific business rules at the database level using PostgreSQL native `ENUM` types.
 
 ```sql
--- 1. Source Media Outlets
+-- 1. Source Media Outlets (7 Verified Portals)
 CREATE TYPE source_media_enum AS ENUM (
   'koran_kaltara',
   'radar_tarakan',
   'tribun_kaltara',
   'benuanta',
+  'fokus_borneo',
   'antara_kaltara',
   'national_media'
+);
+
+-- 2. ODON Workflow Status
+CREATE TYPE odon_status_enum AS ENUM (
+  'draft',
+  'pending_curation',
+  'verified',
+  'archived'
+);
+
+-- 3. Community Proposal Moderation Status
+CREATE TYPE proposal_status_enum AS ENUM (
+  'pending',
+  'accepted',
+  'rejected'
 );
 
 -- 2. Phenomenon Verification Workflow Status
@@ -124,8 +140,22 @@ export const sourceMediaEnum = pgEnum("source_media_enum", [
   "radar_tarakan",
   "tribun_kaltara",
   "benuanta",
+  "fokus_borneo",
   "antara_kaltara",
   "national_media"
+]);
+
+export const odonStatusEnum = pgEnum("odon_status_enum", [
+  "draft",
+  "pending_curation",
+  "verified",
+  "archived"
+]);
+
+export const proposalStatusEnum = pgEnum("proposal_status_enum", [
+  "pending",
+  "accepted",
+  "rejected"
 ]);
 
 export const phenomenonStatusEnum = pgEnum("phenomenon_status_enum", [
@@ -353,6 +383,114 @@ export const auditLogsRelations = relations(auditLogs, ({ one }) => ({
     references: [users.id]
   })
 }));
+
+// ==========================================
+// 7. ODON ENTRIES (Sheet 6503 Master)
+// ==========================================
+
+export const odonEntries = pgTable(
+  "odon_entries",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    articleId: uuid("article_id").references(() => articles.id, { onDelete: "set null" }),
+    entryDate: timestamp("entry_date", { withTimezone: true }).notNull(),
+    publishedDate: timestamp("published_date", { withTimezone: true }).notNull(),
+    sourceMedia: sourceMediaEnum("source_media").notNull(),
+    sourceUrl: text("source_url").notNull(),
+    title: text("title").notNull(),
+    economicPhenomenonSummary: text("economic_phenomenon_summary").notNull(),
+    quarter: quarterEnum("quarter").notNull(),
+    year: smallint("year").notNull(),
+    status: odonStatusEnum("status").default("draft").notNull(),
+    curatorNotes: text("curator_notes"),
+    verifiedBy: uuid("verified_by").references(() => users.id, { onDelete: "set null" }),
+    verifiedAt: timestamp("verified_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => ({
+    entryDateIdx: index("odon_entries_date_idx").on(table.entryDate),
+    quarterYearIdx: index("odon_entries_quarter_year_idx").on(table.year, table.quarter),
+    statusIdx: index("odon_entries_status_idx").on(table.status),
+  })
+);
+
+// ==========================================
+// 8. ODON CLASSIFICATIONS (Dual-Pillar KBLI 2020<->2025 & Pengeluaran)
+// ==========================================
+
+export const odonClassifications = pgTable(
+  "odon_classifications",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    odonId: uuid("odon_id")
+      .notNull()
+      .references(() => odonEntries.id, { onDelete: "cascade" }),
+    kbliCategory: kbliCategoryEnum("kbli_category").notNull(),
+    kbliCode2020: varchar("kbli_code_2020", { length: 10 }),
+    kbliTitle2020: varchar("kbli_title_2020", { length: 255 }),
+    kbliCode2025: varchar("kbli_code_2025", { length: 10 }),
+    kbliTitle2025: varchar("kbli_title_2025", { length: 255 }),
+    pdrbWeight: real("pdrb_weight"),
+    expenditureComponent: expenditureComponentEnum("expenditure_component").notNull(),
+    expenditureWeight: real("expenditure_weight"),
+    impactType: impactTypeEnum("impact_type").default("positif").notNull(),
+    impactNarrative: text("impact_narrative"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => ({
+    odonIdIdx: index("odon_classifications_odon_id_idx").on(table.odonId),
+    kbliIdx: index("odon_classifications_kbli_idx").on(table.kbliCategory),
+    expenditureIdx: index("odon_classifications_expenditure_idx").on(table.expenditureComponent),
+  })
+);
+
+// ==========================================
+// 9. KBLI CONVERSIONS (2,560 Pairs BPS0000)
+// ==========================================
+
+export const kbliConversions = pgTable(
+  "kbli_conversions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    code2020: varchar("code_2020", { length: 10 }).notNull(),
+    title2020: text("title_2020").notNull(),
+    code2025: varchar("code_2025", { length: 10 }).notNull(),
+    title2025: text("title_2025").notNull(),
+    lampiranRef: varchar("lampiran_ref", { length: 50 }).default("BPS0000").notNull(),
+    conversionType: varchar("conversion_type", { length: 50 }).default("1_to_1"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => ({
+    code2020Idx: index("kbli_conv_code_2020_idx").on(table.code2020),
+    code2025Idx: index("kbli_conv_code_2025_idx").on(table.code2025),
+  })
+);
+
+// ==========================================
+// 10. ARTICLE PROPOSALS (Usulan Publik / OPD)
+// ==========================================
+
+export const articleProposals = pgTable(
+  "article_proposals",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    url: text("url").notNull(),
+    title: text("title"),
+    submitterName: varchar("submitter_name", { length: 255 }).default("Masyarakat / OPD").notNull(),
+    submitterAgency: varchar("submitter_agency", { length: 255 }),
+    submitterEmail: varchar("submitter_email", { length: 255 }),
+    economicNotes: text("economic_notes"),
+    status: proposalStatusEnum("status").default("pending").notNull(),
+    reviewedBy: uuid("reviewed_by").references(() => users.id, { onDelete: "set null" }),
+    reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => ({
+    statusIdx: index("proposals_status_idx").on(table.status),
+    createdAtIdx: index("proposals_created_at_idx").on(table.createdAt),
+  })
+);
 ```
 
 ---

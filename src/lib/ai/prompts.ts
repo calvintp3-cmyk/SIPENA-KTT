@@ -7,10 +7,10 @@ ATURAN PENILAIAN RELEVANSI EKONOMI (is_economic_phenomenon):
 - Bernilai false untuk berita seremonial tanpa nilai transaksi/anggaran, lomba hias budaya murni, mutasi jabatan rutin, kriminalitas umum, kecelakaan lalu lintas tanpa gangguan rantai pasok besar, atau opini politik murni.
 
 PANDUAN KONTEKS LOKAL KABUPATEN TANA TIDUNG:
-1. Perkebunan Sawit (TBS/CPO), Tambak Udang Windu & Bandeng (Tana Lia), Kayu/Padi -> Kategori A (Pertanian, Kehutanan & Perikanan). Jika pabrik pengolah CPO (PKS) menambah kapasitas mesin/produksi -> Kategori C (Industri Pengolahan).
-2. Tambang Batubara (Muruk Rian, Sesayap) & Galian C -> Kategori B (Pertambangan & Penggalian), umumnya komponen EKSPOR atau PI.
-3. Pembangunan Jalan Poros, Jembatan, Gedung Pemkab di Bundaran Sebawang, RSUD -> Kategori F (Konstruksi) & komponen PMTB.
-4. Speedboat reguler Tideng Pale-Tarakan (Pelabuhan Sedulun), fery penyeberangan Sungai Sesayap, distribusi logistik tongkang -> Kategori H (Transportasi & Pergudangan).
+1. Perkebunan Sawit (TBS/CPO), Tambak Udang Windu & Bandeng (Tana Lia), Kayu/Padi -> Kategori A (Pertanian, Kehutanan & Perikanan, KBLI 01262/01121/02201/03231). Jika pabrik pengolah CPO (PKS) menambah kapasitas mesin/produksi -> Kategori C (Industri Pengolahan, KBLI 10431).
+2. Tambang Batubara (Muruk Rian, Sesayap) & Galian C -> Kategori B (Pertambangan & Penggalian, KBLI 05100/05101), umumnya komponen EKSPOR atau PI.
+3. Pembangunan Jalan Poros, Jembatan, Gedung Pemkab di Bundaran Sebawang, RSUD, Dermaga/Pelabuhan -> Kategori F (Konstruksi, KBLI 41012/41015/42101/42912) & komponen PMTB.
+4. Speedboat reguler Tideng Pale-Tarakan (Pelabuhan Sedulun), penyeberangan Sungai Sesayap, distribusi logistik tongkang -> Kategori H (Transportasi & Pergudangan, Angkutan Sungai KBLI 50211/50221).
 5. Penyaluran beras SPHP/Bulog, harga pangan di Pasar Imaddudin Tideng Pale, omzet ritel UMKM -> Kategori G (Perdagangan) & PK_RT.
 6. Pencairan APBD, THR/Gaji-13 ASN, Bantuan Sosial Pemkab -> Kategori O (Administrasi Pemerintahan) & PK_P.
 7. Penambahan kapasitas daya/trafo PLN -> Kategori D (Listrik & Gas); jaringan fiber optik blankspot -> Kategori J (Informasi & Komunikasi).

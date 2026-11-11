@@ -8,52 +8,56 @@ import {
   Scale,
   ExternalLink,
   Edit3,
+  Newspaper,
 } from "lucide-react";
-
-export interface OdonSpotlightData {
-  id: string;
-  entryDate: string; // "10 November 2026"
-  releaseDate: string; // "09 Nov 2026"
-  source: string; // "Radar Tarakan"
-  sourceUrl: string;
-  title: string;
-  economicPhenomenonSummary: string;
-  kbliCode2020: string; // "05100"
-  kbliTitle2020: string; // "Pertambangan Batubara (37.8%)"
-  kbliCode2025: string; // "05101"
-  kbliTitle2025: string; // "Penambangan Batubara"
-  kbliSecondary?: string; // "KBLI A (01262) - Sawit 23.4%"
-  expenditureCode: string; // "Pos 6 • Net Ekspor Antar Daerah (49.98%)"
-  expenditureSecondary?: string; // "Pos 4 • PMTB Modal Tetap (31.38%)"
-  aggregateShare: string; // "81.36%"
-  verifierName: string; // "Calvin (Tim Nerwilis KTT)"
-  verifiedTime: string; // "10 Nov 07:15 WITA"
-  relevanceScore: number; // 96
-}
+import type { OdonSpotlightDto } from "@/types/odon";
 
 interface OdonHeroSpotlightProps {
-  data: OdonSpotlightData;
+  data: OdonSpotlightDto | null;
   isAdmin: boolean;
   onEditClassification?: () => void;
 }
+
+const IMPACT_LABELS: Record<OdonSpotlightDto["impactType"], string> = {
+  positif: "Positif / Ekspansif",
+  negatif: "Negatif / Terkontraksi",
+  netral: "Netral / Stabil",
+};
 
 export function OdonHeroSpotlight({
   data,
   isAdmin,
   onEditClassification,
 }: OdonHeroSpotlightProps) {
+  if (!data) {
+    return (
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 p-8 text-white shadow-xl shadow-slate-900/10 ring-1 ring-white/10 h-full flex flex-col items-center justify-center text-center gap-3 min-h-[320px]">
+        <Newspaper className="w-10 h-10 text-sky-300 opacity-80" aria-hidden="true" />
+        <h3 className="text-lg font-bold text-white">Belum Ada Edisi ODON Terverifikasi</h3>
+        <p className="text-sm text-slate-300 max-w-md leading-relaxed">
+          Pilih dan tetapkan 1 berita kandidat di tab Meja Kurasi AI untuk menampilkannya sebagai sorotan resmi harian Sheet 6503.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 p-6 sm:p-8 text-white shadow-xl shadow-slate-900/10 ring-1 ring-white/10 h-full flex flex-col justify-between gap-6">
-      {/* Mesh: two soft light sources give the dark surface depth behind the glass panels */}
-      <div aria-hidden="true" className="pointer-events-none absolute -top-24 -left-16 w-96 h-96 rounded-full bg-blue-600/25 blur-3xl" />
-      <div aria-hidden="true" className="pointer-events-none absolute -bottom-28 -right-20 w-96 h-96 rounded-full bg-indigo-500/20 blur-3xl" />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -top-24 -left-16 w-96 h-96 rounded-full bg-blue-600/25 blur-3xl"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -bottom-28 -right-20 w-96 h-96 rounded-full bg-indigo-500/20 blur-3xl"
+      />
 
       <div className="relative">
         {/* Banner */}
         <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-white/10">
           <div className="flex flex-wrap items-center gap-2.5">
             <span className="px-3 py-1 rounded-full bg-white/10 ring-1 ring-inset ring-white/20 text-white num text-[11px] font-bold">
-              ODON EDISI RESMI H-1
+              ODON EDISI TERBARU
             </span>
             <span className="text-xs text-slate-300 font-medium">{data.entryDate}</span>
           </div>
@@ -68,20 +72,27 @@ export function OdonHeroSpotlight({
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-sky-200 font-semibold mb-2">
             <span>{data.source}</span>
             <span aria-hidden="true">•</span>
-            <span>Rilis: <span className="num">{data.releaseDate}</span></span>
+            <span>
+              Rilis: <span className="num">{data.releaseDate}</span>
+            </span>
             <span aria-hidden="true">•</span>
-            <span>Relevansi PDRB: <span className="num">{data.relevanceScore}%</span></span>
+            <span>
+              Periode:{" "}
+              <span className="num">
+                {data.quarter} {data.year}
+              </span>
+            </span>
           </div>
 
           <h3 className="text-xl sm:text-2xl lg:text-[1.75rem] font-bold text-white leading-tight tracking-tight">
             {data.title}
           </h3>
 
-          {/* AI synthesis */}
+          {/* Synthesis */}
           <div className="mt-4 p-4 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 text-[13px] sm:text-sm text-slate-100 leading-relaxed">
             <div className="flex items-center gap-1.5 text-sky-300 font-semibold text-xs mb-1.5">
               <Cpu className="w-3.5 h-3.5" aria-hidden="true" />
-              <span>Sintesis Fenomena Ekonomi (AI Nerwilis):</span>
+              <span>Ringkasan Fenomena Ekonomi (Nerwilis BPS 6504):</span>
             </div>
             {data.economicPhenomenonSummary}
           </div>
@@ -92,18 +103,17 @@ export function OdonHeroSpotlight({
           <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10">
             <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
               <span className="text-xs text-sky-300 font-semibold inline-flex items-center gap-1.5">
-                <Layers className="w-3.5 h-3.5" aria-hidden="true" /> Sisi Lapangan Usaha (KBLI)
+                <Layers className="w-3.5 h-3.5" aria-hidden="true" /> Sisi Lapangan Usaha (KBLI {data.kbliCategory})
               </span>
-              <span className="text-emerald-300 font-bold num text-xs">+12.4% Output</span>
+              <span className="text-emerald-300 font-bold num text-xs">
+                {data.kbliWeightPercent.toFixed(2)}% PDRB KTT
+              </span>
             </div>
             <p className="font-bold text-white text-sm leading-snug">
               KBLI <span className="num">{data.kbliCode2020}</span> • {data.kbliTitle2020}
             </p>
-            {data.kbliSecondary && (
-              <p className="text-xs text-slate-300 mt-1.5">Tambahan: {data.kbliSecondary}</p>
-            )}
             <div className="mt-3 text-[11px] text-sky-200 num bg-white/10 px-2.5 py-1 rounded-lg w-fit max-w-full break-words">
-              Mapping 2025: {data.kbliCode2025} ({data.kbliTitle2025})
+              Mapping KBLI 2025: {data.kbliCode2025} ({data.kbliTitle2025})
             </div>
           </div>
 
@@ -113,15 +123,12 @@ export function OdonHeroSpotlight({
                 <Scale className="w-3.5 h-3.5" aria-hidden="true" /> Sisi Pengeluaran PDRB
               </span>
               <span className="text-emerald-300 font-bold num text-xs">
-                Agregat {data.aggregateShare}
+                Bobot {data.aggregateShare}
               </span>
             </div>
             <p className="font-bold text-white text-sm leading-snug">{data.expenditureCode}</p>
-            {data.expenditureSecondary && (
-              <p className="text-xs text-slate-300 mt-1.5">Komponen: {data.expenditureSecondary}</p>
-            )}
             <div className="mt-3 text-[11px] text-emerald-200 num bg-white/10 px-2.5 py-1 rounded-lg w-fit max-w-full break-words">
-              Konfirmasi: Transshipment pelabuhan & kargo
+              Arah Dampak: {IMPACT_LABELS[data.impactType]}
             </div>
           </div>
         </div>
@@ -144,7 +151,7 @@ export function OdonHeroSpotlight({
             <span>Buka Sumber Berita</span>
             <ExternalLink className="w-3.5 h-3.5" aria-hidden="true" />
           </a>
-          {isAdmin && (
+          {isAdmin && onEditClassification && (
             <button
               type="button"
               onClick={onEditClassification}

@@ -1,22 +1,12 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { authorizeCronOrOperator } from "@/lib/cron-auth";
+import { SOURCE_MEDIA_VALUES } from "@/lib/constants/taxonomy";
 import { runIngestionPipeline } from "@/lib/scrapers";
 
 const ingestPayloadSchema = z
   .object({
-    sources: z
-      .array(
-        z.enum([
-          "koran_kaltara",
-          "radar_tarakan",
-          "tribun_kaltara",
-          "benuanta",
-          "antara_kaltara",
-          "national_media",
-        ])
-      )
-      .optional(),
+    sources: z.array(z.enum(SOURCE_MEDIA_VALUES)).optional(),
     max_articles_per_source: z.number().int().min(1).max(50).optional(),
   })
   .optional();

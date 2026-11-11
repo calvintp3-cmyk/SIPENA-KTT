@@ -12,6 +12,7 @@ describe("Scraper SSRF Allowlist & DOM/RSS Sanitization", () => {
     expect(isAllowedScraperUrl("https://radartarakan.jawapos.com/tana-tidung")).toBe(true);
     expect(isAllowedScraperUrl("https://kaltara.tribunnews.com/tag/tana-tidung")).toBe(true);
     expect(isAllowedScraperUrl("https://benuanta.co.id/wp-json/wp/v2/posts")).toBe(true);
+    expect(isAllowedScraperUrl("https://fokusborneo.com/daerah/tana-tidung/test/")).toBe(true);
     expect(isAllowedScraperUrl("https://kaltara.antaranews.com/rss/terkini.xml")).toBe(true);
     expect(isAllowedScraperUrl("https://finance.detik.com/rss")).toBe(true);
   });

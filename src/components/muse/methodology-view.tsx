@@ -2,6 +2,7 @@
 
 import React from "react";
 import { BookOpen, Layers, ShieldCheck, Clock, Sparkles, Compass } from "lucide-react";
+import { PDRB_KTT_WEIGHTS, PORTAL_SOURCES } from "@/lib/constants/taxonomy";
 
 const PRINCIPLES = [
   {
@@ -10,7 +11,11 @@ const PRINCIPLES = [
     title: "1. Prinsip Single Source of Truth",
     body: (
       <>
-        Format ODON diadopsi langsung dari standar <b className="font-semibold text-slate-900">Google Sheet 6503 BPS Tana Tidung</b>. Setiap berita harian memiliki 1 baris ledger resmi yang mencakup tanggal entri (H), tanggal terbit berita (H-1), URL sumber, narasi fenomena, serta kodifikasi ganda.
+        Format ODON diadopsi langsung dari standar{" "}
+        <b className="font-semibold text-slate-900">Sheet 6503 BPS Kabupaten Tana Tidung</b>,
+        menggunakan bobot resmi{" "}
+        <b className="font-semibold text-slate-900">Distribusi PDRB ADHB 2025 (Seri 2010)</b> serta{" "}
+        <b className="font-semibold text-slate-900">Lampiran 5 BPS0000 KBLI 2020 ↔ KBLI 2025</b>.
       </>
     ),
   },
@@ -20,7 +25,10 @@ const PRINCIPLES = [
     title: "2. Dual-Pillar Balance Transmission",
     body: (
       <>
-        Setiap berita wajib diklasifikasikan secara berpasangan: <b className="font-semibold text-slate-900">Sisi Lapangan Usaha (KBLI)</b> dan <b className="font-semibold text-slate-900">Sisi Pengeluaran (7 Komponen PDRB)</b>. Hal ini menjamin fenomena ekonomi dapat dianalisis dari dua perspektif agregasi statistik secara simultan.
+        Setiap berita wajib diklasifikasikan secara berpasangan:{" "}
+        <b className="font-semibold text-slate-900">Sisi Lapangan Usaha (17 Sektor KBLI)</b> dan{" "}
+        <b className="font-semibold text-slate-900">Sisi Pengeluaran (Komponen PDRB)</b> agar
+        dinamika ekonomi dapat direkonsiliasi serentak pada dua pendekatan.
       </>
     ),
   },
@@ -30,39 +38,79 @@ const PRINCIPLES = [
     title: "3. Human-in-the-Loop Verification",
     body: (
       <>
-        Meskipun pencarian berita dilakukan secara otomatis oleh crawler dan dianalisis oleh AI (Gemini), penetapan 1 berita utama harian <b className="font-semibold text-slate-900">mutlak melalui verifikasi tim analis BPS</b> untuk mencegah halusinasi data dan menjamin netralitas statistik.
+        Walaupun pengumpulan berita dan ekstraksi awal dibantu crawler dan AI Gemini, penetapan entri resmi harian{" "}
+        <b className="font-semibold text-slate-900">mutlak disahkan oleh Tim Nerwilis BPS 6504</b>{" "}
+        demi akurasi kodifikasi KBLI dan netralitas statistik.
       </>
     ),
   },
 ];
 
 const SUPPLY_SIDE = [
-  { label: "Sektor B: Pertambangan Batubara & Lignit", value: "37.80%" },
-  { label: "Sektor A: Perkebunan Buah Kelapa Sawit & Tani", value: "23.41%" },
-  { label: "Sektor F: Konstruksi Fisik & Infrastruktur", value: "18.50%" },
-  { label: "Sektor A02: Kehutanan & Pemanenan Kayu", value: "8.44%" },
+  {
+    label: `Sektor B: ${PDRB_KTT_WEIGHTS.lapanganUsaha.B.name}`,
+    value: `${PDRB_KTT_WEIGHTS.lapanganUsaha.B.weight.toFixed(2)}%`,
+  },
+  {
+    label: `Sektor A: ${PDRB_KTT_WEIGHTS.lapanganUsaha.A.name}`,
+    value: `${PDRB_KTT_WEIGHTS.lapanganUsaha.A.weight.toFixed(2)}%`,
+  },
+  {
+    label: `Sektor F: ${PDRB_KTT_WEIGHTS.lapanganUsaha.F.name}`,
+    value: `${PDRB_KTT_WEIGHTS.lapanganUsaha.F.weight.toFixed(2)}%`,
+  },
+  {
+    label: `Sektor O: ${PDRB_KTT_WEIGHTS.lapanganUsaha.O.name}`,
+    value: `${PDRB_KTT_WEIGHTS.lapanganUsaha.O.weight.toFixed(2)}%`,
+  },
 ];
 
 const DEMAND_SIDE = [
-  { label: "Pos 6: Net Ekspor Antardaerah (Pengapalan CPO & Batubara)", value: "49.98%", strong: true },
-  { label: "Pos 4: PMTB (Investasi Modal Fisik, Mesin, & Konstruksi)", value: "31.38%", strong: true },
-  { label: "Pos 2: Konsumsi Pemerintah (PK-P / APBD KTT)", value: "9.80%", strong: false },
-  { label: "Pos 1: Konsumsi Rumah Tangga (PK-RT Pangan & Jasa)", value: "7.06%", strong: false },
+  {
+    label: PDRB_KTT_WEIGHTS.pengeluaran.NET_EKSPOR.label,
+    value: `${PDRB_KTT_WEIGHTS.pengeluaran.NET_EKSPOR.weight.toFixed(2)}%`,
+    strong: true,
+  },
+  {
+    label: PDRB_KTT_WEIGHTS.pengeluaran.PMTB.label,
+    value: `${PDRB_KTT_WEIGHTS.pengeluaran.PMTB.weight.toFixed(2)}%`,
+    strong: true,
+  },
+  {
+    label: PDRB_KTT_WEIGHTS.pengeluaran.PK_P.label,
+    value: `${PDRB_KTT_WEIGHTS.pengeluaran.PK_P.weight.toFixed(2)}%`,
+    strong: false,
+  },
+  {
+    label: PDRB_KTT_WEIGHTS.pengeluaran.PK_RT.label,
+    value: `${PDRB_KTT_WEIGHTS.pengeluaran.PK_RT.weight.toFixed(2)}%`,
+    strong: false,
+  },
+  {
+    label: PDRB_KTT_WEIGHTS.pengeluaran.PK_LNPRT.label,
+    value: `${PDRB_KTT_WEIGHTS.pengeluaran.PK_LNPRT.weight.toFixed(2)}%`,
+    strong: false,
+  },
+  {
+    label: PDRB_KTT_WEIGHTS.pengeluaran.PI.label,
+    value: `${PDRB_KTT_WEIGHTS.pengeluaran.PI.weight.toFixed(2)}%`,
+    strong: false,
+  },
 ];
 
 const LIFECYCLE = [
   {
     time: "05:00 WITA",
-    title: "1. Multi-Portal Crawler",
-    body: "Bot menyisir 5 portal berita (Radar Tarakan, Benuanta, Fokus Borneo, Tribun Kaltara, Antara Kaltara) untuk berita terbit H-1.",
+    title: `1. Crawler ${PORTAL_SOURCES.length} Portal Media`,
+    body: "Bot menyisir 7 sumber resmi: Koran Kaltara, Radar Tarakan, Tribun Kaltara, Benuanta, Fokus Borneo, Antara Kaltara, dan Media Nasional.",
     tone: "border-blue-200/70 bg-blue-50/40",
     chip: "text-blue-700 ring-blue-200",
     dot: "bg-blue-500",
   },
   {
-    time: "06:30 WITA",
-    title: "2. Ekstraksi AI & KBLI",
-    body: "Gemini AI mengekstrak ringkasan fenomena, menghitung skor relevansi, dan memetakan kode KBLI 2020 ↔ 2025.",
+    time: "05:30 WITA",
+    title: "2. Ekstraksi AI & KBLI 2025",
+    body: "Gemini AI menyaring fenomena ekonomi KTT, merangkum narasi standar BPS, dan memetakan KBLI 2020 <-> KBLI 2025.",
     tone: "border-sky-200/70 bg-sky-50/40",
     chip: "text-sky-700 ring-sky-200",
     dot: "bg-sky-500",
@@ -70,7 +118,7 @@ const LIFECYCLE = [
   {
     time: "07:30 WITA",
     title: "3. Kurasi Tim Nerwilis",
-    body: "Analis BPS 6504 meninjau antrean kurasi, memvalidasi akurasi data, dan menetapkan 1 Berita ODON Utama hari itu.",
+    body: "Analis BPS 6504 meninjau antrean di Meja Kurasi AI maupun usulan OPD/publik, memvalidasi kode KBLI dan Pengeluaran.",
     tone: "border-amber-200/70 bg-amber-50/40",
     chip: "text-amber-700 ring-amber-200",
     dot: "bg-amber-500",
@@ -78,7 +126,7 @@ const LIFECYCLE = [
   {
     time: "08:00 WITA",
     title: "4. Sinkronisasi Sheet 6503",
-    body: "ODON hari itu resmi dipublikasikan ke portal publik, tercatat di Buku Kerja Sheet 6503, dan siap diunduh dalam format .xlsx.",
+    body: "Entri terverifikasi tampil di portal publik & Buku Kerja Sheet 6503 serta siap diekspor ke format Excel resmi (.xlsx).",
     tone: "border-emerald-200/70 bg-emerald-50/40",
     chip: "text-emerald-700 ring-emerald-200",
     dot: "bg-emerald-500",
@@ -117,7 +165,7 @@ export function MethodologyView() {
               Metodologi & Prinsip Satu Data ODON (One Day One News)
             </h3>
             <p className="text-sm text-slate-600 max-w-3xl leading-relaxed">
-              Panduan resmi mekanisme pencatatan fenomena ekonomi harian Kabupaten Tana Tidung untuk memperkuat validitas, objektivitas, dan kecepatan rilis Produk Domestik Regional Bruto (PDRB).
+              Panduan resmi pencatatan fenomena ekonomi harian Kabupaten Tana Tidung berdasarkan Distribusi PDRB ADHB 2025 (Seri 2010) dan Crosswalk KBLI 2020 ↔ KBLI 2025.
             </p>
           </div>
           <div className="rounded-xl p-3.5 bg-blue-600 text-white shadow-md shadow-blue-600/25">
@@ -132,7 +180,9 @@ export function MethodologyView() {
           const Icon = p.icon;
           return (
             <div key={p.title} className="ui-card ui-card-interactive p-6 space-y-3">
-              <div className={`w-10 h-10 rounded-xl ring-1 ring-inset flex items-center justify-center ${p.box}`}>
+              <div
+                className={`w-10 h-10 rounded-xl ring-1 ring-inset flex items-center justify-center ${p.box}`}
+              >
                 <Icon className="w-5 h-5" aria-hidden="true" />
               </div>
               <h4 className="ui-h2">{p.title}</h4>
@@ -146,7 +196,9 @@ export function MethodologyView() {
       <div className="ui-card overflow-hidden">
         <div className="ui-card-header !justify-start gap-2.5">
           <Sparkles className="w-4 h-4 text-blue-600" aria-hidden="true" />
-          <h4 className="ui-h2">Struktur Pembobotan Sektoral Kabupaten Tana Tidung (2025/2026)</h4>
+          <h4 className="ui-h2">
+            Struktur Pembobotan PDRB ADHB Kabupaten Tana Tidung Tahun 2025 (Seri 2010)
+          </h4>
         </div>
 
         <div className="p-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -155,14 +207,21 @@ export function MethodologyView() {
               <span className="text-xs font-semibold text-slate-900">
                 Pilar 1: Lapangan Usaha (Supply-Side)
               </span>
-              <span className="ui-badge ui-badge-info num">Top 4 = 88.14% PDRB</span>
+              <span className="ui-badge ui-badge-info num">
+                Top 4 = {PDRB_KTT_WEIGHTS.top4LapanganUsahaShare}% PDRB
+              </span>
             </div>
             <p className="text-[13px] text-slate-600 leading-relaxed">
-              AI memprioritaskan berita yang berdampak langsung pada 4 sektor primer penopang utama ekonomi Tana Tidung:
+              Prioritas analisis mengacu pada 4 sektor dengan kontribusi terbesar di Kab. Tana Tidung (ditambah Jasa Pendidikan 1.29%, Perdagangan 5.06%, Industri Pengolahan 3.54%, dan Transportasi 0.64%):
             </p>
             <div className="space-y-2">
               {SUPPLY_SIDE.map((r) => (
-                <WeightRow key={r.label} label={r.label} value={r.value} valueClass="text-blue-700" />
+                <WeightRow
+                  key={r.label}
+                  label={r.label}
+                  value={r.value}
+                  valueClass="text-blue-700"
+                />
               ))}
             </div>
           </div>
@@ -172,10 +231,12 @@ export function MethodologyView() {
               <span className="text-xs font-semibold text-slate-900">
                 Pilar 2: Komponen Pengeluaran (Demand-Side)
               </span>
-              <span className="ui-badge ui-badge-success num">Top 2 = 81.36% PDRB</span>
+              <span className="ui-badge ui-badge-success num">
+                Top 2 = {PDRB_KTT_WEIGHTS.top2PengeluaranShare}% PDRB
+              </span>
             </div>
             <p className="text-[13px] text-slate-600 leading-relaxed">
-              Setiap fenomena produksi diterjemahkan ke pos pengeluaran moneter terkait:
+              Setiap fenomena produksi diterjemahkan ke pos pengeluaran PDRB 2025:
             </p>
             <div className="space-y-2">
               {DEMAND_SIDE.map((r) => (
@@ -200,7 +261,9 @@ export function MethodologyView() {
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 pt-1">
           {LIFECYCLE.map((s) => (
             <div key={s.time} className={`p-4 rounded-xl border space-y-2 ${s.tone}`}>
-              <span className={`inline-flex items-center gap-1.5 text-[11px] num font-bold bg-white px-2.5 py-0.5 rounded-full ring-1 ring-inset ${s.chip}`}>
+              <span
+                className={`inline-flex items-center gap-1.5 text-[11px] num font-bold bg-white px-2.5 py-0.5 rounded-full ring-1 ring-inset ${s.chip}`}
+              >
                 <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`} aria-hidden="true" />
                 {s.time}
               </span>

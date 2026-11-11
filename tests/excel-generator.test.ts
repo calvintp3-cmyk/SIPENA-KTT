@@ -1,6 +1,7 @@
 import ExcelJS from "exceljs";
 import { describe, expect, it } from "vitest";
 import {
+  generateOdonSheet6503Workbook,
   generatePdrbPhenomenaWorkbook,
   sanitizeSpreadsheetText,
 } from "@/lib/export/excel-generator";
@@ -124,6 +125,52 @@ describe("ExcelJS Diseminasi Workbook Generator & Formula Injection Protection",
     // Row 5 exists (PMTB item), Row 6 should NOT exist because TIDAK_RELEVAN is excluded from Sheet 2
     expect(sheet2?.getRow(5).getCell(2).value).toContain("PMTB");
     expect(sheet2?.getRow(6).getCell(1).value).toBeNull();
+  });
+
+  it("builds ODON Sheet 6503 XLSX workbook with KBLI 2020<->2025 and CWE-1236 protection", async () => {
+    const buffer = await generateOdonSheet6503Workbook({
+      generatedAt: new Date("2025-05-10T05:00:00Z"),
+      rows: [
+        {
+          entryDate: "2025-05-10",
+          releaseDate: "2025-05-09",
+          source: "Koran Kaltara",
+          sourceUrl: "https://korankaltara.com/ekspor-batubara-ktt",
+          title: "=SUM(1,2) Pengiriman Tongkang Batubara Sesayap",
+          summary: "Volume pengapalan batubara menuju luar daerah meningkat pada Mei 2025.",
+          kbliCategory: "B",
+          kbliCode2020: "05100",
+          kbliTitle2020: "Pertambangan Batubara",
+          kbliCode2025: "05101",
+          kbliTitle2025: "Pertambangan Batu Bara",
+          pdrbWeightPercent: 37.80,
+          expenditureComponent: "EKSPOR",
+          expenditureWeightPercent: 49.98,
+          impactType: "positif",
+          quarter: "Q2",
+          year: 2025,
+          verifierName: "Admin Nerwilis 6504",
+        },
+      ],
+    });
+
+    expect(buffer[0]).toBe(0x50);
+    expect(buffer[1]).toBe(0x4b);
+
+    const parsedWorkbook = new ExcelJS.Workbook();
+    await parsedWorkbook.xlsx.load(new Uint8Array(buffer).buffer);
+
+    const sheet = parsedWorkbook.getWorksheet("Sheet 6503 ODON");
+    expect(sheet).toBeDefined();
+    expect(sheet?.getRow(4).getCell(8).value).toBe("KBLI 2020");
+    expect(sheet?.getRow(4).getCell(9).value).toBe("KBLI 2025");
+    expect(sheet?.getRow(5).getCell(5).value).toBe(
+      "'=SUM(1,2) Pengiriman Tongkang Batubara Sesayap"
+    );
+    expect(sheet?.getRow(5).getCell(8).value).toBe("05100");
+    expect(sheet?.getRow(5).getCell(9).value).toBe("05101");
+    expect(sheet?.getRow(5).getCell(10).value).toBe("37.80%");
+    expect(sheet?.getRow(5).getCell(12).value).toBe("49.98%");
   });
 });
 

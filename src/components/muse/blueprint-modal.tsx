@@ -2,6 +2,7 @@
 
 import React, { useEffect } from "react";
 import { Layers, X } from "lucide-react";
+import { PDRB_KTT_WEIGHTS } from "@/lib/constants/taxonomy";
 
 interface BlueprintModalProps {
   isOpen: boolean;
@@ -21,7 +22,10 @@ export function BlueprintModal({ isOpen, onClose }: BlueprintModalProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="ui-modal-scrim" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+    <div
+      className="ui-modal-scrim"
+      onMouseDown={(e) => e.target === e.currentTarget && onClose()}
+    >
       <div
         role="dialog"
         aria-modal="true"
@@ -35,11 +39,20 @@ export function BlueprintModal({ isOpen, onClose }: BlueprintModalProps) {
               <Layers className="w-4 h-4" aria-hidden="true" />
             </div>
             <div>
-              <h4 id="blueprint-modal-title" className="ui-h2">Blueprint Arsitektur & Techstack SIPENA-KTT</h4>
-              <p className="text-xs text-slate-500">Next.js 15 App Router • Drizzle ORM • PostgreSQL • Gemini AI</p>
+              <h4 id="blueprint-modal-title" className="ui-h2">
+                Blueprint Arsitektur & Techstack SIPENA-KTT
+              </h4>
+              <p className="text-xs text-slate-500">
+                Next.js 15 App Router • Drizzle ORM • PostgreSQL • Gemini AI
+              </p>
             </div>
           </div>
-          <button type="button" onClick={onClose} aria-label="Tutup dialog" className="ui-icon-btn !border-transparent !shadow-none">
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Tutup dialog"
+            className="ui-icon-btn !border-transparent !shadow-none"
+          >
             <X className="w-4 h-4" aria-hidden="true" />
           </button>
         </div>
@@ -47,27 +60,27 @@ export function BlueprintModal({ isOpen, onClose }: BlueprintModalProps) {
         {/* Content */}
         <div className="p-6 space-y-4 text-sm">
           <div className="p-4 bg-blue-50/60 rounded-xl ring-1 ring-inset ring-blue-600/15 text-blue-950 leading-relaxed text-[13px]">
-            <b className="font-semibold">Single Source of Truth:</b> BPS Satker 65.04 Kabupaten Tana Tidung. Bobot sektor ekonomi didominasi oleh Batubara (<span className="num">37.8%</span>) dan Sawit (<span className="num">23.4%</span>) pada sisi Lapangan Usaha, serta Net Ekspor (<span className="num">49.98%</span>) dan PMTB (<span className="num">31.38%</span>) pada sisi Pengeluaran.
+            <b className="font-semibold">Single Source of Truth:</b> BPS Satker 65.04 Kab. Tana Tidung (Distribusi PDRB ADHB 2025 Seri 2010). Top 4 Lapangan Usaha: Batubara (<span className="num">{PDRB_KTT_WEIGHTS.lapanganUsaha.B.weight.toFixed(2)}%</span>), Pertanian/Sawit (<span className="num">{PDRB_KTT_WEIGHTS.lapanganUsaha.A.weight.toFixed(2)}%</span>), Konstruksi (<span className="num">{PDRB_KTT_WEIGHTS.lapanganUsaha.F.weight.toFixed(2)}%</span>), Administrasi Pemerintahan (<span className="num">{PDRB_KTT_WEIGHTS.lapanganUsaha.O.weight.toFixed(2)}%</span>). Top 2 Pengeluaran: Net Ekspor (<span className="num">{PDRB_KTT_WEIGHTS.pengeluaran.NET_EKSPOR.weight.toFixed(2)}%</span>) & PMTB (<span className="num">{PDRB_KTT_WEIGHTS.pengeluaran.PMTB.weight.toFixed(2)}%</span>).
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="p-4 rounded-xl ring-1 ring-inset ring-slate-200/80 bg-slate-50/70">
-              <p className="font-semibold text-slate-900 mb-2 text-[13px]">Frontend Layer</p>
+              <p className="font-semibold text-slate-900 mb-2 text-[13px]">Frontend & API Layer</p>
               <ul className="space-y-1.5 text-xs text-slate-600 leading-relaxed">
-                <li>• Next.js 15.1.7 (React 19 Server Components)</li>
-                <li>• Tailwind CSS 3.4 (Muse Ant Design Tokens)</li>
-                <li>• Lucide React Icons & Tipografi Inter + JetBrains Mono</li>
-                <li>• TanStack Table v8 for Ledger & Faceted Filters</li>
+                <li>• Next.js 15.1.7 App Router (React 19 SSR)</li>
+                <li>• Tailwind CSS 3.4 & Lucide Icons</li>
+                <li>• REST Endpoints: /api/odon, /api/proposals, /api/kbli</li>
+                <li>• Session JWT RBAC & Rate Limiting + SSRF Allowlist</li>
               </ul>
             </div>
 
             <div className="p-4 rounded-xl ring-1 ring-inset ring-slate-200/80 bg-slate-50/70">
               <p className="font-semibold text-slate-900 mb-2 text-[13px]">Backend & Pipeline Layer</p>
               <ul className="space-y-1.5 text-xs text-slate-600 leading-relaxed">
-                <li>• Drizzle ORM 0.39 + PostgreSQL 16 (Neon / Local)</li>
-                <li>• Scheduled Cron (05:00 WITA) H-1 Window Scraper</li>
-                <li>• Google Gemini AI SDK (@google/genai) for Extraction</li>
-                <li>• ExcelJS for Google Sheet 6503 ODON direct export</li>
+                <li>• Drizzle ORM 0.39 + PostgreSQL 16 (sipena_ktt)</li>
+                <li>• Scraper H-1 7 Portal Berita Kaltara & Nasional</li>
+                <li>• Google Gemini AI (@ai-sdk/google) Extraction</li>
+                <li>• ExcelJS Sheet 6503 ODON Streaming Export (.xlsx)</li>
               </ul>
             </div>
           </div>
@@ -75,9 +88,10 @@ export function BlueprintModal({ isOpen, onClose }: BlueprintModalProps) {
           <div className="p-4 rounded-xl ring-1 ring-inset ring-slate-200/80 bg-slate-50/70">
             <p className="font-semibold text-slate-900 mb-2 text-[13px]">Database Schema Mapping</p>
             <pre className="text-[11px] bg-slate-950 text-slate-100 p-3.5 rounded-lg overflow-x-auto leading-relaxed">
-{`odon_entries (id, date, title, url, source, raw_content, ai_summary, status, verifier_id)
-odon_classifications (id, odon_id, kbli_2020, kbli_2025, expenditure_component, impact_direction, pdrb_weight)
-kbli_conversions (id, code_2020, title_2020, code_2025, title_2025, lampiran_ref)`}
+{`odon_entries (id, article_id, entry_date, published_date, source_media, source_url, title, status, verified_by)
+odon_classifications (id, odon_id, kbli_category, kbli_code_2020, kbli_code_2025, pdrb_weight, expenditure_component, impact_type)
+kbli_conversions (id, code_2020, title_2020, code_2025, title_2025, lampiran_ref, conversion_type)
+article_proposals (id, url, title, submitter_name, submitter_agency, economic_notes, status, reviewed_by)`}
             </pre>
           </div>
         </div>

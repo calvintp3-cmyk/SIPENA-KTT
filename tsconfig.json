@@ -23,6 +23,12 @@
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules", "000 - SKILLS_cleaned"]
+  "exclude": [
+    "node_modules",
+    "000 - SKILLS_cleaned",
+    "startup-nextjs-main",
+    "startup-nextjs-main (2)",
+    "materio-mui-nextjs-admin-template-free-main"
+  ]
 }
 

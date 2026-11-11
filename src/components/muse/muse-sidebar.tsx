@@ -13,7 +13,9 @@ import {
   BookOpen,
   Eye,
   Code2,
+  LogOut,
 } from "lucide-react";
+import { PDRB_KTT_WEIGHTS, PORTAL_SOURCES } from "@/lib/constants/taxonomy";
 
 export type MuseViewTab =
   | "overview"
@@ -34,6 +36,11 @@ interface MuseSidebarProps {
   onRoleToggle: () => void;
   onOpenSubmitModal: () => void;
   onOpenBlueprintModal: () => void;
+  pendingCandidatesCount: number;
+  pendingProposalsCount: number;
+  portalsCount?: number;
+  userName?: string | null;
+  onLogout?: () => void;
 }
 
 type PillTone = "blue" | "amber" | "green" | "neutral";
@@ -47,32 +54,74 @@ export interface MuseNavItem {
   live?: boolean;
 }
 
-export const MUSE_NAV_GROUPS: { title: string; items: MuseNavItem[] }[] = [
-  {
-    title: "Operasional Nerwilis",
-    items: [
-      { tab: "overview", label: "Dashboard Harian", icon: LayoutDashboard, live: true },
-      { tab: "curation", label: "Meja Kurasi AI", icon: CheckSquare, pill: "8 Antrean", pillTone: "blue" },
-      { tab: "proposals", label: "Moderasi Usulan OPD", icon: Inbox, pill: "3 Usulan", pillTone: "amber" },
-      { tab: "ledger", label: "Buku Kerja Sheet 6503", icon: FileSpreadsheet, pill: ".xlsx", pillTone: "green" },
-    ],
-  },
-  {
-    title: "Analisis & Standar",
-    items: [
-      { tab: "pdrb", label: "Bobot PDRB (Internal)", icon: Layers, pill: "88.1%", pillTone: "neutral" },
-      { tab: "narratives", label: "Draf Narasi BRS", icon: FileText },
-      { tab: "kbli", label: "Kamus KBLI 2025", icon: ArrowLeftRight },
-    ],
-  },
-  {
-    title: "Otomasi Sistem",
-    items: [
-      { tab: "scrapers", label: "Crawler 5 Portal", icon: Radar, pill: "05:00", pillTone: "green" },
-      { tab: "methodology", label: "Pedoman SOP ODON", icon: BookOpen },
-    ],
-  },
-];
+export function getMuseNavGroups(counts?: {
+  pendingCandidatesCount?: number;
+  pendingProposalsCount?: number;
+  portalsCount?: number;
+}): { title: string; items: MuseNavItem[] }[] {
+  const candidates = counts?.pendingCandidatesCount ?? 0;
+  const proposals = counts?.pendingProposalsCount ?? 0;
+  const portals = counts?.portalsCount ?? PORTAL_SOURCES.length;
+
+  return [
+    {
+      title: "Operasional Nerwilis",
+      items: [
+        { tab: "overview", label: "Dashboard Harian", icon: LayoutDashboard, live: true },
+        {
+          tab: "curation",
+          label: "Meja Kurasi AI",
+          icon: CheckSquare,
+          pill: `${candidates} Antrean`,
+          pillTone: "blue",
+        },
+        {
+          tab: "proposals",
+          label: "Moderasi Usulan OPD",
+          icon: Inbox,
+          pill: `${proposals} Usulan`,
+          pillTone: "amber",
+        },
+        {
+          tab: "ledger",
+          label: "Buku Kerja Sheet 6503",
+          icon: FileSpreadsheet,
+          pill: ".xlsx",
+          pillTone: "green",
+        },
+      ],
+    },
+    {
+      title: "Analisis & Standar",
+      items: [
+        {
+          tab: "pdrb",
+          label: "Bobot PDRB (Internal)",
+          icon: Layers,
+          pill: `${PDRB_KTT_WEIGHTS.top4LapanganUsahaShare}%`,
+          pillTone: "neutral",
+        },
+        { tab: "narratives", label: "Draf Narasi BRS", icon: FileText },
+        { tab: "kbli", label: "Kamus KBLI 2025", icon: ArrowLeftRight },
+      ],
+    },
+    {
+      title: "Otomasi Sistem",
+      items: [
+        {
+          tab: "scrapers",
+          label: `Crawler ${portals} Portal`,
+          icon: Radar,
+          pill: "05:00",
+          pillTone: "green",
+        },
+        { tab: "methodology", label: "Pedoman SOP ODON", icon: BookOpen },
+      ],
+    },
+  ];
+}
+
+export const MUSE_NAV_GROUPS = getMuseNavGroups();
 
 const PILL_CLASS: Record<PillTone, string> = {
   blue: "ui-nav-pill ui-nav-pill-blue",
@@ -81,18 +130,37 @@ const PILL_CLASS: Record<PillTone, string> = {
   neutral: "ui-nav-pill",
 };
 
+function getInitials(name: string | null | undefined): string {
+  if (!name) return "ADM";
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "ADM";
+  if (parts.length === 1) return parts[0].slice(0, 3).toUpperCase();
+  return `${parts[0][0] ?? ""}${parts[1][0] ?? ""}`.toUpperCase();
+}
+
 export function MuseSidebar({
   currentTab,
   onTabChange,
   userRole,
   onRoleToggle,
   onOpenBlueprintModal,
+  pendingCandidatesCount,
+  pendingProposalsCount,
+  portalsCount = PORTAL_SOURCES.length,
+  userName,
+  onLogout,
 }: MuseSidebarProps) {
   const isAdmin = userRole === "admin";
 
   if (!isAdmin) {
     return null;
   }
+
+  const navGroups = getMuseNavGroups({
+    pendingCandidatesCount,
+    pendingProposalsCount,
+    portalsCount,
+  });
 
   return (
     <aside
@@ -117,7 +185,7 @@ export function MuseSidebar({
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto px-4 py-5 space-y-6">
-        {MUSE_NAV_GROUPS.map((group) => (
+        {navGroups.map((group) => (
           <div key={group.title} className="space-y-1">
             <p className="px-3 pb-1 text-[11px] font-semibold tracking-wide text-slate-500">
               {group.title}
@@ -154,14 +222,16 @@ export function MuseSidebar({
       </nav>
 
       {/* Footer */}
-      <div className="shrink-0 p-4 border-t border-slate-800/80 space-y-3">
+      <div className="shrink-0 p-4 border-t border-slate-800/80 space-y-2.5">
         <div className="p-2.5 rounded-xl bg-slate-900/70 border border-slate-800 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2.5 min-w-0">
             <div className="w-8 h-8 rounded-full bg-blue-600/20 text-blue-300 ring-1 ring-blue-500/30 font-bold flex items-center justify-center text-[11px] shrink-0">
-              ADM
+              {getInitials(userName)}
             </div>
             <div className="min-w-0">
-              <p className="text-xs font-semibold text-white truncate">Tim Nerwilis 6504</p>
+              <p className="text-xs font-semibold text-white truncate">
+                {userName ?? "Tim Nerwilis 6504"}
+              </p>
               <p className="text-[11px] text-slate-400 truncate">Analis PDRB KTT</p>
             </div>
           </div>
@@ -176,14 +246,27 @@ export function MuseSidebar({
           </button>
         </div>
 
-        <button
-          type="button"
-          onClick={onRoleToggle}
-          className="w-full min-h-10 px-3 rounded-xl text-xs font-semibold inline-flex items-center justify-center gap-2 bg-slate-800/70 hover:bg-slate-800 text-slate-100 border border-slate-700/70 transition-all active:scale-[0.98]"
-        >
-          <Eye className="w-3.5 h-3.5 text-blue-400" aria-hidden="true" />
-          <span>Lihat Tampilan Publik</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={onRoleToggle}
+            className="flex-1 min-h-10 px-3 rounded-xl text-xs font-semibold inline-flex items-center justify-center gap-2 bg-slate-800/70 hover:bg-slate-800 text-slate-100 border border-slate-700/70 transition-all active:scale-[0.98]"
+          >
+            <Eye className="w-3.5 h-3.5 text-blue-400" aria-hidden="true" />
+            <span>Tampilan Publik</span>
+          </button>
+          {onLogout && (
+            <button
+              type="button"
+              onClick={onLogout}
+              title="Keluar sesi"
+              aria-label="Keluar dari sesi operator"
+              className="w-10 h-10 shrink-0 rounded-xl inline-flex items-center justify-center bg-slate-800/70 hover:bg-rose-950/80 text-slate-300 hover:text-rose-300 border border-slate-700/70 transition-colors"
+            >
+              <LogOut className="w-3.5 h-3.5" aria-hidden="true" />
+            </button>
+          )}
+        </div>
       </div>
     </aside>
   );

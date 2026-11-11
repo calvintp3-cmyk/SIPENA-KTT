@@ -128,6 +128,7 @@ const ALLOWED_SCRAPER_DOMAINS = [
   "jawapos.com",
   "tribunnews.com",
   "benuanta.co.id",
+  "fokusborneo.com",
   "antaranews.com",
   "detik.com",
 ] as const;

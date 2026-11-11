@@ -2,19 +2,11 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getPhenomenaList } from "@/db/queries";
 import { getCurrentSessionUser } from "@/lib/auth";
+import { SOURCE_MEDIA_VALUES } from "@/lib/constants/taxonomy";
 import { phenomenonQuerySchema } from "@/types";
 
 const extendedQuerySchema = phenomenonQuerySchema.extend({
-  source: z
-    .enum([
-      "koran_kaltara",
-      "radar_tarakan",
-      "tribun_kaltara",
-      "benuanta",
-      "antara_kaltara",
-      "national_media",
-    ])
-    .optional(),
+  source: z.enum(SOURCE_MEDIA_VALUES).optional(),
 });
 
 export async function GET(request: Request) {

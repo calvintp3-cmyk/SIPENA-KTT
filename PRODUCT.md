@@ -22,9 +22,9 @@ A modern, high-craft Light-First SaaS curation workstation inspired by **Sapick 
 
 ## Operating Context
 
-- **Monitored Sources**: Koran Kaltara, Radar Tarakan, Tribun Kaltara, Benuanta, Antara Kaltara, and filtered Media Nasional.
+- **Monitored Sources**: Koran Kaltara, Radar Tarakan (`radartarakan.jawapos.com`), Tribun Kaltara, Benuanta, Fokus Borneo, Antara Kaltara, and filtered Media Nasional (7 portals).
 - **Scheduled Ingestion & AI Extraction**: Automated daily pipeline (`05:00` / `05:30 WITA`) plus manual trigger (`Tarik Berita`) restricted to `admin` and `editor` roles.
-- **Period Cadence**: Quarterly compilation (`Q1`, `Q2`, `Q3`, `Q4`) by fiscal year (`2024`, `2025`, `2026`).
+- **Period Cadence**: Quarterly compilation (`Q1`, `Q2`, `Q3`, `Q4`) by fiscal year (`2024`, `2025`, `2026`), aligned with SSoT Distribusi PDRB ADHB 2025 Seri 2010 and 2,560-pair KBLI 2020 ↔ KBLI 2025 crosswalk (`BPS0000`) via both Meja Kurasi (`/`) and Sheet 6503 ODON (`/odon`).
 - **Accessibility & Speed**: Keyboard-first analyst triage (`Ctrl/Cmd+K` search, `J`/`K` row navigation, `[A]` approve / `[R]` reject inside the inspection pane) with strict RBAC protection and session cookies over HTTPS (`sipena-ktt.caplinlab.my.id`).
 
 ## Capabilities and Constraints
