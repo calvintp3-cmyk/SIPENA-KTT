@@ -27,11 +27,13 @@ import { mapClassificationToPersistence } from '../llm/classifier';
 import { GeminiClassificationWorker, type GeminiWorkerOptions } from '../llm/gemini-client';
 import { extractArticleContent } from './extractor';
 import {
+  buildNationalFallbackSnippet,
   extractRedirectTargetFromGoogleHtml,
   harvestNationalKeywords,
   type ActiveKeywordTarget,
 } from './national';
 import {
+  DEFAULT_LOOKBACK_DAYS,
   getWitaLookbackCutoff,
   harvestRegionalPortals,
   isWithinLookbackWindow,
@@ -323,7 +325,7 @@ async function executeLockedScrapePipeline(
   const startedAtMs = Date.now();
   const mode: ScrapeRunMode = params.mode ?? 'ALL';
   const now = params.now ?? new Date();
-  const lookbackDays = params.lookbackDays ?? 3;
+  const lookbackDays = params.lookbackDays ?? DEFAULT_LOOKBACK_DAYS;
   const fetchFn = params.fetchFn ?? safeFetchText;
   const fetchTimeoutMs = params.fetchTimeoutMs ?? DEFAULT_FETCH_TIMEOUT_MS;
   const fetchConcurrency = params.fetchConcurrency ?? DEFAULT_FETCH_CONCURRENCY;
@@ -481,10 +483,32 @@ async function executeLockedScrapePipeline(
     await persistLogSnapshot(ScraperRunStatusEnum.RUNNING, false).catch(() => {});
 
     // -------------------------------------------------------------------------
-    // Phase C: Parallel HTML Fetch (concurrency 5, timeout 7s) + Extractor (150-250 kata)
+    // Phase C: Parallel HTML Fetch (concurrency 5, timeout 7s) + Extractor (300-450 kata)
     // -------------------------------------------------------------------------
     const extractedReady: ExtractedReadyArticle[] = [];
     const extractedSeenHashes = new Set<string>();
+
+    const pushNationalMetadataFallback = (candidate: DiscoveredArticleCandidate, finalUrlOverride?: string) => {
+      const targetUrl = finalUrlOverride && isSafeHttpUrl(finalUrlOverride) ? finalUrlOverride : candidate.url;
+      const { normalizedUrl, urlHash } = hashNormalizedUrl(targetUrl);
+      if (extractedSeenHashes.has(urlHash)) {
+        articlesDeduplicated += 1;
+        return;
+      }
+      const fallback = buildNationalFallbackSnippet(candidate);
+      extractedSeenHashes.add(urlHash);
+      extractedReady.push({
+        candidate,
+        finalUrl: targetUrl,
+        normalizedUrl,
+        urlHash,
+        sourcePortal: candidate.sourcePortal,
+        title: candidate.title,
+        snippetText: fallback.snippetText,
+        wordCount: fallback.wordCount,
+        publishedAt: candidate.publishedHint ?? now,
+      });
+    };
 
     if (hasRemainingBudget(20)) {
       await runWithConcurrency(
@@ -502,25 +526,25 @@ async function executeLockedScrapePipeline(
               signal: pipelineController.signal,
             });
 
-            // Jika mendarat di wrapper HTML Google News, ikuti tautan penerbit target jika tersedia
+            // Jika mendarat di wrapper HTML Google News, ikuti tautan penerbit target jika tersedia;
+            // jika Google News memakai JS-redirect (CBMi...), gunakan fallback metadata RSS agar artikel tetap terklasifikasi
             if (isGoogleWrapperHost(fetched.finalUrl)) {
               const externalTarget = extractRedirectTargetFromGoogleHtml(fetched.body);
               if (externalTarget && hasRemainingBudget(20)) {
-                fetched = await fetchFn(externalTarget, {
-                  timeoutMs: fetchTimeoutMs,
-                  maxBytes: 2 * 1024 * 1024,
-                  userAgent: DEFAULT_BROWSER_USER_AGENT,
-                  headers: DEFAULT_BROWSER_HEADERS,
-                  signal: pipelineController.signal,
-                });
+                try {
+                  fetched = await fetchFn(externalTarget, {
+                    timeoutMs: fetchTimeoutMs,
+                    maxBytes: 2 * 1024 * 1024,
+                    userAgent: DEFAULT_BROWSER_USER_AGENT,
+                    headers: DEFAULT_BROWSER_HEADERS,
+                    signal: pipelineController.signal,
+                  });
+                } catch {
+                  pushNationalMetadataFallback(candidate, externalTarget);
+                  return;
+                }
               } else {
-                errors.push({
-                  source: candidate.sourcePortal,
-                  stage: 'FETCH',
-                  message:
-                    'Wrapper Google News tidak mengekspos tautan redirect HTML langsung.',
-                  url: candidate.url,
-                });
+                pushNationalMetadataFallback(candidate);
                 return;
               }
             }
@@ -536,13 +560,21 @@ async function executeLockedScrapePipeline(
             const extracted = extractArticleContent(fetched.body, candidate.publishedHint);
             const publishedAt = extracted.publishedAt ?? candidate.publishedHint ?? now;
 
-            // Jika halaman artikel memiliki tanggal lebih tua dari jendela H-3 WITA, abaikan sebelum LLM
+            // Jika halaman artikel memiliki tanggal lebih tua dari jendela lookback WITA, abaikan sebelum LLM
             if (extracted.publishedAt && !isWithinLookbackWindow(extracted.publishedAt, cutoffDate)) {
               articlesDeduplicated += 1;
               return;
             }
 
             if (!extracted.isValidContent) {
+              if (
+                candidate.sourceType === ArticleSourceTypeEnum.NATIONAL &&
+                candidate.fallbackDescription
+              ) {
+                pushNationalMetadataFallback(candidate, finalUrl);
+                return;
+              }
+
               errors.push({
                 source: candidate.sourcePortal,
                 stage: 'EXTRACT',
@@ -570,6 +602,14 @@ async function executeLockedScrapePipeline(
               publishedAt,
             });
           } catch (err) {
+            if (
+              candidate.sourceType === ArticleSourceTypeEnum.NATIONAL &&
+              (candidate.fallbackDescription || isGoogleWrapperHost(candidate.url))
+            ) {
+              pushNationalMetadataFallback(candidate);
+              return;
+            }
+
             errors.push({
               source: candidate.sourcePortal,
               stage: 'FETCH',
@@ -661,6 +701,8 @@ async function executeLockedScrapePipeline(
             sourcePortal: item.sourcePortal,
             sourceType: item.candidate.sourceType,
             matchedKeyword: item.candidate.matchedKeyword,
+            defaultKbliHint: item.candidate.defaultKbliCategory,
+            defaultExpenditureHint: item.candidate.defaultExpenditureComponent,
             publishedAtWita,
             defaultQuarter: defaultPeriod.quarter,
             defaultYear: defaultPeriod.year,

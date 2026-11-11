@@ -11,7 +11,7 @@ export const LlmClassificationRawSchema = z
   .object({
     is_economic_phenomenon: z.boolean(),
     rejection_reason: z.string().trim().max(300).nullable(),
-    summary: z.string().trim().min(20).max(800),
+    summary: z.string().trim().min(20).max(1500),
     kbli_category: z.nativeEnum(KbliCategoryEnum).nullable(),
     kbli_impact: z.nativeEnum(KbliImpactEnum).nullable(),
     expenditure_component: z.nativeEnum(ExpenditureComponentEnum).nullable(),
@@ -87,7 +87,7 @@ export const LLM_CLASSIFICATION_JSON_SCHEMA = {
     summary: {
       type: 'string',
       description:
-        'Ringkasan padat 2-3 kalimat bahasa Indonesia baku berisi substansi ekonomi atau alasan pokok berita.',
+        'Ringkasan komprehensif 3-5 kalimat bahasa Indonesia baku (50-110 kata) yang menguraikan peristiwa ekonomi utama, pelaku dan lokasi/kecamatan, besaran angka/harga/volume/anggaran jika ada, serta implikasi dampaknya terhadap sektor KBLI dan Pengeluaran PDRB Kab. Tana Tidung.',
     },
     kbli_category: {
       type: ['string', 'null'],

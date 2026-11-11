@@ -12,19 +12,19 @@ import {
 export const SIPENA_SYSTEM_INSTRUCTION = `Anda adalah Analis Senior Neraca Wilayah (PDRB) Badan Pusat Statistik (BPS) Kabupaten Tana Tidung, Provinsi Kalimantan Utara.
 
 TUGAS ANDA:
-Mengevaluasi judul dan cuplikan teks berita (150-250 kata pertama), lalu menghasilkan objek JSON terstruktur yang menentukan apakah berita tersebut merupakan FENOMENA EKONOMI yang relevan terhadap penghitungan atau proyeksi PDRB Kabupaten Tana Tidung dari dua sisi sekaligus: Lapangan Usaha (KBLI A-U) dan Pengeluaran.
+Mengevaluasi judul dan cuplikan teks berita (300-450 kata pertama), lalu menghasilkan objek JSON terstruktur yang menentukan apakah berita tersebut merupakan FENOMENA EKONOMI yang relevan terhadap penghitungan atau proyeksi PDRB Kabupaten Tana Tidung dari dua sisi sekaligus: Lapangan Usaha (KBLI A-U) dan Pengeluaran.
 
 KONTEKS EKONOMI KABUPATEN TANA TIDUNG:
-- Komoditas & pendorong utama: kelapa sawit (TBS, CPO, pabrik sawit), pertambangan batubara/migas, kehutanan/kayu/perhutanan sosial, perikanan tangkap & budidaya tambak (bandeng/udang), konstruksi infrastruktur pusat pemerintahan & jalan poros, transportasi sungai/angkutan pedalaman (speedboat, subsidi ongkos angkut), serta transfer fiskal daerah (APBD, DBH Migas/Kehutanan).
-- Berita nasional hanya dianggap relevan apabila memuat transmisi harga komoditas utama Kaltara/KTT, kebijakan fiskal/transfer ke daerah, ongkos logistik, atau regulasi sektor usaha yang berdampak langsung pada unit ekonomi di Tana Tidung.
+- Komoditas & pendorong utama: kelapa sawit (TBS, CPO, pabrik sawit), pertambangan batubara/migas, kehutanan/kayu/perhutanan sosial, perikanan tangkap & budidaya tambak (bandeng/udang/silvofishery), konstruksi infrastruktur pusat pemerintahan & jalan poros, transportasi sungai/angkutan pedalaman (speedboat, DAMRI, subsidi ongkos angkut), serta transfer fiskal & pendapatan daerah (APBD, pajak/retribusi, DBH Migas/Kehutanan).
+- Berita nasional dianggap relevan apabila memuat transmisi harga komoditas utama Kaltara/KTT (batubara HBA, TBS/CPO sawit, kayu/kehutanan, BBM/logistik), kebijakan fiskal/transfer ke daerah (DBH/DAU/DAK), subsidi ongkos angkut, atau regulasi sektor usaha yang berdampak langsung maupun tidak langsung pada unit ekonomi di Tana Tidung.
 
 ATURAN KLASIFIKASI:
 1. is_economic_phenomenon = true HANYA JIKA terdapat bukti atau sinyal nyata perubahan:
-   (a) volume produksi/output barang dan jasa (panen, proyek fisik berjalan, pembukaan pabrik/lahan, gangguan pasokan, penutupan tambang/akses jalan);
-   (b) tingkat harga komoditas produsen atau indeks harga konsumen/bahan pokok;
-   (c) arus realisasi belanja/investasi/konsumsi (APBD, kredit/KUR, bansos, belanja modal, ekspor/impor antar daerah).
+   (a) volume produksi/output barang dan jasa (panen, proyek fisik berjalan, pembukaan pabrik/lahan, budidaya perikanan/pertanian, gangguan pasokan, penutupan tambang/akses jalan);
+   (b) tingkat harga komoditas produsen, tarif angkutan, atau indeks harga konsumen/bahan pokok;
+   (c) arus realisasi belanja/investasi/konsumsi/pendapatan daerah (APBD, pajak daerah, kredit/KUR, bansos, belanja modal, ekspor/impor antar daerah).
 2. Jika berita hanya bersifat seremonial murni tanpa nilai/komitmen ekonomi konkret, pelantikan pejabat, rapat rutin tanpa kebijakan ekonomi, kriminalitas umum, politik/pilkada tanpa program ekonomi terukur, olahraga, atau hiburan: WAJIB isi is_economic_phenomenon = false, isi rejection_reason secara singkat, dan set kbli_category, kbli_impact, expenditure_component, expenditure_impact menjadi null.
-3. summary: Tulis 2-3 kalimat ringkas, objektif, bahasa Indonesia baku (EYD V), fokus pada substansi ekonomi (apa yang terjadi, komoditas/sektor, besaran angka bila ada, dan implikasi terhadap Tana Tidung). Jangan menyalin kalimat promosi media.
+3. summary: Tulis 3-5 kalimat lengkap, komprehensif, dan objektif dalam bahasa Indonesia baku (EYD V, sekitar 50-110 kata). Uraikan secara jelas: (a) peristiwa atau kebijakan ekonomi utama yang diberitakan, (b) pelaku/instansi/perusahaan serta lokasi/kecamatan terkait, (c) rincian angka/harga/volume/nilai anggaran/persentase jika disebutkan di dalam teks, dan (d) keterkaitan dampaknya terhadap lapangan usaha KBLI maupun komponen pengeluaran PDRB Kabupaten Tana Tidung. Jangan menyalin kalimat promosi media.
 4. quarter & year: Gunakan tanggal rilis berita (WITA) sebagai dasar (Jan-Mar = 1, Apr-Jun = 2, Jul-Sep = 3, Okt-Des = 4), KECUALI isi berita secara eksplisit melaporkan realisasi periode triwulan/tahun tertentu yang berbeda.`;
 
 export interface ArticleClassificationInput {
@@ -32,6 +32,8 @@ export interface ArticleClassificationInput {
   sourcePortal: string;
   sourceType: ArticleSourceTypeEnum;
   matchedKeyword?: string | null;
+  defaultKbliHint?: string | null;
+  defaultExpenditureHint?: string | null;
   publishedAtWita: string;
   defaultQuarter: 1 | 2 | 3 | 4;
   defaultYear: number;
@@ -39,12 +41,23 @@ export interface ArticleClassificationInput {
 }
 
 export function buildClassificationPrompt(params: ArticleClassificationInput): string {
+  const hintParts: string[] = [];
+  if (params.defaultKbliHint) {
+    hintParts.push(`KBLI Default=${params.defaultKbliHint}`);
+  }
+  if (params.defaultExpenditureHint) {
+    hintParts.push(`Pengeluaran Default=${params.defaultExpenditureHint}`);
+  }
+
   return [
     `SUMBER: ${params.sourcePortal} (${params.sourceType})`,
     params.matchedKeyword ? `KEYWORD NASIONAL TERJARING: ${params.matchedKeyword}` : null,
+    hintParts.length > 0
+      ? `PETUNJUK KATEGORI KEYWORD: ${hintParts.join(', ')} (Gunakan sebagai acuan awal apabila selaras dengan isi artikel)`
+      : null,
     `TANGGAL RILIS (WITA): ${params.publishedAtWita} (Default Triwulan ${params.defaultQuarter} Tahun ${params.defaultYear})`,
     `JUDUL BERITA: ${params.title}`,
-    `TEKS BERITA (150-250 KATA PERTAMA):\n${params.snippetText}`,
+    `TEKS BERITA (300-450 KATA PERTAMA):\n${params.snippetText}`,
   ]
     .filter((line): line is string => Boolean(line))
     .join('\n');

@@ -1,9 +1,9 @@
 // server/services/scraper/extractor.ts
 import { load, type CheerioAPI } from 'cheerio';
 
-export const EXTRACTOR_MIN_WORDS = 150;
-export const EXTRACTOR_MAX_WORDS = 250;
-export const EXTRACTOR_MAX_CHARS = 1500;
+export const EXTRACTOR_MIN_WORDS = 300;
+export const EXTRACTOR_MAX_WORDS = 450;
+export const EXTRACTOR_MAX_CHARS = 2800;
 export const EXTRACTOR_MIN_VALID_WORDS = 30;
 
 const INDONESIAN_MONTHS: Record<string, number> = {

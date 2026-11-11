@@ -1,6 +1,10 @@
 // server/services/scraper/portals.ts
 import { load, type Cheerio, type CheerioAPI } from 'cheerio';
-import { ArticleSourceTypeEnum } from '../../../shared/enums/pdrb';
+import {
+  ArticleSourceTypeEnum,
+  type ExpenditureComponentEnum,
+  type KbliCategoryEnum,
+} from '../../../shared/enums/pdrb';
 import { getWitaDateParts, WITA_UTC_OFFSET } from '../../../shared/utils/period';
 import { DEFAULT_SCRAPER_CONCURRENCY, runWithConcurrency } from '../../utils/concurrency';
 import {
@@ -15,12 +19,14 @@ import { parseIndonesianDateTime } from './extractor';
 import type { ScraperPortalErrorEntry } from '../../db/schema';
 
 export const DEFAULT_REGIONAL_MAX_ITEMS = 15;
+export const DEFAULT_LOOKBACK_DAYS = 7;
 
 export interface RegionalPortalConfig {
   id: string;
   label: string;
   sourcePortal: string;
   indexUrl: string;
+  additionalIndexUrls?: ReadonlyArray<string>;
   allowedHosts: ReadonlyArray<string>;
   itemSelectors: ReadonlyArray<string>;
 }
@@ -35,6 +41,8 @@ export interface DiscoveredArticleCandidate {
   publishedHint: Date | null;
   keywordId: string | null;
   matchedKeyword: string | null;
+  defaultKbliCategory?: KbliCategoryEnum | null;
+  defaultExpenditureComponent?: ExpenditureComponentEnum | null;
   fallbackDescription: string | null;
 }
 
@@ -43,7 +51,8 @@ export const REGIONAL_PORTALS: ReadonlyArray<RegionalPortalConfig> = [
     id: 'tribun-kaltara',
     label: 'Tribun Kaltara (Tana Tidung)',
     sourcePortal: 'kaltara.tribunnews.com',
-    indexUrl: 'https://kaltara.tribunnews.com/kaltara/tanah-tidung',
+    indexUrl: 'https://kaltara.tribunnews.com/tag/tana-tidung',
+    additionalIndexUrls: ['https://kaltara.tribunnews.com/kaltara/tanah-tidung'],
     allowedHosts: ['kaltara.tribunnews.com'],
     itemSelectors: [
       'div.mr140, div.pos_abs.hlover',
@@ -72,9 +81,13 @@ export const REGIONAL_PORTALS: ReadonlyArray<RegionalPortalConfig> = [
   },
   {
     id: 'benuanta',
-    label: 'Benuanta (Pemkab Tana Tidung)',
+    label: 'Benuanta (Tana Tidung)',
     sourcePortal: 'benuanta.co.id',
-    indexUrl: 'https://benuanta.co.id/category/pemkab-tana-tidung/',
+    indexUrl: 'https://benuanta.co.id/?s=tana+tidung',
+    additionalIndexUrls: [
+      'https://benuanta.co.id/topic/berita-ktt/',
+      'https://benuanta.co.id/category/pemkab-tana-tidung/',
+    ],
     allowedHosts: ['benuanta.co.id', 'www.benuanta.co.id'],
     itemSelectors: [
       'article',
@@ -163,7 +176,7 @@ function pad2(n: number): string {
  */
 export function getWitaLookbackCutoff(
   referenceNow: Date = new Date(),
-  lookbackDays: number = 3,
+  lookbackDays: number = DEFAULT_LOOKBACK_DAYS,
 ): Date {
   const shifted = new Date(referenceNow.getTime() - lookbackDays * 86_400_000);
   const { year, month, day } = getWitaDateParts(shifted);
@@ -192,9 +205,16 @@ function isLikelyPortalArticleUrl(rawUrl: string, portal: RegionalPortalConfig):
     const pathname = parsed.pathname.toLowerCase();
     if (pathname === '/' || pathname.length < 6) return false;
 
-    const indexPath = new URL(portal.indexUrl).pathname.toLowerCase().replace(/\/+$/, '');
+    const allIndexUrls = [portal.indexUrl, ...(portal.additionalIndexUrls ?? [])];
     const normalizedPath = pathname.replace(/\/+$/, '');
-    if (normalizedPath === indexPath) return false;
+    for (const idxUrl of allIndexUrls) {
+      try {
+        const indexPath = new URL(idxUrl).pathname.toLowerCase().replace(/\/+$/, '');
+        if (indexPath && normalizedPath === indexPath) return false;
+      } catch {
+        // ignore invalid index url
+      }
+    }
 
     if (NON_ARTICLE_PATH_PREFIXES.some((prefix) => pathname.startsWith(prefix))) {
       return false;
@@ -230,6 +250,7 @@ function resolveAnchorCandidate(
   _$: CheerioAPI,
   item: Cheerio<any>,
   portal: RegionalPortalConfig,
+  baseUrl: string,
 ): { resolvedUrl: string; title: string } | null {
   for (const selector of ANCHOR_PRIORITY_SELECTORS) {
     const anchors = item.find(selector);
@@ -240,7 +261,7 @@ function resolveAnchorCandidate(
 
       let resolvedUrl: string;
       try {
-        resolvedUrl = new URL(rawHref.trim(), portal.indexUrl).toString();
+        resolvedUrl = new URL(rawHref.trim(), baseUrl).toString();
       } catch {
         continue;
       }
@@ -262,16 +283,17 @@ function resolveAnchorCandidate(
 }
 
 /**
- * Mengekstrak daftar kandidat artikel dari dokumen HTML halaman kategori portal regional.
+ * Mengekstrak daftar kandidat artikel dari dokumen HTML halaman kategori/tag/pencarian portal regional.
  */
 export function parseRegionalPortalIndex(
   html: string,
   portal: RegionalPortalConfig,
-  options?: { now?: Date; lookbackDays?: number; maxItems?: number },
+  options?: { now?: Date; lookbackDays?: number; maxItems?: number; baseUrl?: string },
 ): DiscoveredArticleCandidate[] {
   const now = options?.now ?? new Date();
-  const cutoff = getWitaLookbackCutoff(now, options?.lookbackDays ?? 3);
+  const cutoff = getWitaLookbackCutoff(now, options?.lookbackDays ?? DEFAULT_LOOKBACK_DAYS);
   const maxItems = options?.maxItems ?? DEFAULT_REGIONAL_MAX_ITEMS;
+  const baseUrl = options?.baseUrl ?? portal.indexUrl;
 
   const $ = load(html);
   const results: DiscoveredArticleCandidate[] = [];
@@ -313,6 +335,8 @@ export function parseRegionalPortalIndex(
       publishedHint,
       keywordId: null,
       matchedKeyword: null,
+      defaultKbliCategory: null,
+      defaultExpenditureComponent: null,
       fallbackDescription: null,
     });
 
@@ -330,7 +354,7 @@ export function parseRegionalPortalIndex(
       if (results.length >= maxItems) return;
       const item = $(el);
 
-      const resolved = resolveAnchorCandidate($, item, portal);
+      const resolved = resolveAnchorCandidate($, item, portal, baseUrl);
       if (!resolved) return;
 
       sawContainerUrls = true;
@@ -379,7 +403,7 @@ export function parseRegionalPortalIndex(
 
         let resolvedUrl: string;
         try {
-          resolvedUrl = new URL(href.trim(), portal.indexUrl).toString();
+          resolvedUrl = new URL(href.trim(), baseUrl).toString();
         } catch {
           return;
         }
@@ -415,7 +439,7 @@ export interface RegionalHarvestOptions {
 
 /**
  * Mengambil indeks artikel terkini dari seluruh portal regional Kabupaten Tana Tidung secara paralel.
- * Kegagalan/timeout pada satu portal diisolasi agar portal lainnya tetap diproses.
+ * Mendukung fallback ke `additionalIndexUrls` bila halaman indeks utama menghasilkan sedikit kandidat.
  */
 export async function harvestRegionalPortals(
   options: RegionalHarvestOptions = {},
@@ -423,7 +447,7 @@ export async function harvestRegionalPortals(
   const portals = options.portals ?? REGIONAL_PORTALS;
   const fetchFn = options.fetchFn ?? safeFetchText;
   const now = options.now ?? new Date();
-  const lookbackDays = options.lookbackDays ?? 3;
+  const lookbackDays = options.lookbackDays ?? DEFAULT_LOOKBACK_DAYS;
   const maxItemsPerPortal = options.maxItemsPerPortal ?? DEFAULT_REGIONAL_MAX_ITEMS;
   const timeoutMs = options.timeoutMs ?? DEFAULT_FETCH_TIMEOUT_MS;
   const concurrency = options.concurrency ?? DEFAULT_SCRAPER_CONCURRENCY;
@@ -441,34 +465,44 @@ export async function harvestRegionalPortals(
       if (signal?.aborted) return;
       portalsChecked += 1;
 
-      try {
-        const response = await fetchFn(portal.indexUrl, {
-          timeoutMs,
-          maxBytes: 2 * 1024 * 1024,
-          userAgent: DEFAULT_BROWSER_USER_AGENT,
-          headers: DEFAULT_BROWSER_HEADERS,
-          signal,
-        });
+      const urlsToCheck = [portal.indexUrl, ...(portal.additionalIndexUrls ?? [])];
+      let portalFoundCount = 0;
 
-        const portalCandidates = parseRegionalPortalIndex(response.body, portal, {
-          now,
-          lookbackDays,
-          maxItems: maxItemsPerPortal,
-        });
+      for (const targetIndexUrl of urlsToCheck) {
+        if (signal?.aborted) break;
+        if (portalFoundCount >= 5) break;
 
-        for (const candidate of portalCandidates) {
-          if (!globalSeenHashes.has(candidate.urlHash)) {
-            globalSeenHashes.add(candidate.urlHash);
-            candidates.push(candidate);
+        try {
+          const response = await fetchFn(targetIndexUrl, {
+            timeoutMs,
+            maxBytes: 2 * 1024 * 1024,
+            userAgent: DEFAULT_BROWSER_USER_AGENT,
+            headers: DEFAULT_BROWSER_HEADERS,
+            signal,
+          });
+
+          const portalCandidates = parseRegionalPortalIndex(response.body, portal, {
+            now,
+            lookbackDays,
+            maxItems: maxItemsPerPortal,
+            baseUrl: targetIndexUrl,
+          });
+
+          for (const candidate of portalCandidates) {
+            if (!globalSeenHashes.has(candidate.urlHash)) {
+              globalSeenHashes.add(candidate.urlHash);
+              candidates.push(candidate);
+              portalFoundCount += 1;
+            }
           }
+        } catch (err) {
+          errors.push({
+            source: portal.sourcePortal,
+            stage: 'HARVEST',
+            message: err instanceof Error ? err.message : String(err),
+            url: targetIndexUrl,
+          });
         }
-      } catch (err) {
-        errors.push({
-          source: portal.sourcePortal,
-          stage: 'HARVEST',
-          message: err instanceof Error ? err.message : String(err),
-          url: portal.indexUrl,
-        });
       }
     },
     signal,

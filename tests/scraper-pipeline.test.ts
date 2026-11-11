@@ -425,4 +425,104 @@ describe('Scraper Pipeline Concurrency, Timeouts, Gemini Failover & Fail-Safe Re
     expect(lastUpdate?.status).toBe(summary.status);
     expect(lastUpdate?.finishedAt).toBeInstanceOf(Date);
   });
+
+  it('workflow hybrid nasional menggabungkan Bing News RSS + Google News RSS serta memproses fallback wrapper CBMi', async () => {
+    const now = new Date('2026-10-14T12:00:00.000Z');
+    const capturedPrompts: string[] = [];
+
+    const summary = await runScrapePipeline({
+      runType: ScraperRunTypeEnum.MANUAL,
+      mode: 'NATIONAL_ONLY',
+      now,
+      keywords: [
+        {
+          id: 'kw-batubara',
+          keyword: 'batubara Kalimantan Utara',
+          defaultKbliCategory: KbliCategoryEnum.B,
+          defaultExpenditureComponent: ExpenditureComponentEnum.NET_EXPORT,
+        },
+      ],
+      fetchFn: async (url) => {
+        if (url.includes('bing.com/news/search')) {
+          return {
+            finalUrl: url,
+            body: `<?xml version="1.0" encoding="utf-8" ?>
+              <rss version="2.0" xmlns:News="https://www.bing.com/schema/news">
+                <channel>
+                  <item>
+                    <title>Ekspor Batubara Kalimantan Utara Tumbuh 12 Persen di Kuartal IV</title>
+                    <link>http://www.bing.com/news/apiclick.aspx?ref=FexRss&amp;url=https%3a%2f%2fekonomi.bisnis.com%2fread%2f20261014%2fekspor-batubara-kaltara-tumbuh</link>
+                    <description>Volume pengapalan batubara dari pelabuhan muat Kalimantan Utara meningkat didorong permintaan ekspor Asia Timur.</description>
+                    <pubDate>Wed, 14 Oct 2026 06:00:00 GMT</pubDate>
+                    <News:Source>Bisnis.com</News:Source>
+                  </item>
+                </channel>
+              </rss>`,
+          };
+        }
+        if (url.includes('news.google.com/rss/search')) {
+          return {
+            finalUrl: url,
+            body: `<?xml version="1.0" encoding="UTF-8"?>
+              <rss version="2.0">
+                <channel>
+                  <item>
+                    <title>Ekspor Batubara Kalimantan Utara Tumbuh 12 Persen di Kuartal IV - Bisnis.com</title>
+                    <link>https://news.google.com/rss/articles/CBMiDuplikatJudulSamaDenganBing</link>
+                    <pubDate>Wed, 14 Oct 2026 06:05:00 GMT</pubDate>
+                    <source url="https://ekonomi.bisnis.com">Bisnis.com</source>
+                  </item>
+                  <item>
+                    <title>Produksi Tambang Batubara KTT Capai Target Tahunan - Katadata</title>
+                    <link>https://news.google.com/rss/articles/CBMiUnikHanyaAdaDiGoogleNews</link>
+                    <description>Realisasi produksi batubara di Kabupaten Tana Tidung pada triwulan berjalan mencapai target RKAB tahunan.</description>
+                    <pubDate>Wed, 14 Oct 2026 07:00:00 GMT</pubDate>
+                    <source url="https://databoks.katadata.co.id">Katadata</source>
+                  </item>
+                </channel>
+              </rss>`,
+          };
+        }
+        if (url.includes('news.google.com/rss/articles/CBMiUnikHanyaAdaDiGoogleNews')) {
+          // Simulasi wrapper JS Google News tanpa meta/link redirect eksternal
+          return {
+            finalUrl: url,
+            body: '<html><head><title>Google News</title></head><body><div>Loading...</div></body></html>',
+          };
+        }
+        return {
+          finalUrl: url,
+          body: buildSampleArticleHtml(
+            'Ekspor Batubara Kalimantan Utara Tumbuh 12 Persen di Kuartal IV',
+            '2026-10-14T06:00:00Z',
+          ),
+        };
+      },
+      workerOptions: {
+        minIntervalMs: 0,
+        invokeFn: async (req) => {
+          capturedPrompts.push(req.userInput);
+          return {
+            outputText: VALID_ECONOMIC_JSON,
+            usage: { inputTokens: 320, outputTokens: 110, totalTokens: 430 },
+          };
+        },
+      },
+    });
+
+    expect(summary.status).toBe(ScraperRunStatusEnum.SUCCESS);
+    // Judul duplikat antara Bing & Google otomatis dideduplikasi ke URL langsung Bisnis.com + 1 artikel unik Google News
+    expect(summary.articlesFetched).toBe(2);
+    expect(summary.articlesInserted).toBe(2);
+    expect(summary.economicCount).toBe(2);
+    expect(mockInsertedArticles).toHaveLength(2);
+    expect(mockInsertedArticles.map((a) => a.url)).toEqual(
+      expect.arrayContaining([
+        'https://ekonomi.bisnis.com/read/20261014/ekspor-batubara-kaltara-tumbuh',
+        'https://news.google.com/rss/articles/CBMiUnikHanyaAdaDiGoogleNews',
+      ]),
+    );
+    expect(capturedPrompts[0]).toContain('KBLI Default=B');
+    expect(capturedPrompts[0]).toContain('Pengeluaran Default=NET_EXPORT');
+  });
 });

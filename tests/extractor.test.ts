@@ -10,10 +10,14 @@ import {
   parseIndonesianDateTime,
 } from '#server/services/scraper/extractor';
 import {
+  buildBingNewsRssUrl,
   buildGoogleNewsRssUrl,
+  extractBingTargetUrl,
   extractRedirectTargetFromGoogleHtml,
+  parseBingNewsRss,
   parseGoogleNewsRss,
 } from '#server/services/scraper/national';
+import { ExpenditureComponentEnum, KbliCategoryEnum } from '#shared/enums/pdrb';
 import { parseRegionalPortalIndex, REGIONAL_PORTALS } from '#server/services/scraper/portals';
 import { isHardNoiseTitleForNational } from '#server/services/scraper/title-filter';
 
@@ -22,14 +26,14 @@ function generateWords(n: number, prefix = 'ekonomi'): string {
 }
 
 describe('Scraper Extractor & Portal/RSS Parsers', () => {
-  it('mengakumulasi paragraf pendek menjadi 150-250 kata dan maksimal 1.500 karakter', () => {
+  it('mengakumulasi paragraf pendek menjadi 300-450 kata dan maksimal 2.800 karakter', () => {
     const paragraphs = [
       'TANJUNG SELOR --', // dateline noise -> dibuang
       'Baca juga: Daftar wisata terbaru di Kalimantan Utara', // baca juga noise -> dibuang
-      `${generateWords(45, 'sawit')}.`,
-      `${generateWords(50, 'tana')}.`,
-      `${generateWords(65, 'ekspor')}.`, // total bersih = 160 kata -> berhenti di sini
-      `${generateWords(90, 'tambahan')}.`,
+      `${generateWords(110, 'sawit')}.`,
+      `${generateWords(110, 'tana')}.`,
+      `${generateWords(120, 'ekspor')}.`, // total bersih = 340 kata -> berhenti di sini
+      `${generateWords(110, 'tambahan')}.`,
     ];
 
     const result = accumulateParagraphsToThreshold(paragraphs);
@@ -41,8 +45,8 @@ describe('Scraper Extractor & Portal/RSS Parsers', () => {
     expect(result.snippetText).not.toContain('tambahan1');
   });
 
-  it('memangkas artikel paragraf panjang tunggal secara rapi <= 250 kata dan <= 1.500 karakter', () => {
-    const giantParagraph = `${generateWords(180, 'pdrb')}. ${generateWords(140, 'investasi')}.`;
+  it('memangkas artikel paragraf panjang tunggal secara rapi <= 450 kata dan <= 2.800 karakter', () => {
+    const giantParagraph = `${generateWords(280, 'pdrb')}. ${generateWords(250, 'investasi')}.`;
     const result = accumulateParagraphsToThreshold([giantParagraph]);
 
     expect(result.isValidContent).toBe(true);
@@ -50,7 +54,7 @@ describe('Scraper Extractor & Portal/RSS Parsers', () => {
     expect(result.snippetText.length).toBeLessThanOrEqual(EXTRACTOR_MAX_CHARS);
   });
 
-  it('tetap menerima artikel singkat valid (30-149 kata) dan menolak cuplikan < 30 kata', () => {
+  it('tetap menerima artikel singkat valid (30-299 kata) dan menolak cuplikan < 30 kata', () => {
     const shortValid = accumulateParagraphsToThreshold([
       'Pemerintah Kabupaten Tana Tidung resmi menyalurkan subsidi ongkos angkut barang kebutuhan pokok menuju Kecamatan Muruk Rian dan Sesayap Hilir guna menekan disparitas harga eceran antarwilayah menjelang akhir tahun berjalan di pasar desa setempat.',
     ]);
@@ -63,8 +67,8 @@ describe('Scraper Extractor & Portal/RSS Parsers', () => {
   });
 
   it('membersihkan elemen script, iklan, baca-juga, caption, dan mengekstrak JSON-LD/meta date', () => {
-    const body1 = generateWords(85, 'sawit');
-    const body2 = generateWords(85, 'karet');
+    const body1 = generateWords(160, 'sawit');
+    const body2 = generateWords(160, 'karet');
     const html = `
       <!doctype html>
       <html>
@@ -185,8 +189,48 @@ describe('Scraper Extractor & Portal/RSS Parsers', () => {
 
     const rssUrl = buildGoogleNewsRssUrl('harga TBS kelapa sawit');
     expect(rssUrl).toContain('news.google.com/rss/search');
+    expect(rssUrl).toContain('when%3A7d');
     expect(rssUrl).toContain('hl=id');
     expect(rssUrl).toContain('ceid=ID%3Aid');
+
+    const bingUrl = buildBingNewsRssUrl('harga TBS kelapa sawit');
+    expect(bingUrl).toContain('bing.com/news/search');
+    expect(bingUrl).toContain('format=rss');
+
+    const unwrapped = extractBingTargetUrl(
+      'http://www.bing.com/news/apiclick.aspx?ref=FexRss&aid=&tid=abc&url=https%3a%2f%2fwww.infosawit.com%2f2026%2f10%2f14%2fharga-tbs-sawit-kaltara-naik%2f&c=123',
+    );
+    expect(unwrapped).toBe('https://www.infosawit.com/2026/10/14/harga-tbs-sawit-kaltara-naik/');
+
+    const bingXml = `<?xml version="1.0" encoding="utf-8" ?>
+      <rss version="2.0" xmlns:News="https://www.bing.com/schema/news">
+        <channel>
+          <item>
+            <title>Harga TBS Sawit Kaltara Periode Oktober Menguat Signifikan</title>
+            <link>http://www.bing.com/news/apiclick.aspx?ref=FexRss&amp;url=https%3a%2f%2fwww.infosawit.com%2f2026%2f10%2f14%2fharga-tbs-sawit-kaltara-naik%2f</link>
+            <description>Dinas Perkebunan menetapkan kenaikan harga TBS kelapa sawit di Kalimantan Utara termasuk Kabupaten Tana Tidung sebesar Rp 85 per kilogram.</description>
+            <pubDate>Wed, 14 Oct 2026 05:00:00 GMT</pubDate>
+            <News:Source>InfoSAWIT</News:Source>
+          </item>
+        </channel>
+      </rss>
+    `;
+    const bingItems = parseBingNewsRss(
+      bingXml,
+      {
+        id: 'kw-sawit',
+        keyword: 'harga TBS kelapa sawit Kaltara',
+        defaultKbliCategory: KbliCategoryEnum.A,
+        defaultExpenditureComponent: ExpenditureComponentEnum.NET_EXPORT,
+      },
+      { now, lookbackDays: 7 },
+    );
+    expect(bingItems).toHaveLength(1);
+    expect(bingItems[0]?.url).toBe('https://www.infosawit.com/2026/10/14/harga-tbs-sawit-kaltara-naik');
+    expect(bingItems[0]?.sourcePortal).toBe('infosawit.com');
+    expect(bingItems[0]?.defaultKbliCategory).toBe(KbliCategoryEnum.A);
+    expect(bingItems[0]?.defaultExpenditureComponent).toBe(ExpenditureComponentEnum.NET_EXPORT);
+    expect(bingItems[0]?.fallbackDescription).toContain('Dinas Perkebunan menetapkan kenaikan harga TBS');
 
     const redirectHtml =
       '<html><head><meta property="og:url" content="https://ekonomi.bisnis.com/read/2026/tbs-sawit" /></head><body><a href="https://news.google.com/about">Google</a></body></html>';

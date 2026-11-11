@@ -280,7 +280,7 @@ export class GeminiClassificationWorker {
         systemInstruction: request.systemInstruction,
         responseMimeType: 'application/json',
         responseJsonSchema: LLM_CLASSIFICATION_JSON_SCHEMA as unknown as Record<string, unknown>,
-        maxOutputTokens: 1024,
+        maxOutputTokens: 1536,
         temperature: 0.1,
         thinkingConfig: {
           thinkingLevel:
