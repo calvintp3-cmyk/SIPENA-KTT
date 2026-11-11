@@ -134,7 +134,7 @@ if [ -d "$APP_DIR" ] && [ "$(ls -A "$APP_DIR" 2>/dev/null || true)" != "" ]; the
   sudo tar -czf "${BACKUP_ROOT}/sipena-ktt-app-legacy.tar.gz" -C "$APP_BASE" current
   echo "       Backup direktori app tersimpan di ${BACKUP_ROOT}/sipena-ktt-app-legacy.tar.gz"
 fi
-if [ -f "/etc/nginx/sites-available/${NGINX_SITE_NAME}" ]; then
+if sudo test -f "/etc/nginx/sites-available/${NGINX_SITE_NAME}"; then
   sudo cp "/etc/nginx/sites-available/${NGINX_SITE_NAME}" "${BACKUP_ROOT}/nginx-${NGINX_SITE_NAME}.legacy.conf"
 fi
 
@@ -201,7 +201,7 @@ echo "[8/8] Menjalankan PM2 (port 3002) & memperbarui Nginx..."
 pm2 start ecosystem.config.cjs --update-env
 pm2 save
 
-if [ -f "$SSL_CERT_PATH" ]; then
+if sudo test -f "$SSL_CERT_PATH"; then
   sudo cp "${APP_DIR}/deploy/nginx-sipena.conf" "/etc/nginx/sites-available/${NGINX_SITE_NAME}"
   sudo ln -sf "/etc/nginx/sites-available/${NGINX_SITE_NAME}" "/etc/nginx/sites-enabled/${NGINX_SITE_NAME}"
   sudo nginx -t
