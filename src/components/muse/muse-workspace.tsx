@@ -8,6 +8,8 @@ import { PdrbWeightsCard } from "./pdrb-weights-card";
 import { PipelineTimeline } from "./pipeline-timeline";
 import { SheetLedgerTable, type OdonLedgerRow } from "./sheet-ledger-table";
 import { CurationGrid, type CurationCandidate } from "./curation-grid";
+import { ProposalsModerationView, type ArticleProposal } from "./proposals-moderation-view";
+import { MethodologyView } from "./methodology-view";
 import { KbliCrosswalkTable } from "./kbli-crosswalk-table";
 import { ScrapersStatusView } from "./scrapers-status-view";
 import { CurationModal } from "./curation-modal";
@@ -21,6 +23,9 @@ import {
   FileText,
   Layers,
   ArrowRight,
+  Info,
+  Shield,
+  BookOpen,
 } from "lucide-react";
 
 // Initial Ground Truth Spotlight
@@ -106,14 +111,14 @@ const INITIAL_LEDGER_ROWS: OdonLedgerRow[] = [
     releaseDate: "04/11",
     source: "Fokus Borneo",
     sourceUrl: "https://fokusborneo.com",
-    title: "Disperindagkop Tana Tidung Gelar Operasi Pasar Murah Sembako Jelang Akhir Tahun di Tideng Pale",
-    summary: "Stabilisasi pasokan beras, minyak goreng, dan gula pasir untuk meredam potensi lonjakan inflasi bahan makanan.",
-    kbliCategory: "G",
-    kbliCode: "47111",
-    kbliDesc: "Perdagangan • 5.1%",
-    kbli2025: "47111",
-    expenditureCode: "PK-RT (Konsumsi)",
-    expenditureDesc: "PK-P Bansos Subsidi",
+    title: "Dishub KTT Uji Coba Trayek Speedboat Reguler Rute Tideng Pale - Tarakan untuk Peningkatan Mobilitas Warga",
+    summary: "Peningkatan konektivitas antarpulau menekan waktu tempuh dan ongkos angkut komoditas holtikultura antarwilayah.",
+    kbliCategory: "H",
+    kbliCode: "50111",
+    kbliDesc: "Angkutan Perairan • 2.1%",
+    kbli2025: "50111",
+    expenditureCode: "PK-RT Jasa (7.06%)",
+    expenditureDesc: "PK-P Pelayanan",
     triwulan: "Q4",
     status: "verified",
   },
@@ -123,45 +128,45 @@ const INITIAL_LEDGER_ROWS: OdonLedgerRow[] = [
     releaseDate: "03/11",
     source: "Radar Tarakan",
     sourceUrl: "https://kaltara.prokal.co",
-    title: "Bupati Ibrahim Ali Resmikan Jembatan Penghubung Antar Desa di Tana Lia, Mudahkan Angkutan Hasil Tani",
-    summary: "Infrastruktur konektivitas menurunkan ongkos angkut komoditas pertanian dan perikanan lokal.",
-    kbliCategory: "F",
-    kbliCode: "42101",
-    kbliDesc: "Konstruksi Jembatan",
-    kbli2025: "42101",
-    expenditureCode: "PMTB Infrastruktur (31.38%)",
-    expenditureDesc: "PK-P Belanja Modal",
+    title: "Dinas Pertanian Salurkan 15 Ton Bibit Padi Sawah Irigasi di Desa Limbu Sedulun",
+    summary: "Penyaluran bantuan sarana produksi pertanian guna mendongkrak luas tanam musim rendeng 2026.",
+    kbliCategory: "A",
+    kbliCode: "01111",
+    kbliDesc: "Padi & Palawija (23.4%)",
+    kbli2025: "01111",
+    expenditureCode: "PK-P Bansos (9.80%)",
+    expenditureDesc: "PK-RT Pangan",
     triwulan: "Q4",
     status: "verified",
   },
 ];
 
-// Initial Curation Candidates
+// Initial Curation Desk Candidates (Extracted from 5 Portals)
 const INITIAL_CANDIDATES: CurationCandidate[] = [
   {
     id: "cand-1",
     source: "Radar Tarakan",
-    sourceUrl: "https://kaltara.prokal.co/tana-tidung",
-    title: "Pelabuhan Bebatu Pacu Pengapalan Batubara dan Hasil Kelapa Sawit, Ekspor KTT Melonjak di Q4",
-    summary: "Peningkatan frekuensi tongkang curah batubara dan CPO di Terminal Bebatu mendorong lonjakan ekspor triwulanan.",
+    sourceUrl: "https://kaltara.prokal.co/tana-tidung/ekspor-batubara",
+    title: "Pelabuhan Bebatu Pacu Pengapalan Batubara dan Hasil Sawit, Ekspor KTT Melonjak di Q4",
+    summary: "Aktivitas transshipment di Terminal Khusus Bebatu mencatatkan lonjakan pengapalan batubara curah dan CPO kelapa sawit sebesar 14.8%.",
     kbliCategory: "B",
     kbliCode: "05100",
-    kbliDesc: "Batubara (37.8%)",
-    expenditureCode: "Net Ekspor (49.98%)",
+    kbliDesc: "Pertambangan Batubara (37.8%)",
+    expenditureCode: "Pos 6 • Net Ekspor (49.98%)",
     score: "96% Kecocokan PDRB",
     isRecommended: true,
   },
   {
     id: "cand-2",
     source: "Benuanta",
-    sourceUrl: "https://benuanta.co.id/category/tana-tidung",
-    title: "Dinas PUPR KTT Percepat Pengaspalan Jalan Poros Sesayap Menuju Pelabuhan Feri",
-    summary: "Belanja modal konstruksi infrastruktur konektivitas untuk mempercepat mobilitas logistik dan barang antardaerah.",
+    sourceUrl: "https://benuanta.co.id/kaltara/ktt/pusat-pemerintahan",
+    title: "Progres Pembangunan Pusat Pemerintahan Terpadu Tana Tidung Capai 82%, Target Rampung Akhir Tahun",
+    summary: "Realisasi belanja modal konstruksi gedung dan jalan lingkar pemkab mengerek penyerapan anggaran fisik daerah.",
     kbliCategory: "F",
-    kbliCode: "42101",
-    kbliDesc: "Konstruksi Jalan (18.5%)",
-    expenditureCode: "PMTB Fisik (31.38%)",
-    score: "89% Kecocokan PDRB",
+    kbliCode: "41011",
+    kbliDesc: "Konstruksi Gedung (18.5%)",
+    expenditureCode: "Pos 4 • PMTB Fisik (31.38%)",
+    score: "92% Kecocokan PDRB",
     isRecommended: false,
   },
   {
@@ -220,6 +225,24 @@ export function MuseWorkspace({ initialRole = "public" }: MuseWorkspaceProps) {
     setCurrentTab("overview");
   };
 
+  const handleAcceptProposal = (prop: ArticleProposal) => {
+    // Add accepted proposal directly into Curation candidates
+    const newCand: CurationCandidate = {
+      id: `cand-${Date.now()}`,
+      source: `${prop.submitterAgency} (${prop.submitterName})`,
+      sourceUrl: prop.url,
+      title: prop.title,
+      summary: prop.economicNotes,
+      kbliCategory: "C",
+      kbliCode: "16101",
+      kbliDesc: "Industri Pengolahan Kayu",
+      expenditureCode: "PMTB Investasi",
+      score: "90% Usulan OPD Terverifikasi",
+      isRecommended: true,
+    };
+    setCandidates((prev) => [newCand, ...prev]);
+  };
+
   const handleSaveClassification = (data: {
     kbli2020: string;
     kbli2025: string;
@@ -239,11 +262,12 @@ export function MuseWorkspace({ initialRole = "public" }: MuseWorkspaceProps) {
   return (
     <div className="bg-[#f0f2f5] text-[#434343] font-sans antialiased min-h-screen flex selection:bg-blue-100 selection:text-blue-900">
       
-      {/* 1. Muse Sidebar Navigation */}
+      {/* 1. Muse Sidebar Navigation (Distinct for Public & Admin) */}
       <MuseSidebar
         currentTab={currentTab}
         onTabChange={setCurrentTab}
         userRole={userRole}
+        onRoleToggle={() => setUserRole(isAdmin ? "public" : "admin")}
         onOpenSubmitModal={() => setIsSubmitModalOpen(true)}
         onOpenBlueprintModal={() => setIsBlueprintModalOpen(true)}
       />
@@ -254,10 +278,48 @@ export function MuseWorkspace({ initialRole = "public" }: MuseWorkspaceProps) {
         {/* Navbar */}
         <MuseNavbar
           currentTab={currentTab}
+          onTabChange={setCurrentTab}
           userRole={userRole}
           onRoleChange={setUserRole}
           onExportExcel={handleExportExcel}
+          onOpenSubmitModal={() => setIsSubmitModalOpen(true)}
         />
+
+        {/* Public View Welcome Banner */}
+        {!isAdmin && currentTab === "overview" && (
+          <div className="bg-gradient-to-r from-blue-700 via-sky-600 to-sky-700 rounded-2xl p-5 text-white shadow-[0_4px_20px_rgba(24,144,255,0.25)] flex flex-wrap items-center justify-between gap-4">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-mono font-bold bg-white/20 px-2 py-0.5 rounded backdrop-blur-xs">
+                  BPS SATKER 65.04
+                </span>
+                <span className="text-xs text-sky-100">Portal Informasi Fenomena PDRB</span>
+              </div>
+              <h3 className="text-base font-extrabold tracking-tight">
+                Selamat Datang di Portal Satu Data ODON Tana Tidung
+              </h3>
+              <p className="text-xs text-sky-100 max-w-2xl leading-relaxed">
+                Platform resmi BPS Kabupaten Tana Tidung untuk pemantauan fenomena ekonomi harian (H-1) penopang fluktuasi Produk Domestik Regional Bruto (PDRB).
+              </p>
+            </div>
+            <div className="flex items-center gap-2.5">
+              <button
+                onClick={() => setCurrentTab("methodology")}
+                className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold backdrop-blur-xs transition-all flex items-center gap-1.5 cursor-pointer"
+              >
+                <BookOpen className="w-3.5 h-3.5" />
+                <span>Pelajari Metodologi</span>
+              </button>
+              <button
+                onClick={() => setIsSubmitModalOpen(true)}
+                className="px-3.5 py-1.5 rounded-xl bg-white text-blue-800 hover:bg-blue-50 text-xs font-bold transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
+              >
+                <span>Usulkan Berita</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* TAB 1: OVERVIEW & EDISI HARI INI */}
         {currentTab === "overview" && (
@@ -306,10 +368,10 @@ export function MuseWorkspace({ initialRole = "public" }: MuseWorkspaceProps) {
 
               <div className="bg-white rounded-2xl p-4 shadow-[0_1px_3px_0_rgba(0,0,0,0.05),0_20px_25px_-5px_rgba(0,0,0,0.04)] border border-[#f0f0f0] flex items-center justify-between">
                 <div>
-                  <span className="text-xs text-[#8c8c8c] font-semibold block">Scraper Pipeline H-1</span>
-                  <h3 className="text-xl font-extrabold text-[#141414] mt-1">4 Portal</h3>
+                  <span className="text-xs text-[#8c8c8c] font-semibold block">Radar Scraper H-1</span>
+                  <h3 className="text-xl font-extrabold text-[#141414] mt-1">5 Portal</h3>
                   <span className="text-[11px] text-blue-600 font-mono font-medium block mt-1">
-                    Radar, Benuanta, Fokus, Tribun
+                    Radar, Benuanta, Fokus, Tribun, Antara
                   </span>
                 </div>
                 <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
@@ -334,7 +396,7 @@ export function MuseWorkspace({ initialRole = "public" }: MuseWorkspaceProps) {
               </div>
             </section>
 
-            {/* Recent 5 Working Days Quick Ledger */}
+            {/* Recent Working Days Quick Ledger */}
             <SheetLedgerTable
               rows={ledgerRows}
               isAdmin={isAdmin}
@@ -354,7 +416,12 @@ export function MuseWorkspace({ initialRole = "public" }: MuseWorkspaceProps) {
           />
         )}
 
-        {/* TAB 3: BUKU KERJA MASTER SHEET 6503 */}
+        {/* TAB 3: MODERASI USULAN PUBLIK (ADMIN ONLY) */}
+        {currentTab === "proposals" && (
+          <ProposalsModerationView onAcceptProposal={handleAcceptProposal} />
+        )}
+
+        {/* TAB 4: BUKU KERJA MASTER SHEET 6503 (PUBLIC & ADMIN) */}
         {currentTab === "ledger" && (
           <SheetLedgerTable
             rows={ledgerRows}
@@ -364,7 +431,7 @@ export function MuseWorkspace({ initialRole = "public" }: MuseWorkspaceProps) {
           />
         )}
 
-        {/* TAB 4: MATRIKS BOBOT PDRB KTT */}
+        {/* TAB 5: MATRIKS BOBOT PDRB KTT */}
         {currentTab === "pdrb" && (
           <div className="space-y-6">
             <PdrbWeightsCard />
@@ -379,7 +446,7 @@ export function MuseWorkspace({ initialRole = "public" }: MuseWorkspaceProps) {
           </div>
         )}
 
-        {/* TAB 5: NARASI FENOMENA TRIWULANAN */}
+        {/* TAB 6: NARASI FENOMENA TRIWULANAN */}
         {currentTab === "narratives" && (
           <div className="bg-white rounded-2xl p-6 shadow-[0_1px_3px_0_rgba(0,0,0,0.05),0_20px_25px_-5px_rgba(0,0,0,0.04)] border border-[#f0f0f0] space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-[#f0f0f0]">
@@ -403,10 +470,13 @@ export function MuseWorkspace({ initialRole = "public" }: MuseWorkspaceProps) {
           </div>
         )}
 
-        {/* TAB 6: KONVERSI KBLI 2020 ↔ 2025 */}
+        {/* TAB 7: KONVERSI KBLI 2020 ↔ 2025 */}
         {currentTab === "kbli" && <KbliCrosswalkTable />}
 
-        {/* TAB 7: RADAR SCRAPER 4 PORTAL */}
+        {/* TAB 8: METODOLOGI & STANDAR BPS */}
+        {currentTab === "methodology" && <MethodologyView />}
+
+        {/* TAB 9: RADAR SCRAPER 5 PORTAL (ADMIN ONLY) */}
         {currentTab === "scrapers" && <ScrapersStatusView />}
 
       </main>
@@ -438,4 +508,3 @@ export function MuseWorkspace({ initialRole = "public" }: MuseWorkspaceProps) {
     </div>
   );
 }
-
