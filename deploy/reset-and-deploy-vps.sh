@@ -127,7 +127,7 @@ fi
 echo "[3/8] Mencadangkan database & direktori lama (jika ada) ke ${BACKUP_ROOT}..."
 sudo mkdir -p "$BACKUP_ROOT"
 if (cd /tmp && sudo -u postgres psql -tAc "SELECT 1 FROM pg_database WHERE datname='${DB_NAME}'") | grep -q 1; then
-  (cd /tmp && sudo -u postgres pg_dump -Fc -d "$DB_NAME" -f "${BACKUP_ROOT}/${DB_NAME}_legacy.dump")
+  (cd /tmp && sudo -u postgres pg_dump -Fc -d "$DB_NAME") | sudo tee "${BACKUP_ROOT}/${DB_NAME}_legacy.dump" >/dev/null
   echo "       Backup DB tersimpan di ${BACKUP_ROOT}/${DB_NAME}_legacy.dump"
 fi
 if [ -d "$APP_DIR" ] && [ "$(ls -A "$APP_DIR" 2>/dev/null || true)" != "" ]; then
@@ -221,3 +221,4 @@ echo "[SELESAI] Deployment SIPENA KTT (Nuxt 3 + PostgreSQL 16 + PM2) berhasil!"
 echo "Pastikan Authorized Redirect URI di Google Cloud Console terdaftar sesuai .env:"
 echo "https://sipena6503.caplinlab.my.id/api/auth/google/callback"
 echo "=============================================================================="
+
