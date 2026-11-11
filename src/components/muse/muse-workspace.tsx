@@ -8,6 +8,7 @@ import { PdrbWeightsCard } from "./pdrb-weights-card";
 import { PipelineTimeline } from "./pipeline-timeline";
 import { SheetLedgerTable, type OdonLedgerRow } from "./sheet-ledger-table";
 import { CurationGrid, type CurationCandidate } from "./curation-grid";
+import { PublicNewsTabulation } from "./public-news-tabulation";
 import { ProposalsModerationView, type ArticleProposal } from "./proposals-moderation-view";
 import { MethodologyView } from "./methodology-view";
 import { KbliCrosswalkTable } from "./kbli-crosswalk-table";
@@ -23,7 +24,6 @@ import {
   FileText,
   Layers,
   ArrowRight,
-  Info,
   Shield,
   BookOpen,
 } from "lucide-react";
@@ -141,7 +141,7 @@ const INITIAL_LEDGER_ROWS: OdonLedgerRow[] = [
   },
 ];
 
-// Initial Curation Desk Candidates (Extracted from 5 Portals)
+// Initial Curation Desk Candidates
 const INITIAL_CANDIDATES: CurationCandidate[] = [
   {
     id: "cand-1",
@@ -153,7 +153,7 @@ const INITIAL_CANDIDATES: CurationCandidate[] = [
     kbliCode: "05100",
     kbliDesc: "Pertambangan Batubara (37.8%)",
     expenditureCode: "Pos 6 • Net Ekspor (49.98%)",
-    score: "96% Kecocokan PDRB",
+    score: "96% Relevansi Batubara",
     isRecommended: true,
   },
   {
@@ -166,7 +166,7 @@ const INITIAL_CANDIDATES: CurationCandidate[] = [
     kbliCode: "41011",
     kbliDesc: "Konstruksi Gedung (18.5%)",
     expenditureCode: "Pos 4 • PMTB Fisik (31.38%)",
-    score: "92% Kecocokan PDRB",
+    score: "92% Relevansi Konstruksi",
     isRecommended: false,
   },
   {
@@ -179,7 +179,7 @@ const INITIAL_CANDIDATES: CurationCandidate[] = [
     kbliCode: "01111",
     kbliDesc: "Pertanian Pangan (23.4%)",
     expenditureCode: "PK-P Bansos (9.80%)",
-    score: "84% Kecocokan PDRB",
+    score: "84% Relevansi Pertanian",
     isRecommended: false,
   },
 ];
@@ -201,6 +201,15 @@ export function MuseWorkspace({ initialRole = "public" }: MuseWorkspaceProps) {
   const [isBlueprintModalOpen, setIsBlueprintModalOpen] = useState(false);
 
   const isAdmin = userRole === "admin";
+
+  const handleRoleToggle = () => {
+    const nextRole = isAdmin ? "public" : "admin";
+    setUserRole(nextRole);
+    // If guest was on an admin-only tab, revert cleanly to overview
+    if (nextRole === "public" && ["curation", "proposals", "ledger", "pdrb", "narratives", "scrapers"].includes(currentTab)) {
+      setCurrentTab("overview");
+    }
+  };
 
   const handleExportExcel = () => {
     alert("Membuat dan mengunduh file ODON_6503_Tana_Tidung_2026.xlsx sesuai standar format resmi BPS!");
@@ -226,7 +235,6 @@ export function MuseWorkspace({ initialRole = "public" }: MuseWorkspaceProps) {
   };
 
   const handleAcceptProposal = (prop: ArticleProposal) => {
-    // Add accepted proposal directly into Curation candidates
     const newCand: CurationCandidate = {
       id: `cand-${Date.now()}`,
       source: `${prop.submitterAgency} (${prop.submitterName})`,
@@ -262,12 +270,12 @@ export function MuseWorkspace({ initialRole = "public" }: MuseWorkspaceProps) {
   return (
     <div className="bg-[#f0f2f5] text-[#434343] font-sans antialiased min-h-screen flex selection:bg-blue-100 selection:text-blue-900">
       
-      {/* 1. Muse Sidebar Navigation (Distinct for Public & Admin) */}
+      {/* 1. Sidebar Navigation (Strict Role Separation) */}
       <MuseSidebar
         currentTab={currentTab}
         onTabChange={setCurrentTab}
         userRole={userRole}
-        onRoleToggle={() => setUserRole(isAdmin ? "public" : "admin")}
+        onRoleToggle={handleRoleToggle}
         onOpenSubmitModal={() => setIsSubmitModalOpen(true)}
         onOpenBlueprintModal={() => setIsBlueprintModalOpen(true)}
       />
@@ -285,203 +293,202 @@ export function MuseWorkspace({ initialRole = "public" }: MuseWorkspaceProps) {
           onOpenSubmitModal={() => setIsSubmitModalOpen(true)}
         />
 
-        {/* Public View Welcome Banner */}
-        {!isAdmin && currentTab === "overview" && (
-          <div className="bg-gradient-to-r from-blue-700 via-sky-600 to-sky-700 rounded-2xl p-5 text-white shadow-[0_4px_20px_rgba(24,144,255,0.25)] flex flex-wrap items-center justify-between gap-4">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <span className="text-[11px] font-mono font-bold bg-white/20 px-2 py-0.5 rounded backdrop-blur-xs">
-                  BPS SATKER 65.04
-                </span>
-                <span className="text-xs text-sky-100">Portal Informasi Fenomena PDRB</span>
-              </div>
-              <h3 className="text-base font-extrabold tracking-tight">
-                Selamat Datang di Portal Satu Data ODON Tana Tidung
-              </h3>
-              <p className="text-xs text-sky-100 max-w-2xl leading-relaxed">
-                Platform resmi BPS Kabupaten Tana Tidung untuk pemantauan fenomena ekonomi harian (H-1) penopang fluktuasi Produk Domestik Regional Bruto (PDRB).
-              </p>
-            </div>
-            <div className="flex items-center gap-2.5">
-              <button
-                onClick={() => setCurrentTab("methodology")}
-                className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold backdrop-blur-xs transition-all flex items-center gap-1.5 cursor-pointer"
-              >
-                <BookOpen className="w-3.5 h-3.5" />
-                <span>Pelajari Metodologi</span>
-              </button>
-              <button
-                onClick={() => setIsSubmitModalOpen(true)}
-                className="px-3.5 py-1.5 rounded-xl bg-white text-blue-800 hover:bg-blue-50 text-xs font-bold transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
-              >
-                <span>Usulkan Berita</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          </div>
-        )}
+        {/* ======================================================== */}
+        {/* VIEW ROUTING: PUBLIC MODE                                */}
+        {/* ======================================================== */}
+        {!isAdmin ? (
+          <>
+            {/* Public Tab 1: Tabulasi Berita Harian */}
+            {currentTab === "overview" && (
+              <PublicNewsTabulation
+                onOpenSubmitModal={() => setIsSubmitModalOpen(true)}
+              />
+            )}
 
-        {/* TAB 1: OVERVIEW & EDISI HARI INI */}
-        {currentTab === "overview" && (
-          <div className="space-y-6">
-            
-            {/* 4 Muse Stat Cards */}
-            <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="bg-white rounded-2xl p-4 shadow-[0_1px_3px_0_rgba(0,0,0,0.05),0_20px_25px_-5px_rgba(0,0,0,0.04)] border border-[#f0f0f0] flex items-center justify-between">
-                <div>
-                  <span className="text-xs text-[#8c8c8c] font-semibold block">ODON Terverifikasi</span>
-                  <h3 className="text-xl font-extrabold text-[#141414] mt-1">156 Hari</h3>
-                  <span className="text-[11px] text-emerald-600 font-bold block mt-1">
-                    Edisi 10 Nov (H-1) Siap
-                  </span>
-                </div>
-                <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
-                  <Newspaper className="w-6 h-6" />
-                </div>
-              </div>
+            {/* Public Tab 2: Kamus KBLI 2025 */}
+            {currentTab === "kbli" && <KbliCrosswalkTable />}
 
-              <div className="bg-white rounded-2xl p-4 shadow-[0_1px_3px_0_rgba(0,0,0,0.05),0_20px_25px_-5px_rgba(0,0,0,0.04)] border border-[#f0f0f0] flex items-center justify-between">
-                <div>
-                  <span className="text-xs text-[#8c8c8c] font-semibold block">Sektor KBLI Terbesar</span>
-                  <h3 className="text-xl font-extrabold text-[#141414] mt-1">37.80%</h3>
-                  <span className="text-[11px] text-[#8c8c8c] font-medium block mt-1">
-                    KBLI B • Tambang Batubara
-                  </span>
-                </div>
-                <div className="w-12 h-12 rounded-xl bg-slate-100 text-slate-800 flex items-center justify-center font-bold">
-                  <Pickaxe className="w-6 h-6" />
-                </div>
-              </div>
+            {/* Public Tab 3: Tentang ODON BPS */}
+            {currentTab === "methodology" && <MethodologyView />}
 
-              <div className="bg-white rounded-2xl p-4 shadow-[0_1px_3px_0_rgba(0,0,0,0.05),0_20px_25px_-5px_rgba(0,0,0,0.04)] border border-[#f0f0f0] flex items-center justify-between">
-                <div>
-                  <span className="text-xs text-[#8c8c8c] font-semibold block">Pengeluaran Dominan</span>
-                  <h3 className="text-xl font-extrabold text-[#141414] mt-1">49.98%</h3>
-                  <span className="text-[11px] text-emerald-600 font-bold block mt-1">
-                    Pos 6 • Net Ekspor Antardaerah
-                  </span>
-                </div>
-                <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
-                  <TrendingUp className="w-6 h-6" />
-                </div>
-              </div>
-
-              <div className="bg-white rounded-2xl p-4 shadow-[0_1px_3px_0_rgba(0,0,0,0.05),0_20px_25px_-5px_rgba(0,0,0,0.04)] border border-[#f0f0f0] flex items-center justify-between">
-                <div>
-                  <span className="text-xs text-[#8c8c8c] font-semibold block">Radar Scraper H-1</span>
-                  <h3 className="text-xl font-extrabold text-[#141414] mt-1">5 Portal</h3>
-                  <span className="text-[11px] text-blue-600 font-mono font-medium block mt-1">
-                    Radar, Benuanta, Fokus, Tribun, Antara
-                  </span>
-                </div>
-                <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
-                  <Radio className="w-6 h-6" />
-                </div>
-              </div>
-            </section>
-
-            {/* Iconic 2-Card Hero Spotlight Layout */}
-            <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2">
-                <OdonHeroSpotlight
-                  data={spotlight}
-                  isAdmin={isAdmin}
-                  onEditClassification={() => setIsEditModalOpen(true)}
-                />
-              </div>
-
+            {/* If public somehow lands on internal tabs, fall back to PublicNewsTabulation */}
+            {["curation", "proposals", "ledger", "pdrb", "narratives", "scrapers"].includes(currentTab) && (
+              <PublicNewsTabulation
+                onOpenSubmitModal={() => setIsSubmitModalOpen(true)}
+              />
+            )}
+          </>
+        ) : (
+          /* ======================================================== */
+          /* VIEW ROUTING: ADMIN MODE (TIM NERWILIS BPS 6504)         */
+          /* ======================================================== */
+          <>
+            {/* Admin Tab 1: Dashboard Operasional & ODON Spotlight */}
+            {currentTab === "overview" && (
               <div className="space-y-6">
-                <PipelineTimeline />
+                
+                {/* 4 Stat Cards */}
+                <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="bg-white rounded-2xl p-4 shadow-[0_1px_3px_0_rgba(0,0,0,0.05)] border border-[#f0f0f0] flex items-center justify-between">
+                    <div>
+                      <span className="text-xs text-[#8c8c8c] font-semibold block">ODON Terverifikasi</span>
+                      <h3 className="text-xl font-extrabold text-[#141414] mt-1">156 Hari</h3>
+                      <span className="text-[11px] text-emerald-600 font-bold block mt-1">
+                        Edisi 10 Nov (H-1) Siap
+                      </span>
+                    </div>
+                    <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+                      <Newspaper className="w-6 h-6" />
+                    </div>
+                  </div>
+
+                  <div className="bg-white rounded-2xl p-4 shadow-[0_1px_3px_0_rgba(0,0,0,0.05)] border border-[#f0f0f0] flex items-center justify-between">
+                    <div>
+                      <span className="text-xs text-[#8c8c8c] font-semibold block">Sektor KBLI Terbesar</span>
+                      <h3 className="text-xl font-extrabold text-[#141414] mt-1">37.80%</h3>
+                      <span className="text-[11px] text-[#8c8c8c] font-medium block mt-1">
+                        KBLI B • Tambang Batubara
+                      </span>
+                    </div>
+                    <div className="w-12 h-12 rounded-xl bg-slate-100 text-slate-800 flex items-center justify-center font-bold">
+                      <Pickaxe className="w-6 h-6" />
+                    </div>
+                  </div>
+
+                  <div className="bg-white rounded-2xl p-4 shadow-[0_1px_3px_0_rgba(0,0,0,0.05)] border border-[#f0f0f0] flex items-center justify-between">
+                    <div>
+                      <span className="text-xs text-[#8c8c8c] font-semibold block">Pengeluaran Dominan</span>
+                      <h3 className="text-xl font-extrabold text-[#141414] mt-1">49.98%</h3>
+                      <span className="text-[11px] text-emerald-600 font-bold block mt-1">
+                        Pos 6 • Net Ekspor Antardaerah
+                      </span>
+                    </div>
+                    <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+                      <TrendingUp className="w-6 h-6" />
+                    </div>
+                  </div>
+
+                  <div className="bg-white rounded-2xl p-4 shadow-[0_1px_3px_0_rgba(0,0,0,0.05)] border border-[#f0f0f0] flex items-center justify-between">
+                    <div>
+                      <span className="text-xs text-[#8c8c8c] font-semibold block">Radar Scraper H-1</span>
+                      <h3 className="text-xl font-extrabold text-[#141414] mt-1">5 Portal</h3>
+                      <span className="text-[11px] text-blue-600 font-mono font-medium block mt-1">
+                        Radar, Benuanta, Fokus, Tribun, Antara
+                      </span>
+                    </div>
+                    <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
+                      <Radio className="w-6 h-6" />
+                    </div>
+                  </div>
+                </section>
+
+                {/* 2-Card Hero Spotlight Layout */}
+                <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <div className="lg:col-span-2">
+                    <OdonHeroSpotlight
+                      data={spotlight}
+                      isAdmin={isAdmin}
+                      onEditClassification={() => setIsEditModalOpen(true)}
+                    />
+                  </div>
+
+                  <div className="space-y-6">
+                    <PipelineTimeline />
+                    <PdrbWeightsCard />
+                  </div>
+                </section>
+
+                {/* Recent Working Days Quick Ledger */}
+                <SheetLedgerTable
+                  rows={ledgerRows}
+                  isAdmin={isAdmin}
+                  onEditRow={() => setIsEditModalOpen(true)}
+                  onExportExcel={handleExportExcel}
+                />
+
+              </div>
+            )}
+
+            {/* Admin Tab 2: Meja Kurasi AI */}
+            {currentTab === "curation" && (
+              <CurationGrid
+                candidates={candidates}
+                onApprove={handleApproveCandidate}
+                onEditCandidate={() => setIsEditModalOpen(true)}
+                onRefreshScraper={() =>
+                  alert("Menjalankan scraper H-1... 54 berita masuk antrean kurasi!")
+                }
+              />
+            )}
+
+            {/* Admin Tab 3: Moderasi Usulan OPD */}
+            {currentTab === "proposals" && (
+              <ProposalsModerationView onAcceptProposal={handleAcceptProposal} />
+            )}
+
+            {/* Admin Tab 4: Buku Kerja Master Sheet 6503 */}
+            {currentTab === "ledger" && (
+              <SheetLedgerTable
+                rows={ledgerRows}
+                isAdmin={isAdmin}
+                onEditRow={() => setIsEditModalOpen(true)}
+                onExportExcel={handleExportExcel}
+              />
+            )}
+
+            {/* Admin Tab 5: Matriks Bobot PDRB (Internal) */}
+            {currentTab === "pdrb" && (
+              <div className="space-y-6">
                 <PdrbWeightsCard />
+                <div className="bg-white rounded-2xl p-6 shadow-[0_1px_3px_0_rgba(0,0,0,0.05)] border border-[#f0f0f0]">
+                  <h4 className="text-sm font-bold text-[#141414] mb-2">
+                    Catatan Internal Analis Nerwilis: Batas Konsentrasi PDRB KTT 2025/2026
+                  </h4>
+                  <p className="text-xs text-[#595959] leading-relaxed">
+                    Sesuai prinsip kehati-hatian statistik BPS, berita media daerah adalah <b>sinyal arah fenomena</b>, bukan angka mutlak data dukung. Jangan memaksakan berita masuk ke sektor marjinal jika tidak ada transmisi riil terhadap 4 sektor utama: <b>Batubara (37.80%)</b>, <b>Sawit (23.41%)</b>, <b>Konstruksi (18.50%)</b>, atau <b>Kehutanan (8.44%)</b>.
+                  </p>
+                </div>
               </div>
-            </section>
+            )}
 
-            {/* Recent Working Days Quick Ledger */}
-            <SheetLedgerTable
-              rows={ledgerRows}
-              isAdmin={isAdmin}
-              onEditRow={() => setIsEditModalOpen(true)}
-              onExportExcel={handleExportExcel}
-            />
-
-          </div>
-        )}
-
-        {/* TAB 2: MEJA KURASI BERITA (ADMIN ONLY) */}
-        {currentTab === "curation" && (
-          <CurationGrid
-            candidates={candidates}
-            onApprove={handleApproveCandidate}
-            onRefreshScraper={() => alert("Menjalankan scraper H-1... 54 berita masuk antrean kurasi!")}
-          />
-        )}
-
-        {/* TAB 3: MODERASI USULAN PUBLIK (ADMIN ONLY) */}
-        {currentTab === "proposals" && (
-          <ProposalsModerationView onAcceptProposal={handleAcceptProposal} />
-        )}
-
-        {/* TAB 4: BUKU KERJA MASTER SHEET 6503 (PUBLIC & ADMIN) */}
-        {currentTab === "ledger" && (
-          <SheetLedgerTable
-            rows={ledgerRows}
-            isAdmin={isAdmin}
-            onEditRow={() => setIsEditModalOpen(true)}
-            onExportExcel={handleExportExcel}
-          />
-        )}
-
-        {/* TAB 5: MATRIKS BOBOT PDRB KTT */}
-        {currentTab === "pdrb" && (
-          <div className="space-y-6">
-            <PdrbWeightsCard />
-            <div className="bg-white rounded-2xl p-6 shadow-[0_1px_3px_0_rgba(0,0,0,0.05),0_20px_25px_-5px_rgba(0,0,0,0.04)] border border-[#f0f0f0]">
-              <h4 className="text-sm font-bold text-[#141414] mb-2">
-                Analisis Transmisi Makroekonomi Tana Tidung 2025/2026
-              </h4>
-              <p className="text-xs text-[#595959] leading-relaxed">
-                Perekonomian Tana Tidung sangat terkonsentrasi pada dua poros utama: <b>Ekstraktif Batubara (37.80%)</b> dan <b>Agroindustri Kelapa Sawit (23.41%)</b>. Pada sisi pengeluaran, pergerakan komoditas ini langsung memicu fluktuasi pada <b>Net Ekspor Antar Daerah (49.98%)</b> dan pembentukan modal fisik pada <b>PMTB (31.38%)</b>. Berita nasional yang tidak berhubungan dengan rantai nilai batubara, CPO, pupuk, atau belanja konstruksi pemerintah daerah akan disaring keluar oleh AI untuk menjaga presisi estimasi neraca.
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* TAB 6: NARASI FENOMENA TRIWULANAN */}
-        {currentTab === "narratives" && (
-          <div className="bg-white rounded-2xl p-6 shadow-[0_1px_3px_0_rgba(0,0,0,0.05),0_20px_25px_-5px_rgba(0,0,0,0.04)] border border-[#f0f0f0] space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-[#f0f0f0]">
-              <div>
-                <h3 className="text-sm font-bold text-[#141414]">Kompilasi Narasi Fenomena Triwulanan PDRB</h3>
-                <p className="text-xs text-[#8c8c8c]">Format siap pakai untuk naskah publikasi BPS Kabupaten Tana Tidung</p>
+            {/* Admin Tab 6: Kompilasi Draf Narasi BRS */}
+            {currentTab === "narratives" && (
+              <div className="bg-white rounded-2xl p-6 shadow-[0_1px_3px_0_rgba(0,0,0,0.05)] border border-[#f0f0f0] space-y-4">
+                <div className="flex items-center justify-between pb-3 border-b border-[#f0f0f0]">
+                  <div>
+                    <h3 className="text-sm font-bold text-[#141414]">Kompilasi Narasi Fenomena Triwulanan BRS</h3>
+                    <p className="text-xs text-[#8c8c8c]">Format siap pakai untuk naskah rilis resmi BPS Kabupaten Tana Tidung</p>
+                  </div>
+                  <button
+                    onClick={() => alert("Menyalin kompilasi narasi triwulanan ke clipboard...")}
+                    className="px-3 py-1.5 rounded-lg bg-blue-600 text-white text-xs font-bold shadow-[0_4px_14px_0_rgba(24,144,255,0.35)] cursor-pointer"
+                  >
+                    Salin Narasi Lengkap
+                  </button>
+                </div>
+                <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs text-[#141414] leading-relaxed space-y-3 font-mono">
+                  <p><b>[TRIWULAN IV-2026 - LAPANGAN USAHA B: PERTAMBANGAN BATUBARA]</b><br/>
+                  Pada Triwulan IV-2026, aktivitas pengapalan batubara melalui Terminal Khusus Bebatu mencatatkan lonjakan volume ekspor antar daerah sebesar 14.8% (Q-o-Q). Hal ini didorong oleh membaiknya cuaca perairan Sungai Sesayap dan peningkatan kuota produksi akhir tahun.</p>
+                  <p><b>[TRIWULAN IV-2026 - LAPANGAN USAHA F: KONSTRUKSI]</b><br/>
+                  Realisasi fisik pembangunan Pusat Pemerintahan Terpadu Tana Tidung mencapai 82% hingga awal November 2026. Penyerapan belanja modal konstruksi gedung dan jalan lingkar pemkab mengerek komponen PMTB dan pertumbuhan sektor konstruksi.</p>
+                </div>
               </div>
-              <button
-                onClick={() => alert("Menyalin kompilasi narasi triwulanan ke clipboard...")}
-                className="px-3 py-1.5 rounded-lg bg-blue-600 text-white text-xs font-bold shadow-[0_4px_14px_0_rgba(24,144,255,0.35)] cursor-pointer"
-              >
-                Salin Narasi Lengkap
-              </button>
-            </div>
-            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs text-[#141414] leading-relaxed space-y-3 font-mono">
-              <p><b>[TRIWULAN IV-2026 - LAPANGAN USAHA B: PERTAMBANGAN BATUBARA]</b><br/>
-              Pada Triwulan IV-2026, aktivitas pengapalan batubara melalui Terminal Khusus Bebatu mencatatkan lonjakan volume ekspor antar daerah sebesar 14.8% (Q-o-Q). Hal ini didorong oleh membaiknya cuaca perairan Sungai Sesayap dan peningkatan kuota produksi akhir tahun.</p>
-              <p><b>[TRIWULAN IV-2026 - LAPANGAN USAHA F: KONSTRUKSI]</b><br/>
-              Realisasi fisik pembangunan Pusat Pemerintahan Terpadu Tana Tidung mencapai 82% hingga awal November 2026. Penyerapan belanja modal konstruksi gedung dan jalan lingkar pemkab mengerek komponen PMTB dan pertumbuhan sektor konstruksi.</p>
-            </div>
-          </div>
+            )}
+
+            {/* Admin Tab 7: Katalog KBLI 2025 */}
+            {currentTab === "kbli" && <KbliCrosswalkTable />}
+
+            {/* Admin Tab 8: Radar Scraper 5 Portal */}
+            {currentTab === "scrapers" && <ScrapersStatusView />}
+
+            {/* Admin Tab 9: Metodologi SOP */}
+            {currentTab === "methodology" && <MethodologyView />}
+          </>
         )}
-
-        {/* TAB 7: KONVERSI KBLI 2020 ↔ 2025 */}
-        {currentTab === "kbli" && <KbliCrosswalkTable />}
-
-        {/* TAB 8: METODOLOGI & STANDAR BPS */}
-        {currentTab === "methodology" && <MethodologyView />}
-
-        {/* TAB 9: RADAR SCRAPER 5 PORTAL (ADMIN ONLY) */}
-        {currentTab === "scrapers" && <ScrapersStatusView />}
 
       </main>
 
-      {/* 3. Global Dialogs & Modals */}
+      {/* Global Dialogs & Modals */}
       <CurationModal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
