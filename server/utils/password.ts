@@ -9,6 +9,23 @@ const SCRYPT_PARAMS = {
 } as const;
 
 /**
+ * Penanda pada kolom `password_hash` bagi akun whitelist staf yang khusus login lewat Google OAuth.
+ * Format ini sengaja tidak memakai awalan `scrypt$` sehingga `verifyPassword` selalu menolaknya.
+ */
+export const OAUTH_ONLY_PASSWORD_MARKER = 'oauth2:google_only';
+
+/**
+ * Memeriksa apakah nilai `password_hash` merepresentasikan kata sandi lokal Scrypt yang aktif.
+ */
+export function hasLocalPasswordHash(storedHash: string | null | undefined): boolean {
+  if (!storedHash || storedHash === OAUTH_ONLY_PASSWORD_MARKER) {
+    return false;
+  }
+  const parts = storedHash.split('$');
+  return parts.length === 3 && parts[0] === 'scrypt' && Boolean(parts[1]) && Boolean(parts[2]);
+}
+
+/**
  * Menghasilkan hash password format `scrypt$<saltHex>$<derivedKeyHex>`.
  */
 export function hashPassword(plainPassword: string): string {
