@@ -27,8 +27,19 @@ const FORBIDDEN_HOSTNAMES = new Set([
   'metadata',
 ]);
 
-const DEFAULT_USER_AGENT =
-  'Mozilla/5.0 (compatible; SIPENA-KTT-Bot/1.0; +https://sipena6503.caplinlab.my.id)';
+export const DEFAULT_FETCH_TIMEOUT_MS = 7_000;
+
+export const DEFAULT_BROWSER_USER_AGENT =
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36';
+
+export const DEFAULT_BROWSER_HEADERS: Readonly<Record<string, string>> = {
+  'user-agent': DEFAULT_BROWSER_USER_AGENT,
+  accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+  'accept-language': 'id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7',
+  'cache-control': 'no-cache',
+  pragma: 'no-cache',
+  'upgrade-insecure-requests': '1',
+};
 
 function ipv4ToInt(ip: string): number {
   const parts = ip.split('.').map(Number);
@@ -236,6 +247,8 @@ export interface SafeFetchOptions {
   maxRedirects?: number;
   accept?: string;
   userAgent?: string;
+  headers?: Record<string, string>;
+  signal?: AbortSignal;
   dnsLookup?: DnsLookupFn;
 }
 
@@ -246,7 +259,21 @@ export interface SafeFetchResult {
   status: number;
 }
 
-async function readResponseWithByteCap(response: Response, maxBytes: number): Promise<string> {
+function createAbortError(message: string): Error {
+  const err = new Error(message);
+  err.name = 'AbortError';
+  return err;
+}
+
+async function readResponseWithByteCap(
+  response: Response,
+  maxBytes: number,
+  signal: AbortSignal,
+): Promise<string> {
+  if (signal.aborted) {
+    throw createAbortError('Request dibatalkan karena batas waktu tercapai.');
+  }
+
   const declaredLen = response.headers.get('content-length');
   if (declaredLen && Number(declaredLen) > maxBytes) {
     throw new ExternalFetchError(
@@ -267,8 +294,18 @@ async function readResponseWithByteCap(response: Response, maxBytes: number): Pr
   const chunks: Uint8Array[] = [];
   let totalBytes = 0;
 
+  const onAbort = () => {
+    void reader.cancel().catch(() => {});
+  };
+  signal.addEventListener('abort', onAbort, { once: true });
+
   try {
     while (true) {
+      if (signal.aborted) {
+        await reader.cancel().catch(() => {});
+        throw createAbortError('Streaming respons dibatalkan karena timeout.');
+      }
+
       const { done, value } = await reader.read();
       if (done) break;
       if (value) {
@@ -284,6 +321,7 @@ async function readResponseWithByteCap(response: Response, maxBytes: number): Pr
       }
     }
   } finally {
+    signal.removeEventListener('abort', onAbort);
     reader.releaseLock();
   }
 
@@ -294,7 +332,8 @@ async function readResponseWithByteCap(response: Response, maxBytes: number): Pr
 /**
  * Mengambil dokumen HTML/XML eksternal secara aman:
  * - Memvalidasi setiap hop redirect melalui `validateExternalUrl` (`redirect: 'manual'`, maks 3 hop)
- * - Timeout ketat default 15 detik
+ * - Timeout ketat default 7 detik via AbortController
+ * - Header User-Agent Chrome desktop lengkap + Accept-Language Indonesia
  * - Batas maksimal body default 2 MB
  */
 export async function safeFetchText(
@@ -302,76 +341,118 @@ export async function safeFetchText(
   options: SafeFetchOptions = {},
 ): Promise<SafeFetchResult> {
   const maxBytes = options.maxBytes ?? 2 * 1024 * 1024;
-  const timeoutMs = options.timeoutMs ?? 15_000;
+  const timeoutMs = options.timeoutMs ?? DEFAULT_FETCH_TIMEOUT_MS;
   const maxRedirects = options.maxRedirects ?? 3;
-  const accept =
-    options.accept ??
-    'text/html,application/xhtml+xml,application/xml;q=0.9,text/plain;q=0.8,*/*;q=0.5';
-  const userAgent = options.userAgent ?? DEFAULT_USER_AGENT;
+  const accept = options.accept ?? DEFAULT_BROWSER_HEADERS.accept!;
+  const userAgent = options.userAgent ?? DEFAULT_BROWSER_USER_AGENT;
+
+  const controller = new AbortController();
+  let timedOut = false;
+
+  const timeoutHandle = setTimeout(() => {
+    timedOut = true;
+    controller.abort(createAbortError(`Timeout melebihi ${timeoutMs}ms saat mengambil ${rawUrl}`));
+  }, timeoutMs);
+
+  const externalSignal = options.signal;
+  const onExternalAbort = () => {
+    controller.abort(externalSignal?.reason ?? createAbortError('Pipeline dibatalkan.'));
+  };
+
+  if (externalSignal) {
+    if (externalSignal.aborted) {
+      clearTimeout(timeoutHandle);
+      throw new ExternalFetchError(`Eksekusi dibatalkan sebelum mengambil ${rawUrl}.`);
+    }
+    externalSignal.addEventListener('abort', onExternalAbort, { once: true });
+  }
 
   let currentUrl = rawUrl;
   let redirectsLeft = maxRedirects;
 
-  while (true) {
-    const validatedUrl = await validateExternalUrl(currentUrl, options.dnsLookup);
+  try {
+    while (true) {
+      const validatedUrl = await validateExternalUrl(currentUrl, options.dnsLookup);
 
-    let response: Response;
-    try {
-      response = await fetch(validatedUrl.toString(), {
-        method: 'GET',
-        redirect: 'manual',
-        signal: AbortSignal.timeout(timeoutMs),
-        headers: {
-          'user-agent': userAgent,
-          accept,
-          'accept-language': 'id-ID,id;q=0.9,en-US;q=0.7,en;q=0.5',
-        },
-      });
-    } catch (err) {
-      throw new ExternalFetchError(
-        `Gagal menghubungi ${validatedUrl.hostname}: ${err instanceof Error ? err.message : String(err)}`,
-      );
-    }
-
-    if (response.status >= 300 && response.status < 400) {
-      const location = response.headers.get('location');
-      await response.body?.cancel().catch(() => {});
-
-      if (!location) {
+      let response: Response;
+      try {
+        response = await fetch(validatedUrl.toString(), {
+          method: 'GET',
+          redirect: 'manual',
+          signal: controller.signal,
+          headers: {
+            ...DEFAULT_BROWSER_HEADERS,
+            'user-agent': userAgent,
+            accept,
+            ...options.headers,
+          },
+        });
+      } catch (err) {
+        if (timedOut) {
+          throw new ExternalFetchError(
+            `Timeout >${timeoutMs}ms saat menghubungi ${validatedUrl.hostname}`,
+          );
+        }
         throw new ExternalFetchError(
-          `HTTP redirect ${response.status} tanpa header Location.`,
-          response.status,
-        );
-      }
-      if (redirectsLeft <= 0) {
-        throw new ExternalFetchError(
-          `Redirect melebihi batas maksimal (${maxRedirects} hop).`,
-          response.status,
+          `Gagal menghubungi ${validatedUrl.hostname}: ${err instanceof Error ? err.message : String(err)}`,
         );
       }
 
-      currentUrl = new URL(location, validatedUrl).toString();
-      redirectsLeft -= 1;
-      continue;
+      if (response.status >= 300 && response.status < 400) {
+        const location = response.headers.get('location');
+        await response.body?.cancel().catch(() => {});
+
+        if (!location) {
+          throw new ExternalFetchError(
+            `HTTP redirect ${response.status} tanpa header Location.`,
+            response.status,
+          );
+        }
+        if (redirectsLeft <= 0) {
+          throw new ExternalFetchError(
+            `Redirect melebihi batas maksimal (${maxRedirects} hop).`,
+            response.status,
+          );
+        }
+
+        currentUrl = new URL(location, validatedUrl).toString();
+        redirectsLeft -= 1;
+        continue;
+      }
+
+      if (!response.ok) {
+        await response.body?.cancel().catch(() => {});
+        throw new ExternalFetchError(
+          `HTTP ${response.status} dari ${validatedUrl.hostname}`,
+          response.status,
+        );
+      }
+
+      const body = await readResponseWithByteCap(response, maxBytes, controller.signal);
+      const contentType = response.headers.get('content-type') ?? '';
+
+      return {
+        finalUrl: validatedUrl.toString(),
+        body,
+        contentType,
+        status: response.status,
+      };
     }
-
-    if (!response.ok) {
-      await response.body?.cancel().catch(() => {});
-      throw new ExternalFetchError(
-        `HTTP ${response.status} dari ${validatedUrl.hostname}`,
-        response.status,
-      );
+  } catch (err) {
+    if (err instanceof SsrfValidationError || err instanceof ExternalFetchError) {
+      throw err;
     }
-
-    const body = await readResponseWithByteCap(response, maxBytes);
-    const contentType = response.headers.get('content-type') ?? '';
-
-    return {
-      finalUrl: validatedUrl.toString(),
-      body,
-      contentType,
-      status: response.status,
-    };
+    if (timedOut) {
+      throw new ExternalFetchError(`Timeout >${timeoutMs}ms saat membaca respons dari ${rawUrl}`);
+    }
+    throw new ExternalFetchError(
+      `Gagal membaca respons ${rawUrl}: ${err instanceof Error ? err.message : String(err)}`,
+    );
+  } finally {
+    clearTimeout(timeoutHandle);
+    if (externalSignal) {
+      externalSignal.removeEventListener('abort', onExternalAbort);
+    }
   }
 }
 

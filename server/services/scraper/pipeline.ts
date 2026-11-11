@@ -14,7 +14,14 @@ import {
   scraperLogs,
   type ScraperPortalErrorEntry,
 } from '../../db/schema';
-import { safeFetchText, type SafeFetchOptions } from '../../utils/ssrf';
+import { DEFAULT_SCRAPER_CONCURRENCY, runWithConcurrency } from '../../utils/concurrency';
+import {
+  DEFAULT_BROWSER_HEADERS,
+  DEFAULT_BROWSER_USER_AGENT,
+  DEFAULT_FETCH_TIMEOUT_MS,
+  safeFetchText,
+  type SafeFetchOptions,
+} from '../../utils/ssrf';
 import { extractHostnameLabel, hashNormalizedUrl, isSafeHttpUrl } from '../../utils/url-hash';
 import { mapClassificationToPersistence } from '../llm/classifier';
 import { GeminiClassificationWorker, type GeminiWorkerOptions } from '../llm/gemini-client';
@@ -34,8 +41,9 @@ import {
 import { isHardNoiseTitleForNational } from './title-filter';
 
 export const SCRAPER_ADVISORY_LOCK_KEY = 982451;
-export const STALE_RUN_TIMEOUT_MS = 30 * 60 * 1000;
-const FETCH_CONCURRENCY = 2;
+export const DEFAULT_MAX_RUN_DURATION_MS = 3 * 60 * 1000;
+export const STALE_RUN_TIMEOUT_MS = 5 * 60 * 1000;
+export const DEFAULT_FETCH_CONCURRENCY = DEFAULT_SCRAPER_CONCURRENCY;
 const CIRCUIT_BREAKER_CONSECUTIVE_429_THRESHOLD = 5;
 
 export class ScrapeConflictError extends Error {
@@ -54,6 +62,9 @@ export interface RunScrapePipelineParams {
   triggeredBy?: string | null;
   now?: Date;
   lookbackDays?: number;
+  maxDurationMs?: number;
+  fetchTimeoutMs?: number;
+  fetchConcurrency?: number;
   portals?: ReadonlyArray<RegionalPortalConfig>;
   keywords?: ReadonlyArray<ActiveKeywordTarget>;
   fetchFn?: (url: string, options?: SafeFetchOptions) => Promise<{ finalUrl: string; body: string }>;
@@ -136,27 +147,111 @@ async function queryExistingHashes(hashes: string[]): Promise<Set<string>> {
   return existing;
 }
 
-async function runWithConcurrency<T>(
-  items: ReadonlyArray<T>,
-  limit: number,
-  handler: (item: T) => Promise<void>,
-): Promise<void> {
-  if (items.length === 0) return;
-  let cursor = 0;
-  const workerCount = Math.min(limit, items.length);
+/**
+ * Memulihkan baris log RUNNING yang tertinggal apabila advisory lock sudah tidak dipegang
+ * (mis. akibat server restart, OOM kill, atau deployment ulang).
+ */
+async function recoverOrphanedRunningLogsInternal(
+  reasonMessage: string,
+  onlyOlderThanMs?: number,
+): Promise<number> {
+  const condition =
+    onlyOlderThanMs !== undefined
+      ? and(
+          eq(scraperLogs.status, ScraperRunStatusEnum.RUNNING),
+          lte(scraperLogs.startedAt, new Date(Date.now() - onlyOlderThanMs)),
+        )
+      : eq(scraperLogs.status, ScraperRunStatusEnum.RUNNING);
 
-  await Promise.all(
-    Array.from({ length: workerCount }, async () => {
-      while (cursor < items.length) {
-        const index = cursor;
-        cursor += 1;
-        const item = items[index];
-        if (item !== undefined) {
-          await handler(item);
-        }
-      }
-    }),
-  );
+  const staleRows = await db.select().from(scraperLogs).where(condition);
+  if (staleRows.length === 0) return 0;
+
+  let recoveredCount = 0;
+  for (const row of staleRows) {
+    const [articleStats] = await db
+      .select({
+        insertedTotal: sql<number>`count(*)::int`,
+        economicTotal: sql<number>`count(*) filter (where ${articles.isEconomicPhenomenon} = true)::int`,
+        nonEconomicTotal: sql<number>`count(*) filter (where ${articles.isEconomicPhenomenon} = false)::int`,
+        failedTotal: sql<number>`count(*) filter (where ${articles.llmStatus} = 'FAILED')::int`,
+      })
+      .from(articles)
+      .where(eq(articles.scraperLogId, row.id));
+
+    const insertedTotal = Math.max(row.articlesInserted, Number(articleStats?.insertedTotal ?? 0));
+    const economicTotal = Math.max(row.economicCount, Number(articleStats?.economicTotal ?? 0));
+    const nonEconomicTotal = Math.max(
+      row.nonEconomicCount,
+      Number(articleStats?.nonEconomicTotal ?? 0),
+    );
+    const failedTotal = Math.max(row.llmFailedCount, Number(articleStats?.failedTotal ?? 0));
+    const resolvedStatus =
+      insertedTotal > 0 || economicTotal > 0 || nonEconomicTotal > 0
+        ? ScraperRunStatusEnum.PARTIAL
+        : ScraperRunStatusEnum.FAILED;
+
+    const existingErrors = Array.isArray(row.errorSummary) ? row.errorSummary : [];
+    const nextErrors: ScraperPortalErrorEntry[] = [
+      ...existingErrors.slice(0, 99),
+      {
+        source: 'system',
+        stage: 'SYSTEM',
+        message: reasonMessage,
+      },
+    ];
+
+    const finishedAt = new Date();
+    const durationMs = Math.max(0, finishedAt.getTime() - row.startedAt.getTime());
+
+    await db
+      .update(scraperLogs)
+      .set({
+        status: resolvedStatus,
+        articlesInserted: insertedTotal,
+        economicCount: economicTotal,
+        nonEconomicCount: nonEconomicTotal,
+        llmFailedCount: failedTotal,
+        durationMs,
+        errorSummary: nextErrors,
+        finishedAt,
+      })
+      .where(and(eq(scraperLogs.id, row.id), eq(scraperLogs.status, ScraperRunStatusEnum.RUNNING)));
+
+    recoveredCount += 1;
+  }
+
+  return recoveredCount;
+}
+
+/**
+ * Membersihkan log RUNNING yatim secara aman menggunakan PostgreSQL Advisory Lock
+ * (mis. dipanggil oleh Nitro plugin saat server startup).
+ */
+export async function recoverOrphanedRunningLogs(
+  reasonMessage = 'Proses server dimulai ulang sebelum sesi crawler sebelumnya selesai.',
+): Promise<number> {
+  const lockClient = await pool.connect();
+  let acquired = false;
+
+  try {
+    const lockRes = await lockClient.query<{ acquired: boolean }>(
+      'SELECT pg_try_advisory_lock($1) AS acquired',
+      [SCRAPER_ADVISORY_LOCK_KEY],
+    );
+    acquired = Boolean(lockRes.rows[0]?.acquired);
+    if (!acquired) {
+      return 0;
+    }
+
+    return await recoverOrphanedRunningLogsInternal(reasonMessage);
+  } finally {
+    if (acquired) {
+      await lockClient
+        .query('SELECT pg_advisory_unlock($1)', [SCRAPER_ADVISORY_LOCK_KEY])
+        .catch(() => {});
+    }
+    lockClient.release();
+  }
 }
 
 interface AcquiredScrapeLock {
@@ -165,8 +260,8 @@ interface AcquiredScrapeLock {
 }
 
 /**
- * Mengambil PostgreSQL Advisory Lock eksklusif, membersihkan sesi RUNNING yang menggantung > 30 menit,
- * memastikan tidak ada job lain yang aktif, dan membuat entri awal pada tabel `scraper_logs`.
+ * Mengambil PostgreSQL Advisory Lock eksklusif, memulihkan setiap log RUNNING yatim
+ * yang tidak lagi memiliki proses aktif, lalu membuat entri baru pada `scraper_logs`.
  */
 async function acquireScrapeExecutionLock(
   runType: ScraperRunTypeEnum,
@@ -192,39 +287,11 @@ async function acquireScrapeExecutionLock(
       throw new ScrapeConflictError();
     }
 
-    const staleCutoff = new Date(Date.now() - STALE_RUN_TIMEOUT_MS);
-
-    // Pulihkan baris log RUNNING yang lebih lama dari 30 menit akibat crash/restart mendadak
-    await db
-      .update(scraperLogs)
-      .set({
-        status: ScraperRunStatusEnum.FAILED,
-        finishedAt: new Date(),
-        errorSummary: sql`${scraperLogs.errorSummary} || ${JSON.stringify([
-          {
-            source: 'system',
-            stage: 'SYSTEM',
-            message: 'Eksekusi sebelumnya melebihi batas waktu 30 menit dan ditutup otomatis.',
-          },
-        ])}::jsonb`,
-      })
-      .where(
-        and(
-          eq(scraperLogs.status, ScraperRunStatusEnum.RUNNING),
-          lte(scraperLogs.startedAt, staleCutoff),
-        ),
-      );
-
-    // Pastikan tidak ada log RUNNING baru yang masih aktif (< 30 menit)
-    const [activeRun] = await db
-      .select({ id: scraperLogs.id })
-      .from(scraperLogs)
-      .where(eq(scraperLogs.status, ScraperRunStatusEnum.RUNNING))
-      .limit(1);
-
-    if (activeRun) {
-      throw new ScrapeConflictError();
-    }
+    // Karena advisory lock eksklusif baru saja berhasil diambil, tidak ada proses worker aktif lain:
+    // semua baris RUNNING yang masih tersisa dipastikan yatim (terputus/restart) dan langsung dilepas.
+    await recoverOrphanedRunningLogsInternal(
+      'Eksekusi sebelumnya berhenti tidak normal (restart/crash proses) dan dipulihkan otomatis.',
+    );
 
     const [createdLog] = await db
       .insert(scraperLogs)
@@ -258,7 +325,23 @@ async function executeLockedScrapePipeline(
   const now = params.now ?? new Date();
   const lookbackDays = params.lookbackDays ?? 3;
   const fetchFn = params.fetchFn ?? safeFetchText;
+  const fetchTimeoutMs = params.fetchTimeoutMs ?? DEFAULT_FETCH_TIMEOUT_MS;
+  const fetchConcurrency = params.fetchConcurrency ?? DEFAULT_FETCH_CONCURRENCY;
+  const maxDurationMs = Math.max(50, params.maxDurationMs ?? DEFAULT_MAX_RUN_DURATION_MS);
+  const deadlineAtMs = startedAtMs + maxDurationMs;
   const cutoffDate = getWitaLookbackCutoff(now, lookbackDays);
+
+  const pipelineController = new AbortController();
+  let timedOut = false;
+  const deadlineTimer = setTimeout(() => {
+    timedOut = true;
+    pipelineController.abort(
+      new Error(`Batas waktu maksimal eksekusi (${Math.round(maxDurationMs / 1000)} detik) tercapai.`),
+    );
+  }, maxDurationMs);
+
+  const hasRemainingBudget = (minMs: number = 0): boolean =>
+    !timedOut && !pipelineController.signal.aborted && Date.now() + minMs < deadlineAtMs;
 
   let portalsChecked = 0;
   let keywordsChecked = 0;
@@ -273,40 +356,88 @@ async function executeLockedScrapePipeline(
   let totalTokens = 0;
   let totalResponseTimeMs = 0;
   let timedLlmCalls = 0;
+  let finalized = false;
 
   const errors: ScraperPortalErrorEntry[] = [];
 
+  const persistLogSnapshot = async (status: ScraperRunStatusEnum, isFinal: boolean) => {
+    const durationMs = Date.now() - startedAtMs;
+    const avgResponseTimeMs = timedLlmCalls > 0 ? Math.round(totalResponseTimeMs / timedLlmCalls) : 0;
+
+    await db
+      .update(scraperLogs)
+      .set({
+        status,
+        portalsChecked,
+        keywordsChecked,
+        articlesFetched,
+        articlesDeduplicated,
+        articlesInserted,
+        economicCount,
+        nonEconomicCount,
+        llmFailedCount,
+        totalInputTokens,
+        totalOutputTokens,
+        totalTokens,
+        avgResponseTimeMs,
+        durationMs,
+        errorSummary: errors.slice(0, 100),
+        finishedAt: isFinal ? new Date() : null,
+      })
+      .where(eq(scraperLogs.id, logId));
+
+    if (isFinal) {
+      finalized = true;
+    }
+  };
+
   try {
     // -------------------------------------------------------------------------
-    // Phase A: Link Discovery (Regional + Keyword Nasional)
+    // Phase A: Link Discovery Paralel (Regional + Keyword Nasional secara bersamaan)
     // -------------------------------------------------------------------------
     const rawCandidates: DiscoveredArticleCandidate[] = [];
 
-    if (mode === 'ALL' || mode === 'REGIONAL_ONLY') {
-      const regResult = await harvestRegionalPortals({
-        portals: params.portals,
-        fetchFn,
-        now,
-        lookbackDays,
-      });
+    const regionalPromise =
+      mode === 'ALL' || mode === 'REGIONAL_ONLY'
+        ? harvestRegionalPortals({
+            portals: params.portals,
+            fetchFn,
+            now,
+            lookbackDays,
+            timeoutMs: fetchTimeoutMs,
+            concurrency: fetchConcurrency,
+            signal: pipelineController.signal,
+          })
+        : Promise.resolve(null);
+
+    const nationalPromise =
+      mode === 'ALL' || mode === 'NATIONAL_ONLY'
+        ? harvestNationalKeywords({
+            keywords: params.keywords,
+            fetchFn,
+            now,
+            lookbackDays,
+            timeoutMs: fetchTimeoutMs,
+            concurrency: fetchConcurrency,
+            signal: pipelineController.signal,
+          })
+        : Promise.resolve(null);
+
+    const [regResult, natResult] = await Promise.all([regionalPromise, nationalPromise]);
+
+    if (regResult) {
       portalsChecked = regResult.portalsChecked;
       rawCandidates.push(...regResult.candidates);
       errors.push(...regResult.errors);
     }
 
-    if (mode === 'ALL' || mode === 'NATIONAL_ONLY') {
-      const natResult = await harvestNationalKeywords({
-        keywords: params.keywords,
-        fetchFn,
-        now,
-        lookbackDays,
-      });
+    if (natResult) {
       keywordsChecked = natResult.keywordsChecked;
       rawCandidates.push(...natResult.candidates);
       errors.push(...natResult.errors);
     }
 
-    // Deduplikasi kandidat in-memory berdasarkan urlHash (memprioritaskan temuan awal)
+    // Deduplikasi kandidat in-memory berdasarkan urlHash
     const uniqueCandidates: DiscoveredArticleCandidate[] = [];
     const seenCandidateHashes = new Set<string>();
     for (const item of rawCandidates) {
@@ -319,7 +450,7 @@ async function executeLockedScrapePipeline(
     articlesFetched = uniqueCandidates.length;
 
     // -------------------------------------------------------------------------
-    // Phase B: Title Hard-Noise Filter (Khusus Nasional) & DB URL Deduplication
+    // Phase B: Title Hard-Noise Filter & DB URL Deduplication
     // -------------------------------------------------------------------------
     const noiseFilteredCandidates: DiscoveredArticleCandidate[] = [];
     for (const candidate of uniqueCandidates) {
@@ -346,85 +477,112 @@ async function executeLockedScrapePipeline(
       newCandidates.push(candidate);
     }
 
+    // Simpan checkpoint awal agar UI live-polling segera melihat progres Phase A+B
+    await persistLogSnapshot(ScraperRunStatusEnum.RUNNING, false).catch(() => {});
+
     // -------------------------------------------------------------------------
-    // Phase C: Concurrent HTML Fetch (max 2) + Word Threshold Extractor (150-250 kata)
+    // Phase C: Parallel HTML Fetch (concurrency 5, timeout 7s) + Extractor (150-250 kata)
     // -------------------------------------------------------------------------
     const extractedReady: ExtractedReadyArticle[] = [];
     const extractedSeenHashes = new Set<string>();
 
-    await runWithConcurrency(newCandidates, FETCH_CONCURRENCY, async (candidate) => {
-      try {
-        let fetched = await fetchFn(candidate.url, {
-          timeoutMs: 15_000,
-          maxBytes: 2 * 1024 * 1024,
-        });
+    if (hasRemainingBudget(20)) {
+      await runWithConcurrency(
+        newCandidates,
+        fetchConcurrency,
+        async (candidate) => {
+          if (!hasRemainingBudget(20)) return;
 
-        // Jika masih mendarat di wrapper HTML Google News, ikuti tautan penerbit target sekali lagi
-        if (isGoogleWrapperHost(fetched.finalUrl)) {
-          const externalTarget = extractRedirectTargetFromGoogleHtml(fetched.body);
-          if (externalTarget) {
-            fetched = await fetchFn(externalTarget, {
-              timeoutMs: 15_000,
+          try {
+            let fetched = await fetchFn(candidate.url, {
+              timeoutMs: fetchTimeoutMs,
               maxBytes: 2 * 1024 * 1024,
+              userAgent: DEFAULT_BROWSER_USER_AGENT,
+              headers: DEFAULT_BROWSER_HEADERS,
+              signal: pipelineController.signal,
+            });
+
+            // Jika mendarat di wrapper HTML Google News, ikuti tautan penerbit target jika tersedia
+            if (isGoogleWrapperHost(fetched.finalUrl)) {
+              const externalTarget = extractRedirectTargetFromGoogleHtml(fetched.body);
+              if (externalTarget && hasRemainingBudget(20)) {
+                fetched = await fetchFn(externalTarget, {
+                  timeoutMs: fetchTimeoutMs,
+                  maxBytes: 2 * 1024 * 1024,
+                  userAgent: DEFAULT_BROWSER_USER_AGENT,
+                  headers: DEFAULT_BROWSER_HEADERS,
+                  signal: pipelineController.signal,
+                });
+              } else {
+                errors.push({
+                  source: candidate.sourcePortal,
+                  stage: 'FETCH',
+                  message:
+                    'Wrapper Google News tidak mengekspos tautan redirect HTML langsung.',
+                  url: candidate.url,
+                });
+                return;
+              }
+            }
+
+            const finalUrl = isSafeHttpUrl(fetched.finalUrl) ? fetched.finalUrl : candidate.url;
+            const { normalizedUrl, urlHash } = hashNormalizedUrl(finalUrl);
+
+            if (extractedSeenHashes.has(urlHash)) {
+              articlesDeduplicated += 1;
+              return;
+            }
+
+            const extracted = extractArticleContent(fetched.body, candidate.publishedHint);
+            const publishedAt = extracted.publishedAt ?? candidate.publishedHint ?? now;
+
+            // Jika halaman artikel memiliki tanggal lebih tua dari jendela H-3 WITA, abaikan sebelum LLM
+            if (extracted.publishedAt && !isWithinLookbackWindow(extracted.publishedAt, cutoffDate)) {
+              articlesDeduplicated += 1;
+              return;
+            }
+
+            if (!extracted.isValidContent) {
+              errors.push({
+                source: candidate.sourcePortal,
+                stage: 'EXTRACT',
+                message: `Konten teks terlalu pendek (${extracted.wordCount} kata bersih).`,
+                url: finalUrl,
+              });
+              return;
+            }
+
+            extractedSeenHashes.add(urlHash);
+            const resolvedPortal =
+              candidate.sourceType === ArticleSourceTypeEnum.NATIONAL && !isGoogleWrapperHost(finalUrl)
+                ? extractHostnameLabel(finalUrl)
+                : candidate.sourcePortal;
+
+            extractedReady.push({
+              candidate,
+              finalUrl,
+              normalizedUrl,
+              urlHash,
+              sourcePortal: resolvedPortal,
+              title: extracted.title.length >= 8 ? extracted.title : candidate.title,
+              snippetText: extracted.snippetText,
+              wordCount: extracted.wordCount,
+              publishedAt,
+            });
+          } catch (err) {
+            errors.push({
+              source: candidate.sourcePortal,
+              stage: 'FETCH',
+              message: err instanceof Error ? err.message : String(err),
+              url: candidate.url,
             });
           }
-        }
+        },
+        pipelineController.signal,
+      );
+    }
 
-        const finalUrl = isSafeHttpUrl(fetched.finalUrl) ? fetched.finalUrl : candidate.url;
-        const { normalizedUrl, urlHash } = hashNormalizedUrl(finalUrl);
-
-        if (extractedSeenHashes.has(urlHash)) {
-          articlesDeduplicated += 1;
-          return;
-        }
-
-        const extracted = extractArticleContent(fetched.body, candidate.publishedHint);
-        const publishedAt = extracted.publishedAt ?? candidate.publishedHint ?? now;
-
-        // Jika halaman artikel memiliki tanggal jelas lebih tua dari jendela H-3 WITA, abaikan sebelum LLM
-        if (extracted.publishedAt && !isWithinLookbackWindow(extracted.publishedAt, cutoffDate)) {
-          articlesDeduplicated += 1;
-          return;
-        }
-
-        if (!extracted.isValidContent) {
-          errors.push({
-            source: candidate.sourcePortal,
-            stage: 'EXTRACT',
-            message: `Konten teks terlalu pendek (${extracted.wordCount} kata bersih).`,
-            url: finalUrl,
-          });
-          return;
-        }
-
-        extractedSeenHashes.add(urlHash);
-        const resolvedPortal =
-          candidate.sourceType === ArticleSourceTypeEnum.NATIONAL && !isGoogleWrapperHost(finalUrl)
-            ? extractHostnameLabel(finalUrl)
-            : candidate.sourcePortal;
-
-        extractedReady.push({
-          candidate,
-          finalUrl,
-          normalizedUrl,
-          urlHash,
-          sourcePortal: resolvedPortal,
-          title: extracted.title.length >= 8 ? extracted.title : candidate.title,
-          snippetText: extracted.snippetText,
-          wordCount: extracted.wordCount,
-          publishedAt,
-        });
-      } catch (err) {
-        errors.push({
-          source: candidate.sourcePortal,
-          stage: 'FETCH',
-          message: err instanceof Error ? err.message : String(err),
-          url: candidate.url,
-        });
-      }
-    });
-
-    // Cek ulang hash URL final hasil redirect di DB sebelum memanggil LLM agar 0 token terbuang
+    // Cek ulang hash URL final hasil redirect di DB sebelum memanggil LLM
     const existingFinalHashes = await queryExistingHashes(extractedReady.map((item) => item.urlHash));
     const readyForLlm: ExtractedReadyArticle[] = [];
     for (const item of extractedReady) {
@@ -435,16 +593,33 @@ async function executeLockedScrapePipeline(
       readyForLlm.push(item);
     }
 
+    await persistLogSnapshot(ScraperRunStatusEnum.RUNNING, false).catch(() => {});
+
     // -------------------------------------------------------------------------
-    // Phase D: Sequential Gemini Classification Worker + Circuit Breaker + Persist
+    // Phase D: Gemini Classification Worker (Fast Daily-Quota Failover + Deadline Guard)
     // -------------------------------------------------------------------------
     const worker = new GeminiClassificationWorker(params.workerOptions);
     let consecutiveRateLimitErrors = 0;
     let circuitBreakerOpen = false;
+    let deadlineWarningRecorded = false;
 
-    for (const item of readyForLlm) {
+    for (let idx = 0; idx < readyForLlm.length; idx += 1) {
+      const item = readyForLlm[idx];
+      if (!item) continue;
+
       const defaultPeriod = getQuarterFromDateWita(item.publishedAt);
       const publishedAtWita = formatDateTimeWita(item.publishedAt);
+      const budgetExhausted = !hasRemainingBudget(20);
+
+      if (budgetExhausted && !deadlineWarningRecorded) {
+        deadlineWarningRecorded = true;
+        timedOut = true;
+        errors.push({
+          source: 'pipeline',
+          stage: 'SYSTEM',
+          message: `Batas waktu maksimal ${Math.round(maxDurationMs / 1000)} detik tercapai; sisa antrean (${readyForLlm.length - idx} artikel) disimpan sebagai LLM FAILED untuk retry berikutnya.`,
+        });
+      }
 
       let persistenceFields: {
         isEconomicPhenomenon: boolean | null;
@@ -462,7 +637,7 @@ async function executeLockedScrapePipeline(
         verificationStatus: VerificationStatusEnum;
       };
 
-      if (circuitBreakerOpen) {
+      if (circuitBreakerOpen || budgetExhausted) {
         llmFailedCount += 1;
         persistenceFields = {
           isEconomicPhenomenon: null,
@@ -475,21 +650,27 @@ async function executeLockedScrapePipeline(
           year: defaultPeriod.year,
           llmModel: null,
           llmStatus: LlmStatusEnum.FAILED,
-          llmError: 'CIRCUIT_BREAKER_QUOTA',
+          llmError: budgetExhausted ? 'PIPELINE_TIMEOUT_BUDGET' : 'CIRCUIT_BREAKER_QUOTA',
           llmConfidence: null,
           verificationStatus: VerificationStatusEnum.PENDING,
         };
       } else {
-        const aiResult = await worker.classifyArticle({
-          title: item.title,
-          sourcePortal: item.sourcePortal,
-          sourceType: item.candidate.sourceType,
-          matchedKeyword: item.candidate.matchedKeyword,
-          publishedAtWita,
-          defaultQuarter: defaultPeriod.quarter,
-          defaultYear: defaultPeriod.year,
-          snippetText: item.snippetText,
-        });
+        const aiResult = await worker.classifyArticle(
+          {
+            title: item.title,
+            sourcePortal: item.sourcePortal,
+            sourceType: item.candidate.sourceType,
+            matchedKeyword: item.candidate.matchedKeyword,
+            publishedAtWita,
+            defaultQuarter: defaultPeriod.quarter,
+            defaultYear: defaultPeriod.year,
+            snippetText: item.snippetText,
+          },
+          {
+            signal: pipelineController.signal,
+            deadlineAtMs,
+          },
+        );
 
         totalInputTokens += aiResult.usage.inputTokens;
         totalOutputTokens += aiResult.usage.outputTokens;
@@ -502,9 +683,7 @@ async function executeLockedScrapePipeline(
         if (aiResult.ok) {
           consecutiveRateLimitErrors = 0;
           const mapped = mapClassificationToPersistence(aiResult.classification, aiResult.modelUsed);
-          persistenceFields = {
-            ...mapped,
-          };
+          persistenceFields = { ...mapped };
           if (mapped.isEconomicPhenomenon) {
             economicCount += 1;
           } else {
@@ -518,6 +697,10 @@ async function executeLockedScrapePipeline(
             message: `[${aiResult.errorCode}] ${aiResult.errorMessage}`,
             url: item.normalizedUrl,
           });
+
+          if (aiResult.errorCode === 'TIMEOUT_BUDGET_EXCEEDED') {
+            timedOut = true;
+          }
 
           if (aiResult.isRateLimit) {
             consecutiveRateLimitErrors += 1;
@@ -589,6 +772,18 @@ async function executeLockedScrapePipeline(
       } else {
         articlesDeduplicated += 1;
       }
+
+      if ((idx + 1) % 3 === 0 || idx === readyForLlm.length - 1) {
+        await persistLogSnapshot(ScraperRunStatusEnum.RUNNING, false).catch(() => {});
+      }
+    }
+
+    if (timedOut && !deadlineWarningRecorded) {
+      errors.push({
+        source: 'pipeline',
+        stage: 'SYSTEM',
+        message: `Batas waktu maksimal eksekusi (${Math.round(maxDurationMs / 1000)} detik) tercapai; hasil yang terkumpul telah disimpan.`,
+      });
     }
 
     const durationMs = Date.now() - startedAtMs;
@@ -598,7 +793,12 @@ async function executeLockedScrapePipeline(
     const totalSourcesChecked = portalsChecked + keywordsChecked;
 
     let finalStatus: ScraperRunStatusEnum;
-    if (totalSourcesChecked > 0 && harvestErrors >= totalSourcesChecked && articlesInserted === 0) {
+    if (timedOut) {
+      finalStatus =
+        articlesInserted > 0 || economicCount > 0 || nonEconomicCount > 0
+          ? ScraperRunStatusEnum.PARTIAL
+          : ScraperRunStatusEnum.FAILED;
+    } else if (totalSourcesChecked > 0 && harvestErrors >= totalSourcesChecked && articlesInserted === 0) {
       finalStatus = ScraperRunStatusEnum.FAILED;
     } else if (
       readyForLlm.length > 0 &&
@@ -612,27 +812,7 @@ async function executeLockedScrapePipeline(
       finalStatus = ScraperRunStatusEnum.SUCCESS;
     }
 
-    await db
-      .update(scraperLogs)
-      .set({
-        status: finalStatus,
-        portalsChecked,
-        keywordsChecked,
-        articlesFetched,
-        articlesDeduplicated,
-        articlesInserted,
-        economicCount,
-        nonEconomicCount,
-        llmFailedCount,
-        totalInputTokens,
-        totalOutputTokens,
-        totalTokens,
-        avgResponseTimeMs,
-        durationMs,
-        errorSummary: errors.slice(0, 100),
-        finishedAt: new Date(),
-      })
-      .where(eq(scraperLogs.id, logId));
+    await persistLogSnapshot(finalStatus, true);
 
     return {
       logId,
@@ -654,36 +834,30 @@ async function executeLockedScrapePipeline(
       errors,
     };
   } catch (fatalErr) {
-    const durationMs = Date.now() - startedAtMs;
     errors.push({
       source: 'pipeline',
       stage: 'SYSTEM',
       message: fatalErr instanceof Error ? fatalErr.message : String(fatalErr),
     });
 
-    await db
-      .update(scraperLogs)
-      .set({
-        status: ScraperRunStatusEnum.FAILED,
-        portalsChecked,
-        keywordsChecked,
-        articlesFetched,
-        articlesDeduplicated,
-        articlesInserted,
-        economicCount,
-        nonEconomicCount,
-        llmFailedCount,
-        totalInputTokens,
-        totalOutputTokens,
-        totalTokens,
-        durationMs,
-        errorSummary: errors.slice(0, 100),
-        finishedAt: new Date(),
-      })
-      .where(eq(scraperLogs.id, logId))
-      .catch(() => {});
+    const fallbackStatus =
+      articlesInserted > 0 || economicCount > 0 || nonEconomicCount > 0
+        ? ScraperRunStatusEnum.PARTIAL
+        : ScraperRunStatusEnum.FAILED;
 
+    await persistLogSnapshot(fallbackStatus, true).catch(() => {});
     throw fatalErr;
+  } finally {
+    clearTimeout(deadlineTimer);
+    if (!finalized) {
+      const safeStatus =
+        articlesInserted > 0 || economicCount > 0 || nonEconomicCount > 0
+          ? ScraperRunStatusEnum.PARTIAL
+          : ScraperRunStatusEnum.FAILED;
+      await persistLogSnapshot(safeStatus, true).catch((err) => {
+        console.error(`[Scraper ${logId}] Gagal melepas status RUNNING di blok finally:`, err);
+      });
+    }
   }
 }
 
@@ -736,13 +910,27 @@ async function executeLockedRetryLlmBatch(
   logId: string,
   params: {
     limit?: number;
+    maxDurationMs?: number;
     workerOptions?: GeminiWorkerOptions;
   } = {},
 ): Promise<RetryLlmSummary> {
   const startedAtMs = Date.now();
   const limit = params.limit ?? 50;
+  const maxDurationMs = Math.max(50, params.maxDurationMs ?? DEFAULT_MAX_RUN_DURATION_MS);
+  const deadlineAtMs = startedAtMs + maxDurationMs;
+
+  const pipelineController = new AbortController();
+  let timedOut = false;
+  const deadlineTimer = setTimeout(() => {
+    timedOut = true;
+    pipelineController.abort(
+      new Error(`Batas waktu retry LLM (${Math.round(maxDurationMs / 1000)} detik) tercapai.`),
+    );
+  }, maxDurationMs);
+
   const worker = new GeminiClassificationWorker(params.workerOptions);
 
+  let fetchedTotal = 0;
   let processedCount = 0;
   let succeededCount = 0;
   let economicCount = 0;
@@ -755,7 +943,35 @@ async function executeLockedRetryLlmBatch(
   let timedLlmCalls = 0;
   let consecutiveRateLimitErrors = 0;
   let circuitBreakerOpen = false;
+  let finalized = false;
   const errors: ScraperPortalErrorEntry[] = [];
+
+  const persistRetrySnapshot = async (status: ScraperRunStatusEnum, isFinal: boolean) => {
+    const durationMs = Date.now() - startedAtMs;
+    const avgResponseTimeMs = timedLlmCalls > 0 ? Math.round(totalResponseTimeMs / timedLlmCalls) : 0;
+
+    await db
+      .update(scraperLogs)
+      .set({
+        status,
+        articlesFetched: fetchedTotal,
+        economicCount,
+        nonEconomicCount,
+        llmFailedCount: failedCount,
+        totalInputTokens,
+        totalOutputTokens,
+        totalTokens,
+        avgResponseTimeMs,
+        durationMs,
+        errorSummary: errors.slice(0, 100),
+        finishedAt: isFinal ? new Date() : null,
+      })
+      .where(eq(scraperLogs.id, logId));
+
+    if (isFinal) {
+      finalized = true;
+    }
+  };
 
   try {
     // Hanya mengulang artikel yang masih menunggu review (jangan menimpa artikel yang sudah diverifikasi manual)
@@ -771,23 +987,46 @@ async function executeLockedRetryLlmBatch(
       .orderBy(desc(articles.publishedAt))
       .limit(limit);
 
-    for (const article of pendingFailedArticles) {
+    fetchedTotal = pendingFailedArticles.length;
+    await persistRetrySnapshot(ScraperRunStatusEnum.RUNNING, false).catch(() => {});
+
+    for (let idx = 0; idx < pendingFailedArticles.length; idx += 1) {
+      const article = pendingFailedArticles[idx];
+      if (!article) continue;
+
       if (circuitBreakerOpen) {
         failedCount += 1;
         continue;
       }
 
+      if (timedOut || pipelineController.signal.aborted || Date.now() + 500 >= deadlineAtMs) {
+        timedOut = true;
+        failedCount += pendingFailedArticles.length - idx;
+        errors.push({
+          source: 'retry-llm',
+          stage: 'SYSTEM',
+          message: `Batas waktu retry (${Math.round(maxDurationMs / 1000)} detik) tercapai; ${pendingFailedArticles.length - idx} artikel tersisa menunggu sesi berikutnya.`,
+        });
+        break;
+      }
+
       processedCount += 1;
       const defaultPeriod = getQuarterFromDateWita(article.publishedAt);
-      const result = await worker.classifyArticle({
-        title: article.title,
-        sourcePortal: article.sourcePortal,
-        sourceType: article.sourceType,
-        publishedAtWita: formatDateTimeWita(article.publishedAt),
-        defaultQuarter: defaultPeriod.quarter,
-        defaultYear: defaultPeriod.year,
-        snippetText: article.snippetText,
-      });
+      const result = await worker.classifyArticle(
+        {
+          title: article.title,
+          sourcePortal: article.sourcePortal,
+          sourceType: article.sourceType,
+          publishedAtWita: formatDateTimeWita(article.publishedAt),
+          defaultQuarter: defaultPeriod.quarter,
+          defaultYear: defaultPeriod.year,
+          snippetText: article.snippetText,
+        },
+        {
+          signal: pipelineController.signal,
+          deadlineAtMs,
+        },
+      );
 
       totalInputTokens += result.usage.inputTokens;
       totalOutputTokens += result.usage.outputTokens;
@@ -846,6 +1085,10 @@ async function executeLockedRetryLlmBatch(
           })
           .where(eq(articles.id, article.id));
 
+        if (result.errorCode === 'TIMEOUT_BUDGET_EXCEEDED') {
+          timedOut = true;
+        }
+
         if (result.isRateLimit) {
           consecutiveRateLimitErrors += 1;
           if (consecutiveRateLimitErrors >= CIRCUIT_BREAKER_CONSECUTIVE_429_THRESHOLD) {
@@ -860,35 +1103,26 @@ async function executeLockedRetryLlmBatch(
           consecutiveRateLimitErrors = 0;
         }
       }
+
+      if ((idx + 1) % 3 === 0 || idx === pendingFailedArticles.length - 1) {
+        await persistRetrySnapshot(ScraperRunStatusEnum.RUNNING, false).catch(() => {});
+      }
     }
 
     const durationMs = Date.now() - startedAtMs;
-    const avgResponseTimeMs = timedLlmCalls > 0 ? Math.round(totalResponseTimeMs / timedLlmCalls) : 0;
 
     const finalStatus =
-      failedCount === 0
-        ? ScraperRunStatusEnum.SUCCESS
-        : succeededCount > 0
+      timedOut
+        ? succeededCount > 0
           ? ScraperRunStatusEnum.PARTIAL
-          : ScraperRunStatusEnum.FAILED;
+          : ScraperRunStatusEnum.FAILED
+        : failedCount === 0
+          ? ScraperRunStatusEnum.SUCCESS
+          : succeededCount > 0
+            ? ScraperRunStatusEnum.PARTIAL
+            : ScraperRunStatusEnum.FAILED;
 
-    await db
-      .update(scraperLogs)
-      .set({
-        status: finalStatus,
-        articlesFetched: pendingFailedArticles.length,
-        economicCount,
-        nonEconomicCount,
-        llmFailedCount: failedCount,
-        totalInputTokens,
-        totalOutputTokens,
-        totalTokens,
-        avgResponseTimeMs,
-        durationMs,
-        errorSummary: errors.slice(0, 100),
-        finishedAt: new Date(),
-      })
-      .where(eq(scraperLogs.id, logId));
+    await persistRetrySnapshot(finalStatus, true);
 
     return {
       logId,
@@ -905,35 +1139,32 @@ async function executeLockedRetryLlmBatch(
       errors,
     };
   } catch (fatalErr) {
-    const durationMs = Date.now() - startedAtMs;
     errors.push({
       source: 'retry-llm',
       stage: 'SYSTEM',
       message: fatalErr instanceof Error ? fatalErr.message : String(fatalErr),
     });
 
-    await db
-      .update(scraperLogs)
-      .set({
-        status: ScraperRunStatusEnum.FAILED,
-        llmFailedCount: failedCount,
-        totalInputTokens,
-        totalOutputTokens,
-        totalTokens,
-        durationMs,
-        errorSummary: errors.slice(0, 100),
-        finishedAt: new Date(),
-      })
-      .where(eq(scraperLogs.id, logId))
-      .catch(() => {});
-
+    const fallbackStatus =
+      succeededCount > 0 ? ScraperRunStatusEnum.PARTIAL : ScraperRunStatusEnum.FAILED;
+    await persistRetrySnapshot(fallbackStatus, true).catch(() => {});
     throw fatalErr;
+  } finally {
+    clearTimeout(deadlineTimer);
+    if (!finalized) {
+      const safeStatus =
+        succeededCount > 0 ? ScraperRunStatusEnum.PARTIAL : ScraperRunStatusEnum.FAILED;
+      await persistRetrySnapshot(safeStatus, true).catch((err) => {
+        console.error(`[Retry LLM ${logId}] Gagal melepas status RUNNING di blok finally:`, err);
+      });
+    }
   }
 }
 
 export async function runRetryFailedLlmBatch(params: {
   triggeredBy?: string | null;
   limit?: number;
+  maxDurationMs?: number;
   workerOptions?: GeminiWorkerOptions;
 } = {}): Promise<RetryLlmSummary> {
   const { logId, releaseLock } = await acquireScrapeExecutionLock(
@@ -951,6 +1182,7 @@ export async function runRetryFailedLlmBatch(params: {
 export async function startRetryFailedLlmInBackground(params: {
   triggeredBy?: string | null;
   limit?: number;
+  maxDurationMs?: number;
   workerOptions?: GeminiWorkerOptions;
 } = {}): Promise<{ logId: string; status: ScraperRunStatusEnum.RUNNING }> {
   const { logId, releaseLock } = await acquireScrapeExecutionLock(
@@ -971,4 +1203,3 @@ export async function startRetryFailedLlmInBackground(params: {
     status: ScraperRunStatusEnum.RUNNING,
   };
 }
-

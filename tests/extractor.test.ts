@@ -231,5 +231,58 @@ describe('Scraper Extractor & Portal/RSS Parsers', () => {
       ),
     ).toHaveLength(1);
   });
+
+  it('menghindari link topik Tribun, mendukung a>h3 relatif Koran Kaltara, .ui-r-fg Radar, serta mencegah bocor sidebar', () => {
+    const now = new Date('2026-10-14T20:00:00.000Z');
+    const [tribun, koran, benuanta, radar] = REGIONAL_PORTALS;
+
+    // Tribun: <h4><a href="/topic/..."> muncul SEBELUM <h3><a href="/kaltara/125113/...">
+    const tribunHtml = `
+      <div class="mr140">
+        <h4 class="fbo2 f14 red"><a href="https://kaltara.tribunnews.com/topic/berita-tana-tidung-terkini">Berita Tana Tidung Terkini</a></h4>
+        <h3><a href="https://kaltara.tribunnews.com/kaltara/125113/investasi-pelabuhan-tana-tidung-naik">Investasi Pelabuhan Tana Tidung Meningkat Pesat</a></h3>
+        <div class="grey pt5"><time class="timeago" title="2026-10-14 14:20:00">14 Oktober 2026</time></div>
+      </div>
+    `;
+    const tribunItems = parseRegionalPortalIndex(tribunHtml, tribun!, { now, lookbackDays: 3 });
+    expect(tribunItems).toHaveLength(1);
+    expect(tribunItems[0]?.url).toContain('/kaltara/125113/');
+
+    // Koran Kaltara: relative link membungkus <h3> dan date di <time class="time-xs">
+    const koranHtml = `
+      <div class="border-b">
+        <div class="w-3/12"><a href="/ekspor-cpo-tana-tidung-menguat"><img alt="x"></a></div>
+        <div class="w-10/12">
+          <a href="/ekspor-cpo-tana-tidung-menguat"><h3>Ekspor CPO Kabupaten Tana Tidung Menguat</h3></a>
+          <time class="time-xs">Rabu, 14 Okt 2026</time>
+        </div>
+      </div>
+    `;
+    const koranItems = parseRegionalPortalIndex(koranHtml, koran!, { now, lookbackDays: 3 });
+    expect(koranItems).toHaveLength(1);
+    expect(koranItems[0]?.url).toBe('https://korankaltara.com/ekspor-cpo-tana-tidung-menguat');
+
+    // Radar Tarakan: kategori <a href="/tana-tidung"> sebelum <h3 class="ui-heading"><a> & tanggal di .ui-text
+    const radarHtml = `
+      <div class="ui-r-fg">
+        <a href="/tana-tidung"><button>Tana Tidung</button></a>
+        <h3 class="ui-heading"><a href="/tana-tidung/2610140009/cek-pajak-kendaraan-bpkpd-ktt">BPKPD Tana Tidung Intensifkan Pajak Kendaraan Dinas</a></h3>
+        <span class="ui-text">Rabu, 14 Okt 2026 | 11:44 WIB</span>
+      </div>
+    `;
+    const radarItems = parseRegionalPortalIndex(radarHtml, radar!, { now, lookbackDays: 3 });
+    expect(radarItems).toHaveLength(1);
+    expect(radarItems[0]?.url).toContain('/tana-tidung/2610140009/');
+
+    // Benuanta: jika seluruh 3 container <article> terstruktur berisi berita lama 2025, Strategi 2 TIDAK boleh memanen sidebar
+    const benuantaOldHtml = `
+      <article><h2 class="entry-title"><a href="https://benuanta.co.id/pemkab-tana-tidung/1/berita-lama-satu/">Berita Lama Satu Dari Tahun Lalu</a></h2><time datetime="2025-03-01T10:00:00+08:00">1 Maret 2025</time></article>
+      <article><h2 class="entry-title"><a href="https://benuanta.co.id/pemkab-tana-tidung/2/berita-lama-dua/">Berita Lama Dua Dari Tahun Lalu</a></h2><time datetime="2025-02-01T10:00:00+08:00">1 Februari 2025</time></article>
+      <article><h2 class="entry-title"><a href="https://benuanta.co.id/pemkab-tana-tidung/3/berita-lama-tiga/">Berita Lama Tiga Dari Tahun Lalu</a></h2><time datetime="2025-01-01T10:00:00+08:00">1 Januari 2025</time></article>
+      <aside class="sidebar"><h2><a href="https://benuanta.co.id/uncategorized/iklan-sidebar-bukan-ktt/">Iklan Sidebar Bukan Artikel KTT</a></h2></aside>
+    `;
+    const benuantaItems = parseRegionalPortalIndex(benuantaOldHtml, benuanta!, { now, lookbackDays: 3 });
+    expect(benuantaItems).toHaveLength(0);
+  });
 });
 

@@ -5,7 +5,14 @@ import { ArticleSourceTypeEnum } from '../../../shared/enums/pdrb';
 import { db } from '../../db';
 import type { ScraperPortalErrorEntry } from '../../db/schema';
 import { nationalKeywords } from '../../db/schema';
-import { safeFetchText, type SafeFetchOptions } from '../../utils/ssrf';
+import { DEFAULT_SCRAPER_CONCURRENCY, runWithConcurrency } from '../../utils/concurrency';
+import {
+  DEFAULT_BROWSER_HEADERS,
+  DEFAULT_BROWSER_USER_AGENT,
+  DEFAULT_FETCH_TIMEOUT_MS,
+  safeFetchText,
+  type SafeFetchOptions,
+} from '../../utils/ssrf';
 import { extractHostnameLabel, hashNormalizedUrl, isSafeHttpUrl } from '../../utils/url-hash';
 import { countWords, parseIndonesianDateTime } from './extractor';
 import {
@@ -13,6 +20,8 @@ import {
   isWithinLookbackWindow,
   type DiscoveredArticleCandidate,
 } from './portals';
+
+export const DEFAULT_NATIONAL_MAX_ITEMS_PER_KEYWORD = 6;
 
 export interface ActiveKeywordTarget {
   id: string;
@@ -162,10 +171,13 @@ export interface NationalHarvestOptions {
   now?: Date;
   lookbackDays?: number;
   maxItemsPerKeyword?: number;
+  timeoutMs?: number;
+  concurrency?: number;
+  signal?: AbortSignal;
 }
 
 /**
- * Mengambil kandidat berita nasional melalui RSS Google News Indonesia untuk seluruh
+ * Mengambil kandidat berita nasional secara paralel melalui RSS Google News Indonesia untuk seluruh
  * keyword nasional aktif di tabel `national_keywords`.
  */
 export async function harvestNationalKeywords(
@@ -174,7 +186,11 @@ export async function harvestNationalKeywords(
   const fetchFn = options.fetchFn ?? safeFetchText;
   const now = options.now ?? new Date();
   const lookbackDays = options.lookbackDays ?? 3;
-  const maxItemsPerKeyword = options.maxItemsPerKeyword ?? 10;
+  const maxItemsPerKeyword =
+    options.maxItemsPerKeyword ?? DEFAULT_NATIONAL_MAX_ITEMS_PER_KEYWORD;
+  const timeoutMs = options.timeoutMs ?? DEFAULT_FETCH_TIMEOUT_MS;
+  const concurrency = options.concurrency ?? DEFAULT_SCRAPER_CONCURRENCY;
+  const signal = options.signal;
 
   const keywords: ReadonlyArray<ActiveKeywordTarget> =
     options.keywords ??
@@ -191,38 +207,47 @@ export async function harvestNationalKeywords(
   const seenHashes = new Set<string>();
   let keywordsChecked = 0;
 
-  for (const kw of keywords) {
-    keywordsChecked += 1;
-    const rssUrl = buildGoogleNewsRssUrl(kw.keyword);
+  await runWithConcurrency(
+    keywords,
+    concurrency,
+    async (kw) => {
+      if (signal?.aborted) return;
+      keywordsChecked += 1;
+      const rssUrl = buildGoogleNewsRssUrl(kw.keyword);
 
-    try {
-      const response = await fetchFn(rssUrl, {
-        timeoutMs: 15_000,
-        maxBytes: 2 * 1024 * 1024,
-        accept: 'application/rss+xml, application/xml, text/xml;q=0.9, */*;q=0.5',
-      });
+      try {
+        const response = await fetchFn(rssUrl, {
+          timeoutMs,
+          maxBytes: 1024 * 1024,
+          accept: 'application/rss+xml, application/xml, text/xml;q=0.9, */*;q=0.5',
+          userAgent: DEFAULT_BROWSER_USER_AGENT,
+          headers: DEFAULT_BROWSER_HEADERS,
+          signal,
+        });
 
-      const items = parseGoogleNewsRss(response.body, kw, {
-        now,
-        lookbackDays,
-        maxItems: maxItemsPerKeyword,
-      });
+        const items = parseGoogleNewsRss(response.body, kw, {
+          now,
+          lookbackDays,
+          maxItems: maxItemsPerKeyword,
+        });
 
-      for (const item of items) {
-        if (!seenHashes.has(item.urlHash)) {
-          seenHashes.add(item.urlHash);
-          candidates.push(item);
+        for (const item of items) {
+          if (!seenHashes.has(item.urlHash)) {
+            seenHashes.add(item.urlHash);
+            candidates.push(item);
+          }
         }
+      } catch (err) {
+        errors.push({
+          source: `keyword:${kw.keyword}`,
+          stage: 'HARVEST',
+          message: err instanceof Error ? err.message : String(err),
+          url: rssUrl,
+        });
       }
-    } catch (err) {
-      errors.push({
-        source: `keyword:${kw.keyword}`,
-        stage: 'HARVEST',
-        message: err instanceof Error ? err.message : String(err),
-        url: rssUrl,
-      });
-    }
-  }
+    },
+    signal,
+  );
 
   return {
     candidates,
@@ -230,4 +255,3 @@ export async function harvestNationalKeywords(
     errors,
   };
 }
-
