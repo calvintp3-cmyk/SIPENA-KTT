@@ -1,0 +1,988 @@
+<!-- app/pages/linimasa.vue -->
+<script setup lang="ts">
+import {
+  ArticleSourceTypeEnum,
+  PDRB_17_SECTORS,
+  type ExpenditureComponentEnum,
+  type KbliCategoryEnum,
+} from '#shared/enums/pdrb';
+import {
+  formatDateId,
+  formatDateTimeWita,
+  formatPeriodLabel,
+  getCurrentQuarterYearWita,
+  getPreviousQuarterYear,
+  getWitaDateParts,
+  toRomanQuarter,
+  type PdrbQuarter,
+} from '#shared/utils/period';
+import type {
+  PublicArticleItem,
+  PublicArticlesResponse,
+  PublicOverviewResponse,
+  SelectOptionItem,
+} from '~/types/sipena';
+
+definePageMeta({
+  layout: 'default',
+});
+
+useHead({
+  title: 'Linimasa Fenomena Ekonomi — SIPENA KTT',
+  meta: [
+    {
+      name: 'description',
+      content:
+        'Rekam jejak dinamika sektor usaha, pergerakan harga, dan aktivitas ekonomi Kabupaten Tana Tidung secara terkurasi dan transparan.',
+    },
+  ],
+});
+
+const route = useRoute();
+const router = useRouter();
+const {
+  searchInput,
+  selectedYear: sharedSelectedYear,
+  selectedQuarter: sharedSelectedQuarter,
+  totalVerifiedInPeriod,
+} = usePublicPortalState();
+
+const {
+  getKbliShortCodeName,
+  getKbliImpactBadge,
+  getKbliClusterTheme,
+  getExpenditureLabel,
+  getExpenditureImpactBadge,
+  getExpenditureColorTheme,
+  formatNumberId,
+} = usePdrbLabels();
+
+const MONTH_NAMES_ID = [
+  'JANUARI',
+  'FEBRUARI',
+  'MARET',
+  'APRIL',
+  'MEI',
+  'JUNI',
+  'JULI',
+  'AGUSTUS',
+  'SEPTEMBER',
+  'OKTOBER',
+  'NOVEMBER',
+  'DESEMBER',
+];
+
+const IMPACT_MACRO_LABELS: Record<string, string> = {
+  EXPANSION: 'Meningkatkan NTB / Riil',
+  CONTRACTION: 'Menurunkan NTB / Riil',
+  PRICE_UP: 'Kenaikan Harga / Deflator',
+  PRICE_DOWN: 'Penurunan Harga / Deflator',
+};
+
+const currentWita = getCurrentQuarterYearWita();
+
+function parseQuarter(raw: unknown): PdrbQuarter {
+  const n = Number(raw);
+  if (n === 1 || n === 2 || n === 3 || n === 4) return n;
+  return currentWita.quarter;
+}
+
+function parseYear(raw: unknown): number {
+  const n = Number(raw);
+  if (Number.isInteger(n) && n >= 2000 && n <= 2100) return n;
+  return currentWita.year;
+}
+
+function parsePage(raw: unknown): number {
+  const n = Number(raw);
+  if (Number.isInteger(n) && n >= 1) return n;
+  return 1;
+}
+
+function strParam(raw: unknown, fallback = 'ALL'): string {
+  if (typeof raw === 'string' && raw.trim().length > 0) return raw.trim();
+  return fallback;
+}
+
+const selectedYear = ref<number>(parseYear(route.query.year));
+const selectedQuarter = ref<PdrbQuarter>(parseQuarter(route.query.quarter));
+const selectedPdrbGroup = ref<string>(strParam(route.query.pdrbGroup, 'ALL'));
+const selectedKbli = ref<string>(strParam(route.query.kbli, 'ALL'));
+const selectedExpenditure = ref<string>(strParam(route.query.expenditure, 'ALL'));
+const selectedSourceType = ref<string>(strParam(route.query.sourceType, 'ALL'));
+const selectedImpactMacro = ref<string>(strParam(route.query.impactMacro, 'ALL'));
+const viewMode = ref<'stream' | 'table'>(route.query.view === 'table' ? 'table' : 'stream');
+const page = ref<number>(parsePage(route.query.page));
+
+const showAnalyticsPanel = ref<boolean>(true);
+const mobileFiltersOpen = ref<boolean>(false);
+const detailModalOpen = ref<boolean>(false);
+const selectedArticle = ref<PublicArticleItem | null>(null);
+
+if (selectedKbli.value !== 'ALL') {
+  selectedPdrbGroup.value = 'ALL';
+}
+
+const initialSearchQ = typeof route.query.q === 'string' ? route.query.q : '';
+searchInput.value = initialSearchQ;
+const debouncedSearch = ref<string>(initialSearchQ.trim());
+
+sharedSelectedYear.value = selectedYear.value;
+sharedSelectedQuarter.value = selectedQuarter.value;
+
+watch([selectedYear, selectedQuarter], ([y, q]: [number, PdrbQuarter]) => {
+  sharedSelectedYear.value = y;
+  sharedSelectedQuarter.value = q;
+});
+
+let searchDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+watch(searchInput, (val: string) => {
+  if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
+  searchDebounceTimer = setTimeout(() => {
+    const trimmed = val.trim();
+    if (debouncedSearch.value !== trimmed) {
+      debouncedSearch.value = trimmed;
+      page.value = 1;
+    }
+  }, 320);
+});
+
+onBeforeUnmount(() => {
+  if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
+});
+
+// Sync URL query whenever reactive filters change
+watch(
+  [
+    selectedYear,
+    selectedQuarter,
+    debouncedSearch,
+    selectedPdrbGroup,
+    selectedKbli,
+    selectedExpenditure,
+    selectedSourceType,
+    selectedImpactMacro,
+    viewMode,
+    page,
+  ],
+  () => {
+    const nextQuery: Record<string, string> = {
+      year: String(selectedYear.value),
+      quarter: String(selectedQuarter.value),
+    };
+    if (debouncedSearch.value) nextQuery.q = debouncedSearch.value;
+    if (selectedKbli.value !== 'ALL') nextQuery.kbli = selectedKbli.value;
+    else if (selectedPdrbGroup.value !== 'ALL') nextQuery.pdrbGroup = selectedPdrbGroup.value;
+    if (selectedExpenditure.value !== 'ALL') nextQuery.expenditure = selectedExpenditure.value;
+    if (selectedSourceType.value !== 'ALL') nextQuery.sourceType = selectedSourceType.value;
+    if (selectedImpactMacro.value !== 'ALL') nextQuery.impactMacro = selectedImpactMacro.value;
+    if (viewMode.value === 'table') nextQuery.view = 'table';
+    if (page.value > 1) nextQuery.page = String(page.value);
+
+    router.replace({ query: nextQuery });
+  },
+);
+
+const overviewQuery = computed(() => ({
+  year: selectedYear.value,
+  quarter: selectedQuarter.value,
+}));
+
+const {
+  data: overview,
+  pending: overviewPending,
+} = await useFetch<PublicOverviewResponse>('/api/public/overview', {
+  query: overviewQuery,
+  watch: [overviewQuery],
+});
+
+watch(
+  () => overview.value?.kpi.totalVerified,
+  (total: number | undefined) => {
+    totalVerifiedInPeriod.value = total ?? 0;
+  },
+  { immediate: true },
+);
+
+const articlesQuery = computed(() => {
+  const q: Record<string, string | number> = {
+    year: selectedYear.value,
+    quarter: selectedQuarter.value,
+    page: page.value,
+    limit: 20,
+  };
+  if (debouncedSearch.value) q.q = debouncedSearch.value;
+  if (selectedKbli.value !== 'ALL') q.kbli = selectedKbli.value;
+  else if (selectedPdrbGroup.value !== 'ALL') q.pdrbGroup = selectedPdrbGroup.value;
+  if (selectedExpenditure.value !== 'ALL') q.expenditure = selectedExpenditure.value;
+  if (selectedSourceType.value !== 'ALL') q.sourceType = selectedSourceType.value;
+  if (selectedImpactMacro.value !== 'ALL') q.impactMacro = selectedImpactMacro.value;
+  return q;
+});
+
+const {
+  data: articlesResponse,
+  pending: articlesPending,
+  error: articlesError,
+  refresh: refreshArticles,
+} = await useFetch<PublicArticlesResponse>('/api/public/articles', {
+  query: articlesQuery,
+  watch: [articlesQuery],
+});
+
+const availableYears = computed<number[]>(() => {
+  const set = new Set<number>([currentWita.year, currentWita.year - 1, selectedYear.value]);
+  for (const p of overview.value?.availablePeriods ?? []) {
+    set.add(p.year);
+  }
+  return Array.from(set).sort((a, b) => b - a);
+});
+
+const yearSelectOptions = computed<SelectOptionItem<number>[]>(() =>
+  availableYears.value.map((y: number) => ({
+    label: `Tahun ${y}`,
+    value: y,
+  })),
+);
+
+const quarterButtons: Array<{ value: PdrbQuarter; label: string; range: string }> = [
+  { value: 1, label: 'TW I', range: 'Jan–Mar' },
+  { value: 2, label: 'TW II', range: 'Apr–Jun' },
+  { value: 3, label: 'TW III', range: 'Jul–Sep' },
+  { value: 4, label: 'TW IV', range: 'Okt–Des' },
+];
+
+const selectedQuarterRange = computed(
+  () => quarterButtons.find((q) => q.value === selectedQuarter.value)?.range ?? '',
+);
+
+const currentPeriodLabel = computed(() =>
+  formatPeriodLabel(selectedQuarter.value, selectedYear.value),
+);
+
+const lastSyncText = computed(() => {
+  if (!overview.value?.lastUpdatedAt) return 'Menunggu kurasi data';
+  return formatDateTimeWita(overview.value.lastUpdatedAt);
+});
+
+const activeFilterChips = computed(() => {
+  const chips: Array<{ key: string; label: string; dotClass: string; clear: () => void }> = [];
+
+  if (debouncedSearch.value) {
+    chips.push({
+      key: 'q',
+      label: `Cari: "${debouncedSearch.value}"`,
+      dotClass: 'bg-indigo-600',
+      clear: () => {
+        searchInput.value = '';
+        debouncedSearch.value = '';
+        page.value = 1;
+      },
+    });
+  }
+  if (selectedSourceType.value !== 'ALL') {
+    chips.push({
+      key: 'sourceType',
+      label:
+        selectedSourceType.value === ArticleSourceTypeEnum.REGIONAL
+          ? 'Sumber: Lokal KTT'
+          : 'Sumber: Nasional',
+      dotClass: 'bg-emerald-600',
+      clear: () => {
+        selectedSourceType.value = 'ALL';
+        page.value = 1;
+      },
+    });
+  }
+  if (selectedKbli.value !== 'ALL') {
+    chips.push({
+      key: 'kbli',
+      label: `KBLI: ${getKbliShortCodeName(selectedKbli.value as KbliCategoryEnum)}`,
+      dotClass: getKbliClusterTheme(selectedKbli.value).accentBarClass,
+      clear: () => {
+        selectedKbli.value = 'ALL';
+        page.value = 1;
+      },
+    });
+  } else if (selectedPdrbGroup.value !== 'ALL') {
+    const sector = PDRB_17_SECTORS.find((s) => s.groupCode === selectedPdrbGroup.value);
+    chips.push({
+      key: 'pdrbGroup',
+      label: `Sektor: [${selectedPdrbGroup.value}] ${sector?.shortName ?? selectedPdrbGroup.value}`,
+      dotClass: getKbliClusterTheme(selectedPdrbGroup.value).accentBarClass,
+      clear: () => {
+        selectedPdrbGroup.value = 'ALL';
+        page.value = 1;
+      },
+    });
+  }
+  if (selectedExpenditure.value !== 'ALL') {
+    chips.push({
+      key: 'expenditure',
+      label: `Pengeluaran: ${getExpenditureLabel(selectedExpenditure.value as ExpenditureComponentEnum, false)}`,
+      dotClass: getExpenditureColorTheme(selectedExpenditure.value).dotClass,
+      clear: () => {
+        selectedExpenditure.value = 'ALL';
+        page.value = 1;
+      },
+    });
+  }
+  if (selectedImpactMacro.value !== 'ALL') {
+    chips.push({
+      key: 'impactMacro',
+      label: `Dampak: ${IMPACT_MACRO_LABELS[selectedImpactMacro.value] ?? selectedImpactMacro.value}`,
+      dotClass: 'bg-amber-500',
+      clear: () => {
+        selectedImpactMacro.value = 'ALL';
+        page.value = 1;
+      },
+    });
+  }
+
+  return chips;
+});
+
+const activeFilterCount = computed(() => activeFilterChips.value.length);
+
+function resetAllFilters() {
+  searchInput.value = '';
+  debouncedSearch.value = '';
+  selectedSourceType.value = 'ALL';
+  selectedPdrbGroup.value = 'ALL';
+  selectedKbli.value = 'ALL';
+  selectedExpenditure.value = 'ALL';
+  selectedImpactMacro.value = 'ALL';
+  page.value = 1;
+}
+
+function handlePeriodChange(newYear: number, newQuarter: PdrbQuarter) {
+  selectedYear.value = newYear;
+  selectedQuarter.value = newQuarter;
+  page.value = 1;
+}
+
+function handlePdrbGroupUpdate(val: string) {
+  selectedKbli.value = 'ALL';
+  selectedPdrbGroup.value = val;
+  page.value = 1;
+}
+
+function handleKbliChartUpdate(val: string) {
+  selectedPdrbGroup.value = 'ALL';
+  selectedKbli.value = val;
+  page.value = 1;
+}
+
+function handleExpenditureUpdate(val: string) {
+  selectedExpenditure.value = val;
+  page.value = 1;
+}
+
+function handleSourceTypeUpdate(val: string) {
+  selectedSourceType.value = val;
+  page.value = 1;
+}
+
+function handleImpactMacroUpdate(val: string) {
+  selectedImpactMacro.value = val;
+  page.value = 1;
+}
+
+const timelineDateGroups = computed(() => {
+  const items = articlesResponse.value?.items ?? [];
+  const groups: Array<{
+    dateKey: string;
+    dayLabel: string;
+    monthYearLabel: string;
+    items: PublicArticleItem[];
+  }> = [];
+  const groupMap = new Map<string, (typeof groups)[number]>();
+
+  for (const article of items) {
+    let dateKey = 'unknown';
+    let dayLabel = '--';
+    let monthYearLabel = 'ARSIP';
+    try {
+      const p = getWitaDateParts(article.publishedAt);
+      dateKey = `${p.year}-${String(p.month).padStart(2, '0')}-${String(p.day).padStart(2, '0')}`;
+      dayLabel = String(p.day).padStart(2, '0');
+      monthYearLabel = `${MONTH_NAMES_ID[p.month - 1] ?? ''} ${p.year}`;
+    } catch {
+      // keep defaults
+    }
+
+    let bucket = groupMap.get(dateKey);
+    if (!bucket) {
+      bucket = {
+        dateKey,
+        dayLabel,
+        monthYearLabel,
+        items: [],
+      };
+      groupMap.set(dateKey, bucket);
+      groups.push(bucket);
+    }
+    bucket.items.push(article);
+  }
+
+  return groups;
+});
+
+const previousQuarterInfo = computed(() => {
+  const prev = getPreviousQuarterYear(selectedQuarter.value, selectedYear.value);
+  return {
+    year: prev.year,
+    quarter: prev.quarter,
+    label: formatPeriodLabel(prev.quarter, prev.year),
+  };
+});
+
+const latestPopulatedPeriod = computed(() => {
+  const populated = (overview.value?.availablePeriods ?? []).find(
+    (p) =>
+      p.count > 0 && (p.year !== selectedYear.value || p.quarter !== selectedQuarter.value),
+  );
+  if (!populated) return null;
+  return {
+    year: populated.year,
+    quarter: populated.quarter as PdrbQuarter,
+    label: populated.label,
+    count: populated.count,
+  };
+});
+
+function openDetailModal(article: PublicArticleItem) {
+  selectedArticle.value = article;
+  detailModalOpen.value = true;
+}
+</script>
+
+<template>
+  <div class="space-y-6">
+    <!-- Top Editorial Command Header (Cobalt-Emerald Luminous Surface) -->
+    <section
+      aria-label="Kontrol Periode dan Ringkasan Linimasa"
+      class="saas-card rounded-2xl p-5 sm:p-7 relative overflow-hidden"
+    >
+      <div
+        aria-hidden="true"
+        class="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-gradient-to-br from-blue-500/12 via-indigo-500/8 to-emerald-500/12 blur-2xl pointer-events-none"
+      />
+
+      <div class="relative z-10 flex flex-col gap-5">
+        <!-- Title Row & View Switcher -->
+        <div class="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
+          <div class="space-y-2 max-w-3xl">
+            <div class="flex flex-wrap items-center gap-2">
+              <span
+                class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 text-indigo-800 border border-indigo-200/80 text-xs font-semibold"
+              >
+                <UIcon name="i-solar-calendar-search-bold-duotone" class="w-3.5 h-3.5 text-indigo-600" />
+                <span>Linimasa Fenomena Ekonomi • {{ currentPeriodLabel }}</span>
+              </span>
+
+              <span
+                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200/80 text-xs font-semibold tabular-nums"
+              >
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                <span>{{ formatNumberId(overview?.kpi.totalVerified ?? 0) }} Terverifikasi</span>
+              </span>
+            </div>
+
+            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#0F172A] leading-tight">
+              Portal Fenomena PDRB Kabupaten Tana Tidung
+            </h1>
+
+            <p class="text-sm text-slate-600 leading-relaxed">
+              Rekam jejak dinamika sektor usaha, pergerakan harga, dan aktivitas ekonomi Kabupaten
+              Tana Tidung secara terkurasi dan transparan.
+            </p>
+          </div>
+
+          <!-- View Switcher -->
+          <div class="flex items-center gap-2 self-start shrink-0">
+            <div
+              role="group"
+              aria-label="Mode Tampilan Linimasa"
+              class="inline-flex p-1 rounded-xl bg-slate-100/95 border border-slate-200/90"
+            >
+              <button
+                type="button"
+                :aria-pressed="viewMode === 'stream'"
+                class="px-3.5 py-1.5 rounded-lg text-xs inline-flex items-center gap-1.5 transition-all"
+                :class="
+                  viewMode === 'stream'
+                    ? 'bg-white text-indigo-700 font-semibold shadow-2xs border border-indigo-200/70'
+                    : 'text-slate-600 hover:text-slate-950 font-medium'
+                "
+                @click="() => { viewMode = 'stream'; }"
+              >
+                <UIcon name="i-solar-list-heart-bold-duotone" class="w-4 h-4" />
+                <span>Linimasa Stream</span>
+              </button>
+              <button
+                type="button"
+                :aria-pressed="viewMode === 'table'"
+                class="px-3.5 py-1.5 rounded-lg text-xs inline-flex items-center gap-1.5 transition-all"
+                :class="
+                  viewMode === 'table'
+                    ? 'bg-white text-indigo-700 font-semibold shadow-2xs border border-indigo-200/70'
+                    : 'text-slate-600 hover:text-slate-950 font-medium'
+                "
+                @click="() => { viewMode = 'table'; }"
+              >
+                <UIcon name="i-solar-widget-4-bold-duotone" class="w-4 h-4" />
+                <span>Tabel Ringkas</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Period Control Bar -->
+        <div
+          class="pt-4 border-t border-slate-200/80 flex flex-wrap items-center justify-between gap-3"
+        >
+          <div class="flex flex-wrap items-center gap-2.5">
+            <!-- USelect Tahun (Zero Raw HTML select) -->
+            <div class="w-36">
+              <USelect
+                :model-value="selectedYear"
+                :items="yearSelectOptions"
+                value-key="value"
+                label-key="label"
+                leading-icon="i-solar-calendar-bold-duotone"
+                size="sm"
+                aria-label="Pilih Tahun Periode"
+                class="w-full"
+                @update:model-value="(val: unknown) => { if (typeof val === 'number') handlePeriodChange(val, selectedQuarter); }"
+              />
+            </div>
+
+            <!-- Segmented Control Triwulan -->
+            <div
+              role="group"
+              aria-label="Pilih Triwulan PDRB"
+              class="inline-flex items-center gap-1 p-1 rounded-xl bg-slate-100/95 border border-slate-200/90"
+            >
+              <button
+                v-for="qBtn in quarterButtons"
+                :key="qBtn.value"
+                type="button"
+                :aria-pressed="selectedQuarter === qBtn.value"
+                class="px-3 py-1 rounded-lg text-xs transition-all tabular-nums"
+                :class="
+                  selectedQuarter === qBtn.value
+                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold shadow-xs'
+                    : 'text-slate-600 hover:text-slate-950 font-medium'
+                "
+                :title="`${qBtn.label} (${qBtn.range})`"
+                @click="() => { handlePeriodChange(selectedYear, qBtn.value); }"
+              >
+                {{ qBtn.label }}
+              </button>
+            </div>
+
+            <span class="hidden sm:inline text-xs text-slate-500 font-medium">
+              Periode {{ selectedQuarterRange }} {{ selectedYear }}
+            </span>
+          </div>
+
+          <!-- Right Meta & Analytics Panel Toggle -->
+          <div class="flex flex-wrap items-center gap-2.5">
+            <span class="text-xs text-slate-500 tabular-nums">
+              Sinkronisasi Terakhir: <strong class="text-slate-700 font-semibold">{{ lastSyncText }}</strong>
+            </span>
+
+            <button
+              type="button"
+              :aria-expanded="showAnalyticsPanel"
+              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-colors"
+              :class="
+                showAnalyticsPanel
+                  ? 'bg-indigo-50 text-indigo-800 border-indigo-200 hover:bg-indigo-100'
+                  : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+              "
+              @click="() => { showAnalyticsPanel = !showAnalyticsPanel; }"
+            >
+              <UIcon name="i-solar-pie-chart-2-bold-duotone" class="w-4 h-4" />
+              <span>{{ showAnalyticsPanel ? 'Sembunyikan Statistik' : 'Tampilkan Statistik' }}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Collapsible Analytics Panel (KPI + Interactive ECharts) -->
+    <div v-if="showAnalyticsPanel" class="space-y-4">
+      <PublicKpiSnapshotGrid :overview="overview ?? null" :pending="overviewPending" />
+      <PublicSectorDistributionCharts
+        :overview="overview ?? null"
+        :selected-kbli="selectedKbli"
+        :selected-expenditure="selectedExpenditure"
+        :pending="overviewPending"
+        @update:kbli="handleKbliChartUpdate"
+        @update:expenditure="handleExpenditureUpdate"
+      />
+    </div>
+
+    <!-- Mobile Search & Filter Trigger (< lg) -->
+    <div class="lg:hidden flex items-center gap-2.5">
+      <div class="relative flex-1">
+        <UIcon
+          name="i-solar-magnifer-line-duotone"
+          class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+        />
+        <label for="mobile-linimasa-search" class="sr-only">Cari fenomena ekonomi</label>
+        <input
+          id="mobile-linimasa-search"
+          v-model="searchInput"
+          type="search"
+          placeholder="Cari komoditas, sektor, atau judul..."
+          class="w-full h-10 pl-9 pr-3 rounded-xl bg-white border border-slate-200 text-xs text-[#0F172A] placeholder:text-slate-500 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/15"
+        >
+      </div>
+
+      <button
+        type="button"
+        class="h-10 px-3.5 rounded-xl bg-white border border-slate-200 text-xs font-semibold text-slate-800 inline-flex items-center gap-1.5 shrink-0 shadow-2xs"
+        @click="() => { mobileFiltersOpen = true; }"
+      >
+        <UIcon name="i-solar-filter-bold-duotone" class="w-4 h-4 text-indigo-600" />
+        <span>Filter</span>
+        <span
+          v-if="activeFilterCount > 0"
+          class="px-1.5 py-0.5 rounded-full bg-indigo-600 text-white text-[10px] font-bold tabular-nums"
+        >
+          {{ activeFilterCount }}
+        </span>
+      </button>
+    </div>
+
+    <!-- Mobile Filter Slideover -->
+    <USlideover
+      v-model:open="mobileFiltersOpen"
+      side="left"
+      title="Filter Fenomena Ekonomi"
+      description="Saring linimasa menurut sumber berita, 17 kategori KBLI, 6 komponen pengeluaran, dan dampak makro"
+      :ui="{ content: 'max-w-sm' }"
+    >
+      <template #body>
+        <PublicFilterBar
+          in-drawer
+          :overview="overview ?? null"
+          :source-type="selectedSourceType"
+          :pdrb-group="selectedPdrbGroup"
+          :expenditure="selectedExpenditure"
+          :impact-macro="selectedImpactMacro"
+          :active-filter-count="activeFilterCount"
+          @update:source-type="handleSourceTypeUpdate"
+          @update:pdrb-group="handlePdrbGroupUpdate"
+          @update:expenditure="handleExpenditureUpdate"
+          @update:impact-macro="handleImpactMacroUpdate"
+          @reset="resetAllFilters"
+        />
+      </template>
+    </USlideover>
+
+    <!-- Main Asymmetric Feed Layout -->
+    <div class="flex flex-col lg:flex-row items-start gap-6">
+      <!-- Desktop Sticky Filter Sidebar -->
+      <div class="hidden lg:block">
+        <PublicFilterBar
+          :overview="overview ?? null"
+          :source-type="selectedSourceType"
+          :pdrb-group="selectedPdrbGroup"
+          :expenditure="selectedExpenditure"
+          :impact-macro="selectedImpactMacro"
+          :active-filter-count="activeFilterCount"
+          @update:source-type="handleSourceTypeUpdate"
+          @update:pdrb-group="handlePdrbGroupUpdate"
+          @update:expenditure="handleExpenditureUpdate"
+          @update:impact-macro="handleImpactMacroUpdate"
+          @reset="resetAllFilters"
+        />
+      </div>
+
+      <!-- Right Stream / Table Area -->
+      <div class="flex-1 min-w-0 w-full space-y-4">
+        <!-- Active Filter Chips Strip -->
+        <div
+          v-if="activeFilterChips.length > 0"
+          class="saas-card rounded-2xl px-4 py-3 flex flex-wrap items-center justify-between gap-2.5"
+        >
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="text-xs font-semibold text-slate-600">Filter Aktif:</span>
+            <button
+              v-for="chip in activeFilterChips"
+              :key="chip.key"
+              type="button"
+              class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-50/90 hover:bg-indigo-100 border border-indigo-200/80 text-xs font-semibold text-indigo-900 transition-colors"
+              @click="() => { chip.clear(); }"
+            >
+              <span class="w-2 h-2 rounded-full shrink-0" :class="chip.dotClass" />
+              <span>{{ chip.label }}</span>
+              <UIcon name="i-lucide-x" class="w-3 h-3 text-indigo-600" />
+            </button>
+          </div>
+
+          <button
+            type="button"
+            class="text-xs font-semibold text-indigo-700 hover:text-indigo-900 px-2 py-1 rounded-lg hover:bg-indigo-50 transition-colors"
+            @click="resetAllFilters"
+          >
+            Reset Semua
+          </button>
+        </div>
+
+        <!-- Error State -->
+        <UAlert
+          v-if="articlesError"
+          color="error"
+          variant="subtle"
+          icon="i-lucide-alert-circle"
+          title="Gagal memuat linimasa fenomena ekonomi"
+          description="Terjadi kendala saat mengambil daftar fenomena dari server. Silakan muat ulang."
+        >
+          <template #actions>
+            <UButton
+              color="error"
+              variant="soft"
+              size="xs"
+              label="Muat Ulang"
+              icon="i-lucide-refresh-cw"
+              @click="() => { refreshArticles(); }"
+            />
+          </template>
+        </UAlert>
+
+        <!-- Loading Skeleton -->
+        <div v-else-if="articlesPending && !articlesResponse" class="space-y-4">
+          <div v-for="idx in 4" :key="idx" class="saas-card rounded-2xl p-6 space-y-3">
+            <div class="h-3 w-36 rounded bg-slate-200" />
+            <div class="h-5 w-4/5 rounded bg-slate-200" />
+            <div class="h-14 w-full rounded bg-slate-100" />
+          </div>
+        </div>
+
+        <!-- Empty State -->
+        <div
+          v-else-if="!articlesResponse || articlesResponse.items.length === 0"
+          class="saas-card rounded-2xl p-8 sm:p-10 text-center space-y-4"
+        >
+          <div
+            class="w-14 h-14 rounded-2xl bg-indigo-50 border border-indigo-200/80 text-indigo-600 flex items-center justify-center mx-auto"
+          >
+            <UIcon name="i-solar-inbox-line-bold-duotone" class="w-7 h-7" />
+          </div>
+
+          <div class="space-y-1.5 max-w-md mx-auto">
+            <h2 class="text-lg font-extrabold text-[#0F172A]">
+              {{
+                activeFilterCount > 0
+                  ? 'Tidak ada fenomena yang cocok dengan kombinasi filter'
+                  : `Belum ada catatan terverifikasi pada ${currentPeriodLabel}`
+              }}
+            </h2>
+            <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+              {{
+                activeFilterCount > 0
+                  ? 'Coba longgarkan sebagian kriteria sektor KBLI, komponen pengeluaran, atau kata kunci pencarian.'
+                  : 'Anda dapat berpindah ke triwulan sebelumnya atau periode terbaru yang sudah memiliki dokumentasi terverifikasi.'
+              }}
+            </p>
+          </div>
+
+          <div class="flex flex-wrap items-center justify-center gap-2.5 pt-1">
+            <button
+              v-if="activeFilterCount > 0"
+              type="button"
+              class="btn-primary-gradient h-10 px-4 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5"
+              @click="resetAllFilters"
+            >
+              <UIcon name="i-lucide-rotate-ccw" class="w-3.5 h-3.5" />
+              <span>Hapus Semua Filter</span>
+            </button>
+
+            <button
+              type="button"
+              class="h-10 px-4 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-800 inline-flex items-center gap-1.5 transition-colors"
+              @click="() => { handlePeriodChange(previousQuarterInfo.year, previousQuarterInfo.quarter); }"
+            >
+              <UIcon name="i-lucide-arrow-left" class="w-3.5 h-3.5 text-slate-500" />
+              <span>Ke {{ previousQuarterInfo.label }}</span>
+            </button>
+
+            <button
+              v-if="latestPopulatedPeriod"
+              type="button"
+              class="btn-primary-gradient h-10 px-4 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5"
+              @click="() => { if (latestPopulatedPeriod) handlePeriodChange(latestPopulatedPeriod.year, latestPopulatedPeriod.quarter); }"
+            >
+              <UIcon name="i-solar-calendar-mark-bold-duotone" class="w-4 h-4" />
+              <span>Buka {{ latestPopulatedPeriod.label }} ({{ latestPopulatedPeriod.count }})</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Mode 1: Linimasa Stream -->
+        <div v-else-if="viewMode === 'stream'" class="timeline-spine space-y-7">
+          <section
+            v-for="group in timelineDateGroups"
+            :key="group.dateKey"
+            class="relative pl-12 space-y-3.5"
+          >
+            <!-- Date Marker Node on Spine -->
+            <div
+              class="absolute left-0 top-0.5 w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-[0_4px_12px_-2px_rgba(37,99,235,0.35)] flex flex-col items-center justify-center leading-none z-10"
+            >
+              <span class="text-sm font-extrabold tabular-nums">{{ group.dayLabel }}</span>
+            </div>
+
+            <div class="flex items-center justify-between gap-2 pt-1.5">
+              <h2 class="text-xs font-bold tracking-wide text-slate-600">
+                {{ group.dayLabel }} {{ group.monthYearLabel }}
+              </h2>
+              <span class="text-xs font-semibold text-indigo-700 tabular-nums">
+                {{ group.items.length }} Fenomena
+              </span>
+            </div>
+
+            <div class="space-y-4">
+              <PublicPhenomenonFeedCard
+                v-for="article in group.items"
+                :key="article.id"
+                :article="article"
+                @select="openDetailModal"
+              />
+            </div>
+          </section>
+        </div>
+
+        <!-- Mode 2: Tabel Ringkas PDRB -->
+        <div v-else class="saas-card rounded-2xl overflow-hidden">
+          <div class="px-5 py-3.5 border-b border-slate-200/80 bg-slate-50/75 flex items-center justify-between gap-2">
+            <span class="text-xs font-bold text-[#0F172A]">
+              Daftar Ringkas Fenomena Terverifikasi ({{ articlesResponse.pagination.total }})
+            </span>
+            <span class="text-xs text-slate-500">Klik baris untuk membuka detail &amp; sitasi</span>
+          </div>
+
+          <div class="saas-table-scroller">
+            <table class="min-w-full divide-y divide-slate-200 text-left text-xs">
+              <thead class="bg-slate-50 text-slate-600 font-semibold">
+                <tr>
+                  <th scope="col" class="px-4 py-3 whitespace-nowrap">Tanggal</th>
+                  <th scope="col" class="px-4 py-3 min-w-[260px]">Judul Fenomena &amp; Sumber</th>
+                  <th scope="col" class="px-4 py-3 min-w-[180px]">Lapangan Usaha (KBLI)</th>
+                  <th scope="col" class="px-4 py-3 min-w-[180px]">Sisi Pengeluaran</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 bg-white">
+                <tr
+                  v-for="article in articlesResponse.items"
+                  :key="article.id"
+                  tabindex="0"
+                  class="hover:bg-indigo-50/40 cursor-pointer transition-colors focus:bg-indigo-50/60 focus:outline-none"
+                  @click="openDetailModal(article)"
+                  @keydown.enter="openDetailModal(article)"
+                >
+                  <td class="px-4 py-3.5 align-top whitespace-nowrap tabular-nums text-slate-600 font-medium">
+                    {{ formatDateId(article.publishedAt) }}
+                    <div class="text-[11px] text-slate-400">
+                      TW {{ toRomanQuarter(article.quarter) }} {{ article.year }}
+                    </div>
+                  </td>
+                  <td class="px-4 py-3.5 align-top space-y-1">
+                    <div class="font-bold text-[#0F172A] leading-snug line-clamp-2">
+                      {{ article.title }}
+                    </div>
+                    <div class="text-[11px] text-slate-500 font-medium">
+                      {{ article.sourcePortal }}
+                    </div>
+                  </td>
+                  <td class="px-4 py-3.5 align-top space-y-1.5">
+                    <div class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-800">
+                      <span
+                        class="w-2 h-2 rounded-full shrink-0"
+                        :class="getKbliClusterTheme(article.kbliCategory).accentBarClass"
+                      />
+                      <span>{{ getKbliShortCodeName(article.kbliCategory) }}</span>
+                    </div>
+                    <div>
+                      <UBadge
+                        :color="getKbliImpactBadge(article.kbliImpact).color"
+                        variant="subtle"
+                        size="xs"
+                      >
+                        {{ getKbliImpactBadge(article.kbliImpact).shortLabel }}
+                      </UBadge>
+                    </div>
+                  </td>
+                  <td class="px-4 py-3.5 align-top space-y-1.5">
+                    <div class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-800">
+                      <span
+                        class="w-2 h-2 rounded-full shrink-0"
+                        :class="getExpenditureColorTheme(article.expenditureComponent).dotClass"
+                      />
+                      <span>{{ getExpenditureLabel(article.expenditureComponent, false) }}</span>
+                    </div>
+                    <div>
+                      <UBadge
+                        :color="getExpenditureImpactBadge(article.expenditureImpact).color"
+                        variant="subtle"
+                        size="xs"
+                      >
+                        {{ getExpenditureImpactBadge(article.expenditureImpact).shortLabel }}
+                      </UBadge>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Pagination -->
+        <div
+          v-if="articlesResponse && articlesResponse.pagination.totalPages > 1"
+          class="flex items-center justify-between gap-3 pt-2"
+        >
+          <span class="text-xs text-slate-500 tabular-nums">
+            Halaman {{ articlesResponse.pagination.page }} dari {{ articlesResponse.pagination.totalPages }}
+            ({{ formatNumberId(articlesResponse.pagination.total) }} fenomena)
+          </span>
+          <UPagination
+            v-model:page="page"
+            :total="articlesResponse.pagination.total"
+            :items-per-page="articlesResponse.pagination.limit"
+            size="sm"
+          />
+        </div>
+
+        <!-- BPS Verification Methodology Banner -->
+        <div
+          class="rounded-2xl bg-gradient-to-br from-indigo-50/85 via-white to-emerald-50/75 border border-indigo-200/80 p-4 sm:p-5 flex items-start gap-3.5"
+        >
+          <div
+            class="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600 to-emerald-600 text-white flex items-center justify-center shrink-0 shadow-sm"
+          >
+            <UIcon name="i-solar-verified-check-bold-duotone" class="w-5 h-5" />
+          </div>
+          <div class="text-xs text-slate-600 space-y-1 leading-relaxed">
+            <div class="font-bold text-[#0F172A]">
+              Standar Transparansi &amp; Verifikasi Fungsi Nerwilis BPS Kab. Tana Tidung
+            </div>
+            <p>
+              Seluruh catatan pada halaman ini merupakan bukti fenomena ekonomi terkurasi yang
+              diselaraskan terhadap 17 Sektor Lapangan Usaha (KBLI A–U) dan 6 Komponen Pengeluaran
+              sebagai dokumentasi pendukung penghitungan PDRB Triwulanan.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Detail Modal -->
+    <PublicArticleDetailModal v-model:open="detailModalOpen" :article="selectedArticle" />
+  </div>
+</template>

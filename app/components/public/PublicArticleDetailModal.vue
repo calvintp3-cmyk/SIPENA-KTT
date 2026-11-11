@@ -21,8 +21,10 @@ const toast = useToast();
 const {
   getKbliLabel,
   getKbliImpactBadge,
+  getKbliClusterTheme,
   getExpenditureLabel,
   getExpenditureImpactBadge,
+  getExpenditureColorTheme,
   isSafeHttpUrl,
 } = usePdrbLabels();
 
@@ -45,25 +47,30 @@ watch(
   },
 );
 
+const clusterTheme = computed(() => getKbliClusterTheme(props.article?.kbliCategory));
+const expenditureTheme = computed(() =>
+  getExpenditureColorTheme(props.article?.expenditureComponent),
+);
+
 const scopeMeta = computed(() => {
   switch (props.article?.sourceType) {
     case ArticleSourceTypeEnum.REGIONAL:
       return {
         label: 'Lokal KTT',
-        pillClass: 'text-teal-800 bg-teal-50 border-teal-200/80',
-        dotClass: 'bg-teal-600',
+        pillClass: 'text-emerald-800 bg-emerald-50 border-emerald-200/90',
+        dotClass: 'bg-emerald-600',
       };
     case ArticleSourceTypeEnum.NATIONAL:
       return {
         label: 'Nasional',
-        pillClass: 'text-slate-700 bg-slate-100 border-slate-200',
-        dotClass: 'bg-slate-500',
+        pillClass: 'text-indigo-800 bg-indigo-50 border-indigo-200/90',
+        dotClass: 'bg-indigo-600',
       };
     default:
       return {
         label: 'Input Manual',
-        pillClass: 'text-sky-800 bg-sky-50 border-sky-200',
-        dotClass: 'bg-sky-600',
+        pillClass: 'text-amber-800 bg-amber-50 border-amber-200/90',
+        dotClass: 'bg-amber-600',
       };
   }
 });
@@ -123,32 +130,32 @@ async function handleCopyCitation() {
       <div v-if="article" class="w-full flex items-center justify-between gap-3">
         <div class="flex flex-wrap items-center gap-2 min-w-0">
           <span
-            class="inline-flex items-center gap-1 font-mono text-[11px] font-semibold text-slate-700 bg-slate-100 px-2.5 py-0.5 rounded border border-slate-200 truncate max-w-[200px]"
+            class="inline-flex items-center gap-1 text-xs font-semibold text-slate-700 bg-slate-100 px-2.5 py-0.5 rounded-full border border-slate-200 truncate max-w-[200px]"
           >
             {{ article.sourcePortal }}
           </span>
           <span
-            class="inline-flex items-center gap-1 text-[11px] font-medium border px-2 py-0.5 rounded-full"
+            class="inline-flex items-center gap-1.5 text-[11px] font-semibold border px-2.5 py-0.5 rounded-full"
             :class="scopeMeta.pillClass"
           >
             <span class="w-1.5 h-1.5 rounded-full" :class="scopeMeta.dotClass" />
             {{ scopeMeta.label }}
           </span>
-          <span class="font-mono text-[11px] tabular-nums text-[#5B677A]">
+          <span class="text-xs font-medium tabular-nums text-slate-500">
             {{ formatDateTimeWita(article.publishedAt) }}
           </span>
           <span
-            class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-50 text-emerald-800 border border-emerald-200"
+            class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200"
           >
-            <UIcon name="i-lucide-check" class="w-3 h-3 text-emerald-600" />
-            Terverifikasi Nerwilis
+            <UIcon name="i-solar-verified-check-bold-duotone" class="w-3.5 h-3.5 text-emerald-600" />
+            <span>Terverifikasi Nerwilis</span>
           </span>
         </div>
 
         <button
           type="button"
           aria-label="Tutup dialog"
-          class="min-w-8 min-h-8 inline-flex items-center justify-center rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors shrink-0"
+          class="min-w-8 min-h-8 inline-flex items-center justify-center rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors shrink-0"
           @click="close"
         >
           <UIcon name="i-lucide-x" class="w-4 h-4" />
@@ -159,18 +166,20 @@ async function handleCopyCitation() {
     <template #body>
       <div v-if="article" class="space-y-5">
         <!-- Eyebrow & Judul -->
-        <div>
-          <div class="font-mono text-[11px] font-semibold text-teal-700 uppercase tracking-wider mb-1">
-            TW {{ toRomanQuarter(article.quarter) }} {{ article.year }} • KONSOLIDASI PDRB
+        <div class="space-y-1.5">
+          <div class="inline-flex items-center gap-2 text-xs font-bold text-indigo-700">
+            <span>TW {{ toRomanQuarter(article.quarter) }} {{ article.year }}</span>
+            <span class="text-slate-300">•</span>
+            <span>Konsolidasi PDRB Kabupaten Tana Tidung</span>
           </div>
-          <h2 class="text-lg sm:text-[21px] font-bold text-[#0B1220] leading-snug tracking-tight">
+          <h2 class="text-lg sm:text-[21px] font-extrabold text-[#0F172A] leading-snug tracking-tight">
             {{ article.title }}
           </h2>
         </div>
 
         <!-- Ringkasan Lengkap -->
-        <div class="bg-slate-50/90 rounded-xl p-4 border border-slate-200/80 text-sm text-[#334155] leading-relaxed">
-          <span class="block font-mono text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">
+        <div class="bg-slate-50/90 rounded-2xl p-4 border border-slate-200/85 text-sm text-slate-700 leading-relaxed space-y-1.5">
+          <span class="block text-xs font-bold text-slate-600">
             Intisari &amp; Konteks Intelijen Ekonomi
           </span>
           <p>
@@ -180,12 +189,23 @@ async function handleCopyCitation() {
 
         <!-- Grid Pemetaan Dua Sisi PDRB -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="p-4 rounded-xl border border-slate-200 bg-white shadow-xs flex flex-col gap-2">
-            <span class="font-mono text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-              1. Sisi Lapangan Usaha (Produksi)
-            </span>
-            <div class="font-semibold text-sm text-[#0B1220] leading-snug">
-              KBLI {{ getKbliLabel(article.kbliCategory, true).replace(' - ', ' • ') }}
+          <div
+            class="p-4 rounded-2xl border border-slate-200/90 bg-white shadow-2xs flex flex-col gap-2.5 border-t-2"
+            :style="{ borderTopColor: clusterTheme.hex }"
+          >
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-xs font-bold text-slate-600">
+                1. Lapangan Usaha (Produksi)
+              </span>
+              <span
+                class="px-2 py-0.5 rounded-full text-[10px] font-semibold border"
+                :class="clusterTheme.pillClass"
+              >
+                {{ clusterTheme.label }}
+              </span>
+            </div>
+            <div class="font-bold text-sm text-[#0F172A] leading-snug">
+              {{ getKbliLabel(article.kbliCategory, true).replace(' - ', ' • ') }}
             </div>
             <div class="flex items-center gap-2 mt-0.5 flex-wrap">
               <span class="text-xs text-slate-500">Arah Dampak:</span>
@@ -200,17 +220,20 @@ async function handleCopyCitation() {
             </div>
             <div
               v-if="kbliGroupMeta"
-              class="text-[11px] text-[#5B677A] mt-1 pt-2 border-t border-slate-100 leading-relaxed"
+              class="text-[11px] text-slate-500 mt-1 pt-2 border-t border-slate-100 leading-relaxed"
             >
               Grup PDRB [{{ kbliGroupMeta.groupCode }}]: {{ kbliGroupMeta.description }}
             </div>
           </div>
 
-          <div class="p-4 rounded-xl border border-slate-200 bg-white shadow-xs flex flex-col gap-2">
-            <span class="font-mono text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+          <div
+            class="p-4 rounded-2xl border border-slate-200/90 bg-white shadow-2xs flex flex-col gap-2.5 border-t-2"
+            :style="{ borderTopColor: expenditureTheme.hex }"
+          >
+            <span class="text-xs font-bold text-slate-600">
               2. Sisi Pengeluaran (Expenditure)
             </span>
-            <div class="font-semibold text-sm text-[#0B1220] leading-snug">
+            <div class="font-bold text-sm text-[#0F172A] leading-snug">
               {{ getExpenditureLabel(article.expenditureComponent, true) }}
             </div>
             <div class="flex items-center gap-2 mt-0.5 flex-wrap">
@@ -226,7 +249,7 @@ async function handleCopyCitation() {
             </div>
             <div
               v-if="expenditureMeta"
-              class="text-[11px] text-[#5B677A] mt-1 pt-2 border-t border-slate-100 leading-relaxed"
+              class="text-[11px] text-slate-500 mt-1 pt-2 border-t border-slate-100 leading-relaxed"
             >
               {{ expenditureMeta.description }}
             </div>
@@ -234,12 +257,16 @@ async function handleCopyCitation() {
         </div>
 
         <!-- Keterangan Validasi Nerwilis -->
-        <div class="p-4 rounded-xl bg-teal-50/70 border border-teal-200/80 flex items-start gap-3">
-          <div class="w-7 h-7 rounded-md bg-teal-700 text-white flex items-center justify-center shrink-0 mt-0.5 shadow-xs">
-            <UIcon name="i-lucide-shield-check" class="w-4 h-4" />
+        <div
+          class="p-4 rounded-2xl bg-gradient-to-br from-indigo-50/80 via-white to-emerald-50/75 border border-indigo-200/80 flex items-start gap-3.5"
+        >
+          <div
+            class="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600 to-emerald-600 text-white flex items-center justify-center shrink-0 mt-0.5 shadow-sm"
+          >
+            <UIcon name="i-solar-shield-check-bold-duotone" class="w-5 h-5" />
           </div>
-          <div class="flex-1 flex flex-col gap-1 text-xs text-[#334155]">
-            <span class="font-mono text-[11px] font-bold text-teal-900">
+          <div class="flex-1 flex flex-col gap-1 text-xs text-slate-600">
+            <span class="text-xs font-bold text-indigo-950">
               Validasi Metodologi Nerwilis BPS Kab. Tana Tidung
             </span>
             <p class="leading-relaxed">
@@ -247,7 +274,7 @@ async function handleCopyCitation() {
               kerangka dua sisi PDRB (Lapangan Usaha &amp; Pengeluaran) sebagai bukti pendukung penyusunan
               angka PDRB Triwulan {{ toRomanQuarter(article.quarter) }} {{ article.year }}.
             </p>
-            <span class="text-[10px] font-mono text-teal-800/80 mt-0.5 tabular-nums">
+            <span class="text-[11px] font-medium text-indigo-700/85 mt-0.5 tabular-nums">
               Referensi Arsip: #{{ article.id.slice(0, 8).toUpperCase() }} • {{ formatDateTimeWita(article.publishedAt) }}
             </span>
           </div>
@@ -262,25 +289,24 @@ async function handleCopyCitation() {
           :href="article.url"
           target="_blank"
           rel="noopener noreferrer"
-          class="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 shadow-xs transition-colors"
+          class="inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 shadow-2xs transition-colors"
         >
           <span>Buka Sumber Berita Asli</span>
           <UIcon name="i-lucide-external-link" class="w-3.5 h-3.5 text-slate-400" />
         </a>
-        <span v-else class="text-xs font-mono text-slate-500 truncate max-w-xs" :title="article.url">
+        <span v-else class="text-xs font-medium text-slate-500 truncate max-w-xs" :title="article.url">
           Sumber: {{ article.url }}
         </span>
 
         <button
           type="button"
-          class="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#0F766E] hover:bg-[#0B5B55] text-white text-xs font-semibold shadow-xs transition-colors"
+          class="btn-primary-gradient inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold"
           @click="handleCopyCitation"
         >
-          <UIcon :name="copied ? 'i-lucide-check' : 'i-lucide-copy'" class="w-3.5 h-3.5" />
+          <UIcon :name="copied ? 'i-lucide-check' : 'i-solar-copy-bold-duotone'" class="w-4 h-4" />
           <span>{{ copied ? 'Tersalin ke Clipboard!' : 'Salin Format Sitasi BPS' }}</span>
         </button>
       </div>
     </template>
   </UModal>
 </template>
-

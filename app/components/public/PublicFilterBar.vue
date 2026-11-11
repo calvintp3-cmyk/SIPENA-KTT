@@ -6,7 +6,11 @@ import {
   PDRB_17_SECTORS,
   PDRB_6_EXPENDITURE_LIST,
 } from '#shared/enums/pdrb';
-import type { PublicOverviewResponse } from '~/types/sipena';
+import type {
+  Pdrb17DistributionItem,
+  PublicOverviewResponse,
+  SelectOptionItem,
+} from '~/types/sipena';
 
 const props = withDefaults(
   defineProps<{
@@ -31,9 +35,11 @@ const emit = defineEmits<{
   reset: [];
 }>();
 
+const { getExpenditureColorTheme } = usePdrbLabels();
+
 const totalInPeriod = computed(() => props.overview?.kpi.totalVerified ?? 0);
 
-const sectorOptions = computed(() => {
+const sectorOptions = computed<Pdrb17DistributionItem[]>(() => {
   if (props.overview?.pdrb17Distribution?.length) {
     return props.overview.pdrb17Distribution;
   }
@@ -45,6 +51,19 @@ const sectorOptions = computed(() => {
     count: 0,
     percentage: 0,
   }));
+});
+
+const pdrbSelectItems = computed<SelectOptionItem<string>[]>(() => [
+  { label: `Semua Lapangan Usaha (${totalInPeriod.value})`, value: 'ALL' },
+  ...sectorOptions.value.map((sector: Pdrb17DistributionItem) => ({
+    label: `[${sector.groupCode}] ${sector.shortName} (${sector.count})`,
+    value: sector.groupCode,
+  })),
+]);
+
+const selectedPdrbModel = computed<string>({
+  get: () => props.pdrbGroup,
+  set: (val: string) => emit('update:pdrbGroup', val),
 });
 
 const expenditureCountMap = computed(() => {
@@ -60,26 +79,34 @@ const impactItems = computed(() => {
   return [
     {
       value: 'EXPANSION',
-      label: '↑ Meningkatkan NTB / Riil',
-      dotClass: 'bg-emerald-600',
+      label: 'Meningkatkan NTB / Riil',
+      icon: 'i-lucide-trending-up',
+      dotClass: 'bg-emerald-500',
+      textClass: 'text-emerald-700',
       count: counts?.[KbliImpactEnum.INCREASE_NTB] ?? 0,
     },
     {
       value: 'CONTRACTION',
-      label: '↓ Menurunkan NTB / Riil',
-      dotClass: 'bg-rose-600',
+      label: 'Menurunkan NTB / Riil',
+      icon: 'i-lucide-trending-down',
+      dotClass: 'bg-rose-500',
+      textClass: 'text-rose-700',
       count: counts?.[KbliImpactEnum.DECREASE_NTB] ?? 0,
     },
     {
       value: 'PRICE_UP',
-      label: '↑ Kenaikan Harga / Deflator',
-      dotClass: 'bg-amber-600',
+      label: 'Kenaikan Harga / Deflator',
+      icon: 'i-lucide-arrow-up-circle',
+      dotClass: 'bg-amber-500',
+      textClass: 'text-amber-700',
       count: counts?.[KbliImpactEnum.INCREASE_PRICE] ?? 0,
     },
     {
       value: 'PRICE_DOWN',
-      label: '↓ Penurunan Harga / Deflator',
-      dotClass: 'bg-sky-600',
+      label: 'Penurunan Harga / Deflator',
+      icon: 'i-lucide-arrow-down-circle',
+      dotClass: 'bg-sky-500',
+      textClass: 'text-sky-700',
       count: counts?.[KbliImpactEnum.DECREASE_PRICE] ?? 0,
     },
   ];
@@ -99,32 +126,35 @@ const sourceButtons = [
     :class="
       inDrawer
         ? 'w-full'
-        : 'w-full lg:w-[280px] lg:sticky lg:top-[76px] shrink-0 self-start lg:max-h-[calc(100vh-96px)] lg:overflow-y-auto saas-scroll bg-[#F8FAFC] border border-[#DCE3EC] shadow-[0_1px_3px_rgba(11,18,32,0.04),inset_0_1px_0_rgba(255,255,255,0.9)] rounded-xl p-4'
+        : 'w-full lg:w-[290px] lg:sticky lg:top-[84px] shrink-0 self-start lg:max-h-[calc(100vh-104px)] lg:overflow-y-auto saas-scroll bg-white/95 backdrop-blur-md border border-slate-200/85 shadow-[0_10px_28px_-14px_rgba(15,23,42,0.10)] rounded-2xl p-4 sm:p-5'
     "
   >
     <!-- Header Rail -->
-    <div class="flex items-center justify-between pb-3 border-b border-[#E2E8F0]">
-      <div class="inline-flex items-center gap-1.5">
-        <span class="text-[11px] font-mono font-bold tracking-wider text-slate-500 uppercase">
+    <div class="flex items-center justify-between pb-3 border-b border-slate-200/80">
+      <div class="inline-flex items-center gap-2">
+        <div class="w-6 h-6 rounded-md bg-indigo-50 text-indigo-600 flex items-center justify-center">
+          <UIcon name="i-solar-filter-bold-duotone" class="w-3.5 h-3.5" />
+        </div>
+        <span class="text-xs font-bold text-[#0F172A]">
           Filter Fenomena
         </span>
         <span
-          class="bg-teal-950/5 text-teal-800 border border-teal-700/20 px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold tabular-nums"
+          class="bg-indigo-50 text-indigo-700 border border-indigo-200/80 px-2 py-0.5 rounded-full text-[11px] font-semibold tabular-nums"
         >
-          {{ activeFilterCount > 0 ? `Aktif (${activeFilterCount})` : 'Semua' }}
+          {{ activeFilterCount > 0 ? `${activeFilterCount}` : 'Semua' }}
         </span>
       </div>
 
       <button
         type="button"
-        class="inline-flex items-center gap-1 text-[11px] font-sans font-medium transition-colors rounded px-1.5 py-1 min-h-6"
+        class="inline-flex items-center gap-1 text-[11px] font-semibold transition-colors rounded-lg px-2 py-1 min-h-6"
         :class="
           activeFilterCount > 0
-            ? 'text-teal-700 hover:text-teal-900 hover:bg-white cursor-pointer'
+            ? 'text-indigo-700 hover:text-indigo-900 hover:bg-indigo-50 cursor-pointer'
             : 'text-slate-400 cursor-not-allowed'
         "
         :disabled="activeFilterCount === 0"
-        @click="emit('reset')"
+        @click="() => { emit('reset'); }"
       >
         <UIcon name="i-lucide-rotate-ccw" class="w-3 h-3" />
         <span>Reset</span>
@@ -133,26 +163,26 @@ const sourceButtons = [
 
     <!-- 1. Sumber Berita -->
     <div>
-      <span class="block font-mono text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">
+      <span class="block text-xs font-semibold text-slate-600 mb-2">
         1. Sumber Berita
       </span>
       <div
         role="group"
         aria-label="Filter Sumber Berita"
-        class="grid grid-cols-3 gap-1 p-0.5 bg-slate-200/60 rounded-lg border border-slate-200 text-center"
+        class="grid grid-cols-3 gap-1 p-1 bg-slate-100 rounded-xl border border-slate-200/80 text-center"
       >
         <button
           v-for="src in sourceButtons"
           :key="src.value"
           type="button"
           :aria-pressed="sourceType === src.value"
-          class="py-1.5 px-1.5 rounded-md font-mono text-[11px] transition-colors whitespace-nowrap"
+          class="py-1.5 px-1.5 rounded-lg text-[11px] transition-all whitespace-nowrap"
           :class="
             sourceType === src.value
-              ? 'font-bold bg-white text-[#0B1220] shadow-[0_1px_2px_rgba(11,18,32,0.08),0_0_0_1px_rgba(11,18,32,0.06)]'
+              ? 'font-semibold bg-white text-indigo-700 shadow-xs border border-indigo-200/70'
               : 'text-slate-600 hover:text-slate-900 font-medium'
           "
-          @click="emit('update:sourceType', src.value)"
+          @click="() => { emit('update:sourceType', src.value); }"
         >
           {{ src.label }}
         </button>
@@ -160,67 +190,52 @@ const sourceButtons = [
     </div>
 
     <!-- 2. Sektor KBLI (17 Kategori BPS) -->
-    <div class="pt-3 border-t border-[#E2E8F0]">
-      <label
-        :for="inDrawer ? 'drawer-pdrb-group-select' : 'desktop-pdrb-group-select'"
-        class="block font-mono text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2"
-      >
+    <div class="pt-3.5 border-t border-slate-200/75">
+      <label class="block text-xs font-semibold text-slate-600 mb-2">
         2. Sektor KBLI (17 Kategori BPS)
       </label>
-      <div class="relative">
-        <select
-          :id="inDrawer ? 'drawer-pdrb-group-select' : 'desktop-pdrb-group-select'"
-          :value="pdrbGroup"
-          class="w-full h-9 pl-2.5 pr-8 bg-white text-xs font-sans font-medium text-[#0B1220] border border-[#DCE3EC] rounded-lg hover:border-slate-300 transition-colors cursor-pointer appearance-none shadow-[0_1px_2px_rgba(11,18,32,0.04)]"
-          @change="emit('update:pdrbGroup', ($event.target as HTMLSelectElement).value)"
-        >
-          <option value="ALL">
-            Semua Lapangan Usaha ({{ totalInPeriod }})
-          </option>
-          <option
-            v-for="sector in sectorOptions"
-            :key="sector.groupCode"
-            :value="sector.groupCode"
-          >
-            {{ sector.groupCode }} • {{ sector.shortName }} ({{ sector.count }})
-          </option>
-        </select>
-        <UIcon
-          name="i-lucide-chevron-down"
-          class="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none"
-        />
-      </div>
+      <USelectMenu
+        v-model="selectedPdrbModel"
+        :items="pdrbSelectItems"
+        value-key="value"
+        label-key="label"
+        placeholder="Cari sektor KBLI..."
+        :search-input="{ placeholder: 'Ketik kode atau nama sektor...' }"
+        leading-icon="i-solar-buildings-2-bold-duotone"
+        size="sm"
+        class="w-full"
+      />
     </div>
 
     <!-- 3. Komponen Pengeluaran PDRB (6 Komponen) -->
-    <div class="pt-3 border-t border-[#E2E8F0]">
-      <span class="block font-mono text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">
+    <div class="pt-3.5 border-t border-slate-200/75">
+      <span class="block text-xs font-semibold text-slate-600 mb-2">
         3. Komponen Pengeluaran PDRB
       </span>
       <div role="group" aria-label="Filter Komponen Pengeluaran PDRB" class="flex flex-col gap-1">
         <button
           type="button"
           :aria-pressed="expenditure === 'ALL'"
-          class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-[12.5px] transition-colors"
+          class="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs transition-all"
           :class="
             expenditure === 'ALL'
-              ? 'bg-white text-[#0B1220] font-semibold shadow-[0_1px_2px_rgba(11,18,32,0.06),0_0_0_1px_rgba(15,118,110,0.22)]'
-              : 'text-[#334155] hover:text-[#0B1220] hover:bg-white/80 font-medium'
+              ? 'bg-indigo-50/90 text-indigo-900 font-semibold border border-indigo-200/80 shadow-2xs'
+              : 'text-slate-700 hover:text-slate-950 hover:bg-slate-50 font-medium border border-transparent'
           "
-          @click="emit('update:expenditure', 'ALL')"
+          @click="() => { emit('update:expenditure', 'ALL'); }"
         >
           <span class="inline-flex items-center gap-2 min-w-0">
             <span
-              class="w-1.5 h-1.5 rounded-full shrink-0"
-              :class="expenditure === 'ALL' ? 'bg-[#0F766E]' : 'bg-slate-300'"
+              class="w-2 h-2 rounded-full shrink-0"
+              :class="expenditure === 'ALL' ? 'bg-indigo-600' : 'bg-slate-300'"
             />
             <span class="truncate">Semua Pengeluaran</span>
           </span>
           <span
-            class="px-1.5 py-0.5 rounded font-mono text-[11px] font-bold tabular-nums shrink-0"
+            class="px-2 py-0.5 rounded-full text-[11px] font-bold tabular-nums shrink-0"
             :class="
               expenditure === 'ALL'
-                ? 'bg-teal-50 text-teal-800 border border-teal-200/70'
+                ? 'bg-white text-indigo-700 border border-indigo-200'
                 : 'text-slate-500'
             "
           >
@@ -233,22 +248,28 @@ const sourceButtons = [
           :key="item.code"
           type="button"
           :aria-pressed="expenditure === item.code"
-          class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-[12.5px] transition-colors"
+          class="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs transition-all"
           :class="
             expenditure === item.code
-              ? 'bg-white text-[#0B1220] font-semibold shadow-[0_1px_2px_rgba(11,18,32,0.06),0_0_0_1px_rgba(15,118,110,0.22)]'
-              : 'text-[#334155] hover:text-[#0B1220] hover:bg-white/80 font-medium'
+              ? 'bg-indigo-50/90 text-indigo-900 font-semibold border border-indigo-200/80 shadow-2xs'
+              : 'text-slate-700 hover:text-slate-950 hover:bg-slate-50 font-medium border border-transparent'
           "
           :title="item.official"
-          @click="emit('update:expenditure', expenditure === item.code ? 'ALL' : item.code)"
+          @click="() => { emit('update:expenditure', expenditure === item.code ? 'ALL' : item.code); }"
         >
-          <span class="truncate pr-2">{{ item.short }}</span>
+          <span class="inline-flex items-center gap-2 min-w-0 pr-2">
+            <span
+              class="w-2 h-2 rounded-full shrink-0"
+              :class="getExpenditureColorTheme(item.code).dotClass"
+            />
+            <span class="truncate">{{ item.short }}</span>
+          </span>
           <span
-            class="font-mono text-[11px] tabular-nums shrink-0"
+            class="text-[11px] tabular-nums shrink-0"
             :class="
               expenditure === item.code
-                ? 'px-1.5 py-0.5 rounded bg-teal-50 text-teal-800 border border-teal-200/70 font-bold'
-                : 'text-slate-500'
+                ? 'px-2 py-0.5 rounded-full bg-white text-indigo-700 border border-indigo-200 font-bold'
+                : 'text-slate-500 font-medium'
             "
           >
             {{ expenditureCountMap.get(item.code) ?? 0 }}
@@ -258,34 +279,34 @@ const sourceButtons = [
     </div>
 
     <!-- 4. Arah Dampak Makro -->
-    <div class="pt-3 border-t border-[#E2E8F0]">
-      <span class="block font-mono text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">
+    <div class="pt-3.5 border-t border-slate-200/75">
+      <span class="block text-xs font-semibold text-slate-600 mb-2">
         4. Arah Dampak Makro
       </span>
       <div role="group" aria-label="Filter Arah Dampak Makro" class="flex flex-col gap-1">
         <button
           type="button"
           :aria-pressed="impactMacro === 'ALL'"
-          class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-[12.5px] transition-colors"
+          class="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs transition-all"
           :class="
             impactMacro === 'ALL'
-              ? 'bg-white text-[#0B1220] font-semibold shadow-[0_1px_2px_rgba(11,18,32,0.06),0_0_0_1px_rgba(15,118,110,0.22)]'
-              : 'text-[#334155] hover:text-[#0B1220] hover:bg-white/80 font-medium'
+              ? 'bg-indigo-50/90 text-indigo-900 font-semibold border border-indigo-200/80 shadow-2xs'
+              : 'text-slate-700 hover:text-slate-950 hover:bg-slate-50 font-medium border border-transparent'
           "
-          @click="emit('update:impactMacro', 'ALL')"
+          @click="() => { emit('update:impactMacro', 'ALL'); }"
         >
           <span class="inline-flex items-center gap-2 min-w-0">
             <span
-              class="w-1.5 h-1.5 rounded-full shrink-0"
-              :class="impactMacro === 'ALL' ? 'bg-[#0F766E]' : 'bg-slate-300'"
+              class="w-2 h-2 rounded-full shrink-0"
+              :class="impactMacro === 'ALL' ? 'bg-indigo-600' : 'bg-slate-300'"
             />
             <span class="truncate">Semua Dampak</span>
           </span>
           <span
-            class="px-1.5 py-0.5 rounded font-mono text-[11px] font-bold tabular-nums shrink-0"
+            class="px-2 py-0.5 rounded-full text-[11px] font-bold tabular-nums shrink-0"
             :class="
               impactMacro === 'ALL'
-                ? 'bg-teal-50 text-teal-800 border border-teal-200/70'
+                ? 'bg-white text-indigo-700 border border-indigo-200'
                 : 'text-slate-500'
             "
           >
@@ -298,24 +319,24 @@ const sourceButtons = [
           :key="item.value"
           type="button"
           :aria-pressed="impactMacro === item.value"
-          class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-[12.5px] transition-colors"
+          class="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs transition-all"
           :class="
             impactMacro === item.value
-              ? 'bg-white text-[#0B1220] font-semibold shadow-[0_1px_2px_rgba(11,18,32,0.06),0_0_0_1px_rgba(15,118,110,0.22)]'
-              : 'text-[#334155] hover:text-[#0B1220] hover:bg-white/80 font-medium'
+              ? 'bg-indigo-50/90 text-indigo-900 font-semibold border border-indigo-200/80 shadow-2xs'
+              : 'text-slate-700 hover:text-slate-950 hover:bg-slate-50 font-medium border border-transparent'
           "
-          @click="emit('update:impactMacro', impactMacro === item.value ? 'ALL' : item.value)"
+          @click="() => { emit('update:impactMacro', impactMacro === item.value ? 'ALL' : item.value); }"
         >
-          <span class="inline-flex items-center gap-1.5 min-w-0">
-            <span class="w-1.5 h-1.5 rounded-full shrink-0" :class="item.dotClass" />
+          <span class="inline-flex items-center gap-2 min-w-0">
+            <UIcon :name="item.icon" class="w-3.5 h-3.5 shrink-0" :class="item.textClass" />
             <span class="truncate">{{ item.label }}</span>
           </span>
           <span
-            class="font-mono text-[11px] tabular-nums shrink-0"
+            class="text-[11px] tabular-nums shrink-0"
             :class="
               impactMacro === item.value
-                ? 'px-1.5 py-0.5 rounded bg-teal-50 text-teal-800 border border-teal-200/70 font-bold'
-                : 'text-slate-500'
+                ? 'px-2 py-0.5 rounded-full bg-white text-indigo-700 border border-indigo-200 font-bold'
+                : 'text-slate-500 font-medium'
             "
           >
             {{ item.count }}

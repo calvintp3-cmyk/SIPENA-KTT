@@ -215,7 +215,7 @@ async function handleSubmit(event: FormSubmitEvent<CreateManualArticleInput>) {
               value-key="value"
               label-key="label"
               class="w-full"
-              @update:model-value="formState.quarter = $event as PdrbQuarter"
+              @update:model-value="(val: unknown) => { if (val === 1 || val === 2 || val === 3 || val === 4) formState.quarter = val; }"
             />
           </UFormField>
 
@@ -296,7 +296,7 @@ async function handleSubmit(event: FormSubmitEvent<CreateManualArticleInput>) {
           <UButton
             type="submit"
             color="primary"
-            icon="i-lucide-plus-circle"
+            icon="i-solar-add-circle-bold-duotone"
             :loading="isSubmitting"
           >
             Simpan Fenomena Manual

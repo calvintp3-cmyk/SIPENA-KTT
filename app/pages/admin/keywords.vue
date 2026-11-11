@@ -9,7 +9,13 @@ definePageMeta({
 });
 
 const toast = useToast();
-const { getKbliShortCodeName, getExpenditureLabel, formatNumberId } = usePdrbLabels();
+const {
+  getKbliShortCodeName,
+  getKbliClusterTheme,
+  getExpenditureLabel,
+  getExpenditureColorTheme,
+  formatNumberId,
+} = usePdrbLabels();
 
 const {
   data: keywordsData,
@@ -158,15 +164,15 @@ const columns: TableColumn<KeywordItem>[] = [
     <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
       <div>
         <div
-          class="flex items-center gap-2 font-mono text-[11px] font-bold uppercase tracking-wider text-teal-700"
+          class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200/80 text-xs font-semibold"
         >
-          <UIcon name="i-lucide-tags" class="w-3.5 h-3.5" />
+          <UIcon name="i-solar-tag-price-bold-duotone" class="w-3.5 h-3.5" />
           <span>Penjaringan Transmisi Ekonomi Nasional</span>
         </div>
-        <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-[#0B1220] mt-0.5">
+        <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-[#0F172A] mt-2">
           Master Keyword Berita Nasional
         </h1>
-        <p class="text-xs sm:text-sm text-[#5B677A] mt-0.5">
+        <p class="text-xs sm:text-sm text-slate-600 mt-0.5">
           Kata kunci isu strategis nasional yang memengaruhi ekonomi Kabupaten Tana Tidung (dijaring
           otomatis setiap 04:00 WITA).
         </p>
@@ -176,22 +182,22 @@ const columns: TableColumn<KeywordItem>[] = [
         <div class="relative w-full sm:w-auto">
           <label for="keyword-search-input" class="sr-only">Cari kata kunci nasional</label>
           <UIcon
-            name="i-lucide-search"
-            class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
+            name="i-solar-magnifer-line-duotone"
+            class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
           />
           <input
             id="keyword-search-input"
             v-model="searchText"
             type="search"
             placeholder="Cari kata kunci..."
-            class="h-9 w-full sm:w-52 pl-8 pr-7 rounded-lg border border-[#DCE3EC] bg-white text-xs text-[#0B1220] placeholder:text-slate-400 focus:border-teal-700"
+            class="h-9 w-full sm:w-56 pl-9 pr-7 rounded-xl border border-slate-200 bg-white text-xs text-[#0F172A] placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none"
           >
           <button
             v-if="searchText"
             type="button"
             aria-label="Hapus pencarian kata kunci"
-            class="absolute right-1 top-1/2 -translate-y-1/2 min-w-6 min-h-6 rounded flex items-center justify-center text-slate-400 hover:text-slate-700"
-            @click="searchText = ''"
+            class="absolute right-1.5 top-1/2 -translate-y-1/2 min-w-6 min-h-6 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 cursor-pointer"
+            @click="() => { searchText = ''; }"
           >
             <UIcon name="i-lucide-x" class="w-3.5 h-3.5" />
           </button>
@@ -199,10 +205,10 @@ const columns: TableColumn<KeywordItem>[] = [
 
         <button
           type="button"
-          class="obsidian-button h-9 px-3.5 rounded-lg text-xs font-semibold inline-flex items-center gap-1.5"
-          @click="openCreateModal"
+          class="btn-primary-gradient h-9 px-4 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer"
+          @click="() => { openCreateModal(); }"
         >
-          <UIcon name="i-lucide-plus" class="w-3.5 h-3.5 text-teal-300" />
+          <UIcon name="i-solar-add-circle-bold-duotone" class="w-4 h-4 text-emerald-200" />
           <span>Tambah Keyword</span>
         </button>
       </div>
@@ -217,58 +223,66 @@ const columns: TableColumn<KeywordItem>[] = [
       description="Pastikan koneksi database aktif lalu muat ulang."
     >
       <template #actions>
-        <UButton size="xs" color="error" variant="solid" @click="refresh()">Muat Ulang</UButton>
+        <UButton size="xs" color="error" variant="solid" @click="() => { void refresh(); }">
+          Muat Ulang
+        </UButton>
       </template>
     </UAlert>
 
     <!-- 3 Compact Summary Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-      <div class="saas-card rounded-xl p-4 sm:p-5 space-y-1">
+      <div class="saas-card rounded-2xl p-5 space-y-2">
         <div class="flex items-center justify-between gap-2">
-          <span class="font-mono text-[11px] font-bold uppercase tracking-wider text-slate-500">
+          <span class="text-xs font-semibold text-slate-600">
             Total Keyword Terdaftar
           </span>
-          <UIcon name="i-lucide-tag" class="w-4 h-4 text-teal-700" />
+          <div class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-200/80 flex items-center justify-center shrink-0">
+            <UIcon name="i-solar-tag-price-bold-duotone" class="w-4 h-4" />
+          </div>
         </div>
-        <div class="text-2xl font-bold font-mono tabular-nums text-[#0B1220]">
+        <div class="text-3xl font-extrabold tabular-nums text-[#0F172A]">
           {{ formatNumberId(keywordMetrics.total) }}
         </div>
-        <div class="text-xs text-[#5B677A] font-mono tabular-nums">
+        <div class="text-xs text-slate-600 tabular-nums">
           Query Google News Indonesia
         </div>
       </div>
 
-      <div class="saas-card rounded-xl p-4 sm:p-5 space-y-1">
+      <div class="saas-card rounded-2xl p-5 space-y-2">
         <div class="flex items-center justify-between gap-2">
-          <span class="font-mono text-[11px] font-bold uppercase tracking-wider text-slate-500">
+          <span class="text-xs font-semibold text-slate-600">
             Keyword Aktif Dijaring
           </span>
-          <UIcon name="i-lucide-check-circle-2" class="w-4 h-4 text-emerald-600" />
+          <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200/80 flex items-center justify-center shrink-0">
+            <UIcon name="i-solar-check-circle-bold-duotone" class="w-4 h-4" />
+          </div>
         </div>
-        <div class="text-2xl font-bold font-mono tabular-nums text-emerald-700">
+        <div class="text-3xl font-extrabold tabular-nums text-emerald-700">
           {{ formatNumberId(keywordMetrics.active) }}
         </div>
-        <div class="text-xs text-[#5B677A] font-mono tabular-nums">
+        <div class="text-xs text-slate-600 tabular-nums">
           {{ formatNumberId(keywordMetrics.inactive) }} keyword sedang dijeda
         </div>
       </div>
 
-      <div class="saas-card rounded-xl p-4 sm:p-5 space-y-1">
+      <div class="saas-card rounded-2xl p-5 space-y-2">
         <div class="flex items-center justify-between gap-2">
-          <span class="font-mono text-[11px] font-bold uppercase tracking-wider text-slate-500">
+          <span class="text-xs font-semibold text-slate-600">
             Total Artikel Terjaring
           </span>
-          <UIcon name="i-lucide-newspaper" class="w-4 h-4 text-sky-700" />
+          <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 border border-blue-200/80 flex items-center justify-center shrink-0">
+            <UIcon name="i-solar-documents-bold-duotone" class="w-4 h-4" />
+          </div>
         </div>
-        <div class="text-2xl font-bold font-mono tabular-nums text-[#0B1220]">
+        <div class="text-3xl font-extrabold tabular-nums text-[#0F172A]">
           {{ formatNumberId(keywordMetrics.capturedArticles) }}
         </div>
-        <div class="text-xs text-[#5B677A]">Akumulasi di Bank Data SIPENA</div>
+        <div class="text-xs text-slate-600">Akumulasi di Bank Data SIPENA</div>
       </div>
     </div>
 
     <!-- Keywords Table -->
-    <div class="saas-card rounded-xl overflow-hidden">
+    <div class="saas-card rounded-2xl overflow-hidden">
       <div
         tabindex="0"
         role="region"
@@ -283,7 +297,7 @@ const columns: TableColumn<KeywordItem>[] = [
         >
           <template #keyword-cell="{ row }">
             <div class="space-y-0.5 max-w-sm">
-              <div class="font-semibold text-sm text-slate-900">{{ row.original.keyword }}</div>
+              <div class="font-semibold text-sm text-[#0F172A]">{{ row.original.keyword }}</div>
               <p v-if="row.original.description" class="text-xs text-slate-500 leading-snug">
                 {{ row.original.description }}
               </p>
@@ -291,31 +305,33 @@ const columns: TableColumn<KeywordItem>[] = [
           </template>
 
           <template #defaultKbli-cell="{ row }">
-            <UBadge
+            <span
               v-if="row.original.defaultKbliCategory"
-              color="primary"
-              variant="subtle"
-              size="xs"
+              class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold border"
+              :class="getKbliClusterTheme(row.original.defaultKbliCategory).pillClass"
             >
               {{ getKbliShortCodeName(row.original.defaultKbliCategory) }}
-            </UBadge>
+            </span>
             <span v-else class="text-xs text-slate-400">Otomatis via AI</span>
           </template>
 
           <template #defaultExpenditure-cell="{ row }">
-            <UBadge
+            <span
               v-if="row.original.defaultExpenditureComponent"
-              color="info"
-              variant="subtle"
-              size="xs"
+              class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border"
+              :class="getExpenditureColorTheme(row.original.defaultExpenditureComponent).pillClass"
             >
-              {{ getExpenditureLabel(row.original.defaultExpenditureComponent, false) }}
-            </UBadge>
+              <span
+                class="w-1.5 h-1.5 rounded-full shrink-0"
+                :class="getExpenditureColorTheme(row.original.defaultExpenditureComponent).dotClass"
+              />
+              <span>{{ getExpenditureLabel(row.original.defaultExpenditureComponent, false) }}</span>
+            </span>
             <span v-else class="text-xs text-slate-400">Otomatis via AI</span>
           </template>
 
           <template #articleCount-cell="{ row }">
-            <span class="font-mono text-xs tabular-nums font-medium text-slate-700">
+            <span class="text-xs tabular-nums font-semibold text-slate-700">
               {{ row.original.articleCount }} artikel
             </span>
           </template>
@@ -325,7 +341,7 @@ const columns: TableColumn<KeywordItem>[] = [
               :model-value="row.original.isActive"
               :loading="togglingIds.has(row.original.id)"
               :aria-label="`Aktifkan kata kunci ${row.original.keyword}`"
-              @update:model-value="toggleActiveStatus(row.original, $event)"
+              @update:model-value="(val: boolean) => { void toggleActiveStatus(row.original, val); }"
             />
           </template>
 
@@ -338,7 +354,7 @@ const columns: TableColumn<KeywordItem>[] = [
                   variant="subtle"
                   icon="i-lucide-pencil"
                   aria-label="Edit kata kunci"
-                  @click="openEditModal(row.original)"
+                  @click="() => { openEditModal(row.original); }"
                 />
               </UTooltip>
               <UTooltip text="Hapus Kata Kunci">
@@ -348,7 +364,7 @@ const columns: TableColumn<KeywordItem>[] = [
                   variant="ghost"
                   icon="i-lucide-trash-2"
                   aria-label="Hapus kata kunci"
-                  @click="askDelete(row.original)"
+                  @click="() => { askDelete(row.original); }"
                 />
               </UTooltip>
             </div>
@@ -360,7 +376,7 @@ const columns: TableColumn<KeywordItem>[] = [
     <AdminKeywordFormModal
       v-model:open="formModalOpen"
       :editing-keyword="editingKeyword"
-      @saved="refresh()"
+      @saved="() => { void refresh(); }"
     />
 
     <UModal
@@ -380,7 +396,7 @@ const columns: TableColumn<KeywordItem>[] = [
           <UButton color="neutral" variant="ghost" @click="() => { deleteModalOpen = false; }">
             Batal
           </UButton>
-          <UButton color="error" :loading="isDeleting" @click="confirmDelete">
+          <UButton color="error" :loading="isDeleting" @click="() => { void confirmDelete(); }">
             Ya, Hapus Keyword
           </UButton>
         </div>

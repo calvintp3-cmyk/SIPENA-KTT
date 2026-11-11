@@ -253,7 +253,7 @@ async function submitUpdate(action: 'VERIFIED' | 'IGNORED' | 'DRAFT') {
               color="neutral"
               variant="outline"
               size="xs"
-              class="font-mono tabular-nums"
+              class="tabular-nums"
             >
               AI Conf: {{ Math.round(article.llmConfidence * 100) }}%
             </UBadge>
@@ -316,15 +316,15 @@ async function submitUpdate(action: 'VERIFIED' | 'IGNORED' | 'DRAFT') {
         <!-- Cuplikan Teks Asli (Word Threshold Buffer) -->
         <div class="space-y-1.5">
           <div class="flex items-center justify-between">
-            <label class="text-xs font-semibold uppercase tracking-wider text-slate-600">
+            <label class="text-xs font-semibold text-slate-600">
               Cuplikan Teks Asli (Verifikasi Konten)
             </label>
-            <span class="text-xs font-mono tabular-nums text-slate-500">
+            <span class="text-xs font-semibold tabular-nums text-slate-500">
               {{ snippetWordCount }} kata
             </span>
           </div>
           <div
-            class="max-h-48 overflow-y-auto saas-scroll rounded-lg bg-slate-50 border border-slate-200/90 p-3 text-sm leading-relaxed text-slate-800 whitespace-pre-line"
+            class="max-h-48 overflow-y-auto saas-scroll rounded-xl bg-slate-50 border border-slate-200/90 p-3 text-sm leading-relaxed text-slate-800 whitespace-pre-line"
           >
             {{ article.snippetText }}
           </div>
@@ -339,8 +339,8 @@ async function submitUpdate(action: 'VERIFIED' | 'IGNORED' | 'DRAFT') {
             <button
               v-if="canRestoreInitialSummary"
               type="button"
-              class="inline-flex items-center gap-1 text-[11px] font-medium text-teal-700 hover:text-teal-900 hover:underline"
-              @click="restoreInitialSummary"
+              class="inline-flex items-center gap-1 text-xs font-semibold text-indigo-700 hover:text-indigo-900 hover:underline cursor-pointer"
+              @click="() => { restoreInitialSummary(); }"
             >
               <UIcon name="i-lucide-rotate-ccw" class="w-3 h-3" />
               <span>Kembalikan Teks AI</span>
@@ -365,9 +365,9 @@ async function submitUpdate(action: 'VERIFIED' | 'IGNORED' | 'DRAFT') {
         <!-- Grid Klasifikasi Dua Sisi PDRB -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
           <!-- Sisi Lapangan Usaha -->
-          <div class="rounded-lg border border-slate-200/80 bg-slate-50/50 p-3 space-y-3">
-            <div class="text-xs font-bold uppercase tracking-wider text-teal-800">
-              Sisi Lapangan Usaha (KBLI)
+          <div class="rounded-xl border border-indigo-200/70 bg-indigo-50/35 p-3.5 space-y-3">
+            <div class="text-xs font-bold text-indigo-900">
+              1. Sisi Lapangan Usaha (KBLI)
             </div>
 
             <UFormField
@@ -402,9 +402,9 @@ async function submitUpdate(action: 'VERIFIED' | 'IGNORED' | 'DRAFT') {
           </div>
 
           <!-- Sisi Pengeluaran -->
-          <div class="rounded-lg border border-slate-200/80 bg-slate-50/50 p-3 space-y-3">
-            <div class="text-xs font-bold uppercase tracking-wider text-sky-800">
-              Sisi Pengeluaran PDRB
+          <div class="rounded-xl border border-emerald-200/70 bg-emerald-50/35 p-3.5 space-y-3">
+            <div class="text-xs font-bold text-emerald-900">
+              2. Sisi Pengeluaran PDRB
             </div>
 
             <UFormField
@@ -456,7 +456,7 @@ async function submitUpdate(action: 'VERIFIED' | 'IGNORED' | 'DRAFT') {
           </UFormField>
 
           <div
-            class="flex items-center justify-between gap-2 rounded-lg border border-slate-200 px-3 py-2 bg-white"
+            class="flex items-center justify-between gap-2 rounded-xl border border-slate-200 px-3 py-2 bg-white"
           >
             <span class="text-xs font-semibold text-slate-700">Fenomena Ekonomi Sah</span>
             <USwitch v-model="form.isEconomicPhenomenon" size="sm" />
@@ -473,7 +473,7 @@ async function submitUpdate(action: 'VERIFIED' | 'IGNORED' | 'DRAFT') {
           icon="i-lucide-archive-x"
           :loading="submittingAction === 'IGNORED'"
           :disabled="submittingAction !== null"
-          @click="submitUpdate('IGNORED')"
+          @click="() => { void submitUpdate('IGNORED'); }"
         >
           Abaikan
         </UButton>
@@ -485,7 +485,7 @@ async function submitUpdate(action: 'VERIFIED' | 'IGNORED' | 'DRAFT') {
             icon="i-lucide-save"
             :loading="submittingAction === 'DRAFT'"
             :disabled="submittingAction !== null"
-            @click="submitUpdate('DRAFT')"
+            @click="() => { void submitUpdate('DRAFT'); }"
           >
             Simpan Draft
           </UButton>
@@ -493,10 +493,10 @@ async function submitUpdate(action: 'VERIFIED' | 'IGNORED' | 'DRAFT') {
           <UButton
             color="primary"
             variant="solid"
-            icon="i-lucide-check-circle-2"
+            icon="i-solar-check-circle-bold-duotone"
             :loading="submittingAction === 'VERIFIED'"
             :disabled="submittingAction !== null"
-            @click="submitUpdate('VERIFIED')"
+            @click="() => { void submitUpdate('VERIFIED'); }"
           >
             Simpan &amp; Verifikasi
           </UButton>

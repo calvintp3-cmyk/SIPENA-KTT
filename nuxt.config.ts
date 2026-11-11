@@ -6,12 +6,23 @@ export default defineNuxtConfig({
   },
   devtools: { enabled: true },
 
-  modules: ['@nuxt/ui', '@nuxt/icon'],
+  modules: ['@nuxt/ui', '@nuxt/icon', 'motion-v/nuxt', 'nuxt-echarts'],
 
   css: ['~/assets/css/main.css'],
 
   ui: {
     colorMode: false,
+  },
+
+  echarts: {
+    renderer: ['canvas'],
+    charts: ['BarChart', 'LineChart', 'PieChart'],
+    components: ['GridComponent', 'TooltipComponent', 'LegendComponent', 'TitleComponent'],
+    features: ['UniversalTransition', 'LabelLayout'],
+  },
+
+  experimental: {
+    viewTransition: true,
   },
 
   icon: {
@@ -20,6 +31,14 @@ export default defineNuxtConfig({
   },
 
   app: {
+    pageTransition: {
+      name: 'page',
+      mode: 'out-in',
+    },
+    layoutTransition: {
+      name: 'layout',
+      mode: 'out-in',
+    },
     head: {
       htmlAttrs: {
         lang: 'id',
@@ -30,14 +49,14 @@ export default defineNuxtConfig({
         { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
         {
           rel: 'stylesheet',
-          href: 'https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap',
+          href: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap',
         },
       ],
       meta: [
         {
           name: 'description',
           content:
-            'Pemantauan harian fenomena ekonomi Kabupaten Tana Tidung berbasis pemetaan dua sisi PDRB (17 Lapangan Usaha KBLI & 6 Komponen Pengeluaran).',
+            'Rekam jejak dinamika sektor usaha, pergerakan harga, dan aktivitas ekonomi Kabupaten Tana Tidung secara terkurasi dan transparan.',
         },
       ],
     },

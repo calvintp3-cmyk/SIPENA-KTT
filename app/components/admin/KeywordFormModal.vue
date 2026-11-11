@@ -194,8 +194,13 @@ async function handleSubmit(event: FormSubmitEvent<CreateKeywordInput>) {
           />
         </UFormField>
 
-        <div class="flex items-center justify-between rounded-lg border border-slate-200 px-3 py-2">
-          <span class="text-sm font-medium text-slate-700">Aktifkan saat crawling harian</span>
+        <div class="flex items-center justify-between rounded-xl border border-indigo-200/70 bg-indigo-50/40 px-3.5 py-2.5">
+          <div class="flex items-center gap-2">
+            <UIcon name="i-solar-check-circle-bold-duotone" class="w-4 h-4 text-indigo-600 shrink-0" />
+            <span class="text-xs sm:text-sm font-semibold text-[#0F172A]">
+              Aktifkan saat crawling harian
+            </span>
+          </div>
           <USwitch v-model="formState.isActive" />
         </div>
 
@@ -203,7 +208,12 @@ async function handleSubmit(event: FormSubmitEvent<CreateKeywordInput>) {
           <UButton color="neutral" variant="ghost" @click="() => { modalOpen = false; }">
             Batal
           </UButton>
-          <UButton type="submit" color="primary" :loading="isSubmitting">
+          <UButton
+            type="submit"
+            color="primary"
+            icon="i-solar-tag-price-bold-duotone"
+            :loading="isSubmitting"
+          >
             {{ editingKeyword ? 'Simpan Perubahan' : 'Simpan Kata Kunci' }}
           </UButton>
         </div>

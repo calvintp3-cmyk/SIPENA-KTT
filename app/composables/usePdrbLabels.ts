@@ -15,6 +15,11 @@ import {
   VERIFICATION_STATUS_LABELS,
   VerificationStatusEnum,
 } from '#shared/enums/pdrb';
+import {
+  getExpenditureColorTheme,
+  getKbliClusterKey,
+  getKbliClusterTheme,
+} from '#shared/utils/pdrb-colors';
 import type { SelectOptionItem, UiSemanticColor } from '~/types/sipena';
 
 export interface BadgeVisualMeta {
@@ -326,6 +331,9 @@ export function usePdrbLabels() {
     getScraperStatusBadge,
     getScraperRunTypeLabel,
     getSourceTypeLabel,
+    getKbliClusterKey,
+    getKbliClusterTheme,
+    getExpenditureColorTheme,
     isSafeHttpUrl,
     formatDurationMs,
     formatNumberId,

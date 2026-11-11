@@ -27,8 +27,10 @@ const {
   verificationStatusOptions,
   getKbliShortCodeName,
   getKbliImpactBadge,
+  getKbliClusterTheme,
   getExpenditureLabel,
   getExpenditureImpactBadge,
+  getExpenditureColorTheme,
   getVerificationStatusBadge,
   isSafeHttpUrl,
 } = usePdrbLabels();
@@ -401,15 +403,15 @@ const columns: TableColumn<AdminArticleItem>[] = [
     <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
       <div>
         <div
-          class="flex items-center gap-2 font-mono text-[11px] font-bold uppercase tracking-wider text-teal-700"
+          class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200/80 text-xs font-semibold"
         >
-          <UIcon name="i-lucide-database" class="w-3.5 h-3.5" />
+          <UIcon name="i-solar-database-bold-duotone" class="w-3.5 h-3.5" />
           <span>Repositori Arsip &amp; Kertas Kerja BPS</span>
         </div>
-        <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-[#0B1220] mt-0.5">
+        <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-[#0F172A] mt-2">
           Bank Data Fenomena Ekonomi
         </h1>
-        <p class="text-xs sm:text-sm text-[#5B677A] mt-0.5">
+        <p class="text-xs sm:text-sm text-slate-600 mt-0.5">
           Arsip terpusat seluruh fenomena ekonomi Kabupaten Tana Tidung &amp; ekspor kertas kerja
           resmi 10 kolom.
         </p>
@@ -418,10 +420,10 @@ const columns: TableColumn<AdminArticleItem>[] = [
       <div class="flex flex-wrap items-center gap-2.5 shrink-0">
         <button
           type="button"
-          class="h-9 px-3 rounded-lg border border-[#DCE3EC] bg-white hover:bg-slate-50 text-xs font-semibold text-[#0B1220] inline-flex items-center gap-1.5 shadow-[0_1px_2px_rgba(11,18,32,0.04)] transition-colors"
-          @click="manualModalOpen = true"
+          class="h-9 px-3.5 rounded-xl border border-slate-200 bg-white hover:border-indigo-300 hover:bg-slate-50 text-xs font-semibold text-[#0F172A] inline-flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
+          @click="() => { manualModalOpen = true; }"
         >
-          <UIcon name="i-lucide-plus" class="w-3.5 h-3.5 text-teal-700" />
+          <UIcon name="i-solar-add-circle-bold-duotone" class="w-4 h-4 text-indigo-600" />
           <span>Tambah Berita Manual</span>
         </button>
 
@@ -429,29 +431,29 @@ const columns: TableColumn<AdminArticleItem>[] = [
           <button
             type="button"
             :disabled="isExporting"
-            class="obsidian-button h-9 px-3.5 rounded-lg text-xs font-semibold inline-flex items-center gap-1.5"
+            class="btn-primary-gradient h-9 px-4 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer"
           >
             <UIcon
-              :name="isExporting ? 'i-lucide-loader-circle' : 'i-lucide-download'"
-              class="w-3.5 h-3.5 text-teal-300"
+              :name="isExporting ? 'i-lucide-loader-circle' : 'i-solar-download-bold-duotone'"
+              class="w-4 h-4 text-emerald-200"
               :class="{ 'animate-spin': isExporting }"
             />
             <span>{{ isExporting ? 'Menyiapkan Berkas...' : 'Ekspor Data' }}</span>
-            <UIcon name="i-lucide-chevron-down" class="w-3.5 h-3.5 text-slate-400" />
+            <UIcon name="i-lucide-chevron-down" class="w-3.5 h-3.5 text-white/80" />
           </button>
         </UDropdownMenu>
       </div>
     </div>
 
     <!-- Filter Toolbar Multi-Parameter -->
-    <div class="saas-card rounded-xl p-4 sm:p-5 space-y-3">
+    <div class="saas-card rounded-2xl p-4 sm:p-5 space-y-3">
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
         <div>
           <label for="articles-filter-q" class="sr-only">Cari judul, ringkasan, atau URL</label>
           <UInput
             id="articles-filter-q"
             v-model="filters.q"
-            icon="i-lucide-search"
+            icon="i-solar-magnifer-line-duotone"
             placeholder="Cari judul, ringkasan, atau URL..."
             size="sm"
             class="w-full"
@@ -559,9 +561,9 @@ const columns: TableColumn<AdminArticleItem>[] = [
         </div>
       </div>
 
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pt-1 border-t border-slate-100">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pt-2 border-t border-slate-100">
         <div class="flex flex-wrap items-center gap-2">
-          <span class="font-mono text-[10px] font-bold uppercase tracking-wider text-slate-400">
+          <span class="text-xs font-semibold text-slate-600">
             Rentang Rilis (WITA):
           </span>
           <div class="flex items-center gap-1.5">
@@ -588,10 +590,10 @@ const columns: TableColumn<AdminArticleItem>[] = [
         <button
           v-if="hasActiveFilters"
           type="button"
-          class="h-8 px-2.5 rounded-lg border border-[#DCE3EC] bg-[#F8FAFC] hover:bg-slate-100 text-xs font-semibold text-[#334155] inline-flex items-center gap-1.5 self-start sm:self-auto transition-colors"
-          @click="resetFilters"
+          class="h-8 px-3 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-xs font-semibold text-slate-700 inline-flex items-center gap-1.5 self-start sm:self-auto transition-colors cursor-pointer"
+          @click="() => { resetFilters(); }"
         >
-          <UIcon name="i-lucide-rotate-ccw" class="w-3.5 h-3.5" />
+          <UIcon name="i-solar-restart-bold-duotone" class="w-3.5 h-3.5 text-indigo-600" />
           <span>Reset Semua Filter</span>
         </button>
       </div>
@@ -599,17 +601,18 @@ const columns: TableColumn<AdminArticleItem>[] = [
       <!-- Active Filter Chips Strip -->
       <div
         v-if="hasActiveFilters"
-        class="flex flex-wrap items-center gap-1.5 pt-2 border-t border-slate-100 text-[11px]"
+        class="flex flex-wrap items-center gap-1.5 pt-2 border-t border-slate-100 text-xs"
       >
-        <span class="font-mono font-bold uppercase tracking-wider text-slate-400 mr-1">
+        <span class="text-[11px] font-semibold text-slate-500 mr-1">
           Filter Aktif:
         </span>
 
         <button
           v-if="selectedGroupMeta"
           type="button"
-          class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-teal-50 text-teal-800 border border-teal-200 font-medium hover:bg-teal-100"
-          @click="filters.pdrbGroup = 'ALL'"
+          class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border font-semibold transition-opacity hover:opacity-85 cursor-pointer"
+          :class="getKbliClusterTheme(selectedGroupMeta.groupCode).pillClass"
+          @click="() => { filters.pdrbGroup = 'ALL'; }"
         >
           <span>Sektor [{{ selectedGroupMeta.groupCode }}] {{ selectedGroupMeta.shortName }}</span>
           <UIcon name="i-lucide-x" class="w-3 h-3" />
@@ -618,8 +621,9 @@ const columns: TableColumn<AdminArticleItem>[] = [
         <button
           v-if="filters.kbli !== 'ALL'"
           type="button"
-          class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-teal-50 text-teal-800 border border-teal-200 font-medium hover:bg-teal-100"
-          @click="filters.kbli = 'ALL'"
+          class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border font-semibold transition-opacity hover:opacity-85 cursor-pointer"
+          :class="getKbliClusterTheme(filters.kbli).pillClass"
+          @click="() => { filters.kbli = 'ALL'; }"
         >
           <span>KBLI: {{ getKbliShortCodeName(filters.kbli as KbliCategoryEnum) }}</span>
           <UIcon name="i-lucide-x" class="w-3 h-3" />
@@ -628,9 +632,14 @@ const columns: TableColumn<AdminArticleItem>[] = [
         <button
           v-if="filters.expenditure !== 'ALL'"
           type="button"
-          class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-sky-50 text-sky-800 border border-sky-200 font-medium hover:bg-sky-100"
-          @click="filters.expenditure = 'ALL'"
+          class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border font-semibold transition-opacity hover:opacity-85 cursor-pointer"
+          :class="getExpenditureColorTheme(filters.expenditure).pillClass"
+          @click="() => { filters.expenditure = 'ALL'; }"
         >
+          <span
+            class="w-1.5 h-1.5 rounded-full shrink-0"
+            :class="getExpenditureColorTheme(filters.expenditure).dotClass"
+          />
           <span>{{ getExpenditureLabel(filters.expenditure as ExpenditureComponentEnum, false) }}</span>
           <UIcon name="i-lucide-x" class="w-3 h-3" />
         </button>
@@ -638,8 +647,8 @@ const columns: TableColumn<AdminArticleItem>[] = [
         <button
           v-if="filters.portal !== 'ALL'"
           type="button"
-          class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 text-slate-800 border border-slate-200 font-mono hover:bg-slate-200"
-          @click="filters.portal = 'ALL'"
+          class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-800 border border-indigo-200 font-medium hover:bg-indigo-100 cursor-pointer"
+          @click="() => { filters.portal = 'ALL'; }"
         >
           <span>Portal: {{ filters.portal }}</span>
           <UIcon name="i-lucide-x" class="w-3 h-3" />
@@ -648,8 +657,8 @@ const columns: TableColumn<AdminArticleItem>[] = [
         <button
           v-if="filters.status !== 'ALL'"
           type="button"
-          class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 text-slate-800 border border-slate-200 font-medium hover:bg-slate-200"
-          @click="filters.status = 'ALL'"
+          class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-800 border border-slate-200 font-medium hover:bg-slate-200 cursor-pointer"
+          @click="() => { filters.status = 'ALL'; }"
         >
           <span>Status: {{ getVerificationStatusBadge(filters.status as VerificationStatusEnum).label }}</span>
           <UIcon name="i-lucide-x" class="w-3 h-3" />
@@ -658,10 +667,12 @@ const columns: TableColumn<AdminArticleItem>[] = [
         <button
           v-if="filters.year !== 'ALL' || filters.quarter !== 'ALL'"
           type="button"
-          class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 text-slate-800 border border-slate-200 font-mono hover:bg-slate-200"
+          class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-800 border border-slate-200 font-medium tabular-nums hover:bg-slate-200 cursor-pointer"
           @click="
-            filters.year = 'ALL';
-            filters.quarter = 'ALL';
+            () => {
+              filters.year = 'ALL';
+              filters.quarter = 'ALL';
+            }
           "
         >
           <span>
@@ -682,12 +693,14 @@ const columns: TableColumn<AdminArticleItem>[] = [
       description="Pastikan koneksi database aktif lalu muat ulang."
     >
       <template #actions>
-        <UButton size="xs" color="error" variant="solid" @click="refresh()">Muat Ulang</UButton>
+        <UButton size="xs" color="error" variant="solid" @click="() => { void refresh(); }">
+          Muat Ulang
+        </UButton>
       </template>
     </UAlert>
 
     <!-- Bank Data Table -->
-    <div class="saas-card rounded-xl overflow-hidden">
+    <div class="saas-card rounded-2xl overflow-hidden">
       <div
         tabindex="0"
         role="region"
@@ -701,7 +714,7 @@ const columns: TableColumn<AdminArticleItem>[] = [
           empty="Tidak ada arsip berita yang sesuai dengan kriteria filter."
         >
           <template #publishedAt-cell="{ row }">
-            <div class="font-mono text-xs tabular-nums text-slate-800 whitespace-nowrap">
+            <div class="text-xs font-medium tabular-nums text-slate-800 whitespace-nowrap">
               {{ formatDateId(row.original.publishedAt) }}
             </div>
             <div
@@ -715,7 +728,7 @@ const columns: TableColumn<AdminArticleItem>[] = [
           <template #title-cell="{ row }">
             <div class="space-y-1 min-w-[220px] max-w-sm">
               <div
-                class="font-semibold text-sm text-slate-900 line-clamp-2 leading-snug"
+                class="font-semibold text-sm text-[#0F172A] line-clamp-2 leading-snug"
                 :title="row.original.title"
               >
                 {{ row.original.title }}
@@ -726,54 +739,65 @@ const columns: TableColumn<AdminArticleItem>[] = [
                   :href="row.original.url"
                   target="_blank"
                   rel="noopener noreferrer"
-                  class="text-teal-700 hover:underline truncate max-w-[250px] inline-flex items-center gap-1"
+                  class="text-indigo-700 hover:text-indigo-900 hover:underline truncate max-w-[250px] inline-flex items-center gap-1 font-medium"
                 >
                   <span class="truncate">{{ row.original.url }}</span>
                   <UIcon name="i-lucide-external-link" class="w-3 h-3 shrink-0" />
                 </a>
-                <span v-else class="font-mono truncate max-w-[250px]">{{ row.original.url }}</span>
+                <span v-else class="truncate max-w-[250px]">{{ row.original.url }}</span>
               </div>
             </div>
           </template>
 
           <template #kbli-cell="{ row }">
-            <div v-if="row.original.kbliCategory" class="space-y-1 min-w-[140px]">
-              <div class="text-xs font-medium text-slate-800 leading-snug">
-                {{ getKbliShortCodeName(row.original.kbliCategory) }}
-              </div>
-              <UBadge
-                v-if="row.original.kbliImpact"
-                :color="getKbliImpactBadge(row.original.kbliImpact).color"
-                variant="subtle"
-                size="xs"
-                :icon="getKbliImpactBadge(row.original.kbliImpact).icon"
+            <div v-if="row.original.kbliCategory" class="space-y-1.5 min-w-[155px]">
+              <span
+                class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold border leading-snug"
+                :class="getKbliClusterTheme(row.original.kbliCategory).pillClass"
               >
-                {{ getKbliImpactBadge(row.original.kbliImpact).shortLabel }}
-              </UBadge>
+                {{ getKbliShortCodeName(row.original.kbliCategory) }}
+              </span>
+              <div>
+                <UBadge
+                  v-if="row.original.kbliImpact"
+                  :color="getKbliImpactBadge(row.original.kbliImpact).color"
+                  variant="subtle"
+                  size="xs"
+                  :icon="getKbliImpactBadge(row.original.kbliImpact).icon"
+                >
+                  {{ getKbliImpactBadge(row.original.kbliImpact).shortLabel }}
+                </UBadge>
+              </div>
             </div>
             <span v-else class="text-xs text-slate-400">—</span>
           </template>
 
           <template #expenditure-cell="{ row }">
-            <div v-if="row.original.expenditureComponent" class="space-y-1 min-w-[140px]">
-              <div class="text-xs font-medium text-slate-800 leading-snug">
-                {{ getExpenditureLabel(row.original.expenditureComponent, false) }}
+            <div v-if="row.original.expenditureComponent" class="space-y-1.5 min-w-[155px]">
+              <div class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-800 leading-snug">
+                <span
+                  class="w-2 h-2 rounded-full shrink-0"
+                  :class="getExpenditureColorTheme(row.original.expenditureComponent).dotClass"
+                />
+                <span>{{ getExpenditureLabel(row.original.expenditureComponent, false) }}</span>
               </div>
-              <UBadge
-                v-if="row.original.expenditureImpact"
-                :color="getExpenditureImpactBadge(row.original.expenditureImpact).color"
-                variant="subtle"
-                size="xs"
-                :icon="getExpenditureImpactBadge(row.original.expenditureImpact).icon"
-              >
-                {{ getExpenditureImpactBadge(row.original.expenditureImpact).shortLabel }}
-              </UBadge>
+              <div>
+                <UBadge
+                  v-if="row.original.expenditureImpact"
+                  :color="getExpenditureImpactBadge(row.original.expenditureImpact).color"
+                  variant="subtle"
+                  size="xs"
+                  :icon="getExpenditureImpactBadge(row.original.expenditureImpact).icon"
+                >
+                  {{ getExpenditureImpactBadge(row.original.expenditureImpact).shortLabel }}
+                </UBadge>
+              </div>
             </div>
             <span v-else class="text-xs text-slate-400">—</span>
           </template>
 
           <template #period-cell="{ row }">
-            <span class="font-mono text-xs tabular-nums text-slate-700 whitespace-nowrap">
+            <span class="text-xs font-medium tabular-nums text-slate-700 whitespace-nowrap">
               {{ formatPeriodLabel(row.original.quarter, row.original.year) }}
             </span>
           </template>
@@ -798,7 +822,7 @@ const columns: TableColumn<AdminArticleItem>[] = [
                   variant="subtle"
                   icon="i-lucide-pencil"
                   aria-label="Edit artikel arsip"
-                  @click="openEditDrawer(row.original)"
+                  @click="() => { openEditDrawer(row.original); }"
                 />
               </UTooltip>
 
@@ -809,7 +833,7 @@ const columns: TableColumn<AdminArticleItem>[] = [
                   variant="ghost"
                   icon="i-lucide-trash-2"
                   aria-label="Hapus artikel arsip"
-                  @click="askDelete(row.original)"
+                  @click="() => { askDelete(row.original); }"
                 />
               </UTooltip>
             </div>
@@ -823,8 +847,8 @@ const columns: TableColumn<AdminArticleItem>[] = [
       v-if="archiveData"
       class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1"
     >
-      <span class="text-xs text-[#5B677A] font-mono tabular-nums">
-        Total arsip cocok: {{ archiveData.pagination.total }} berita • Halaman
+      <span class="text-xs text-slate-600 tabular-nums">
+        Total arsip cocok: <strong class="text-[#0F172A]">{{ archiveData.pagination.total }}</strong> berita • Halaman
         {{ archiveData.pagination.page }}/{{ archiveData.pagination.totalPages }}
       </span>
       <UPagination
@@ -836,7 +860,7 @@ const columns: TableColumn<AdminArticleItem>[] = [
     </div>
 
     <!-- Modal Tambah Manual -->
-    <AdminManualArticleModal v-model:open="manualModalOpen" @created="refresh()" />
+    <AdminManualArticleModal v-model:open="manualModalOpen" @created="() => { void refresh(); }" />
 
     <!-- Slideover Edit Artikel -->
     <AdminReviewSlideover
@@ -845,7 +869,7 @@ const columns: TableColumn<AdminArticleItem>[] = [
       @saved="
         () => {
           drawerOpen = false;
-          refresh();
+          void refresh();
         }
       "
     />
@@ -867,7 +891,7 @@ const columns: TableColumn<AdminArticleItem>[] = [
           <UButton color="neutral" variant="ghost" @click="() => { deleteModalOpen = false; }">
             Batal
           </UButton>
-          <UButton color="error" :loading="isDeleting" @click="confirmDelete">
+          <UButton color="error" :loading="isDeleting" @click="() => { void confirmDelete(); }">
             Ya, Hapus Permanen
           </UButton>
         </div>

@@ -270,7 +270,7 @@ async function handleSubmit() {
 
         <div
           v-if="editingUser?.hasPassword && !isEditingSelf"
-          class="rounded-lg border border-amber-200/80 bg-amber-50/60 px-3 py-2 flex items-center justify-between gap-3"
+          class="rounded-xl border border-amber-200/80 bg-amber-50/60 px-3.5 py-2.5 flex items-center justify-between gap-3"
         >
           <div>
             <div class="text-xs font-semibold text-amber-900">
@@ -283,10 +283,10 @@ async function handleSubmit() {
           <USwitch v-model="formState.clearPassword" />
         </div>
 
-        <div class="flex items-center justify-between rounded-lg border border-slate-200 px-3 py-2">
+        <div class="flex items-center justify-between rounded-xl border border-indigo-200/70 bg-indigo-50/40 px-3.5 py-2.5">
           <div>
-            <div class="text-sm font-medium text-slate-800">Status Akses Aktif (Whitelist)</div>
-            <div class="text-[11px] text-slate-500">
+            <div class="text-xs sm:text-sm font-semibold text-[#0F172A]">Status Akses Aktif (Whitelist)</div>
+            <div class="text-[11px] text-slate-600">
               Jika dimatikan, akun otomatis ditolak saat mencoba login Google maupun sesi aktifnya dicabut.
             </div>
           </div>
@@ -297,7 +297,12 @@ async function handleSubmit() {
           <UButton color="neutral" variant="ghost" @click="() => { modalOpen = false; }">
             Batal
           </UButton>
-          <UButton type="submit" color="primary" :loading="isSubmitting">
+          <UButton
+            type="submit"
+            color="primary"
+            :icon="editingUser ? 'i-solar-shield-check-bold-duotone' : 'i-solar-user-plus-bold-duotone'"
+            :loading="isSubmitting"
+          >
             {{ editingUser ? 'Simpan Perubahan' : 'Tambahkan ke Whitelist' }}
           </UButton>
         </div>

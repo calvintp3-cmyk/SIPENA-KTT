@@ -15,7 +15,13 @@ const {
   registerAvailableYears,
   setPeriod,
 } = useAdminPeriod();
-const { getKbliImpactBadge, getExpenditureImpactBadge, formatNumberId } = usePdrbLabels();
+const {
+  getKbliImpactBadge,
+  getExpenditureImpactBadge,
+  getKbliClusterTheme,
+  getExpenditureColorTheme,
+  formatNumberId,
+} = usePdrbLabels();
 const { isExporting, downloadExport } = useExcelExport();
 
 const mode = ref<'qoq' | 'yoy'>('qoq');
@@ -23,6 +29,12 @@ const dimension = ref<'kbli' | 'expenditure'>('kbli');
 const tableFilter = ref<'all' | 'up' | 'down' | 'gap'>('all');
 const sortKey = ref<'delta' | 'current' | 'code'>('delta');
 const hoveredQuarter = ref<TrendPeriodPoint | null>(null);
+
+const sortOptions = [
+  { label: 'Perubahan Terbesar', value: 'delta' },
+  { label: 'Volume Periode Aktif', value: 'current' },
+  { label: 'Kode Urut Resmi', value: 'code' },
+];
 
 const trendsQuery = computed(() => ({
   year: selectedYear.value,
@@ -52,14 +64,127 @@ watchEffect(() => {
   }
 });
 
-const maxHistoryTotal = computed(() => {
+const historyChartOption = computed<ECOption | null>(() => {
   const list = trendData.value?.history8Quarters ?? [];
-  return Math.max(1, ...list.map((q) => q.total));
+  if (list.length === 0) return null;
+
+  return {
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: { type: 'shadow' },
+      backgroundColor: '#0F172A',
+      borderWidth: 0,
+      textStyle: { color: '#F8FAFC', fontFamily: 'Inter, sans-serif', fontSize: 12 },
+      formatter: (raw: unknown) => {
+        const items = Array.isArray(raw) ? raw : [raw];
+        const first = items[0] as { dataIndex?: number } | undefined;
+        const pt = typeof first?.dataIndex === 'number' ? list[first.dataIndex] : undefined;
+        if (!pt) return '';
+        return [
+          `<strong>${pt.label}${pt.isTarget ? ' (Aktif)' : ''}</strong>`,
+          `Total Terverifikasi: <strong>${pt.total}</strong>`,
+          `Naik NTB: ${pt.increaseNtb} • Tekanan Harga: ${pt.pricePressure} • Turun NTB: ${pt.decreaseNtb}`,
+        ].join('<br/>');
+      },
+    },
+    grid: {
+      left: 12,
+      right: 16,
+      top: 22,
+      bottom: 8,
+      containLabel: true,
+    },
+    xAxis: {
+      type: 'category',
+      data: list.map((q) => q.shortLabel),
+      axisLine: { lineStyle: { color: '#E2E8F0' } },
+      axisTick: { show: false },
+      axisLabel: {
+        color: '#334155',
+        fontFamily: 'Inter, sans-serif',
+        fontSize: 11,
+        fontWeight: 600,
+      },
+    },
+    yAxis: {
+      type: 'value',
+      minInterval: 1,
+      splitLine: { lineStyle: { color: '#F1F5F9' } },
+      axisLabel: {
+        color: '#64748B',
+        fontFamily: 'Inter, sans-serif',
+        fontSize: 11,
+      },
+    },
+    series: [
+      {
+        name: 'Naik NTB',
+        type: 'bar',
+        stack: 'sinyal',
+        barMaxWidth: 32,
+        itemStyle: { color: '#059669' },
+        data: list.map((q) => ({
+          value: q.increaseNtb,
+          itemStyle: { opacity: q.isTarget ? 1 : 0.78 },
+        })),
+      },
+      {
+        name: 'Tekanan Harga',
+        type: 'bar',
+        stack: 'sinyal',
+        barMaxWidth: 32,
+        itemStyle: { color: '#D97706' },
+        data: list.map((q) => ({
+          value: q.pricePressure,
+          itemStyle: { opacity: q.isTarget ? 1 : 0.78 },
+        })),
+      },
+      {
+        name: 'Turun NTB',
+        type: 'bar',
+        stack: 'sinyal',
+        barMaxWidth: 32,
+        itemStyle: { color: '#E11D48', borderRadius: [6, 6, 0, 0] },
+        data: list.map((q) => ({
+          value: q.decreaseNtb,
+          itemStyle: { opacity: q.isTarget ? 1 : 0.78 },
+        })),
+      },
+      {
+        name: 'Total Artikel',
+        type: 'line',
+        smooth: true,
+        symbol: 'circle',
+        symbolSize: 8,
+        lineStyle: { color: '#4F46E5', width: 2.5 },
+        itemStyle: { color: '#4F46E5', borderColor: '#FFFFFF', borderWidth: 2 },
+        areaStyle: {
+          color: {
+            type: 'linear',
+            x: 0,
+            y: 0,
+            x2: 0,
+            y2: 1,
+            colorStops: [
+              { offset: 0, color: 'rgba(79, 70, 229, 0.16)' },
+              { offset: 1, color: 'rgba(79, 70, 229, 0.0)' },
+            ],
+          },
+        },
+        data: list.map((q) => q.total),
+      },
+    ],
+  };
 });
 
-function barHeightPercent(val: number): number {
-  if (val <= 0) return 0;
-  return Math.max(4, Math.round((val / maxHistoryTotal.value) * 100));
+function handleQuarterChartClick(params: unknown) {
+  const idx = (params as { dataIndex?: number })?.dataIndex;
+  if (typeof idx !== 'number') return;
+  const pt = trendData.value?.history8Quarters[idx];
+  if (pt) {
+    hoveredQuarter.value = pt;
+    setPeriod(pt.year, pt.quarter);
+  }
 }
 
 const filteredSortedRows = computed(() => {
@@ -108,18 +233,20 @@ function handleExportXlsx() {
       <!-- Deck 1: Title & Primary Export -->
       <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
-          <div class="flex items-center gap-2 font-mono text-[11px] font-bold uppercase tracking-wider text-teal-700">
-            <UIcon name="i-lucide-trending-up" class="w-3.5 h-3.5" />
+          <div
+            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200/80 text-xs font-semibold"
+          >
+            <UIcon name="i-solar-graph-new-up-bold-duotone" class="w-3.5 h-3.5" />
             <span>Komparasi Dinamika Sinyal Antar Periode</span>
           </div>
-          <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-[#0B1220] mt-0.5">
+          <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-[#0F172A] mt-2">
             Tren &amp; Komparasi Fenomena PDRB
           </h1>
-          <p v-if="trendData" class="text-xs sm:text-sm text-[#5B677A] mt-0.5">
+          <p v-if="trendData" class="text-xs sm:text-sm text-slate-600 mt-0.5">
             Membandingkan
-            <strong class="text-[#0B1220]">{{ trendData.period.label }}</strong>
+            <strong class="text-[#0F172A]">{{ trendData.period.label }}</strong>
             terhadap
-            <strong class="text-[#0B1220]">{{ trendData.baseline.label }}</strong>
+            <strong class="text-[#0F172A]">{{ trendData.baseline.label }}</strong>
             ({{ mode === 'qoq' ? 'Quarter-to-Quarter' : 'Year-on-Year' }}).
           </p>
         </div>
@@ -128,50 +255,50 @@ function handleExportXlsx() {
           <button
             type="button"
             :disabled="isExporting"
-            class="h-9 px-3 rounded-lg border border-[#DCE3EC] bg-white hover:bg-slate-50 text-xs font-semibold text-[#0B1220] inline-flex items-center gap-1.5 shadow-[0_1px_2px_rgba(11,18,32,0.04)] disabled:opacity-50"
-            @click="handleExportXlsx"
+            class="h-9 px-3.5 rounded-xl border border-slate-200 bg-white hover:border-indigo-300 hover:bg-slate-50 text-xs font-semibold text-[#0F172A] inline-flex items-center gap-1.5 shadow-2xs transition-colors disabled:opacity-50 cursor-pointer"
+            @click="() => { handleExportXlsx(); }"
           >
-            <UIcon name="i-lucide-download" class="w-3.5 h-3.5 text-teal-700" />
+            <UIcon name="i-solar-download-bold-duotone" class="w-4 h-4 text-emerald-600" />
             <span>Export {{ shortPeriodLabel }} (.XLSX)</span>
           </button>
         </div>
       </div>
 
       <!-- Deck 2: Comparison Mode & Dimension Segmented Controls -->
-      <div class="flex flex-wrap items-center justify-between gap-3 bg-white border border-[#DCE3EC] rounded-xl p-3">
+      <div class="saas-card rounded-2xl p-3.5 flex flex-wrap items-center justify-between gap-3">
         <div class="flex flex-wrap items-center gap-3">
           <div class="flex items-center gap-2">
-            <span class="font-mono text-[10px] font-bold uppercase tracking-wider text-slate-500">
+            <span class="text-xs font-semibold text-slate-500">
               Mode:
             </span>
             <div
               role="group"
               aria-label="Mode komparasi periode"
-              class="inline-flex p-0.5 bg-slate-200/75 rounded-lg border border-slate-200"
+              class="inline-flex p-1 bg-slate-100 rounded-xl border border-slate-200/90"
             >
               <button
                 type="button"
                 :aria-pressed="mode === 'qoq'"
-                class="px-2.5 py-1 rounded-md font-mono text-xs transition-all"
+                class="px-3 py-1.5 rounded-lg text-xs transition-all cursor-pointer"
                 :class="
                   mode === 'qoq'
-                    ? 'bg-white text-teal-800 font-bold shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900 font-medium'
+                    ? 'bg-white text-indigo-700 font-bold shadow-2xs border border-indigo-200/70'
+                    : 'text-slate-600 hover:text-slate-950 font-medium'
                 "
-                @click="mode = 'qoq'"
+                @click="() => { mode = 'qoq'; }"
               >
                 q-to-q (Triwulan Sebelumnya)
               </button>
               <button
                 type="button"
                 :aria-pressed="mode === 'yoy'"
-                class="px-2.5 py-1 rounded-md font-mono text-xs transition-all"
+                class="px-3 py-1.5 rounded-lg text-xs transition-all cursor-pointer"
                 :class="
                   mode === 'yoy'
-                    ? 'bg-white text-teal-800 font-bold shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900 font-medium'
+                    ? 'bg-white text-indigo-700 font-bold shadow-2xs border border-indigo-200/70'
+                    : 'text-slate-600 hover:text-slate-950 font-medium'
                 "
-                @click="mode = 'yoy'"
+                @click="() => { mode = 'yoy'; }"
               >
                 y-on-y (Tahun Sebelumnya)
               </button>
@@ -179,37 +306,37 @@ function handleExportXlsx() {
           </div>
 
           <div class="flex items-center gap-2">
-            <span class="font-mono text-[10px] font-bold uppercase tracking-wider text-slate-500">
+            <span class="text-xs font-semibold text-slate-500">
               Dimensi:
             </span>
             <div
               role="group"
               aria-label="Dimensi klasifikasi PDRB"
-              class="inline-flex p-0.5 bg-slate-200/75 rounded-lg border border-slate-200"
+              class="inline-flex p-1 bg-slate-100 rounded-xl border border-slate-200/90"
             >
               <button
                 type="button"
                 :aria-pressed="dimension === 'kbli'"
-                class="px-2.5 py-1 rounded-md text-xs transition-all"
+                class="px-3 py-1.5 rounded-lg text-xs transition-all cursor-pointer"
                 :class="
                   dimension === 'kbli'
-                    ? 'bg-white text-[#0B1220] font-semibold shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900 font-medium'
+                    ? 'bg-white text-indigo-700 font-bold shadow-2xs border border-indigo-200/70'
+                    : 'text-slate-600 hover:text-slate-950 font-medium'
                 "
-                @click="dimension = 'kbli'"
+                @click="() => { dimension = 'kbli'; }"
               >
                 17 Lapangan Usaha KBLI
               </button>
               <button
                 type="button"
                 :aria-pressed="dimension === 'expenditure'"
-                class="px-2.5 py-1 rounded-md text-xs transition-all"
+                class="px-3 py-1.5 rounded-lg text-xs transition-all cursor-pointer"
                 :class="
                   dimension === 'expenditure'
-                    ? 'bg-white text-[#0B1220] font-semibold shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900 font-medium'
+                    ? 'bg-white text-indigo-700 font-bold shadow-2xs border border-indigo-200/70'
+                    : 'text-slate-600 hover:text-slate-950 font-medium'
                 "
-                @click="dimension = 'expenditure'"
+                @click="() => { dimension = 'expenditure'; }"
               >
                 6 Komponen Pengeluaran
               </button>
@@ -219,7 +346,7 @@ function handleExportXlsx() {
 
         <span
           v-if="trendData"
-          class="font-mono text-[11px] font-medium text-[#5B677A] tabular-nums px-2 py-1 rounded bg-[#F8FAFC] border border-[#DCE3EC]"
+          class="text-xs font-semibold text-indigo-700 tabular-nums px-3 py-1 rounded-full bg-indigo-50 border border-indigo-200/80"
         >
           {{ trendData.period.label }} vs {{ trendData.baseline.label }}
         </span>
@@ -234,34 +361,41 @@ function handleExportXlsx() {
       title="Gagal memuat analisis tren"
     >
       <template #actions>
-        <UButton size="xs" color="error" variant="solid" @click="refresh()">Muat Ulang</UButton>
+        <UButton size="xs" color="error" variant="solid" @click="() => { void refresh(); }">
+          Muat Ulang
+        </UButton>
       </template>
     </UAlert>
 
     <!-- 4 KPI Comparison Strip -->
     <div v-if="pending && !trendData" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-      <div v-for="i in 4" :key="i" class="saas-card rounded-xl p-5 space-y-2">
+      <div v-for="i in 4" :key="i" class="saas-card rounded-2xl p-5 space-y-2">
         <div class="h-3 w-28 rounded bg-slate-200" />
         <div class="h-8 w-20 rounded bg-slate-200" />
       </div>
     </div>
 
     <div v-else-if="trendData" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-      <div class="saas-card rounded-xl p-5 space-y-2">
-        <span class="font-mono text-[11px] font-bold uppercase tracking-wider text-slate-500">
-          Volume Periode Aktif
-        </span>
+      <div class="saas-card rounded-2xl p-5 space-y-2.5">
+        <div class="flex items-center justify-between gap-2">
+          <span class="text-xs font-semibold text-slate-600">
+            Volume Periode Aktif
+          </span>
+          <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 border border-blue-200/80 flex items-center justify-center shrink-0">
+            <UIcon name="i-solar-chart-square-bold-duotone" class="w-4 h-4" />
+          </div>
+        </div>
         <div class="flex items-baseline gap-2">
-          <span class="text-3xl font-bold font-mono tabular-nums text-[#0B1220]">
+          <span class="text-3xl font-extrabold tabular-nums text-[#0F172A]">
             {{ formatNumberId(trendData.kpi.currentTotal) }}
           </span>
-          <span class="text-xs text-[#5B677A] font-mono">
+          <span class="text-xs text-slate-500 tabular-nums">
             vs {{ trendData.kpi.baselineTotal }}
           </span>
         </div>
-        <div class="text-xs font-mono">
+        <div class="text-xs">
           <span
-            class="px-1.5 py-0.5 rounded border font-semibold tabular-nums"
+            class="px-2 py-0.5 rounded-full border font-semibold tabular-nums"
             :class="
               trendData.kpi.deltaCount > 0
                 ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
@@ -278,15 +412,20 @@ function handleExportXlsx() {
         </div>
       </div>
 
-      <div class="saas-card rounded-xl p-5 space-y-2">
-        <span class="font-mono text-[11px] font-bold uppercase tracking-wider text-slate-500">
-          Kenaikan Sinyal Tertinggi
-        </span>
+      <div class="saas-card rounded-2xl p-5 space-y-2.5">
+        <div class="flex items-center justify-between gap-2">
+          <span class="text-xs font-semibold text-slate-600">
+            Kenaikan Sinyal Tertinggi
+          </span>
+          <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200/80 flex items-center justify-center shrink-0">
+            <UIcon name="i-solar-diagram-up-bold-duotone" class="w-4 h-4" />
+          </div>
+        </div>
         <template v-if="trendData.kpi.topRiser">
-          <div class="text-sm font-bold text-[#0B1220] leading-snug line-clamp-2">
+          <div class="text-sm font-bold text-[#0F172A] leading-snug line-clamp-2">
             [{{ trendData.kpi.topRiser.code }}] {{ trendData.kpi.topRiser.label }}
           </div>
-          <div class="font-mono text-xs font-bold text-emerald-700 tabular-nums">
+          <div class="text-xs font-bold text-emerald-700 tabular-nums">
             +{{ trendData.kpi.topRiser.deltaCount }} bukti vs baseline
           </div>
         </template>
@@ -295,15 +434,20 @@ function handleExportXlsx() {
         </div>
       </div>
 
-      <div class="saas-card rounded-xl p-5 space-y-2">
-        <span class="font-mono text-[11px] font-bold uppercase tracking-wider text-slate-500">
-          Penurunan Sinyal Terbesar
-        </span>
+      <div class="saas-card rounded-2xl p-5 space-y-2.5">
+        <div class="flex items-center justify-between gap-2">
+          <span class="text-xs font-semibold text-slate-600">
+            Penurunan Sinyal Terbesar
+          </span>
+          <div class="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 border border-rose-200/80 flex items-center justify-center shrink-0">
+            <UIcon name="i-solar-heart-pulse-2-bold-duotone" class="w-4 h-4" />
+          </div>
+        </div>
         <template v-if="trendData.kpi.topDecliner">
-          <div class="text-sm font-bold text-[#0B1220] leading-snug line-clamp-2">
+          <div class="text-sm font-bold text-[#0F172A] leading-snug line-clamp-2">
             [{{ trendData.kpi.topDecliner.code }}] {{ trendData.kpi.topDecliner.label }}
           </div>
-          <div class="font-mono text-xs font-bold text-rose-700 tabular-nums">
+          <div class="text-xs font-bold text-rose-700 tabular-nums">
             {{ trendData.kpi.topDecliner.deltaCount }} bukti vs baseline
           </div>
         </template>
@@ -312,42 +456,55 @@ function handleExportXlsx() {
         </div>
       </div>
 
-      <div class="saas-card rounded-xl p-5 space-y-2">
-        <span class="font-mono text-[11px] font-bold uppercase tracking-wider text-slate-500">
-          Gap {{ dimension === 'kbli' ? '17 Sektor' : '6 Pengeluaran' }}
-        </span>
-        <div class="text-3xl font-bold font-mono tabular-nums text-[#0B1220]">
+      <div class="saas-card rounded-2xl p-5 space-y-2.5">
+        <div class="flex items-center justify-between gap-2">
+          <span class="text-xs font-semibold text-slate-600">
+            Gap {{ dimension === 'kbli' ? '17 Sektor' : '6 Pengeluaran' }}
+          </span>
+          <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 border border-amber-200/80 flex items-center justify-center shrink-0">
+            <UIcon name="i-solar-radar-2-bold-duotone" class="w-4 h-4" />
+          </div>
+        </div>
+        <div class="text-3xl font-extrabold tabular-nums text-[#0F172A]">
           {{ trendData.kpi.gapCount }}
         </div>
-        <div class="text-xs text-[#5B677A]">
+        <div class="text-xs text-slate-600">
           {{ trendData.kpi.gapCount === 0 ? 'Seluruh pos memiliki bukti' : 'Pos belum ada berita terverifikasi' }}
         </div>
       </div>
     </div>
 
-    <!-- 8-Quarter Historical Chart -->
-    <section v-if="trendData" aria-label="Grafik Tren 8 Triwulan Terakhir" class="saas-card rounded-xl p-5 space-y-4">
+    <!-- 8-Quarter Historical Chart (ECharts Combined Stacked Bar + Smooth Area Trendline) -->
+    <section
+      v-if="trendData"
+      aria-label="Grafik Tren 8 Triwulan Terakhir"
+      class="saas-card rounded-2xl p-5 sm:p-6 space-y-4"
+    >
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 class="text-base font-bold text-[#0B1220]">
+          <h2 class="text-base font-extrabold text-[#0F172A]">
             Dinamika Sinyal 8 Triwulan Terakhir
           </h2>
-          <p class="text-xs text-[#5B677A]">
-            Arahkan kursor untuk rincian dampak atau klik batang triwulan untuk memindahkan periode aktif.
+          <p class="text-xs text-slate-600">
+            Arahkan kursor untuk rincian dampak atau klik grafik / kartu periode untuk memindahkan periode aktif.
           </p>
         </div>
 
-        <div class="flex flex-wrap items-center gap-3 text-[11px] font-mono">
+        <div class="flex flex-wrap items-center gap-3 text-xs font-semibold">
+          <span class="inline-flex items-center gap-1.5 text-indigo-700">
+            <span class="w-3 h-0.5 rounded-full bg-indigo-600" />
+            Total Artikel
+          </span>
           <span class="inline-flex items-center gap-1.5 text-emerald-800">
-            <span class="w-2.5 h-2.5 rounded-xs bg-emerald-500" />
+            <span class="w-2.5 h-2.5 rounded-sm bg-emerald-500" />
             Naik NTB
           </span>
           <span class="inline-flex items-center gap-1.5 text-amber-800">
-            <span class="w-2.5 h-2.5 rounded-xs bg-amber-500" />
+            <span class="w-2.5 h-2.5 rounded-sm bg-amber-500" />
             Tekanan Harga
           </span>
           <span class="inline-flex items-center gap-1.5 text-rose-800">
-            <span class="w-2.5 h-2.5 rounded-xs bg-rose-500" />
+            <span class="w-2.5 h-2.5 rounded-sm bg-rose-500" />
             Turun NTB
           </span>
         </div>
@@ -356,70 +513,52 @@ function handleExportXlsx() {
       <!-- Readout Banner -->
       <div
         v-if="hoveredQuarter"
-        class="rounded-lg bg-[#F8FAFC] border border-[#DCE3EC] px-3.5 py-2 flex flex-wrap items-center justify-between gap-3 text-xs"
+        class="rounded-xl bg-[#FAFBFD] border border-slate-200/90 px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 text-xs"
       >
-        <div class="font-mono font-bold text-[#0B1220]">
-          {{ hoveredQuarter.label }}
-          <span v-if="hoveredQuarter.isTarget" class="ml-1.5 text-[10px] px-1.5 py-0.5 rounded bg-teal-50 text-teal-800 border border-teal-200">
+        <div class="font-bold text-[#0F172A] flex items-center gap-2">
+          <span>{{ hoveredQuarter.label }}</span>
+          <span
+            v-if="hoveredQuarter.isTarget"
+            class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200"
+          >
             Periode Aktif
           </span>
         </div>
-        <div class="flex flex-wrap items-center gap-4 font-mono tabular-nums">
-          <span class="text-[#0B1220] font-bold">Total: {{ hoveredQuarter.total }}</span>
+        <div class="flex flex-wrap items-center gap-4 font-semibold tabular-nums">
+          <span class="text-[#0F172A]">Total: {{ hoveredQuarter.total }}</span>
           <span class="text-emerald-700">Ekspansi: {{ hoveredQuarter.increaseNtb }}</span>
           <span class="text-amber-700">Harga: {{ hoveredQuarter.pricePressure }}</span>
           <span class="text-rose-700">Kontraksi: {{ hoveredQuarter.decreaseNtb }}</span>
         </div>
       </div>
 
-      <!-- Stacked Bar Grid -->
-      <div class="grid grid-cols-8 gap-2 sm:gap-3 pt-2 items-end h-52 border-b border-slate-200 pb-2">
+      <SharedAppChart
+        :option="historyChartOption"
+        height-class="h-72"
+        :loading="pending && !trendData"
+        :empty="!trendData.history8Quarters.length"
+        empty-title="Belum ada riwayat 8 triwulan"
+        @chart-click="handleQuarterChartClick"
+      />
+
+      <!-- Accessible Interactive Quarter Selector Strip -->
+      <div class="grid grid-cols-4 sm:grid-cols-8 gap-2 pt-2 border-t border-slate-100">
         <button
           v-for="pt in trendData.history8Quarters"
           :key="`${pt.year}-${pt.quarter}`"
           type="button"
-          class="group h-full flex flex-col justify-end items-center gap-1.5 rounded-lg px-1 py-1 transition-colors"
+          class="flex flex-col items-center justify-center gap-0.5 px-2 py-2 rounded-xl border text-xs tabular-nums transition-all cursor-pointer"
           :class="
             pt.isTarget
-              ? 'bg-teal-50/70 ring-1 ring-teal-300'
-              : 'hover:bg-slate-50'
+              ? 'bg-indigo-50 border-indigo-300 text-indigo-900 font-bold shadow-2xs'
+              : 'bg-white border-slate-200/80 text-slate-600 hover:border-indigo-200 hover:bg-slate-50 font-medium'
           "
           @mouseenter="hoveredQuarter = pt"
           @focus="hoveredQuarter = pt"
-          @click="setPeriod(pt.year, pt.quarter)"
+          @click="() => { setPeriod(pt.year, pt.quarter); }"
         >
-          <span class="font-mono text-[11px] font-bold tabular-nums text-slate-700">
-            {{ pt.total }}
-          </span>
-
-          <div class="w-full max-w-[44px] flex-1 flex flex-col justify-end gap-0.5">
-            <div
-              v-if="pt.decreaseNtb > 0"
-              class="w-full rounded-t-xs bg-rose-500 transition-all"
-              :style="{ height: `${barHeightPercent(pt.decreaseNtb)}%` }"
-            />
-            <div
-              v-if="pt.pricePressure > 0"
-              class="w-full bg-amber-500 transition-all"
-              :style="{ height: `${barHeightPercent(pt.pricePressure)}%` }"
-            />
-            <div
-              v-if="pt.increaseNtb > 0"
-              class="w-full rounded-b-xs bg-emerald-500 transition-all"
-              :style="{ height: `${barHeightPercent(pt.increaseNtb)}%` }"
-            />
-            <div
-              v-if="pt.total === 0"
-              class="w-full h-1 rounded bg-slate-200"
-            />
-          </div>
-
-          <span
-            class="font-mono text-[10px] tabular-nums whitespace-nowrap"
-            :class="pt.isTarget ? 'font-bold text-teal-800' : 'text-slate-500'"
-          >
-            {{ pt.shortLabel }}
-          </span>
+          <span class="text-[11px]">{{ pt.shortLabel }}</span>
+          <span class="text-sm font-extrabold text-[#0F172A]">{{ pt.total }}</span>
         </button>
       </div>
     </section>
@@ -430,63 +569,67 @@ function handleExportXlsx() {
         <div
           role="group"
           aria-label="Filter perubahan tren"
-          class="inline-flex flex-wrap p-0.5 bg-slate-200/75 rounded-lg border border-slate-200"
+          class="inline-flex flex-wrap p-1 bg-slate-100 rounded-xl border border-slate-200/90 gap-1"
         >
           <button
             type="button"
             :aria-pressed="tableFilter === 'all'"
-            class="px-2.5 py-1 rounded-md text-xs transition-all"
-            :class="tableFilter === 'all' ? 'bg-white font-semibold shadow-xs text-[#0B1220]' : 'text-slate-600'"
-            @click="tableFilter = 'all'"
+            class="px-3 py-1.5 rounded-lg text-xs transition-all cursor-pointer"
+            :class="tableFilter === 'all' ? 'bg-white font-bold shadow-2xs text-indigo-700 border border-indigo-200/70' : 'text-slate-600 font-medium'"
+            @click="() => { tableFilter = 'all'; }"
           >
             Semua
           </button>
           <button
             type="button"
             :aria-pressed="tableFilter === 'up'"
-            class="px-2.5 py-1 rounded-md text-xs transition-all"
-            :class="tableFilter === 'up' ? 'bg-white font-semibold shadow-xs text-emerald-800' : 'text-slate-600'"
-            @click="tableFilter = 'up'"
+            class="px-3 py-1.5 rounded-lg text-xs transition-all cursor-pointer"
+            :class="tableFilter === 'up' ? 'bg-white font-bold shadow-2xs text-emerald-800 border border-emerald-200' : 'text-slate-600 font-medium'"
+            @click="() => { tableFilter = 'up'; }"
           >
             Meningkat (+)
           </button>
           <button
             type="button"
             :aria-pressed="tableFilter === 'down'"
-            class="px-2.5 py-1 rounded-md text-xs transition-all"
-            :class="tableFilter === 'down' ? 'bg-white font-semibold shadow-xs text-rose-700' : 'text-slate-600'"
-            @click="tableFilter = 'down'"
+            class="px-3 py-1.5 rounded-lg text-xs transition-all cursor-pointer"
+            :class="tableFilter === 'down' ? 'bg-white font-bold shadow-2xs text-rose-700 border border-rose-200' : 'text-slate-600 font-medium'"
+            @click="() => { tableFilter = 'down'; }"
           >
             Menurun (-)
           </button>
           <button
             type="button"
             :aria-pressed="tableFilter === 'gap'"
-            class="px-2.5 py-1 rounded-md text-xs transition-all"
-            :class="tableFilter === 'gap' ? 'bg-white font-semibold shadow-xs text-slate-900' : 'text-slate-600'"
-            @click="tableFilter = 'gap'"
+            class="px-3 py-1.5 rounded-lg text-xs transition-all cursor-pointer"
+            :class="tableFilter === 'gap' ? 'bg-white font-bold shadow-2xs text-slate-900 border border-slate-200' : 'text-slate-600 font-medium'"
+            @click="() => { tableFilter = 'gap'; }"
           >
             Data Gap (0)
           </button>
         </div>
 
         <div class="flex items-center gap-2 text-xs">
-          <label for="trends-sort-select" class="font-mono text-[11px] text-slate-500 uppercase">
+          <span class="font-semibold text-slate-500">
             Urutkan:
-          </label>
-          <select
-            id="trends-sort-select"
-            v-model="sortKey"
-            class="h-8 px-2.5 bg-white border border-[#DCE3EC] rounded-lg text-xs font-medium text-[#0B1220]"
-          >
-            <option value="delta">Perubahan Terbesar</option>
-            <option value="current">Volume Periode Aktif</option>
-            <option value="code">Kode Urut Resmi</option>
-          </select>
+          </span>
+          <div class="w-48">
+            <USelect
+              id="trends-sort-select"
+              :model-value="sortKey"
+              :items="sortOptions"
+              value-key="value"
+              label-key="label"
+              size="sm"
+              aria-label="Urutkan tabel perbandingan"
+              class="w-full"
+              @update:model-value="(val: unknown) => { if (val === 'delta' || val === 'current' || val === 'code') sortKey = val; }"
+            />
+          </div>
         </div>
       </div>
 
-      <div class="saas-card rounded-xl overflow-hidden">
+      <div class="saas-card rounded-2xl overflow-hidden">
         <div
           tabindex="0"
           role="region"
@@ -499,37 +642,44 @@ function handleExportXlsx() {
               {{ trendData.baseline.label }}
             </caption>
             <thead>
-              <tr class="border-b border-[#DCE3EC] bg-[#F8FAFC] font-mono text-[11px] uppercase tracking-wider text-slate-500">
-                <th scope="col" class="px-4 py-3 font-semibold">Pos {{ dimension === 'kbli' ? 'KBLI (17 Sektor)' : 'Pengeluaran' }}</th>
-                <th scope="col" class="px-3 py-3 font-semibold text-right">{{ trendData.baseline.label }}</th>
-                <th scope="col" class="px-3 py-3 font-semibold text-right">{{ trendData.period.label }}</th>
-                <th scope="col" class="px-3 py-3 font-semibold text-right">Delta</th>
-                <th scope="col" class="px-4 py-3 font-semibold">Dominan Dampak</th>
-                <th scope="col" class="px-4 py-3 font-semibold">Headline Terbaru</th>
-                <th scope="col" class="px-4 py-3 font-semibold text-right">Arsip</th>
+              <tr class="border-b border-slate-200 bg-[#FAFBFD] text-xs font-semibold text-slate-600">
+                <th scope="col" class="px-4 py-3.5">Pos {{ dimension === 'kbli' ? 'KBLI (17 Sektor)' : 'Pengeluaran' }}</th>
+                <th scope="col" class="px-3 py-3.5 text-right whitespace-nowrap">{{ trendData.baseline.label }}</th>
+                <th scope="col" class="px-3 py-3.5 text-right whitespace-nowrap">{{ trendData.period.label }}</th>
+                <th scope="col" class="px-3 py-3.5 text-right">Delta</th>
+                <th scope="col" class="px-4 py-3.5">Dominan Dampak</th>
+                <th scope="col" class="px-4 py-3.5">Headline Terbaru</th>
+                <th scope="col" class="px-4 py-3.5 text-right">Arsip</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-200/70 text-xs">
               <tr
                 v-for="row in filteredSortedRows"
                 :key="row.code"
-                class="hover:bg-slate-50/70 transition-colors"
+                class="hover:bg-indigo-50/30 transition-colors"
               >
-                <th scope="row" class="px-4 py-3 text-left font-medium text-[#0B1220]">
-                  <span class="font-mono text-[11px] font-bold text-teal-700 mr-1.5">
-                    [{{ row.code }}]
+                <th scope="row" class="px-4 py-3 text-left font-medium text-[#0F172A]">
+                  <span
+                    class="inline-block text-[11px] font-bold px-2 py-0.5 rounded-full border mr-2"
+                    :class="
+                      dimension === 'kbli'
+                        ? getKbliClusterTheme(row.code).pillClass
+                        : getExpenditureColorTheme(row.code).pillClass
+                    "
+                  >
+                    {{ row.code }}
                   </span>
                   <span>{{ row.label }}</span>
                 </th>
-                <td class="px-3 py-3 text-right font-mono tabular-nums text-slate-600">
+                <td class="px-3 py-3 text-right tabular-nums text-slate-600 font-medium">
                   {{ row.baselineCount }}
                 </td>
-                <td class="px-3 py-3 text-right font-mono font-bold tabular-nums text-[#0B1220]">
+                <td class="px-3 py-3 text-right font-extrabold tabular-nums text-[#0F172A]">
                   {{ row.currentCount }}
                 </td>
-                <td class="px-3 py-3 text-right font-mono tabular-nums">
+                <td class="px-3 py-3 text-right tabular-nums">
                   <span
-                    class="inline-flex items-center px-2 py-0.5 rounded border text-[11px] font-semibold"
+                    class="inline-flex items-center px-2 py-0.5 rounded-full border text-[11px] font-bold"
                     :class="
                       row.deltaCount > 0
                         ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
@@ -554,10 +704,10 @@ function handleExportXlsx() {
                   >
                     {{ renderImpactBadge(row.dominantImpact)!.shortLabel }}
                   </UBadge>
-                  <span v-else class="text-slate-400 font-mono text-[11px]">DATA GAP</span>
+                  <span v-else class="text-rose-600 font-semibold text-xs">Data Gap</span>
                 </td>
                 <td class="px-4 py-3 max-w-xs">
-                  <span v-if="row.latestHeadline" class="line-clamp-1 text-[#334155]" :title="row.latestHeadline">
+                  <span v-if="row.latestHeadline" class="line-clamp-1 text-slate-700" :title="row.latestHeadline">
                     {{ row.latestHeadline }}
                   </span>
                   <span v-else class="text-slate-400 italic">Belum ada catatan</span>
@@ -569,7 +719,7 @@ function handleExportXlsx() {
                         ? `/admin/articles?year=${selectedYear}&quarter=${selectedQuarter}&pdrbGroup=${encodeURIComponent(row.code)}&status=VERIFIED`
                         : `/admin/articles?year=${selectedYear}&quarter=${selectedQuarter}&expenditure=${encodeURIComponent(row.code)}&status=VERIFIED`
                     "
-                    class="text-teal-700 hover:text-teal-900 font-semibold hover:underline"
+                    class="text-indigo-700 hover:text-indigo-900 font-semibold hover:underline"
                   >
                     Arsip →
                   </NuxtLink>

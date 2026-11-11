@@ -160,15 +160,15 @@ const latestStatusBadge = computed(() => getScraperStatusBadge(latestRun.value?.
     <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
       <div>
         <div
-          class="flex items-center gap-2 font-mono text-[11px] font-bold uppercase tracking-wider text-teal-700"
+          class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200/80 text-xs font-semibold"
         >
-          <UIcon name="i-lucide-activity" class="w-3.5 h-3.5" />
+          <UIcon name="i-solar-cpu-bolt-bold-duotone" class="w-3.5 h-3.5" />
           <span>Observabilitas Crawler &amp; Gemini Flash</span>
         </div>
-        <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-[#0B1220] mt-0.5">
+        <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-[#0F172A] mt-2">
           Monitor Crawler &amp; Pemakaian Token Gemini Flash
         </h1>
-        <p class="text-xs sm:text-sm text-[#5B677A] mt-0.5">
+        <p class="text-xs sm:text-sm text-slate-600 mt-0.5">
           Pemantauan eksekusi harian otomatis (04:00 WITA), pemulihan antrean AI gagal, dan
           efisiensi deduplikasi kuota Free Tier.
         </p>
@@ -176,7 +176,7 @@ const latestStatusBadge = computed(() => getScraperStatusBadge(latestRun.value?.
 
       <div class="flex items-center gap-2 shrink-0">
         <span
-          class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border"
+          class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold border shadow-2xs"
           :class="
             isRunning
               ? 'bg-sky-50 text-sky-800 border-sky-200'
@@ -185,7 +185,7 @@ const latestStatusBadge = computed(() => getScraperStatusBadge(latestRun.value?.
         >
           <span
             class="w-2 h-2 rounded-full shrink-0"
-            :class="isRunning ? 'bg-sky-600' : 'bg-emerald-600'"
+            :class="isRunning ? 'bg-sky-600 animate-pulse' : 'bg-emerald-600'"
           />
           <span>{{ isRunning ? 'Worker Aktif Berjalan' : 'Scheduler 04:00 WITA Siap' }}</span>
         </span>
@@ -201,18 +201,22 @@ const latestStatusBadge = computed(() => getScraperStatusBadge(latestRun.value?.
       description="Pastikan koneksi database aktif lalu muat ulang."
     >
       <template #actions>
-        <UButton size="xs" color="error" variant="solid" @click="refresh()">Muat Ulang</UButton>
+        <UButton size="xs" color="error" variant="solid" @click="() => { void refresh(); }">
+          Muat Ulang
+        </UButton>
       </template>
     </UAlert>
 
     <!-- 4 Kartu Metrik Observabilitas -->
     <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-      <div class="saas-card rounded-xl p-5 space-y-2">
+      <div class="saas-card rounded-2xl p-5 space-y-2">
         <div class="flex items-center justify-between gap-2">
-          <span class="font-mono text-[11px] font-bold uppercase tracking-wider text-slate-500">
+          <span class="text-xs font-semibold text-slate-600">
             Eksekusi Terakhir
           </span>
-          <UIcon name="i-lucide-clock" class="w-4 h-4 text-teal-700" />
+          <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 border border-blue-200/80 flex items-center justify-center shrink-0">
+            <UIcon name="i-solar-clock-circle-bold-duotone" class="w-4 h-4" />
+          </div>
         </div>
         <template v-if="latestRun">
           <div class="flex items-center gap-2 pt-0.5">
@@ -224,11 +228,11 @@ const latestStatusBadge = computed(() => getScraperStatusBadge(latestRun.value?.
             >
               {{ latestStatusBadge.label }}
             </UBadge>
-            <span class="text-xs font-mono tabular-nums text-slate-600">
+            <span class="text-xs font-medium tabular-nums text-slate-600">
               {{ formatDurationMs(latestRun.durationMs) }}
             </span>
           </div>
-          <div class="text-xs font-mono tabular-nums text-[#5B677A]">
+          <div class="text-xs tabular-nums text-slate-600">
             {{ formatDateTimeWita(latestRun.startedAt) }}
           </div>
         </template>
@@ -237,32 +241,36 @@ const latestStatusBadge = computed(() => getScraperStatusBadge(latestRun.value?.
         </template>
       </div>
 
-      <div class="saas-card rounded-xl p-5 space-y-1.5">
+      <div class="saas-card rounded-2xl p-5 space-y-2">
         <div class="flex items-center justify-between gap-2">
-          <span class="font-mono text-[11px] font-bold uppercase tracking-wider text-slate-500">
+          <span class="text-xs font-semibold text-slate-600">
             Token LLM (30 Hari)
           </span>
-          <UIcon name="i-lucide-cpu" class="w-4 h-4 text-teal-700" />
+          <div class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-200/80 flex items-center justify-center shrink-0">
+            <UIcon name="i-solar-cpu-bolt-bold-duotone" class="w-4 h-4" />
+          </div>
         </div>
-        <div class="text-2xl sm:text-3xl font-bold text-[#0B1220] tabular-nums font-mono">
+        <div class="text-3xl font-extrabold text-[#0F172A] tabular-nums">
           {{ formatNumberId(observability?.tokenStats30d.totalTokens) }}
         </div>
-        <div class="text-xs font-mono tabular-nums text-[#5B677A]">
+        <div class="text-xs tabular-nums text-slate-600">
           In: {{ formatNumberId(observability?.tokenStats30d.totalInputTokens) }} • Out:
           {{ formatNumberId(observability?.tokenStats30d.totalOutputTokens) }}
         </div>
       </div>
 
-      <div class="saas-card rounded-xl p-5 space-y-1.5">
+      <div class="saas-card rounded-2xl p-5 space-y-2">
         <div class="flex items-center justify-between gap-2">
-          <span class="font-mono text-[11px] font-bold uppercase tracking-wider text-slate-500">
+          <span class="text-xs font-semibold text-slate-600">
             Antrean LLM Gagal
           </span>
-          <UIcon name="i-lucide-alert-triangle" class="w-4 h-4 text-amber-600" />
+          <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 border border-amber-200/80 flex items-center justify-center shrink-0">
+            <UIcon name="i-solar-refresh-circle-bold-duotone" class="w-4 h-4" />
+          </div>
         </div>
         <div class="flex items-center justify-between gap-2">
           <span
-            class="text-2xl sm:text-3xl font-bold tabular-nums font-mono"
+            class="text-3xl font-extrabold tabular-nums"
             :class="
               (observability?.pendingLlmFailedCount ?? 0) > 0
                 ? 'text-rose-600'
@@ -270,37 +278,39 @@ const latestStatusBadge = computed(() => getScraperStatusBadge(latestRun.value?.
             "
           >
             {{ formatNumberId(observability?.pendingLlmFailedCount) }}
-            <span class="text-xs font-sans font-medium text-[#5B677A]">Artikel</span>
+            <span class="text-xs font-semibold text-slate-500">Artikel</span>
           </span>
 
           <UButton
             size="xs"
             color="warning"
             variant="subtle"
-            icon="i-lucide-refresh-cw"
+            icon="i-solar-restart-bold-duotone"
             :disabled="isRunning || (observability?.totalLlmFailedCount ?? 0) === 0"
             :loading="isTriggeringRetry"
-            @click="triggerRetryFailedLlm"
+            @click="() => { void triggerRetryFailedLlm(); }"
           >
             Retry
           </UButton>
         </div>
-        <div class="text-xs text-[#5B677A] font-mono tabular-nums">
+        <div class="text-xs text-slate-600 tabular-nums">
           Total gagal keseluruhan: {{ formatNumberId(observability?.totalLlmFailedCount) }}
         </div>
       </div>
 
-      <div class="saas-card rounded-xl p-5 space-y-1.5">
+      <div class="saas-card rounded-2xl p-5 space-y-2">
         <div class="flex items-center justify-between gap-2">
-          <span class="font-mono text-[11px] font-bold uppercase tracking-wider text-slate-500">
+          <span class="text-xs font-semibold text-slate-600">
             Efisiensi Deduplikasi (30h)
           </span>
-          <UIcon name="i-lucide-filter" class="w-4 h-4 text-teal-700" />
+          <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200/80 flex items-center justify-center shrink-0">
+            <UIcon name="i-solar-filter-bold-duotone" class="w-4 h-4" />
+          </div>
         </div>
-        <div class="text-2xl sm:text-3xl font-bold text-teal-700 tabular-nums font-mono">
+        <div class="text-3xl font-extrabold text-emerald-700 tabular-nums">
           {{ observability?.tokenStats30d.deduplicationRatePercent ?? 0 }}%
         </div>
-        <div class="text-xs font-mono tabular-nums text-[#5B677A]">
+        <div class="text-xs tabular-nums text-slate-600">
           {{ formatNumberId(observability?.tokenStats30d.articlesDeduplicated) }} URL ditolak awal /
           {{ formatNumberId(observability?.tokenStats30d.articlesFetched) }} diambil
         </div>
@@ -308,8 +318,8 @@ const latestStatusBadge = computed(() => getScraperStatusBadge(latestRun.value?.
     </div>
 
     <!-- Panel Kontrol Manual Trigger -->
-    <div class="saas-card rounded-xl p-5 space-y-4">
-      <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-3">
+    <div class="saas-card rounded-2xl p-5 space-y-4">
+      <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-3.5">
         <UFormField label="Cakupan Eksekusi Manual" class="flex-1 max-w-xl">
           <USelect
             v-model="selectedMode"
@@ -325,12 +335,12 @@ const latestStatusBadge = computed(() => getScraperStatusBadge(latestRun.value?.
           <button
             type="button"
             :disabled="isRunning || isTriggeringRun"
-            class="obsidian-button h-9 px-3.5 rounded-lg text-xs font-semibold inline-flex items-center gap-1.5"
-            @click="triggerManualRun"
+            class="btn-primary-gradient h-9 px-4 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer"
+            @click="() => { void triggerManualRun(); }"
           >
             <UIcon
-              :name="isTriggeringRun ? 'i-lucide-loader-circle' : 'i-lucide-play'"
-              class="w-3.5 h-3.5 text-teal-300"
+              :name="isTriggeringRun ? 'i-lucide-loader-circle' : 'i-solar-server-2-bold-duotone'"
+              class="w-4 h-4 text-emerald-200"
               :class="{ 'animate-spin': isTriggeringRun }"
             />
             <span>Jalankan Scraping Sekarang</span>
@@ -339,12 +349,12 @@ const latestStatusBadge = computed(() => getScraperStatusBadge(latestRun.value?.
           <button
             type="button"
             :disabled="isRunning || isTriggeringRetry || (observability?.totalLlmFailedCount ?? 0) === 0"
-            class="h-9 px-3 rounded-lg border border-amber-300 bg-amber-50 hover:bg-amber-100 text-xs font-semibold text-amber-900 inline-flex items-center gap-1.5 transition-colors disabled:opacity-50"
-            @click="triggerRetryFailedLlm"
+            class="h-9 px-3.5 rounded-xl border border-amber-300 bg-amber-50 hover:bg-amber-100 text-xs font-semibold text-amber-900 inline-flex items-center gap-1.5 transition-colors disabled:opacity-50 cursor-pointer"
+            @click="() => { void triggerRetryFailedLlm(); }"
           >
             <UIcon
-              name="i-lucide-refresh-cw"
-              class="w-3.5 h-3.5 text-amber-700"
+              name="i-solar-refresh-circle-bold-duotone"
+              class="w-4 h-4 text-amber-700"
               :class="{ 'animate-spin': isTriggeringRetry }"
             />
             <span>Proses Ulang Artikel LLM Gagal</span>
@@ -364,26 +374,31 @@ const latestStatusBadge = computed(() => getScraperStatusBadge(latestRun.value?.
     </div>
 
     <!-- Riwayat Log Eksekusi -->
-    <div class="saas-card rounded-xl overflow-hidden">
-      <div class="px-5 py-3.5 border-b border-[#DCE3EC] bg-[#F8FAFC] flex items-center justify-between gap-2">
-        <div>
-          <h2 class="text-sm font-bold text-[#0B1220]">
-            Riwayat Log Eksekusi Crawler
-          </h2>
-          <p class="text-[11px] text-[#5B677A]">
-            Catatan lengkap pipeline fetch, deduplikasi URL, pemetaan AI, dan ringkasan error per sesi.
-          </p>
+    <div class="saas-card rounded-2xl overflow-hidden">
+      <div class="px-5 py-4 border-b border-slate-200/80 bg-[#FAFBFD] flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-200/80 flex items-center justify-center shrink-0">
+            <UIcon name="i-solar-history-2-bold-duotone" class="w-4 h-4" />
+          </div>
+          <div>
+            <h2 class="text-sm font-bold text-[#0F172A]">
+              Riwayat Log Eksekusi Crawler
+            </h2>
+            <p class="text-xs text-slate-600">
+              Catatan lengkap pipeline fetch, deduplikasi URL, pemetaan AI, dan ringkasan error per sesi.
+            </p>
+          </div>
         </div>
 
         <button
           type="button"
           :disabled="pending"
-          class="h-8 px-2.5 rounded-lg border border-[#DCE3EC] bg-white hover:bg-slate-50 text-xs font-semibold text-[#0B1220] inline-flex items-center gap-1.5 transition-colors disabled:opacity-50"
-          @click="refresh()"
+          class="h-8 px-3 rounded-xl border border-slate-200 bg-white hover:border-indigo-300 hover:bg-slate-50 text-xs font-semibold text-[#0F172A] inline-flex items-center gap-1.5 transition-colors disabled:opacity-50 cursor-pointer"
+          @click="() => { void refresh(); }"
         >
           <UIcon
-            name="i-lucide-rotate-cw"
-            class="w-3.5 h-3.5 text-teal-700"
+            name="i-solar-restart-bold-duotone"
+            class="w-3.5 h-3.5 text-indigo-600"
             :class="{ 'animate-spin': pending }"
           />
           <span>Segarkan</span>

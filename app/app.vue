@@ -1,10 +1,12 @@
 <!-- app/app.vue -->
 <template>
-  <UApp :toaster="{ position: 'top-right' }">
-    <NuxtLoadingIndicator color="#0d9488" :height="3" />
-    <NuxtLayout>
-      <NuxtPage />
-    </NuxtLayout>
-  </UApp>
+  <MotionConfig reduced-motion="user">
+    <NuxtRouteAnnouncer />
+    <UApp :toaster="{ position: 'top-right' }">
+      <NuxtLoadingIndicator color="#2563EB" :height="3" />
+      <NuxtLayout>
+        <NuxtPage />
+      </NuxtLayout>
+    </UApp>
+  </MotionConfig>
 </template>
-

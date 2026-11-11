@@ -26,12 +26,23 @@ definePageMeta({
 const toast = useToast();
 const { selectedYear, selectedQuarter, periodLabel, shortPeriodLabel, setPeriod } =
   useAdminPeriod();
-const { getKbliImpactBadge, getExpenditureImpactBadge } = usePdrbLabels();
+const {
+  getKbliImpactBadge,
+  getKbliClusterTheme,
+  getExpenditureImpactBadge,
+  getExpenditureColorTheme,
+} = usePdrbLabels();
 
 const dimension = ref<'kbli' | 'expenditure'>('kbli');
 const targetCode = ref<string>(PDRB_17_SECTORS[0]!.groupCode);
 const style = ref<SynthesisStyle>('BRS_FORMAL');
 let isRestoringDraft = false;
+
+const styleOptions: Array<{ value: SynthesisStyle; label: string }> = [
+  { value: 'BRS_FORMAL', label: 'BRS Formal BPS (Analitis Terstruktur)' },
+  { value: 'EXECUTIVE_BRIEF', label: 'Kajian Eksekutif Pimpinan' },
+  { value: 'BULLET_POINTS', label: 'Butir-Butir Fenomena Lampiran' },
+];
 
 watch(dimension, (nextDim: 'kbli' | 'expenditure') => {
   if (isRestoringDraft) return;
@@ -609,37 +620,39 @@ const manualModalOpen = ref(false);
     <div class="no-print space-y-4">
       <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
-          <div class="flex items-center gap-2 font-mono text-[11px] font-bold uppercase tracking-wider text-teal-700">
-            <UIcon name="i-lucide-sparkles" class="w-3.5 h-3.5" />
+          <div
+            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200/80 text-xs font-semibold"
+          >
+            <UIcon name="i-solar-magic-stick-3-bold-duotone" class="w-3.5 h-3.5" />
             <span>Studio Penulisan Berita Resmi Statistik (BRS)</span>
           </div>
-          <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-[#0B1220] mt-0.5">
+          <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-[#0F172A] mt-2">
             Sintesis Narasi PDRB — {{ periodLabel }}
           </h1>
-          <p class="text-xs sm:text-sm text-[#5B677A] mt-0.5">
+          <p class="text-xs sm:text-sm text-slate-600 mt-0.5">
             Susun draf narasi faktual berakar 100% pada bukti berita terverifikasi lengkap dengan sitasi silang.
           </p>
         </div>
 
-        <div class="flex flex-wrap items-center gap-2">
+        <div class="flex flex-wrap items-center gap-2.5">
           <button
             type="button"
-            class="h-9 px-3 rounded-lg border border-[#DCE3EC] bg-white hover:bg-slate-50 text-xs font-semibold text-[#0B1220] inline-flex items-center gap-1.5"
-            @click="draftsDrawerOpen = true"
+            class="h-9 px-3.5 rounded-xl border border-slate-200 bg-white hover:border-indigo-300 hover:bg-slate-50 text-xs font-semibold text-[#0F172A] inline-flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
+            @click="() => { draftsDrawerOpen = true; }"
           >
-            <UIcon name="i-lucide-history" class="w-3.5 h-3.5 text-slate-500" />
-            <span>Riwayat Draf ({{ savedDrafts.length }})</span>
+            <UIcon name="i-solar-history-2-bold-duotone" class="w-4 h-4 text-indigo-600" />
+            <span class="tabular-nums">Riwayat Draf ({{ savedDrafts.length }})</span>
           </button>
 
           <button
             type="button"
             :disabled="isGenerating || checkedIds.length === 0"
-            class="obsidian-button h-9 px-4 rounded-lg text-xs font-semibold inline-flex items-center gap-2"
-            @click="generateNarrative"
+            class="btn-primary-gradient h-9 px-4 rounded-xl text-xs font-semibold inline-flex items-center gap-2 cursor-pointer"
+            @click="() => { void generateNarrative(); }"
           >
             <UIcon
-              :name="isGenerating ? 'i-lucide-loader-circle' : 'i-lucide-sparkles'"
-              class="w-3.5 h-3.5 text-teal-300"
+              :name="isGenerating ? 'i-lucide-loader-circle' : 'i-solar-magic-stick-3-bold-duotone'"
+              class="w-4 h-4 text-emerald-200"
               :class="isGenerating ? 'animate-spin' : ''"
             />
             <span>{{ isGenerating ? 'Menyusun Narasi...' : 'Generate Narasi BRS' }}</span>
@@ -648,31 +661,39 @@ const manualModalOpen = ref(false);
       </div>
 
       <!-- Studio Parameter Controls (No button wrapping/clipping) -->
-      <div class="saas-card rounded-xl p-4 grid grid-cols-1 md:grid-cols-12 gap-3.5 items-end">
+      <div class="saas-card rounded-2xl p-4 sm:p-5 grid grid-cols-1 md:grid-cols-12 gap-3.5 items-end">
         <div class="md:col-span-3 space-y-1.5">
-          <span class="block font-mono text-[10px] font-bold uppercase tracking-wider text-slate-500">
+          <span class="block text-xs font-semibold text-slate-600">
             Dimensi PDRB
           </span>
           <div
             role="group"
             aria-label="Pilih dimensi sintesis"
-            class="grid grid-cols-2 p-0.5 bg-slate-200/75 rounded-lg border border-slate-200"
+            class="grid grid-cols-2 p-1 bg-slate-100 rounded-xl border border-slate-200/90 gap-1"
           >
             <button
               type="button"
               :aria-pressed="dimension === 'kbli'"
-              class="py-1.5 px-2 rounded-md text-xs transition-all"
-              :class="dimension === 'kbli' ? 'bg-white font-semibold text-[#0B1220] shadow-xs' : 'text-slate-600'"
-              @click="dimension = 'kbli'"
+              class="py-1.5 px-2 rounded-lg text-xs transition-all cursor-pointer"
+              :class="
+                dimension === 'kbli'
+                  ? 'bg-white font-bold text-indigo-700 shadow-2xs border border-indigo-200/70'
+                  : 'text-slate-600 hover:text-slate-950 font-medium'
+              "
+              @click="() => { dimension = 'kbli'; }"
             >
               17 KBLI
             </button>
             <button
               type="button"
               :aria-pressed="dimension === 'expenditure'"
-              class="py-1.5 px-2 rounded-md text-xs transition-all"
-              :class="dimension === 'expenditure' ? 'bg-white font-semibold text-[#0B1220] shadow-xs' : 'text-slate-600'"
-              @click="dimension = 'expenditure'"
+              class="py-1.5 px-2 rounded-lg text-xs transition-all cursor-pointer"
+              :class="
+                dimension === 'expenditure'
+                  ? 'bg-white font-bold text-emerald-700 shadow-2xs border border-emerald-200/70'
+                  : 'text-slate-600 hover:text-slate-950 font-medium'
+              "
+              @click="() => { dimension = 'expenditure'; }"
             >
               6 Pengeluaran
             </button>
@@ -680,39 +701,51 @@ const manualModalOpen = ref(false);
         </div>
 
         <div class="md:col-span-5 space-y-1.5">
-          <label
-            for="synth-target-select"
-            class="block font-mono text-[10px] font-bold uppercase tracking-wider text-slate-500"
-          >
-            Target Sektor / Komponen ({{ shortPeriodLabel }})
-          </label>
-          <select
+          <div class="flex items-center justify-between gap-2">
+            <label
+              for="synth-target-select"
+              class="block text-xs font-semibold text-slate-600"
+            >
+              Target Sektor / Komponen ({{ shortPeriodLabel }})
+            </label>
+            <span
+              class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border"
+              :class="
+                dimension === 'kbli'
+                  ? getKbliClusterTheme(targetCode).pillClass
+                  : getExpenditureColorTheme(targetCode).pillClass
+              "
+            >
+              {{ dimension === 'kbli' ? `Klaster ${getKbliClusterTheme(targetCode).label}` : targetCode }}
+            </span>
+          </div>
+          <USelectMenu
             id="synth-target-select"
             v-model="targetCode"
-            class="w-full h-9 px-2.5 bg-white border border-[#DCE3EC] rounded-lg text-xs font-medium text-[#0B1220]"
-          >
-            <option v-for="opt in targetOptions" :key="opt.value" :value="opt.value">
-              {{ opt.label }}
-            </option>
-          </select>
+            :items="targetOptions"
+            value-key="value"
+            label-key="label"
+            aria-label="Pilih target sektor atau komponen PDRB"
+            class="w-full"
+          />
         </div>
 
         <div class="md:col-span-4 space-y-1.5">
           <label
             for="synth-style-select"
-            class="block font-mono text-[10px] font-bold uppercase tracking-wider text-slate-500"
+            class="block text-xs font-semibold text-slate-600"
           >
             Format Gaya Penulisan
           </label>
-          <select
+          <USelect
             id="synth-style-select"
             v-model="style"
-            class="w-full h-9 px-2.5 bg-white border border-[#DCE3EC] rounded-lg text-xs font-medium text-[#0B1220]"
-          >
-            <option value="BRS_FORMAL">BRS Formal BPS (Analitis Terstruktur)</option>
-            <option value="EXECUTIVE_BRIEF">Kajian Eksekutif Pimpinan</option>
-            <option value="BULLET_POINTS">Butir-Butir Fenomena Lampiran</option>
-          </select>
+            :items="styleOptions"
+            value-key="value"
+            label-key="label"
+            aria-label="Pilih format gaya penulisan BRS"
+            class="w-full"
+          />
         </div>
       </div>
     </div>
@@ -722,48 +755,46 @@ const manualModalOpen = ref(false);
       <!-- LEFT 40%: EVIDENCE POOL -->
       <section
         aria-label="Daftar Sumber Bukti Terverifikasi"
-        class="no-print lg:col-span-5 saas-card rounded-xl overflow-hidden flex flex-col max-h-[760px]"
+        class="no-print lg:col-span-5 saas-card rounded-2xl overflow-hidden flex flex-col max-h-[760px]"
       >
-        <div class="p-4 border-b border-[#DCE3EC] bg-[#F8FAFC] space-y-3">
+        <div class="p-4 border-b border-slate-200/80 bg-[#FAFBFD] space-y-3">
           <div class="flex items-center justify-between gap-2">
             <div>
-              <h2 class="text-sm font-bold text-[#0B1220]">Bukti Terverifikasi</h2>
-              <p class="text-[11px] text-[#5B677A] font-mono tabular-nums">
+              <h2 class="text-sm font-bold text-[#0F172A]">Bukti Terverifikasi</h2>
+              <p class="text-[11px] text-slate-600 tabular-nums">
                 {{ checkedIds.length }} dipilih dari {{ poolData?.items.length ?? 0 }} artikel (maks. 30)
               </p>
             </div>
             <div class="flex items-center gap-2 text-xs">
               <button
                 type="button"
-                class="text-teal-700 hover:underline font-semibold"
-                @click="selectAllPool"
+                class="text-indigo-700 hover:text-indigo-900 hover:underline font-semibold cursor-pointer"
+                @click="() => { selectAllPool(); }"
               >
                 Pilih Semua
               </button>
               <span class="text-slate-300">|</span>
               <button
                 type="button"
-                class="text-slate-500 hover:text-slate-800"
-                @click="clearPoolSelection"
+                class="text-slate-500 hover:text-slate-800 cursor-pointer"
+                @click="() => { clearPoolSelection(); }"
               >
                 Kosongkan
               </button>
             </div>
           </div>
 
-          <div class="relative">
-            <UIcon
-              name="i-lucide-search"
-              class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none"
-            />
+          <div>
             <label for="synth-pool-search" class="sr-only">Filter bukti artikel</label>
-            <input
+            <UInput
               id="synth-pool-search"
               v-model="poolSearch"
               type="search"
+              icon="i-solar-magnifer-line-duotone"
               placeholder="Saring artikel sumber..."
-              class="w-full h-8 pl-8 pr-3 bg-white border border-[#DCE3EC] rounded-lg text-xs text-[#0B1220]"
-            >
+              size="sm"
+              class="w-full"
+            />
           </div>
         </div>
 
@@ -777,22 +808,22 @@ const manualModalOpen = ref(false);
             description="Pastikan koneksi database aktif lalu segarkan daftar bukti."
           >
             <template #actions>
-              <UButton size="xs" color="error" variant="solid" @click="refreshPool()">
+              <UButton size="xs" color="error" variant="solid" @click="() => { void refreshPool(); }">
                 Muat Ulang
               </UButton>
             </template>
           </UAlert>
 
           <div v-else-if="poolPending" class="space-y-2.5 p-2">
-            <div v-for="i in 3" :key="i" class="h-20 rounded-lg bg-slate-100"></div>
+            <div v-for="i in 3" :key="i" class="h-20 rounded-xl bg-slate-100" />
           </div>
 
           <div v-else-if="!filteredPool.length" class="py-10 px-4 text-center space-y-3">
-            <UIcon name="i-lucide-file-search" class="w-8 h-8 text-slate-300 mx-auto" />
-            <div class="text-xs font-semibold text-slate-700">
+            <UIcon name="i-solar-document-text-bold-duotone" class="w-9 h-9 text-slate-300 mx-auto" />
+            <div class="text-xs font-bold text-slate-700">
               Belum ada fenomena terverifikasi untuk target ini di {{ shortPeriodLabel }}.
             </div>
-            <p class="text-[11px] text-[#5B677A]">
+            <p class="text-[11px] text-slate-500">
               Anda dapat melengkapi bukti secara manual atau mengurasi antrean pending terlebih dahulu.
             </p>
             <div class="flex justify-center gap-2">
@@ -814,10 +845,10 @@ const manualModalOpen = ref(false);
               :class="
                 citationIndexByArticleId.get(art.id) !== undefined &&
                 highlightedCitationIndex === citationIndexByArticleId.get(art.id)
-                  ? 'bg-teal-50 border-teal-600 ring-2 ring-teal-600/30 shadow-sm'
+                  ? 'bg-indigo-50/80 border-indigo-500 ring-2 ring-indigo-500/25 shadow-sm'
                   : checkedMap[art.id]
-                    ? 'bg-white border-teal-300/80 shadow-xs'
-                    : 'bg-[#F8FAFC] border-[#DCE3EC] opacity-75 hover:opacity-100'
+                    ? 'bg-white border-indigo-300/80 shadow-2xs'
+                    : 'bg-slate-50/80 border-slate-200/80 opacity-75 hover:opacity-100'
               "
             >
               <div class="flex items-start gap-2.5">
@@ -825,8 +856,8 @@ const manualModalOpen = ref(false);
                   :id="`synth-pool-chk-${art.id}`"
                   type="checkbox"
                   :checked="Boolean(checkedMap[art.id])"
-                  class="mt-0.5 rounded border-slate-300 text-teal-700 focus:ring-teal-600 cursor-pointer"
-                  @change="togglePoolItem(art.id, $event)"
+                  class="mt-0.5 rounded border-slate-300 accent-indigo-600 text-indigo-600 focus:ring-indigo-600 cursor-pointer"
+                  @change="(e: Event) => { togglePoolItem(art.id, e); }"
                 >
                 <label
                   :for="`synth-pool-chk-${art.id}`"
@@ -834,24 +865,24 @@ const manualModalOpen = ref(false);
                 >
                   <span class="flex items-center justify-between gap-2">
                     <span
-                      class="inline-flex items-center px-1.5 py-0.5 rounded font-mono text-[10px] font-bold tabular-nums"
+                      class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold tabular-nums"
                       :class="
                         citationIndexByArticleId.get(art.id)
-                          ? 'bg-teal-700 text-white'
+                          ? 'bg-indigo-600 text-white'
                           : 'bg-slate-200/80 text-slate-700'
                       "
                     >
                       [{{ citationIndexByArticleId.get(art.id) ?? idx + 1 }}]
                     </span>
-                    <span class="font-mono text-[10px] text-[#5B677A] tabular-nums truncate">
+                    <span class="text-[11px] font-medium text-slate-500 tabular-nums truncate">
                       {{ art.sourcePortal }} • {{ formatDateId(art.publishedAt) }}
                     </span>
                   </span>
 
-                  <span class="block text-xs font-bold text-[#0B1220] leading-snug line-clamp-2">
+                  <span class="block text-xs font-bold text-[#0F172A] leading-snug line-clamp-2">
                     {{ art.title }}
                   </span>
-                  <span class="block text-[11px] text-[#5B677A] line-clamp-2 leading-relaxed">
+                  <span class="block text-[11px] text-slate-600 line-clamp-2 leading-relaxed">
                     {{ art.summary }}
                   </span>
 
@@ -888,22 +919,22 @@ const manualModalOpen = ref(false);
 
       <!-- RIGHT 60%: NARRATIVE DOCUMENT & EDITOR -->
       <section aria-label="Editor dan Pratinjau Narasi BRS" class="lg:col-span-7 space-y-4">
-        <div class="saas-card synthesis-print-sheet rounded-xl overflow-hidden flex flex-col">
+        <div class="saas-card synthesis-print-sheet rounded-2xl overflow-hidden flex flex-col">
           <!-- Toolbar (Hidden in Print) -->
-          <div class="no-print px-5 py-3.5 border-b border-[#DCE3EC] bg-[#F8FAFC] flex flex-wrap items-center justify-between gap-2.5">
+          <div class="no-print px-5 py-3.5 border-b border-slate-200/80 bg-[#FAFBFD] flex flex-wrap items-center justify-between gap-2.5">
             <div class="flex items-center gap-2">
               <span
                 v-if="result"
-                class="px-2 py-0.5 rounded font-mono text-[10px] font-bold uppercase border"
+                class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold border"
                 :class="
                   result.mode === 'gemini'
                     ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-                    : 'bg-sky-50 text-sky-800 border-sky-200'
+                    : 'bg-indigo-50 text-indigo-800 border-indigo-200'
                 "
               >
                 {{ result.mode === 'gemini' ? `Gemini (${result.modelUsed})` : 'Template Analitis Terverifikasi' }}
               </span>
-              <span v-else class="text-xs font-semibold text-slate-600">
+              <span v-else class="text-xs font-bold text-slate-700">
                 Lembar Kerja Narasi BRS
               </span>
             </div>
@@ -913,13 +944,13 @@ const manualModalOpen = ref(false);
                 v-if="editableMarkdown"
                 type="button"
                 :disabled="!hasUnsavedChanges || isSavingDraft"
-                class="h-8 px-2.5 rounded-lg border text-xs font-semibold inline-flex items-center gap-1.5 transition-colors disabled:opacity-45"
+                class="h-8 px-2.5 rounded-xl border text-xs font-semibold inline-flex items-center gap-1.5 transition-colors disabled:opacity-45 cursor-pointer"
                 :class="
                   hasUnsavedChanges
-                    ? 'border-teal-600 bg-teal-50 hover:bg-teal-100 text-teal-800'
-                    : 'border-[#DCE3EC] bg-white text-slate-500'
+                    ? 'border-emerald-500 bg-emerald-50 hover:bg-emerald-100 text-emerald-800'
+                    : 'border-slate-200 bg-white text-slate-500'
                 "
-                @click="saveCurrentDraftChanges"
+                @click="() => { void saveCurrentDraftChanges(); }"
               >
                 <UIcon
                   :name="isSavingDraft ? 'i-lucide-loader-circle' : 'i-lucide-save'"
@@ -940,8 +971,8 @@ const manualModalOpen = ref(false);
               <button
                 type="button"
                 :disabled="!editableMarkdown"
-                class="h-8 px-2.5 rounded-lg border border-[#DCE3EC] bg-white hover:bg-slate-50 text-xs font-medium text-[#0B1220] inline-flex items-center gap-1.5 disabled:opacity-40"
-                @click="isEditingInline = !isEditingInline"
+                class="h-8 px-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-medium text-[#0F172A] inline-flex items-center gap-1.5 disabled:opacity-40 cursor-pointer"
+                @click="() => { isEditingInline = !isEditingInline; }"
               >
                 <UIcon :name="isEditingInline ? 'i-lucide-eye' : 'i-lucide-pencil'" class="w-3.5 h-3.5" />
                 <span>{{ isEditingInline ? 'Pratinjau' : 'Edit Inline' }}</span>
@@ -950,8 +981,8 @@ const manualModalOpen = ref(false);
               <button
                 type="button"
                 :disabled="!editableMarkdown"
-                class="h-8 px-2.5 rounded-lg border border-[#DCE3EC] bg-white hover:bg-slate-50 text-xs font-medium text-[#0B1220] inline-flex items-center gap-1.5 disabled:opacity-40"
-                @click="copyNarrativeText"
+                class="h-8 px-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-medium text-[#0F172A] inline-flex items-center gap-1.5 disabled:opacity-40 cursor-pointer"
+                @click="() => { void copyNarrativeText(); }"
               >
                 <UIcon name="i-lucide-copy" class="w-3.5 h-3.5" />
                 <span>Salin</span>
@@ -960,20 +991,20 @@ const manualModalOpen = ref(false);
               <button
                 type="button"
                 :disabled="!editableMarkdown"
-                class="h-8 px-2.5 rounded-lg border border-[#DCE3EC] bg-white hover:bg-slate-50 text-xs font-medium text-[#0B1220] inline-flex items-center gap-1.5 disabled:opacity-40"
-                @click="downloadDocFile"
+                class="h-8 px-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-medium text-[#0F172A] inline-flex items-center gap-1.5 disabled:opacity-40 cursor-pointer"
+                @click="() => { downloadDocFile(); }"
               >
-                <UIcon name="i-lucide-file-text" class="w-3.5 h-3.5 text-sky-700" />
+                <UIcon name="i-lucide-file-text" class="w-3.5 h-3.5 text-indigo-600" />
                 <span>.DOC</span>
               </button>
 
               <button
                 type="button"
                 :disabled="!editableMarkdown"
-                class="h-8 px-2.5 rounded-lg border border-[#DCE3EC] bg-white hover:bg-slate-50 text-xs font-medium text-[#0B1220] inline-flex items-center gap-1.5 disabled:opacity-40"
-                @click="printNarrativeSheet"
+                class="h-8 px-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-medium text-[#0F172A] inline-flex items-center gap-1.5 disabled:opacity-40 cursor-pointer"
+                @click="() => { printNarrativeSheet(); }"
               >
-                <UIcon name="i-lucide-printer" class="w-3.5 h-3.5 text-teal-700" />
+                <UIcon name="i-lucide-printer" class="w-3.5 h-3.5 text-emerald-600" />
                 <span>Cetak / PDF</span>
               </button>
             </div>
@@ -994,13 +1025,13 @@ const manualModalOpen = ref(false);
               v-if="!editableMarkdown && !isGenerating"
               class="py-16 text-center max-w-md mx-auto space-y-3"
             >
-              <div class="w-11 h-11 rounded-xl bg-teal-50 border border-teal-200 text-teal-700 flex items-center justify-center mx-auto">
-                <UIcon name="i-lucide-sparkles" class="w-5 h-5" />
+              <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-50 to-emerald-50 border border-indigo-200/80 text-indigo-600 flex items-center justify-center mx-auto shadow-2xs">
+                <UIcon name="i-solar-magic-stick-3-bold-duotone" class="w-6 h-6" />
               </div>
-              <h2 class="text-base font-bold text-[#0B1220]">
+              <h2 class="text-base font-extrabold text-[#0F172A]">
                 Siap Menyusun Narasi {{ currentTargetLabel }}
               </h2>
-              <p class="text-xs text-[#5B677A] leading-relaxed">
+              <p class="text-xs text-slate-600 leading-relaxed">
                 Centang bukti berita relevan di panel kiri, pilih gaya penulisan BRS atau kajian,
                 lalu klik <strong>Generate Narasi BRS</strong> di kanan atas.
               </p>
@@ -1008,17 +1039,17 @@ const manualModalOpen = ref(false);
 
             <!-- Generating Skeleton -->
             <div v-else-if="isGenerating" class="space-y-4 py-6">
-              <div class="h-5 w-1/2 rounded bg-slate-200"></div>
-              <div class="h-24 w-full rounded bg-slate-100"></div>
-              <div class="h-5 w-2/5 rounded bg-slate-200"></div>
-              <div class="h-24 w-full rounded bg-slate-100"></div>
+              <div class="h-5 w-1/2 rounded-lg bg-slate-200" />
+              <div class="h-24 w-full rounded-xl bg-slate-100" />
+              <div class="h-5 w-2/5 rounded-lg bg-slate-200" />
+              <div class="h-24 w-full rounded-xl bg-slate-100" />
             </div>
 
             <!-- Inline Raw Markdown Editor -->
             <div v-else-if="isEditingInline" class="space-y-2">
               <label
                 for="synth-inline-editor"
-                class="block font-mono text-[11px] font-bold uppercase tracking-wider text-slate-500"
+                class="block text-xs font-bold uppercase tracking-wider text-slate-500"
               >
                 Editor Teks Narasi (Markdown Sederhana)
               </label>
@@ -1026,20 +1057,20 @@ const manualModalOpen = ref(false);
                 id="synth-inline-editor"
                 v-model="editableMarkdown"
                 rows="16"
-                class="w-full rounded-xl border border-[#DCE3EC] p-4 text-sm text-[#0B1220] leading-relaxed font-sans"
-              ></textarea>
+                class="w-full rounded-xl border border-slate-200 p-4 text-sm text-[#0F172A] leading-relaxed focus:border-indigo-500 focus:outline-none"
+              />
             </div>
 
             <!-- Interactive Document View with Cross-Link Citation Chips -->
             <article v-else class="space-y-5">
               <header class="pb-4 border-b border-slate-200/80 space-y-1">
-                <div class="font-mono text-[11px] font-bold uppercase tracking-wider text-teal-700">
-                  SIPENA KTT • DRAF SINTESIS NARASI PDRB
+                <div class="text-xs font-bold uppercase tracking-wider text-indigo-700">
+                  SIPENA KTT • Draf Sintesis Narasi PDRB
                 </div>
-                <h2 class="text-lg sm:text-xl font-bold text-[#0B1220]">
+                <h2 class="text-lg sm:text-xl font-extrabold text-[#0F172A]">
                   {{ currentTargetLabel }} — {{ periodLabel }}
                 </h2>
-                <p class="text-xs text-[#5B677A]">
+                <p class="text-xs text-slate-600">
                   Disusun untuk rekonsiliasi PDRB Fungsi Nerwilis BPS Kabupaten Tana Tidung
                 </p>
               </header>
@@ -1048,7 +1079,7 @@ const manualModalOpen = ref(false);
                 <template v-for="(block, bIdx) in parsedNarrativeBlocks" :key="bIdx">
                   <h3
                     v-if="block.type === 'heading'"
-                    class="text-base font-bold text-[#0B1220] pt-2 tracking-tight"
+                    class="text-base font-bold text-[#0F172A] pt-2 tracking-tight"
                   >
                     <template v-for="(span, sIdx) in block.spans" :key="sIdx">
                       <strong v-if="span.type === 'bold'">{{ span.text }}</strong>
@@ -1056,19 +1087,19 @@ const manualModalOpen = ref(false);
                     </template>
                   </h3>
 
-                  <div v-else-if="block.type === 'bullet'" class="flex items-start gap-2 pl-2">
-                    <span class="mt-2 w-1.5 h-1.5 rounded-full bg-teal-700 shrink-0"></span>
+                  <div v-else-if="block.type === 'bullet'" class="flex items-start gap-2.5 pl-2">
+                    <span class="mt-2 w-1.5 h-1.5 rounded-full bg-indigo-600 shrink-0" />
                     <p class="flex-1">
                       <template v-for="(span, sIdx) in block.spans" :key="sIdx">
-                        <strong v-if="span.type === 'bold'" class="font-semibold text-[#0B1220]">
+                        <strong v-if="span.type === 'bold'" class="font-semibold text-[#0F172A]">
                           {{ span.text }}
                         </strong>
                         <button
                           v-else-if="span.type === 'cite' && span.citeNum"
                           type="button"
                           title="Sorot kartu sumber bukti"
-                          class="inline-flex items-center px-1.5 py-0.5 mx-0.5 rounded bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-200 font-mono text-[11px] font-bold align-baseline transition-colors"
-                          @click="jumpToCitation(span.citeNum)"
+                          class="inline-flex items-center px-1.5 py-0.5 mx-0.5 rounded-md bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-[11px] font-bold tabular-nums align-baseline transition-colors cursor-pointer"
+                          @click="() => { jumpToCitation(span.citeNum!); }"
                         >
                           {{ span.text }}
                         </button>
@@ -1079,15 +1110,15 @@ const manualModalOpen = ref(false);
 
                   <p v-else>
                     <template v-for="(span, sIdx) in block.spans" :key="sIdx">
-                      <strong v-if="span.type === 'bold'" class="font-semibold text-[#0B1220]">
+                      <strong v-if="span.type === 'bold'" class="font-semibold text-[#0F172A]">
                         {{ span.text }}
                       </strong>
                       <button
                         v-else-if="span.type === 'cite' && span.citeNum"
                         type="button"
                         title="Sorot kartu sumber bukti"
-                        class="inline-flex items-center px-1.5 py-0.5 mx-0.5 rounded bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-200 font-mono text-[11px] font-bold align-baseline transition-colors"
-                        @click="jumpToCitation(span.citeNum)"
+                        class="inline-flex items-center px-1.5 py-0.5 mx-0.5 rounded-md bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-[11px] font-bold tabular-nums align-baseline transition-colors cursor-pointer"
+                        @click="() => { jumpToCitation(span.citeNum!); }"
                       >
                         {{ span.text }}
                       </button>
@@ -1099,12 +1130,12 @@ const manualModalOpen = ref(false);
 
               <!-- Footnote Reference List -->
               <footer v-if="result?.citations.length" class="pt-4 border-t border-slate-200/80 space-y-2">
-                <div class="font-mono text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                <div class="text-xs font-bold uppercase tracking-wider text-slate-500">
                   Referensi Sumber Berita Terverifikasi
                 </div>
-                <ol class="space-y-1 text-xs text-[#334155]">
+                <ol class="space-y-1 text-xs text-slate-700">
                   <li v-for="c in result.citations" :key="c.id" class="flex items-start gap-2">
-                    <span class="font-mono font-bold text-teal-800">[{{ c.index }}]</span>
+                    <span class="font-bold text-indigo-700 tabular-nums">[{{ c.index }}]</span>
                     <span>
                       {{ c.title }} — <em>{{ c.sourcePortal }}</em> ({{ formatDateId(c.publishedAt) }})
                     </span>
@@ -1135,14 +1166,14 @@ const manualModalOpen = ref(false);
             description="Periksa koneksi database lalu coba segarkan ulang."
           >
             <template #actions>
-              <UButton size="xs" color="error" variant="solid" @click="refreshDrafts()">
+              <UButton size="xs" color="error" variant="solid" @click="() => { void refreshDrafts(); }">
                 Muat Ulang
               </UButton>
             </template>
           </UAlert>
 
           <div v-else-if="draftsPending && !savedDrafts.length" class="space-y-2.5">
-            <div v-for="i in 3" :key="i" class="h-24 rounded-xl bg-slate-100"></div>
+            <div v-for="i in 3" :key="i" class="h-24 rounded-xl bg-slate-100" />
           </div>
 
           <div v-else-if="!savedDrafts.length" class="py-12 text-center text-xs text-slate-500">
@@ -1156,27 +1187,27 @@ const manualModalOpen = ref(false);
               class="rounded-xl border p-3.5 bg-white transition-colors space-y-2"
               :class="
                 activeDraftId === d.id
-                  ? 'border-teal-600 ring-1 ring-teal-600/30 bg-teal-50/25'
-                  : 'border-[#DCE3EC] hover:border-teal-500/50'
+                  ? 'border-indigo-500 ring-1 ring-indigo-500/30 bg-indigo-50/25'
+                  : 'border-slate-200 hover:border-indigo-400/60'
               "
             >
-              <div class="flex items-center justify-between gap-2 text-[11px] font-mono">
-                <span class="font-bold text-teal-800">
+              <div class="flex items-center justify-between gap-2 text-[11px] tabular-nums">
+                <span class="font-bold text-indigo-700">
                   TW {{ toRomanQuarter(d.quarter) }} {{ d.year }}
                   <span class="text-slate-400 font-normal">• {{ d.articleCount }} bukti</span>
                 </span>
-                <span class="text-slate-400 tabular-nums">{{ formatDateTimeWita(d.updatedAt) }}</span>
+                <span class="text-slate-400">{{ formatDateTimeWita(d.updatedAt) }}</span>
               </div>
 
               <button
                 type="button"
-                class="w-full text-left space-y-1 group"
-                @click="loadDraftFromHistory(d)"
+                class="w-full text-left space-y-1 group cursor-pointer"
+                @click="() => { void loadDraftFromHistory(d); }"
               >
-                <span class="block text-xs font-bold text-[#0B1220] group-hover:text-teal-800 transition-colors">
+                <span class="block text-xs font-bold text-[#0F172A] group-hover:text-indigo-700 transition-colors">
                   {{ d.targetLabel }}
                 </span>
-                <span class="block text-[11px] text-[#5B677A] line-clamp-2">
+                <span class="block text-[11px] text-slate-600 line-clamp-2">
                   {{ d.narrativeMarkdown }}
                 </span>
               </button>
@@ -1190,8 +1221,8 @@ const manualModalOpen = ref(false);
                 <div class="flex items-center gap-1.5 shrink-0">
                   <button
                     type="button"
-                    class="px-2 py-0.5 rounded bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-200 font-semibold"
-                    @click="loadDraftFromHistory(d)"
+                    class="px-2.5 py-0.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 font-semibold cursor-pointer"
+                    @click="() => { void loadDraftFromHistory(d); }"
                   >
                     Buka
                   </button>
@@ -1199,8 +1230,8 @@ const manualModalOpen = ref(false);
                     type="button"
                     :disabled="deletingDraftId === d.id"
                     aria-label="Hapus draf"
-                    class="px-1.5 py-0.5 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 disabled:opacity-50"
-                    @click="deleteDraftFromHistory(d)"
+                    class="px-1.5 py-0.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 disabled:opacity-50 cursor-pointer"
+                    @click="() => { void deleteDraftFromHistory(d); }"
                   >
                     <UIcon
                       :name="deletingDraftId === d.id ? 'i-lucide-loader-circle' : 'i-lucide-trash-2'"
@@ -1220,7 +1251,7 @@ const manualModalOpen = ref(false);
       v-model:open="manualModalOpen"
       :default-year="selectedYear"
       :default-quarter="selectedQuarter"
-      @created="refreshPool()"
+      @created="() => { void refreshPool(); }"
     />
   </div>
 </template>
