@@ -224,12 +224,7 @@ const capabilityBento = [
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-20 sm:pt-14 sm:pb-24 relative z-10">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 items-center">
           <!-- Left Editorial Column -->
-          <Motion
-            :initial="{ opacity: 0, y: 14 }"
-            :animate="{ opacity: 1, y: 0 }"
-            :transition="{ duration: 0.4 }"
-            class="lg:col-span-7 space-y-6"
-          >
+          <div class="lg:col-span-7 space-y-6 hero-entrance">
             <div
               class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-xs font-semibold text-emerald-200"
             >
@@ -280,15 +275,10 @@ const capabilityBento = [
                 <span>{{ user ? 'Buka Workstation' : 'Akses Tim Nerwilis' }}</span>
               </NuxtLink>
             </div>
-          </Motion>
+          </div>
 
           <!-- Right Live API Snapshot Bento -->
-          <Motion
-            :initial="{ opacity: 0, y: 18 }"
-            :animate="{ opacity: 1, y: 0 }"
-            :transition="{ duration: 0.45, delay: 0.08 }"
-            class="lg:col-span-5"
-          >
+          <div class="lg:col-span-5 hero-entrance hero-entrance-delayed">
             <div
               class="rounded-2xl bg-slate-900/75 backdrop-blur-xl border border-white/15 p-5 sm:p-6 shadow-[0_28px_60px_-15px_rgba(0,0,0,0.55)] space-y-5 text-white"
             >
@@ -384,7 +374,7 @@ const capabilityBento = [
                 <UIcon name="i-lucide-arrow-up-right" class="w-3.5 h-3.5 text-emerald-300" />
               </NuxtLink>
             </div>
-          </Motion>
+          </div>
         </div>
       </div>
     </section>

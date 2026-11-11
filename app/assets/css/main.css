@@ -156,6 +156,24 @@ textarea:focus-visible,
   pointer-events: none;
 }
 
+/* Above-the-fold Hero GPU entrance (stays visible immediately from SSR byte 0) */
+.hero-entrance {
+  animation: sipena-hero-settle 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.hero-entrance-delayed {
+  animation: sipena-hero-settle 360ms cubic-bezier(0.22, 1, 0.36, 1) 60ms both;
+}
+
+@keyframes sipena-hero-settle {
+  from {
+    transform: translateY(10px);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
 /* Native View Transitions & Vue Fallback Page/Layout Transitions */
 ::view-transition-old(root) {
   animation: sipena-vt-fade-out 170ms cubic-bezier(0.22, 1, 0.36, 1) both;
@@ -213,6 +231,8 @@ textarea:focus-visible,
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .hero-entrance,
+  .hero-entrance-delayed,
   ::view-transition-group(*),
   ::view-transition-old(*),
   ::view-transition-new(*) {
