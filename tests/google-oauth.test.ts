@@ -14,6 +14,7 @@ import {
   generateOAuthStateToken,
   generatePkcePair,
   getGoogleOAuthConfig,
+  isConfiguredSuperAdminEmail,
   sanitizeOAuthRedirectPath,
   timingSafeEqualStrings,
   verifyGoogleOAuthStateCookieValue,
@@ -272,6 +273,18 @@ describe('Google OAuth, PKCE State, & Admin Whitelist Security', () => {
         clearPassword: true,
       }),
     ).toThrow();
+  });
+
+  it('mencocokkan SUPERADMIN_EMAIL secara case-insensitive termasuk dukungan multi-email koma', () => {
+    expect(isConfiguredSuperAdminEmail('Boss@Gmail.com', 'boss@gmail.com')).toBe(true);
+    expect(
+      isConfiguredSuperAdminEmail(
+        'kadis.nerwilis@gmail.com',
+        'admin1@gmail.com, Kadis.Nerwilis@gmail.com ',
+      ),
+    ).toBe(true);
+    expect(isConfiguredSuperAdminEmail('stranger@gmail.com', 'boss@gmail.com')).toBe(false);
+    expect(isConfiguredSuperAdminEmail('boss@gmail.com', '')).toBe(false);
   });
 });
 

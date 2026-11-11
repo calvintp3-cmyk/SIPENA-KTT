@@ -7,14 +7,14 @@ Jalankan di direktori aplikasi VPS (mis. `/var/www/sipena-ktt`):
 ```bash
 # 1. Pastikan file .env sudah terisi sesuai .env.example
 #    (DATABASE_URL, GEMINI_API_KEY, NUXT_SESSION_PASSWORD, CRON_SECRET,
-#     GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, ADMIN_SEED_EMAIL, ADMIN_SEED_PASSWORD)
+#     GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, SUPERADMIN_EMAIL)
 cp -n .env.example .env
 
 # 2. Instal dependensi & build output Nitro node-server
 npm ci
 npm run build
 
-# 3. Jalankan migrasi skema PostgreSQL & seeding awal (admin + keyword)
+# 3. Jalankan migrasi skema PostgreSQL & seeding OAuth-First (Super Admin + 5 keyword awal)
 npx drizzle-kit migrate
 npm run db:seed
 ```

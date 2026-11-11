@@ -20,6 +20,7 @@ const formState = reactive<LoginRequestInput>({
 });
 
 const showPassword = ref(false);
+const showLocalLogin = ref(false);
 const isSubmitting = ref(false);
 const isRedirectingGoogle = ref(false);
 const errorMessage = ref<string | null>(null);
@@ -265,25 +266,28 @@ async function handleSubmit(event: FormSubmitEvent<LoginRequestInput>) {
             <code class="font-mono">GOOGLE_CLIENT_SECRET</code> di <code class="font-mono">.env</code> server.
           </p>
           <p v-else class="text-[11px] text-slate-500 text-center">
-            Khusus alamat Gmail staf yang telah didaftarkan pada daftar whitelist admin.
+            Autentikasi OAuth-First: khusus Gmail Super Admin dan staf yang terdaftar pada whitelist admin.
           </p>
         </div>
 
-        <div class="relative my-5">
-          <div class="absolute inset-0 flex items-center" aria-hidden="true">
-            <div class="w-full border-t border-slate-200" />
-          </div>
-          <div class="relative flex justify-center text-xs uppercase">
-            <span class="bg-white px-2.5 text-slate-400 font-medium">
-              atau masuk dengan kata sandi
-            </span>
-          </div>
+        <div class="mt-5 pt-4 border-t border-slate-100 text-center">
+          <UButton
+            type="button"
+            color="neutral"
+            variant="ghost"
+            size="xs"
+            :icon="showLocalLogin ? 'i-lucide-chevron-up' : 'i-lucide-chevron-down'"
+            @click="showLocalLogin = !showLocalLogin"
+          >
+            {{ showLocalLogin ? 'Sembunyikan login kata sandi cadangan' : 'Login alternatif dengan email & kata sandi lokal' }}
+          </UButton>
         </div>
 
         <UForm
+          v-if="showLocalLogin"
           :schema="LoginRequestSchema"
           :state="formState"
-          class="space-y-4"
+          class="space-y-4 mt-4 pt-4 border-t border-slate-100"
           @submit="handleSubmit"
         >
           <UFormField label="Email Instansi" name="email" required>

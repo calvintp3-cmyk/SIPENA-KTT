@@ -41,10 +41,10 @@ module.exports = {
       env: {
         ...parsedEnv,
         NODE_ENV: 'production',
-        NITRO_HOST: '127.0.0.1',
-        HOST: '127.0.0.1',
-        NITRO_PORT: 3002,
-        PORT: 3002,
+        NITRO_HOST: parsedEnv.NITRO_HOST || '127.0.0.1',
+        HOST: parsedEnv.NITRO_HOST || '127.0.0.1',
+        NITRO_PORT: Number(parsedEnv.NITRO_PORT || 3002),
+        PORT: Number(parsedEnv.NITRO_PORT || 3002),
         // Sinkronkan juga alias NUXT_ agar runtimeConfig selalu konsisten di Nitro production
         ...(parsedEnv.CRON_SECRET && !parsedEnv.NUXT_CRON_SECRET
           ? { NUXT_CRON_SECRET: parsedEnv.CRON_SECRET }

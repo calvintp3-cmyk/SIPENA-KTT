@@ -9,10 +9,12 @@ import {
   exchangeGoogleCodeForUser,
   getGoogleOAuthConfig,
   getGoogleOAuthStateCookie,
+  isConfiguredSuperAdminEmail,
   sanitizeOAuthRedirectPath,
   timingSafeEqualStrings,
   verifyGoogleOAuthStateCookieValue,
 } from '../../../utils/google-oauth';
+import { OAUTH_ONLY_PASSWORD_MARKER } from '../../../utils/password';
 import { getClientIp, resetLoginRateLimit } from '../../../utils/rate-limit';
 import { isSessionSecretConfigured, setSessionCookie } from '../../../utils/session';
 
@@ -79,7 +81,7 @@ export default defineEventHandler(async (event) => {
 
   try {
     // Verifikasi ketat terhadap whitelist tabel `users` (case-insensitive) & status aktif
-    const [foundUser] = await db
+    let [foundUser] = await db
       .select({
         id: users.id,
         email: users.email,
@@ -91,6 +93,47 @@ export default defineEventHandler(async (event) => {
       .from(users)
       .where(sql`lower(${users.email}) = ${googleIdentity.email}`)
       .limit(1);
+
+    // Bootstrap otomatis Super Admin bila email cocok dengan SUPERADMIN_EMAIL di `.env`
+    // namun belum pernah dimasukkan lewat seeder atau menu whitelist.
+    if (!foundUser && isConfiguredSuperAdminEmail(googleIdentity.email)) {
+      const [bootstrapped] = await db
+        .insert(users)
+        .values({
+          email: googleIdentity.email,
+          name: googleIdentity.name,
+          passwordHash: OAUTH_ONLY_PASSWORD_MARKER,
+          role: UserRoleEnum.ADMIN,
+          isActive: true,
+        })
+        .onConflictDoNothing()
+        .returning({
+          id: users.id,
+          email: users.email,
+          name: users.name,
+          role: users.role,
+          isActive: users.isActive,
+          tokenVersion: users.tokenVersion,
+        });
+
+      if (bootstrapped) {
+        foundUser = bootstrapped;
+      } else {
+        const [racedUser] = await db
+          .select({
+            id: users.id,
+            email: users.email,
+            name: users.name,
+            role: users.role,
+            isActive: users.isActive,
+            tokenVersion: users.tokenVersion,
+          })
+          .from(users)
+          .where(sql`lower(${users.email}) = ${googleIdentity.email}`)
+          .limit(1);
+        foundUser = racedUser;
+      }
+    }
 
     dbUser = foundUser;
 

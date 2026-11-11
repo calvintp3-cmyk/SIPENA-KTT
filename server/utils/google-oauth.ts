@@ -98,6 +98,28 @@ export function getGoogleOAuthConfig(overrides?: {
   };
 }
 
+export function isConfiguredSuperAdminEmail(
+  candidateEmail: string,
+  configuredOverride?: string,
+): boolean {
+  const normalizedCandidate = candidateEmail.trim().toLowerCase();
+  if (!normalizedCandidate || !normalizedCandidate.includes('@')) {
+    return false;
+  }
+
+  const rawConfigured = (configuredOverride ?? process.env.SUPERADMIN_EMAIL ?? '').trim();
+  if (!rawConfigured) {
+    return false;
+  }
+
+  const allowedList = rawConfigured
+    .split(',')
+    .map((entry) => entry.trim().toLowerCase())
+    .filter((entry) => entry.includes('@'));
+
+  return allowedList.includes(normalizedCandidate);
+}
+
 /**
  * Mencegah Open Redirect setelah login OAuth: hanya path relatif tunggal (`/admin/...`).
  */

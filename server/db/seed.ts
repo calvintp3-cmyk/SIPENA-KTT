@@ -6,7 +6,7 @@ import {
   KbliCategoryEnum,
   UserRoleEnum,
 } from '../../shared/enums/pdrb';
-import { hashPassword } from '../utils/password';
+import { OAUTH_ONLY_PASSWORD_MARKER } from '../utils/password';
 import { db, pool } from './index';
 import { nationalKeywords, users } from './schema';
 
@@ -55,45 +55,43 @@ const INITIAL_KEYWORDS: InitialKeywordSeed[] = [
   },
 ];
 
-async function runSeed() {
-  const adminEmail = (process.env.ADMIN_SEED_EMAIL || 'admin@sipena-ktt.go.id')
-    .trim()
-    .toLowerCase();
-  const adminName = (process.env.ADMIN_SEED_NAME || 'Admin Nerwilis BPS KTT').trim();
-  const adminPassword = process.env.ADMIN_SEED_PASSWORD;
+const BASIC_EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  if (
-    !adminPassword ||
-    adminPassword.length < 12 ||
-    adminPassword.includes('GANTI_DENGAN_PASSWORD')
-  ) {
+async function runSeed() {
+  const superAdminEmail = (process.env.SUPERADMIN_EMAIL || '').trim().toLowerCase();
+
+  if (!superAdminEmail || !BASIC_EMAIL_REGEX.test(superAdminEmail)) {
     throw new Error(
-      '[Seed] ADMIN_SEED_PASSWORD wajib disetel di .env dengan panjang minimal 12 karakter yang kuat.',
+      '[Seed] SUPERADMIN_EMAIL wajib diisi di .env dengan alamat Gmail / email Super Admin yang valid.',
     );
   }
 
-  console.log('[Seed] Memulai pengisian data awal SIPENA KTT...');
+  const defaultDisplayName =
+    superAdminEmail.split('@')[0]?.replace(/[._-]+/g, ' ').trim() || 'Super Admin SIPENA KTT';
+  const superAdminName =
+    (process.env.SUPERADMIN_NAME || '').trim() || `Super Admin (${defaultDisplayName})`;
 
-  // 1. Seed user default admin secara idempoten (berdasarkan lower(email))
+  console.log('[Seed] Memulai pengisian data awal OAuth-First SIPENA KTT...');
+
+  // 1. Seed Super Admin (Google OAuth Only — tanpa password lokal) secara idempoten
   const [existingAdmin] = await db
-    .select({ id: users.id, email: users.email })
+    .select({ id: users.id, email: users.email, role: users.role, isActive: users.isActive })
     .from(users)
-    .where(sql`lower(${users.email}) = ${adminEmail}`)
+    .where(sql`lower(${users.email}) = ${superAdminEmail}`)
     .limit(1);
 
   let adminId: string;
 
   if (existingAdmin) {
     adminId = existingAdmin.id;
-    console.log(`[Seed] User admin sudah terdaftar (${existingAdmin.email}), dilewati.`);
+    console.log(`[Seed] Super Admin sudah terdaftar (${existingAdmin.email}), dilewati.`);
   } else {
-    const passwordHash = hashPassword(adminPassword);
     const [insertedAdmin] = await db
       .insert(users)
       .values({
-        email: adminEmail,
-        name: adminName,
-        passwordHash,
+        email: superAdminEmail,
+        name: superAdminName,
+        passwordHash: OAUTH_ONLY_PASSWORD_MARKER,
         role: UserRoleEnum.ADMIN,
         isActive: true,
       })
@@ -101,11 +99,13 @@ async function runSeed() {
       .returning({ id: users.id, email: users.email });
 
     if (!insertedAdmin) {
-      throw new Error('[Seed] Gagal menyisipkan atau mengambil user admin.');
+      throw new Error('[Seed] Gagal menyisipkan atau mengambil akun Super Admin.');
     }
 
     adminId = insertedAdmin.id;
-    console.log(`[Seed] User admin baru dibuat: ${insertedAdmin.email}`);
+    console.log(
+      `[Seed] Super Admin (Google OAuth) ditambahkan ke whitelist: ${insertedAdmin.email}`,
+    );
   }
 
   // 2. Seed 5 master keywords awal Tana Tidung secara idempoten
@@ -133,7 +133,7 @@ async function runSeed() {
   }
 
   console.log(
-    `[Seed] Selesai. Admin ID=${adminId}, Keyword baru ditambahkan=${insertedKeywordCount}/${INITIAL_KEYWORDS.length}.`,
+    `[Seed] Selesai. Super Admin ID=${adminId}, Keyword baru ditambahkan=${insertedKeywordCount}/${INITIAL_KEYWORDS.length}.`,
   );
 }
 
@@ -145,4 +145,3 @@ runSeed()
   .finally(async () => {
     await pool.end();
   });
-
