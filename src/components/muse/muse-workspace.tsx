@@ -205,8 +205,7 @@ export function MuseWorkspace({ initialRole = "public" }: MuseWorkspaceProps) {
   const handleRoleToggle = () => {
     const nextRole = isAdmin ? "public" : "admin";
     setUserRole(nextRole);
-    // If guest was on an admin-only tab, revert cleanly to overview
-    if (nextRole === "public" && ["curation", "proposals", "ledger", "pdrb", "narratives", "scrapers"].includes(currentTab)) {
+    if (nextRole === "public") {
       setCurrentTab("overview");
     }
   };
@@ -268,9 +267,9 @@ export function MuseWorkspace({ initialRole = "public" }: MuseWorkspaceProps) {
   };
 
   return (
-    <div className="bg-[#f0f2f5] text-[#434343] font-sans antialiased min-h-screen flex selection:bg-blue-100 selection:text-blue-900">
+    <div className="bg-[#F1F5F9] text-[#1C2434] font-sans antialiased min-h-screen flex selection:bg-[#3C50E0]/20 selection:text-[#3C50E0]">
       
-      {/* 1. Sidebar Navigation (Strict Role Separation) */}
+      {/* 1. NextAdmin Dark Sidebar (Shown ONLY for Admin) */}
       <MuseSidebar
         currentTab={currentTab}
         onTabChange={setCurrentTab}
@@ -280,8 +279,10 @@ export function MuseWorkspace({ initialRole = "public" }: MuseWorkspaceProps) {
         onOpenBlueprintModal={() => setIsBlueprintModalOpen(true)}
       />
 
-      {/* 2. Main Canvas Area */}
-      <main className="flex-1 p-4 lg:p-6 overflow-y-auto max-w-7xl mx-auto w-full space-y-6">
+      {/* 2. Main Canvas Area (Full width for Public, Sidebar-aligned for Admin) */}
+      <main className={`flex-1 p-4 lg:p-6 overflow-y-auto w-full space-y-6 ${
+        isAdmin ? "max-w-7xl mx-auto" : "max-w-6xl mx-auto"
+      }`}>
         
         {/* Navbar */}
         <MuseNavbar
@@ -294,95 +295,78 @@ export function MuseWorkspace({ initialRole = "public" }: MuseWorkspaceProps) {
         />
 
         {/* ======================================================== */}
-        {/* VIEW ROUTING: PUBLIC MODE                                */}
+        {/* 1. PUBLIC VIEW: Clean Static-Style News Tabulation       */}
         {/* ======================================================== */}
         {!isAdmin ? (
-          <>
-            {/* Public Tab 1: Tabulasi Berita Harian */}
-            {currentTab === "overview" && (
-              <PublicNewsTabulation
-                onOpenSubmitModal={() => setIsSubmitModalOpen(true)}
-              />
-            )}
-
-            {/* Public Tab 2: Kamus KBLI 2025 */}
-            {currentTab === "kbli" && <KbliCrosswalkTable />}
-
-            {/* Public Tab 3: Tentang ODON BPS */}
-            {currentTab === "methodology" && <MethodologyView />}
-
-            {/* If public somehow lands on internal tabs, fall back to PublicNewsTabulation */}
-            {["curation", "proposals", "ledger", "pdrb", "narratives", "scrapers"].includes(currentTab) && (
-              <PublicNewsTabulation
-                onOpenSubmitModal={() => setIsSubmitModalOpen(true)}
-              />
-            )}
-          </>
+          <PublicNewsTabulation
+            onOpenSubmitModal={() => setIsSubmitModalOpen(true)}
+            onLoginClick={() => setUserRole("admin")}
+          />
         ) : (
           /* ======================================================== */
-          /* VIEW ROUTING: ADMIN MODE (TIM NERWILIS BPS 6504)         */
+          /* 2. ADMIN VIEW: Full NextAdmin Operations Workspace       */
           /* ======================================================== */
           <>
             {/* Admin Tab 1: Dashboard Operasional & ODON Spotlight */}
             {currentTab === "overview" && (
               <div className="space-y-6">
                 
-                {/* 4 Stat Cards */}
+                {/* 4 NextAdmin Metric Cards */}
                 <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <div className="bg-white rounded-2xl p-4 shadow-[0_1px_3px_0_rgba(0,0,0,0.05)] border border-[#f0f0f0] flex items-center justify-between">
+                  <div className="bg-white rounded-xl p-4 shadow-[0_1px_3px_0_rgba(0,0,0,0.06)] border border-[#E2E8F0] flex items-center justify-between">
                     <div>
-                      <span className="text-xs text-[#8c8c8c] font-semibold block">ODON Terverifikasi</span>
-                      <h3 className="text-xl font-extrabold text-[#141414] mt-1">156 Hari</h3>
-                      <span className="text-[11px] text-emerald-600 font-bold block mt-1">
+                      <span className="text-xs text-[#64748B] font-semibold block">ODON Terverifikasi</span>
+                      <h3 className="text-xl font-bold text-[#1C2434] mt-1 font-mono">156 Hari</h3>
+                      <span className="text-[11px] text-[#219653] font-bold block mt-1">
                         Edisi 10 Nov (H-1) Siap
                       </span>
                     </div>
-                    <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+                    <div className="w-12 h-12 rounded-xl bg-[#3C50E0]/10 text-[#3C50E0] flex items-center justify-center font-bold">
                       <Newspaper className="w-6 h-6" />
                     </div>
                   </div>
 
-                  <div className="bg-white rounded-2xl p-4 shadow-[0_1px_3px_0_rgba(0,0,0,0.05)] border border-[#f0f0f0] flex items-center justify-between">
+                  <div className="bg-white rounded-xl p-4 shadow-[0_1px_3px_0_rgba(0,0,0,0.06)] border border-[#E2E8F0] flex items-center justify-between">
                     <div>
-                      <span className="text-xs text-[#8c8c8c] font-semibold block">Sektor KBLI Terbesar</span>
-                      <h3 className="text-xl font-extrabold text-[#141414] mt-1">37.80%</h3>
-                      <span className="text-[11px] text-[#8c8c8c] font-medium block mt-1">
+                      <span className="text-xs text-[#64748B] font-semibold block">Sektor KBLI Terbesar</span>
+                      <h3 className="text-xl font-bold text-[#1C2434] mt-1 font-mono">37.80%</h3>
+                      <span className="text-[11px] text-[#64748B] font-medium block mt-1">
                         KBLI B • Tambang Batubara
                       </span>
                     </div>
-                    <div className="w-12 h-12 rounded-xl bg-slate-100 text-slate-800 flex items-center justify-center font-bold">
+                    <div className="w-12 h-12 rounded-xl bg-slate-100 text-[#1C2434] flex items-center justify-center font-bold">
                       <Pickaxe className="w-6 h-6" />
                     </div>
                   </div>
 
-                  <div className="bg-white rounded-2xl p-4 shadow-[0_1px_3px_0_rgba(0,0,0,0.05)] border border-[#f0f0f0] flex items-center justify-between">
+                  <div className="bg-white rounded-xl p-4 shadow-[0_1px_3px_0_rgba(0,0,0,0.06)] border border-[#E2E8F0] flex items-center justify-between">
                     <div>
-                      <span className="text-xs text-[#8c8c8c] font-semibold block">Pengeluaran Dominan</span>
-                      <h3 className="text-xl font-extrabold text-[#141414] mt-1">49.98%</h3>
-                      <span className="text-[11px] text-emerald-600 font-bold block mt-1">
+                      <span className="text-xs text-[#64748B] font-semibold block">Pengeluaran Dominan</span>
+                      <h3 className="text-xl font-bold text-[#1C2434] mt-1 font-mono">49.98%</h3>
+                      <span className="text-[11px] text-[#219653] font-bold block mt-1">
                         Pos 6 • Net Ekspor Antardaerah
                       </span>
                     </div>
-                    <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+                    <div className="w-12 h-12 rounded-xl bg-[#219653]/10 text-[#219653] flex items-center justify-center font-bold">
                       <TrendingUp className="w-6 h-6" />
                     </div>
                   </div>
 
-                  <div className="bg-white rounded-2xl p-4 shadow-[0_1px_3px_0_rgba(0,0,0,0.05)] border border-[#f0f0f0] flex items-center justify-between">
+                  <div className="bg-white rounded-xl p-4 shadow-[0_1px_3px_0_rgba(0,0,0,0.06)] border border-[#E2E8F0] flex items-center justify-between">
                     <div>
-                      <span className="text-xs text-[#8c8c8c] font-semibold block">Radar Scraper H-1</span>
-                      <h3 className="text-xl font-extrabold text-[#141414] mt-1">5 Portal</h3>
-                      <span className="text-[11px] text-blue-600 font-mono font-medium block mt-1">
-                        Radar, Benuanta, Fokus, Tribun, Antara
+                      <span className="text-xs text-[#64748B] font-semibold block">Radar Scraper H-1</span>
+                      <h3 className="text-xl font-bold text-[#1C2434] mt-1 font-mono">5 Portal</h3>
+                      <span className="text-[11px] text-[#3C50E0] font-mono font-medium block mt-1">
+                        05:00 WITA Aktif
                       </span>
                     </div>
-                    <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
+                    <div className="w-12 h-12 rounded-xl bg-[#FFA70B]/10 text-[#FFA70B] flex items-center justify-center font-bold">
                       <Radio className="w-6 h-6" />
                     </div>
                   </div>
                 </section>
 
-                {/* 2-Card Hero Spotlight Layout */}
+                {/* Hero Spotlight Layout */}
                 <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                   <div className="lg:col-span-2">
                     <OdonHeroSpotlight
@@ -398,7 +382,7 @@ export function MuseWorkspace({ initialRole = "public" }: MuseWorkspaceProps) {
                   </div>
                 </section>
 
-                {/* Recent Working Days Quick Ledger */}
+                {/* Sheet 6503 Table */}
                 <SheetLedgerTable
                   rows={ledgerRows}
                   isAdmin={isAdmin}
@@ -421,7 +405,7 @@ export function MuseWorkspace({ initialRole = "public" }: MuseWorkspaceProps) {
               />
             )}
 
-            {/* Admin Tab 3: Moderasi Usulan OPD */}
+            {/* Admin Tab 3: Moderasi Usulan Publik & OPD */}
             {currentTab === "proposals" && (
               <ProposalsModerationView onAcceptProposal={handleAcceptProposal} />
             )}
@@ -440,12 +424,12 @@ export function MuseWorkspace({ initialRole = "public" }: MuseWorkspaceProps) {
             {currentTab === "pdrb" && (
               <div className="space-y-6">
                 <PdrbWeightsCard />
-                <div className="bg-white rounded-2xl p-6 shadow-[0_1px_3px_0_rgba(0,0,0,0.05)] border border-[#f0f0f0]">
-                  <h4 className="text-sm font-bold text-[#141414] mb-2">
-                    Catatan Internal Analis Nerwilis: Batas Konsentrasi PDRB KTT 2025/2026
+                <div className="bg-white rounded-xl p-6 shadow-[0_1px_3px_0_rgba(0,0,0,0.06)] border border-[#E2E8F0]">
+                  <h4 className="text-sm font-bold text-[#1C2434] mb-2">
+                    Catatan Internal Analis: Single Source of Truth Bobot PDRB KTT 2025
                   </h4>
-                  <p className="text-xs text-[#595959] leading-relaxed">
-                    Sesuai prinsip kehati-hatian statistik BPS, berita media daerah adalah <b>sinyal arah fenomena</b>, bukan angka mutlak data dukung. Jangan memaksakan berita masuk ke sektor marjinal jika tidak ada transmisi riil terhadap 4 sektor utama: <b>Batubara (37.80%)</b>, <b>Sawit (23.41%)</b>, <b>Konstruksi (18.50%)</b>, atau <b>Kehutanan (8.44%)</b>.
+                  <p className="text-xs text-[#64748B] leading-relaxed">
+                    Sesuai prinsip kehati-hatian statistik BPS, berita media massa adalah sinyal arah fenomena, bukan data dukung resmi mutlak. Prioritaskan 4 sektor utama Tana Tidung: <b>Batubara (37.80%)</b>, <b>Sawit (23.41%)</b>, <b>Konstruksi (18.50%)</b>, dan <b>Kehutanan (8.44%)</b> yang membentuk 88.14% PDRB daerah.
                   </p>
                 </div>
               </div>
@@ -453,20 +437,20 @@ export function MuseWorkspace({ initialRole = "public" }: MuseWorkspaceProps) {
 
             {/* Admin Tab 6: Kompilasi Draf Narasi BRS */}
             {currentTab === "narratives" && (
-              <div className="bg-white rounded-2xl p-6 shadow-[0_1px_3px_0_rgba(0,0,0,0.05)] border border-[#f0f0f0] space-y-4">
-                <div className="flex items-center justify-between pb-3 border-b border-[#f0f0f0]">
+              <div className="bg-white rounded-xl p-6 shadow-[0_1px_3px_0_rgba(0,0,0,0.06)] border border-[#E2E8F0] space-y-4">
+                <div className="flex items-center justify-between pb-3 border-b border-[#E2E8F0]">
                   <div>
-                    <h3 className="text-sm font-bold text-[#141414]">Kompilasi Narasi Fenomena Triwulanan BRS</h3>
-                    <p className="text-xs text-[#8c8c8c]">Format siap pakai untuk naskah rilis resmi BPS Kabupaten Tana Tidung</p>
+                    <h3 className="text-sm font-bold text-[#1C2434]">Kompilasi Narasi Fenomena Triwulanan BRS</h3>
+                    <p className="text-xs text-[#64748B]">Format siap pakai untuk naskah rilis resmi BPS Kabupaten Tana Tidung</p>
                   </div>
                   <button
                     onClick={() => alert("Menyalin kompilasi narasi triwulanan ke clipboard...")}
-                    className="px-3 py-1.5 rounded-lg bg-blue-600 text-white text-xs font-bold shadow-[0_4px_14px_0_rgba(24,144,255,0.35)] cursor-pointer"
+                    className="px-3.5 py-1.5 rounded-lg bg-[#3C50E0] text-white text-xs font-semibold shadow-sm cursor-pointer"
                   >
                     Salin Narasi Lengkap
                   </button>
                 </div>
-                <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs text-[#141414] leading-relaxed space-y-3 font-mono">
+                <div className="p-4 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0] text-xs text-[#1C2434] leading-relaxed space-y-3 font-mono">
                   <p><b>[TRIWULAN IV-2026 - LAPANGAN USAHA B: PERTAMBANGAN BATUBARA]</b><br/>
                   Pada Triwulan IV-2026, aktivitas pengapalan batubara melalui Terminal Khusus Bebatu mencatatkan lonjakan volume ekspor antar daerah sebesar 14.8% (Q-o-Q). Hal ini didorong oleh membaiknya cuaca perairan Sungai Sesayap dan peningkatan kuota produksi akhir tahun.</p>
                   <p><b>[TRIWULAN IV-2026 - LAPANGAN USAHA F: KONSTRUKSI]</b><br/>
@@ -481,7 +465,7 @@ export function MuseWorkspace({ initialRole = "public" }: MuseWorkspaceProps) {
             {/* Admin Tab 8: Radar Scraper 5 Portal */}
             {currentTab === "scrapers" && <ScrapersStatusView />}
 
-            {/* Admin Tab 9: Metodologi SOP */}
+            {/* Admin Tab 9: Pedoman SOP ODON */}
             {currentTab === "methodology" && <MethodologyView />}
           </>
         )}
