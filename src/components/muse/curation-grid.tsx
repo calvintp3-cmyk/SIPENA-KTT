@@ -6,13 +6,8 @@ import {
   CheckCircle,
   ExternalLink,
   Sparkles,
-  SlidersHorizontal,
   Edit3,
   X,
-  Filter,
-  Layers,
-  ArrowRight,
-  TrendingUp,
 } from "lucide-react";
 
 export interface CurationCandidate {
@@ -75,164 +70,157 @@ export function CurationGrid({
 
   return (
     <div className="space-y-6">
-      
-      {/* Curation Control Header */}
-      <div className="bg-white rounded-2xl p-5 shadow-[0_1px_3px_0_rgba(0,0,0,0.05),0_20px_25px_-5px_rgba(0,0,0,0.04)] border border-[#f0f0f0] flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-blue-600 animate-pulse" />
-            <h3 className="text-sm font-bold text-[#141414]">
-              Meja Kurasi AI — Hasil Scraper H-1 (05:00 WITA)
-            </h3>
-            <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 text-xs font-mono font-bold">
+      {/* Control header */}
+      <div className="ui-card p-5 sm:p-6 flex flex-wrap items-center justify-between gap-4">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-blue-600 ui-dot-live" style={{ ["--dot" as string]: "rgba(37,99,235,0.45)" }} aria-hidden="true" />
+            <h3 className="ui-h1">Meja Kurasi AI — Hasil Scraper H-1 (05:00 WITA)</h3>
+            <span className="ui-badge ui-badge-info num">
               {activeCandidates.length} Berita Menunggu
             </span>
           </div>
-          <p className="text-xs text-[#8c8c8c] mt-0.5">
-            AI telah memfilter berita ekonomi dari 5 portal lokal. Tinjau dan tetapkan <b>1 Berita ODON Utama</b> hari ini.
+          <p className="ui-muted mt-1 max-w-3xl">
+            AI telah memfilter berita ekonomi dari 5 portal lokal. Tinjau dan tetapkan <b className="font-semibold text-slate-900">1 Berita ODON Utama</b> hari ini.
           </p>
         </div>
 
         <button
+          type="button"
           onClick={handleRefresh}
           disabled={isRefreshing}
-          className="px-3.5 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-xs font-semibold text-[#141414] flex items-center gap-1.5 cursor-pointer shadow-xs transition-all disabled:opacity-50"
+          className="ui-btn ui-btn-secondary"
         >
-          <RefreshCw className={`w-3.5 h-3.5 text-blue-600 ${isRefreshing ? "animate-spin" : ""}`} />
+          <RefreshCw
+            className={`w-3.5 h-3.5 text-blue-600 ${isRefreshing ? "animate-spin" : ""}`}
+            aria-hidden="true"
+          />
           <span>{isRefreshing ? "Menarik Berita..." : "Tarik Ulang Scraper"}</span>
         </button>
       </div>
 
-      {/* Source Portal Filter Bar */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1">
-        <span className="text-xs text-[#8c8c8c] font-semibold flex items-center gap-1 shrink-0 mr-1">
-          <Filter className="w-3.5 h-3.5" />
-          <span>Filter Portal:</span>
-        </span>
-        {SOURCES.map((src) => (
-          <button
-            key={src}
-            onClick={() => setSelectedSource(src)}
-            className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
-              selectedSource === src
-                ? "bg-slate-900 text-white shadow-xs"
-                : "bg-white text-[#595959] hover:bg-slate-50 border border-slate-200/80"
-            }`}
-          >
-            {src}
-          </button>
-        ))}
+      {/* Source filter: segmented control */}
+      <div className="flex flex-wrap items-center gap-3">
+        <span className="text-xs text-slate-500 font-semibold shrink-0">Filter Portal:</span>
+        <div className="ui-seg" role="group" aria-label="Filter portal berita">
+          {SOURCES.map((src) => (
+            <button
+              key={src}
+              type="button"
+              aria-pressed={selectedSource === src}
+              onClick={() => setSelectedSource(src)}
+              className="ui-seg-item"
+            >
+              {src}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* Candidates Grid */}
+      {/* Candidates */}
       {activeCandidates.length === 0 ? (
-        <div className="bg-white rounded-2xl p-12 text-center border border-[#f0f0f0] space-y-2">
-          <Sparkles className="w-8 h-8 text-[#8c8c8c] mx-auto" />
-          <p className="text-xs font-semibold text-[#141414]">Antrean kurasi kosong atau telah disaring</p>
-          <p className="text-[11px] text-[#8c8c8c]">Klik tombol "Tarik Ulang Scraper" untuk memeriksa berita terbaru.</p>
+        <div className="ui-card p-12 text-center space-y-2">
+          <Sparkles className="w-8 h-8 text-slate-400 mx-auto" aria-hidden="true" />
+          <p className="text-sm font-semibold text-slate-900">Antrean kurasi kosong atau telah disaring</p>
+          <p className="ui-muted">Klik tombol "Tarik Ulang Scraper" untuk memeriksa berita terbaru.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 items-stretch">
           {activeCandidates.map((c) => (
-            <div
+            <article
               key={c.id}
-              className={`bg-white rounded-2xl p-5 shadow-[0_1px_3px_0_rgba(0,0,0,0.05),0_20px_25px_-5px_rgba(0,0,0,0.04)] border flex flex-col justify-between transition-all ${
-                c.isRecommended
-                  ? "border-blue-400 ring-2 ring-blue-500/20 shadow-[0_4px_14px_0_rgba(24,144,255,0.15)]"
-                  : "border-[#f0f0f0] hover:border-slate-300"
+              className={`ui-card ui-card-interactive p-5 flex flex-col justify-between ${
+                c.isRecommended ? "ring-2 ring-blue-500/80 shadow-lg shadow-blue-500/5 !border-blue-300" : ""
               }`}
             >
               <div>
-                {/* Card Header */}
-                <div className="flex items-center justify-between pb-3 border-b border-[#f0f0f0]">
-                  <span className="px-2.5 py-0.5 rounded-lg text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-100">
-                    {c.source}
-                  </span>
+                {/* Card header */}
+                <div className="flex items-center justify-between gap-2 pb-3 border-b border-slate-200/80">
+                  <span className="ui-badge ui-badge-info">{c.source}</span>
                   {c.isRecommended ? (
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold flex items-center gap-1">
-                      <Sparkles className="w-3 h-3 text-emerald-600" />
+                    <span className="ui-badge ui-badge-success">
+                      <Sparkles className="w-3 h-3" aria-hidden="true" />
                       Rekomendasi Utama AI
                     </span>
                   ) : (
                     <button
+                      type="button"
                       onClick={() => handleDismiss(c.id)}
-                      className="text-[#8c8c8c] hover:text-rose-600 p-1 rounded-md transition-colors"
+                      className="w-8 h-8 inline-flex items-center justify-center text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
                       title="Abaikan artikel ini"
+                      aria-label={`Abaikan artikel: ${c.title}`}
                     >
-                      <X className="w-3.5 h-3.5" />
+                      <X className="w-4 h-4" aria-hidden="true" />
                     </button>
                   )}
                 </div>
 
-                {/* Title & Summary */}
-                <h4 className="font-bold text-[#141414] text-xs sm:text-sm mt-3 leading-snug">
+                <h4 className="font-semibold text-slate-900 text-[15px] mt-4 leading-snug tracking-tight">
                   {c.title}
                 </h4>
-                <p className="text-xs text-[#595959] mt-2 leading-relaxed">
+                <p className="text-[13px] text-slate-600 mt-2 leading-relaxed font-normal">
                   {c.summary}
                 </p>
 
-                {/* Classification Mapping Box */}
-                <div className="mt-4 p-3 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2 text-xs">
-                  <div className="flex justify-between items-center">
-                    <span className="text-[#8c8c8c]">Sisi Lapangan Usaha:</span>
-                    <span className="font-bold text-[#141414] bg-white px-2 py-0.5 rounded border border-slate-200">
-                      {c.kbliCategory} ({c.kbliCode})
-                    </span>
+                {/* Classification */}
+                <dl className="mt-4 p-3.5 rounded-xl bg-slate-50/90 ring-1 ring-inset ring-slate-200/80 space-y-2.5 text-xs">
+                  <div className="flex justify-between items-center gap-3">
+                    <dt className="text-slate-500">Sisi Lapangan Usaha:</dt>
+                    <dd className="inline-flex items-center gap-2 font-semibold text-slate-900">
+                      <span className="ui-kbli !w-6 !h-6 !text-[11px]" aria-hidden="true">{c.kbliCategory}</span>
+                      <span className="num">{c.kbliCode}</span>
+                    </dd>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-[#8c8c8c]">Sisi Pengeluaran:</span>
-                    <span className="font-bold text-[#141414] truncate max-w-[150px]">
-                      {c.expenditureCode}
-                    </span>
+                  <div className="flex justify-between items-center gap-3">
+                    <dt className="text-slate-500 shrink-0">Sisi Pengeluaran:</dt>
+                    <dd className="font-semibold text-slate-900 text-right num">{c.expenditureCode}</dd>
                   </div>
-                  <div className="flex justify-between items-center pt-1 border-t border-slate-200">
-                    <span className="text-[#8c8c8c]">Skor Relevansi:</span>
-                    <span className="font-bold text-emerald-700 font-mono text-[11px]">
-                      {c.score}
-                    </span>
+                  <div className="flex justify-between items-center gap-3 pt-2.5 border-t border-slate-200">
+                    <dt className="text-slate-500">Skor Relevansi:</dt>
+                    <dd className="font-bold text-emerald-700 num">{c.score}</dd>
                   </div>
-                </div>
+                </dl>
               </div>
 
-              {/* Action Buttons */}
-              <div className="mt-5 pt-3 border-t border-[#f0f0f0] flex items-center justify-between gap-2">
+              {/* Action bar: pinned to the card bottom so all cards align */}
+              <div className="mt-5 pt-4 border-t border-slate-200/80 flex items-center justify-between gap-2">
                 <a
                   href={c.sourceUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-xs text-[#8c8c8c] hover:text-[#141414] font-medium inline-flex items-center gap-1"
+                  className="inline-flex items-center gap-1.5 text-xs text-slate-600 hover:text-blue-700 font-semibold transition-colors"
                 >
                   <span>Cek Berita</span>
-                  <ExternalLink className="w-3 h-3" />
+                  <ExternalLink className="w-3 h-3" aria-hidden="true" />
                 </a>
 
                 <div className="flex items-center gap-2">
                   {onEditCandidate && (
                     <button
+                      type="button"
                       onClick={() => onEditCandidate(c)}
-                      className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-[#595959] transition-all cursor-pointer"
+                      className="ui-icon-btn"
                       title="Sesuaikan Klasifikasi KBLI/Pengeluaran"
+                      aria-label="Edit klasifikasi"
                     >
-                      <Edit3 className="w-3.5 h-3.5" />
+                      <Edit3 className="w-3.5 h-3.5" aria-hidden="true" />
                     </button>
                   )}
 
                   <button
+                    type="button"
                     onClick={() => onApprove(c.id)}
-                    className="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-[0_4px_14px_0_rgba(24,144,255,0.35)] transition-all cursor-pointer flex items-center gap-1.5"
+                    className="ui-btn ui-btn-primary"
                   >
-                    <CheckCircle className="w-3.5 h-3.5" />
+                    <CheckCircle className="w-3.5 h-3.5" aria-hidden="true" />
                     <span>Tetapkan ODON</span>
                   </button>
                 </div>
               </div>
-
-            </div>
+            </article>
           ))}
         </div>
       )}
-
     </div>
   );
 }

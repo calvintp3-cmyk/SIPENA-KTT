@@ -188,6 +188,45 @@ interface MuseWorkspaceProps {
   initialRole?: "admin" | "public";
 }
 
+const KPI_CARDS = [
+  {
+    label: "ODON Terverifikasi",
+    value: "156 Hari",
+    note: "Edisi 10 Nov (H-1) Siap",
+    noteClass: "text-emerald-700",
+    icon: Newspaper,
+    iconBox: "bg-blue-50 text-blue-600 ring-1 ring-inset ring-blue-600/15",
+    spark: "text-blue-500",
+  },
+  {
+    label: "Sektor KBLI Terbesar",
+    value: "37.80%",
+    note: "KBLI B • Tambang Batubara",
+    noteClass: "text-slate-500",
+    icon: Pickaxe,
+    iconBox: "bg-slate-100 text-slate-700 ring-1 ring-inset ring-slate-300/50",
+    spark: "text-slate-500",
+  },
+  {
+    label: "Pengeluaran Dominan",
+    value: "49.98%",
+    note: "Pos 6 • Net Ekspor Antardaerah",
+    noteClass: "text-emerald-700",
+    icon: TrendingUp,
+    iconBox: "bg-emerald-50 text-emerald-600 ring-1 ring-inset ring-emerald-600/15",
+    spark: "text-emerald-500",
+  },
+  {
+    label: "Radar Scraper H-1",
+    value: "5 Portal",
+    note: "05:00 WITA Aktif",
+    noteClass: "text-blue-700 num",
+    icon: Radio,
+    iconBox: "bg-amber-50 text-amber-600 ring-1 ring-inset ring-amber-600/15",
+    spark: "text-amber-500",
+  },
+];
+
 export function MuseWorkspace({ initialRole = "public" }: MuseWorkspaceProps) {
   const [currentTab, setCurrentTab] = useState<MuseViewTab>("overview");
   const [userRole, setUserRole] = useState<"admin" | "public">(initialRole);
@@ -267,9 +306,9 @@ export function MuseWorkspace({ initialRole = "public" }: MuseWorkspaceProps) {
   };
 
   return (
-    <div className="bg-[#F1F5F9] text-[#1C2434] font-sans antialiased min-h-screen flex selection:bg-[#3C50E0]/20 selection:text-[#3C50E0]">
-      
-      {/* 1. NextAdmin Dark Sidebar (Shown ONLY for Admin) */}
+    <div className="ui-canvas text-slate-900 font-sans antialiased min-h-screen flex selection:bg-blue-600/20 selection:text-blue-900">
+
+      {/* 1. Dark Sidebar (Shown ONLY for Admin) */}
       <MuseSidebar
         currentTab={currentTab}
         onTabChange={setCurrentTab}
@@ -279,12 +318,8 @@ export function MuseWorkspace({ initialRole = "public" }: MuseWorkspaceProps) {
         onOpenBlueprintModal={() => setIsBlueprintModalOpen(true)}
       />
 
-      {/* 2. Main Canvas Area (Full width for Public, Sidebar-aligned for Admin) */}
-      <main className={`flex-1 p-4 lg:p-6 overflow-y-auto w-full space-y-6 ${
-        isAdmin ? "max-w-7xl mx-auto" : "max-w-6xl mx-auto"
-      }`}>
-        
-        {/* Navbar */}
+      {/* 2. Main column: sticky header + widescreen content container */}
+      <div className="flex-1 min-w-0 flex flex-col">
         <MuseNavbar
           currentTab={currentTab}
           onTabChange={setCurrentTab}
@@ -293,6 +328,8 @@ export function MuseWorkspace({ initialRole = "public" }: MuseWorkspaceProps) {
           onExportExcel={handleExportExcel}
           onOpenSubmitModal={() => setIsSubmitModalOpen(true)}
         />
+
+      <main className="w-full max-w-[1440px] mx-auto px-6 lg:px-10 py-6 lg:py-8 space-y-6">
 
         {/* ======================================================== */}
         {/* 1. PUBLIC VIEW: Clean Static-Style News Tabulation       */}
@@ -311,64 +348,39 @@ export function MuseWorkspace({ initialRole = "public" }: MuseWorkspaceProps) {
             {currentTab === "overview" && (
               <div className="space-y-6">
                 
-                {/* 4 NextAdmin Metric Cards */}
-                <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <div className="bg-white rounded-xl p-4 shadow-[0_1px_3px_0_rgba(0,0,0,0.06)] border border-[#E2E8F0] flex items-center justify-between">
-                    <div>
-                      <span className="text-xs text-[#64748B] font-semibold block">ODON Terverifikasi</span>
-                      <h3 className="text-xl font-bold text-[#1C2434] mt-1 font-mono">156 Hari</h3>
-                      <span className="text-[11px] text-[#219653] font-bold block mt-1">
-                        Edisi 10 Nov (H-1) Siap
-                      </span>
-                    </div>
-                    <div className="w-12 h-12 rounded-xl bg-[#3C50E0]/10 text-[#3C50E0] flex items-center justify-center font-bold">
-                      <Newspaper className="w-6 h-6" />
-                    </div>
-                  </div>
-
-                  <div className="bg-white rounded-xl p-4 shadow-[0_1px_3px_0_rgba(0,0,0,0.06)] border border-[#E2E8F0] flex items-center justify-between">
-                    <div>
-                      <span className="text-xs text-[#64748B] font-semibold block">Sektor KBLI Terbesar</span>
-                      <h3 className="text-xl font-bold text-[#1C2434] mt-1 font-mono">37.80%</h3>
-                      <span className="text-[11px] text-[#64748B] font-medium block mt-1">
-                        KBLI B • Tambang Batubara
-                      </span>
-                    </div>
-                    <div className="w-12 h-12 rounded-xl bg-slate-100 text-[#1C2434] flex items-center justify-center font-bold">
-                      <Pickaxe className="w-6 h-6" />
-                    </div>
-                  </div>
-
-                  <div className="bg-white rounded-xl p-4 shadow-[0_1px_3px_0_rgba(0,0,0,0.06)] border border-[#E2E8F0] flex items-center justify-between">
-                    <div>
-                      <span className="text-xs text-[#64748B] font-semibold block">Pengeluaran Dominan</span>
-                      <h3 className="text-xl font-bold text-[#1C2434] mt-1 font-mono">49.98%</h3>
-                      <span className="text-[11px] text-[#219653] font-bold block mt-1">
-                        Pos 6 • Net Ekspor Antardaerah
-                      </span>
-                    </div>
-                    <div className="w-12 h-12 rounded-xl bg-[#219653]/10 text-[#219653] flex items-center justify-center font-bold">
-                      <TrendingUp className="w-6 h-6" />
-                    </div>
-                  </div>
-
-                  <div className="bg-white rounded-xl p-4 shadow-[0_1px_3px_0_rgba(0,0,0,0.06)] border border-[#E2E8F0] flex items-center justify-between">
-                    <div>
-                      <span className="text-xs text-[#64748B] font-semibold block">Radar Scraper H-1</span>
-                      <h3 className="text-xl font-bold text-[#1C2434] mt-1 font-mono">5 Portal</h3>
-                      <span className="text-[11px] text-[#3C50E0] font-mono font-medium block mt-1">
-                        05:00 WITA Aktif
-                      </span>
-                    </div>
-                    <div className="w-12 h-12 rounded-xl bg-[#FFA70B]/10 text-[#FFA70B] flex items-center justify-center font-bold">
-                      <Radio className="w-6 h-6" />
-                    </div>
-                  </div>
+                {/* KPI cards */}
+                <section aria-label="Ringkasan KPI" className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 lg:gap-6">
+                  {KPI_CARDS.map((k) => {
+                    const Icon = k.icon;
+                    return (
+                      <div key={k.label} className="ui-card ui-card-interactive relative overflow-hidden p-5">
+                        <svg
+                          aria-hidden="true"
+                          viewBox="0 0 120 40"
+                          preserveAspectRatio="none"
+                          className={`absolute inset-x-0 bottom-0 h-10 w-full opacity-60 ${k.spark}`}
+                        >
+                          <path d="M0 32 C 15 30, 22 20, 38 22 S 62 10, 78 14 S 104 4, 120 8 L120 40 L0 40 Z" fill="currentColor" fillOpacity="0.12" />
+                          <path d="M0 32 C 15 30, 22 20, 38 22 S 62 10, 78 14 S 104 4, 120 8" fill="none" stroke="currentColor" strokeWidth="1.5" strokeOpacity="0.45" />
+                        </svg>
+                        <div className="relative flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <span className="text-xs text-slate-500 font-semibold block">{k.label}</span>
+                            <h3 className="text-2xl font-bold text-slate-900 mt-1.5 num tracking-tight">{k.value}</h3>
+                            <span className={`text-xs font-medium block mt-1.5 ${k.noteClass}`}>{k.note}</span>
+                          </div>
+                          <div className={`rounded-xl p-3 ${k.iconBox}`}>
+                            <Icon className="w-5 h-5" aria-hidden="true" />
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </section>
 
                 {/* Hero Spotlight Layout */}
-                <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  <div className="lg:col-span-2">
+                <section className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                  <div className="xl:col-span-2">
                     <OdonHeroSpotlight
                       data={spotlight}
                       isAdmin={isAdmin}
@@ -424,12 +436,12 @@ export function MuseWorkspace({ initialRole = "public" }: MuseWorkspaceProps) {
             {currentTab === "pdrb" && (
               <div className="space-y-6">
                 <PdrbWeightsCard />
-                <div className="bg-white rounded-xl p-6 shadow-[0_1px_3px_0_rgba(0,0,0,0.06)] border border-[#E2E8F0]">
-                  <h4 className="text-sm font-bold text-[#1C2434] mb-2">
+                <div className="ui-card p-6 space-y-2">
+                  <h4 className="ui-h2">
                     Catatan Internal Analis: Single Source of Truth Bobot PDRB KTT 2025
                   </h4>
-                  <p className="text-xs text-[#64748B] leading-relaxed">
-                    Sesuai prinsip kehati-hatian statistik BPS, berita media massa adalah sinyal arah fenomena, bukan data dukung resmi mutlak. Prioritaskan 4 sektor utama Tana Tidung: <b>Batubara (37.80%)</b>, <b>Sawit (23.41%)</b>, <b>Konstruksi (18.50%)</b>, dan <b>Kehutanan (8.44%)</b> yang membentuk 88.14% PDRB daerah.
+                  <p className="text-sm text-slate-600 leading-relaxed max-w-prose">
+                    Sesuai prinsip kehati-hatian statistik BPS, berita media massa adalah sinyal arah fenomena, bukan data dukung resmi mutlak. Prioritaskan 4 sektor utama Tana Tidung: <b className="font-semibold text-slate-900 num">Batubara (37.80%)</b>, <b className="font-semibold text-slate-900 num">Sawit (23.41%)</b>, <b className="font-semibold text-slate-900 num">Konstruksi (18.50%)</b>, dan <b className="font-semibold text-slate-900 num">Kehutanan (8.44%)</b> yang membentuk <span className="num">88.14%</span> PDRB daerah.
                   </p>
                 </div>
               </div>
@@ -437,24 +449,27 @@ export function MuseWorkspace({ initialRole = "public" }: MuseWorkspaceProps) {
 
             {/* Admin Tab 6: Kompilasi Draf Narasi BRS */}
             {currentTab === "narratives" && (
-              <div className="bg-white rounded-xl p-6 shadow-[0_1px_3px_0_rgba(0,0,0,0.06)] border border-[#E2E8F0] space-y-4">
-                <div className="flex items-center justify-between pb-3 border-b border-[#E2E8F0]">
+              <div className="ui-card overflow-hidden">
+                <div className="ui-card-header">
                   <div>
-                    <h3 className="text-sm font-bold text-[#1C2434]">Kompilasi Narasi Fenomena Triwulanan BRS</h3>
-                    <p className="text-xs text-[#64748B]">Format siap pakai untuk naskah rilis resmi BPS Kabupaten Tana Tidung</p>
+                    <h3 className="ui-h1">Kompilasi Narasi Fenomena Triwulanan BRS</h3>
+                    <p className="ui-muted">Format siap pakai untuk naskah rilis resmi BPS Kabupaten Tana Tidung</p>
                   </div>
                   <button
+                    type="button"
                     onClick={() => alert("Menyalin kompilasi narasi triwulanan ke clipboard...")}
-                    className="px-3.5 py-1.5 rounded-lg bg-[#3C50E0] text-white text-xs font-semibold shadow-sm cursor-pointer"
+                    className="ui-btn ui-btn-primary"
                   >
                     Salin Narasi Lengkap
                   </button>
                 </div>
-                <div className="p-4 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0] text-xs text-[#1C2434] leading-relaxed space-y-3 font-mono">
-                  <p><b>[TRIWULAN IV-2026 - LAPANGAN USAHA B: PERTAMBANGAN BATUBARA]</b><br/>
-                  Pada Triwulan IV-2026, aktivitas pengapalan batubara melalui Terminal Khusus Bebatu mencatatkan lonjakan volume ekspor antar daerah sebesar 14.8% (Q-o-Q). Hal ini didorong oleh membaiknya cuaca perairan Sungai Sesayap dan peningkatan kuota produksi akhir tahun.</p>
-                  <p><b>[TRIWULAN IV-2026 - LAPANGAN USAHA F: KONSTRUKSI]</b><br/>
-                  Realisasi fisik pembangunan Pusat Pemerintahan Terpadu Tana Tidung mencapai 82% hingga awal November 2026. Penyerapan belanja modal konstruksi gedung dan jalan lingkar pemkab mengerek komponen PMTB dan pertumbuhan sektor konstruksi.</p>
+                <div className="p-6">
+                  <div className="p-5 rounded-xl bg-slate-50/90 border-l-2 border-slate-300 rounded-l-none text-sm text-slate-700 leading-relaxed space-y-4 max-w-4xl">
+                    <p><b className="font-semibold text-slate-900">[TRIWULAN IV-2026 - LAPANGAN USAHA B: PERTAMBANGAN BATUBARA]</b><br/>
+                    Pada Triwulan IV-2026, aktivitas pengapalan batubara melalui Terminal Khusus Bebatu mencatatkan lonjakan volume ekspor antar daerah sebesar <span className="num">14.8%</span> (Q-o-Q). Hal ini didorong oleh membaiknya cuaca perairan Sungai Sesayap dan peningkatan kuota produksi akhir tahun.</p>
+                    <p><b className="font-semibold text-slate-900">[TRIWULAN IV-2026 - LAPANGAN USAHA F: KONSTRUKSI]</b><br/>
+                    Realisasi fisik pembangunan Pusat Pemerintahan Terpadu Tana Tidung mencapai <span className="num">82%</span> hingga awal November 2026. Penyerapan belanja modal konstruksi gedung dan jalan lingkar pemkab mengerek komponen PMTB dan pertumbuhan sektor konstruksi.</p>
+                  </div>
                 </div>
               </div>
             )}
@@ -471,6 +486,7 @@ export function MuseWorkspace({ initialRole = "public" }: MuseWorkspaceProps) {
         )}
 
       </main>
+      </div>
 
       {/* Global Dialogs & Modals */}
       <CurationModal

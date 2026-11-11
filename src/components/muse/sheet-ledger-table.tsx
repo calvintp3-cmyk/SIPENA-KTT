@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { Download, Edit3, CheckCircle, ExternalLink, Filter } from "lucide-react";
+import { Download, Edit3, CheckCircle, ExternalLink } from "lucide-react";
 
 export interface OdonLedgerRow {
   id: string;
@@ -36,7 +36,7 @@ export function SheetLedgerTable({
 }: SheetLedgerTableProps) {
   const [triwulanFilter, setTriwulanFilter] = useState<string>("all");
   const [kbliFilter, setKbliFilter] = useState<string>("all");
-  const [searchFilter, setSearchFilter] = useState<string>("");
+  const [searchFilter] = useState<string>("");
 
   const filteredRows = useMemo(() => {
     return rows.filter((r) => {
@@ -54,30 +54,27 @@ export function SheetLedgerTable({
   }, [rows, triwulanFilter, kbliFilter, searchFilter]);
 
   return (
-    <section className="bg-white rounded-2xl shadow-[0_1px_3px_0_rgba(0,0,0,0.05),0_20px_25px_-5px_rgba(0,0,0,0.04)] border border-[#f0f0f0] overflow-hidden">
-      
-      {/* Table Header Controls */}
-      <div className="p-5 border-b border-[#f0f0f0] flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <h3 className="text-sm font-bold text-[#141414]">
-              Buku Kerja ODON 2026 (Format Resmi Sheet 6503)
-            </h3>
-            <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-xs font-mono font-bold">
+    <section className="ui-card overflow-hidden">
+      {/* Controls */}
+      <div className="ui-card-header">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <h3 className="ui-h1">Buku Kerja ODON 2026 (Format Resmi Sheet 6503)</h3>
+            <span className="ui-badge ui-badge-success num">
               {filteredRows.length} Entri Ditampilkan
             </span>
           </div>
-          <p className="text-xs text-[#8c8c8c] mt-0.5">
+          <p className="ui-muted mt-0.5">
             Struktur kolom 100% identik dengan spreadsheet kompilasi BPS Tana Tidung.
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5">
-          {/* Triwulan Filter */}
           <select
+            aria-label="Filter triwulan"
             value={triwulanFilter}
             onChange={(e) => setTriwulanFilter(e.target.value)}
-            className="h-8 px-3 rounded-lg bg-slate-50 border border-slate-200 text-xs text-[#141414] focus:outline-none"
+            className="ui-select-sm"
           >
             <option value="all">Semua Triwulan</option>
             <option value="Q4">Triwulan IV (Okt-Des)</option>
@@ -86,11 +83,11 @@ export function SheetLedgerTable({
             <option value="Q1">Triwulan I (Jan-Mar)</option>
           </select>
 
-          {/* KBLI Filter */}
           <select
+            aria-label="Filter sektor KBLI"
             value={kbliFilter}
             onChange={(e) => setKbliFilter(e.target.value)}
-            className="h-8 px-3 rounded-lg bg-slate-50 border border-slate-200 text-xs text-[#141414] focus:outline-none"
+            className="ui-select-sm"
           >
             <option value="all">Semua Sektor KBLI</option>
             <option value="B">KBLI B • Tambang Batubara (37.8%)</option>
@@ -100,112 +97,129 @@ export function SheetLedgerTable({
             <option value="G">KBLI G • Perdagangan (5.1%)</option>
           </select>
 
-          {/* Download Excel */}
-          <button
-            onClick={onExportExcel}
-            className="h-8 px-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-[0_4px_14px_0_rgba(24,144,255,0.35)] cursor-pointer"
-          >
-            <Download className="w-3.5 h-3.5" />
+          <button type="button" onClick={onExportExcel} className="ui-btn ui-btn-primary">
+            <Download className="w-3.5 h-3.5" aria-hidden="true" />
             <span>Download .XLSX</span>
           </button>
         </div>
       </div>
 
-      {/* Table Body */}
+      {/* Table: fixed layout with proportional columns, fits the container on desktop */}
       <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse text-xs">
+        <table className="ui-table min-w-[880px]">
+          <colgroup>
+            <col style={{ width: "5%" }} />
+            <col style={{ width: "10%" }} />
+            <col style={{ width: "11%" }} />
+            <col style={{ width: "30%" }} />
+            <col style={{ width: "16%" }} />
+            <col style={{ width: "16%" }} />
+            <col style={{ width: "12%" }} />
+          </colgroup>
           <thead>
-            <tr className="bg-slate-50 border-b border-[#f0f0f0] text-[11px] uppercase tracking-wider text-[#8c8c8c] font-bold">
-              <th className="py-3 px-4 w-12 text-center">No</th>
-              <th className="py-3 px-4 w-28">Tanggal (H-1)</th>
-              <th className="py-3 px-4 w-32">Kanal Portal</th>
-              <th className="py-3 px-6 min-w-[340px]">Judul Berita & Ringkasan Fenomena</th>
-              <th className="py-3 px-4 w-44">Sisi Lapangan Usaha (KBLI)</th>
-              <th className="py-3 px-4 w-48">Sisi Pengeluaran</th>
-              <th className="py-3 px-4 w-28 text-center">Kurasi Nerwilis</th>
+            <tr>
+              <th scope="col" className="text-center">No</th>
+              <th scope="col">Tanggal (H-1)</th>
+              <th scope="col">Kanal Portal</th>
+              <th scope="col">Judul Berita & Ringkasan Fenomena</th>
+              <th scope="col">Sisi Lapangan Usaha (KBLI)</th>
+              <th scope="col">Sisi Pengeluaran</th>
+              <th scope="col" className="text-center">Kurasi Nerwilis</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[#f0f0f0] text-[#595959]">
+          <tbody>
             {filteredRows.map((row, idx) => (
-              <tr key={row.id} className="hover:bg-slate-50 transition-colors">
-                <td className="py-3.5 px-4 text-center font-mono font-bold text-[#141414]">
-                  {idx + 1}
-                </td>
-                <td className="py-3.5 px-4 font-mono font-semibold text-[#141414]">
-                  {row.entryDate}
-                  <span className="block text-[10px] text-[#8c8c8c] font-sans font-normal">
-                    Rilis: {row.releaseDate}
+              <tr key={row.id}>
+                <td className="text-center num font-semibold text-slate-500">{idx + 1}</td>
+                <td>
+                  <span className="num font-semibold text-slate-900 text-xs">{row.entryDate}</span>
+                  <span className="block text-[11px] text-slate-500 mt-0.5">
+                    Rilis: <span className="num">{row.releaseDate}</span>
                   </span>
                 </td>
-                <td className="py-3.5 px-4">
-                  <span className="px-2 py-0.5 rounded font-bold text-[11px] bg-blue-50 text-blue-700">
-                    {row.source}
-                  </span>
+                <td>
+                  <span className="ui-badge ui-badge-info whitespace-normal">{row.source}</span>
                 </td>
-                <td className="py-3.5 px-6">
+                <td>
                   <a
                     href={row.sourceUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="font-bold text-[#141414] hover:text-blue-600 transition-colors leading-snug block"
+                    className="font-semibold text-slate-900 hover:text-blue-700 transition-colors leading-snug block"
                   >
                     {row.title}
                   </a>
-                  <p className="text-[11px] text-[#8c8c8c] mt-1 line-clamp-2">
+                  <p className="text-xs text-slate-600 leading-relaxed mt-1 line-clamp-2">
                     {row.summary}
                   </p>
                 </td>
-                <td className="py-3.5 px-4">
-                  <span className="px-2 py-0.5 rounded-full bg-slate-100 text-[#141414] font-semibold text-[11px] block w-fit mb-1">
-                    KBLI {row.kbliCategory} ({row.kbliCode})
-                  </span>
-                  <span className="text-[10px] text-[#8c8c8c]">{row.kbliDesc}</span>
+                <td>
+                  <div className="flex items-start gap-2.5">
+                    <span className="ui-kbli" aria-hidden="true">{row.kbliCategory}</span>
+                    <div className="min-w-0">
+                      <span className="block text-xs font-semibold text-slate-900">
+                        KBLI {row.kbliCategory} (<span className="num">{row.kbliCode}</span>)
+                      </span>
+                      <span className="block text-[11px] text-slate-500 mt-0.5 num">{row.kbliDesc}</span>
+                    </div>
+                  </div>
                 </td>
-                <td className="py-3.5 px-4">
-                  <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 font-semibold text-[11px] block w-fit mb-1">
+                <td>
+                  <span className="ui-badge ui-badge-success whitespace-normal num">
                     {row.expenditureCode}
                   </span>
-                  <span className="text-[10px] text-[#8c8c8c]">{row.expenditureDesc}</span>
+                  <span className="block text-[11px] text-slate-500 mt-1 num">
+                    {row.expenditureDesc}
+                  </span>
                 </td>
-                <td className="py-3.5 px-4 text-center">
+                <td className="text-center">
                   {isAdmin ? (
                     <button
+                      type="button"
                       onClick={() => onEditRow?.(row.id)}
-                      className="p-1 rounded-md hover:bg-slate-200 text-[#141414] transition-colors cursor-pointer"
+                      className="ui-icon-btn"
                       title="Koreksi Klasifikasi"
+                      aria-label={`Koreksi klasifikasi: ${row.title}`}
                     >
-                      <Edit3 className="w-3.5 h-3.5" />
+                      <Edit3 className="w-3.5 h-3.5" aria-hidden="true" />
                     </button>
                   ) : (
-                    <span className="inline-flex items-center gap-1 text-[10px] text-emerald-600 font-bold">
-                      <CheckCircle className="w-3 h-3" />
+                    <span className="ui-badge ui-badge-success">
+                      <CheckCircle className="w-3 h-3" aria-hidden="true" />
                       Terverifikasi
                     </span>
                   )}
                 </td>
               </tr>
             ))}
+            {filteredRows.length === 0 && (
+              <tr>
+                <td colSpan={7} className="!py-12 text-center text-slate-500">
+                  Tidak ada entri yang cocok dengan filter yang dipilih.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
 
-      {/* Pagination Footer */}
-      <div className="p-4 border-t border-[#f0f0f0] flex items-center justify-between text-xs text-[#8c8c8c]">
-        <span>Total {filteredRows.length} Berita ODON Terverifikasi</span>
-        <div className="flex items-center gap-1">
-          <button className="px-2.5 py-1 rounded border border-slate-200 hover:bg-slate-100 text-[#141414]">
+      {/* Footer */}
+      <div className="px-6 py-3.5 border-t border-slate-200/80 bg-slate-50/60 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-600">
+        <span>
+          Total <span className="num font-semibold">{filteredRows.length}</span> Berita ODON Terverifikasi
+        </span>
+        <div className="flex items-center gap-1.5">
+          <button type="button" disabled className="ui-btn ui-btn-secondary !min-h-8 !px-3">
             Sebelumnya
           </button>
-          <button className="px-2.5 py-1 rounded bg-blue-600 text-white font-bold">
+          <span className="inline-flex items-center justify-center min-w-8 h-8 rounded-lg bg-blue-600 text-white font-bold num">
             1
-          </button>
-          <button className="px-2.5 py-1 rounded border border-slate-200 hover:bg-slate-100 text-[#141414]">
+          </span>
+          <button type="button" disabled className="ui-btn ui-btn-secondary !min-h-8 !px-3">
             Selanjutnya
           </button>
         </div>
       </div>
-
     </section>
   );
 }
-

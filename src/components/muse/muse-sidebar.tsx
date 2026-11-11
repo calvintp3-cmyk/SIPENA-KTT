@@ -13,7 +13,6 @@ import {
   BookOpen,
   Eye,
   Code2,
-  Sparkles,
 } from "lucide-react";
 
 export type MuseViewTab =
@@ -37,6 +36,51 @@ interface MuseSidebarProps {
   onOpenBlueprintModal: () => void;
 }
 
+type PillTone = "blue" | "amber" | "green" | "neutral";
+
+export interface MuseNavItem {
+  tab: MuseViewTab;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  pill?: string;
+  pillTone?: PillTone;
+  live?: boolean;
+}
+
+export const MUSE_NAV_GROUPS: { title: string; items: MuseNavItem[] }[] = [
+  {
+    title: "Operasional Nerwilis",
+    items: [
+      { tab: "overview", label: "Dashboard Harian", icon: LayoutDashboard, live: true },
+      { tab: "curation", label: "Meja Kurasi AI", icon: CheckSquare, pill: "8 Antrean", pillTone: "blue" },
+      { tab: "proposals", label: "Moderasi Usulan OPD", icon: Inbox, pill: "3 Usulan", pillTone: "amber" },
+      { tab: "ledger", label: "Buku Kerja Sheet 6503", icon: FileSpreadsheet, pill: ".xlsx", pillTone: "green" },
+    ],
+  },
+  {
+    title: "Analisis & Standar",
+    items: [
+      { tab: "pdrb", label: "Bobot PDRB (Internal)", icon: Layers, pill: "88.1%", pillTone: "neutral" },
+      { tab: "narratives", label: "Draf Narasi BRS", icon: FileText },
+      { tab: "kbli", label: "Kamus KBLI 2025", icon: ArrowLeftRight },
+    ],
+  },
+  {
+    title: "Otomasi Sistem",
+    items: [
+      { tab: "scrapers", label: "Crawler 5 Portal", icon: Radar, pill: "05:00", pillTone: "green" },
+      { tab: "methodology", label: "Pedoman SOP ODON", icon: BookOpen },
+    ],
+  },
+];
+
+const PILL_CLASS: Record<PillTone, string> = {
+  blue: "ui-nav-pill ui-nav-pill-blue",
+  amber: "ui-nav-pill ui-nav-pill-amber",
+  green: "ui-nav-pill ui-nav-pill-green",
+  neutral: "ui-nav-pill",
+};
+
 export function MuseSidebar({
   currentTab,
   onTabChange,
@@ -46,232 +90,100 @@ export function MuseSidebar({
 }: MuseSidebarProps) {
   const isAdmin = userRole === "admin";
 
-  // For public mode, the sidebar is completely hidden (clean full-width portal)
   if (!isAdmin) {
     return null;
   }
 
   return (
-    <aside className="w-64 my-4 ml-4 hidden lg:flex flex-col justify-between shrink-0 h-[calc(100vh-2rem)] sticky top-4 z-30">
-      
-      {/* NextAdmin Dark Slate Sidebar Container */}
-      <div className="bg-[#1C2434] text-[#DEE4EE] rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.15)] border border-[#2E3A47] p-4 flex flex-col h-full overflow-hidden">
-        
-        {/* Brand Satker BPS 6504 Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-[#2E3A47]">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-[#3C50E0] flex items-center justify-center text-white font-bold text-xs shadow-md">
-              <span>65</span>
+    <aside
+      aria-label="Navigasi admin"
+      className="hidden lg:flex w-72 shrink-0 flex-col h-screen sticky top-0 z-40 bg-[#0B0F19] text-slate-300 border-r border-slate-800/80"
+    >
+      {/* Brand */}
+      <div className="flex items-center gap-3 px-5 h-16 shrink-0 border-b border-slate-800/80">
+        <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white font-bold text-xs num shadow-lg shadow-blue-600/30">
+          65
+        </div>
+        <div className="min-w-0">
+          <h1 className="text-sm font-bold text-white tracking-tight flex items-center gap-2">
+            <span>SIPENA-KTT</span>
+            <span className="ui-nav-pill ui-nav-pill-blue !ml-0">ADMIN</span>
+          </h1>
+          <p className="text-[11px] text-slate-400 font-medium truncate">
+            BPS Kab. Tana Tidung (65.04)
+          </p>
+        </div>
+      </div>
+
+      {/* Navigation */}
+      <nav className="flex-1 overflow-y-auto px-4 py-5 space-y-6">
+        {MUSE_NAV_GROUPS.map((group) => (
+          <div key={group.title} className="space-y-1">
+            <p className="px-3 pb-1 text-[11px] font-semibold tracking-wide text-slate-500">
+              {group.title}
+            </p>
+            {group.items.map((item) => {
+              const Icon = item.icon;
+              const active = currentTab === item.tab;
+              return (
+                <button
+                  key={item.tab}
+                  type="button"
+                  onClick={() => onTabChange(item.tab)}
+                  aria-current={active ? "page" : undefined}
+                  className="ui-nav-item"
+                >
+                  <Icon
+                    className={`w-4 h-4 shrink-0 ${active ? "text-blue-400" : "text-slate-500"}`}
+                  />
+                  <span className="truncate">{item.label}</span>
+                  {item.live && (
+                    <span
+                      aria-hidden="true"
+                      className="ml-auto w-1.5 h-1.5 rounded-full bg-emerald-400 ui-dot-live"
+                    />
+                  )}
+                  {item.pill && (
+                    <span className={PILL_CLASS[item.pillTone ?? "neutral"]}>{item.pill}</span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        ))}
+      </nav>
+
+      {/* Footer */}
+      <div className="shrink-0 p-4 border-t border-slate-800/80 space-y-3">
+        <div className="p-2.5 rounded-xl bg-slate-900/70 border border-slate-800 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-8 h-8 rounded-full bg-blue-600/20 text-blue-300 ring-1 ring-blue-500/30 font-bold flex items-center justify-center text-[11px] shrink-0">
+              ADM
             </div>
             <div className="min-w-0">
-              <h1 className="text-sm font-bold text-white tracking-tight flex items-center gap-1.5">
-                <span>SIPENA-KTT</span>
-                <span className="text-[10px] px-1.5 py-0.2 rounded font-mono font-bold bg-[#3C50E0]/30 text-[#80CAEE] border border-[#3C50E0]/50">
-                  ADMIN
-                </span>
-              </h1>
-              <p className="text-[11px] text-[#8A99AD] font-medium truncate">
-                BPS Kab. Tana Tidung (65.04)
-              </p>
+              <p className="text-xs font-semibold text-white truncate">Tim Nerwilis 6504</p>
+              <p className="text-[11px] text-slate-400 truncate">Analis PDRB KTT</p>
             </div>
           </div>
-        </div>
-
-        {/* Enterprise Grouped Navigation (NextAdmin Architecture) */}
-        <nav className="flex-1 overflow-y-auto py-3 space-y-5 text-xs custom-scrollbar">
-          
-          {/* GROUP 1: OPERASIONAL ODON */}
-          <div className="space-y-1">
-            <p className="px-3 text-[10px] font-bold uppercase tracking-wider text-[#8A99AD]">
-              Operasional Nerwilis
-            </p>
-
-            {/* Menu 1: Dashboard Harian */}
-            <button
-              onClick={() => onTabChange("overview")}
-              className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all cursor-pointer ${
-                currentTab === "overview"
-                  ? "bg-[#333A48] text-white font-semibold"
-                  : "text-[#DEE4EE] hover:bg-[#333A48]/60 hover:text-white"
-              }`}
-            >
-              <LayoutDashboard className={`w-4 h-4 ${currentTab === "overview" ? "text-[#3C50E0]" : "text-[#8A99AD]"}`} />
-              <span className="flex-1 text-left">Dashboard Harian</span>
-              <span className="w-1.5 h-1.5 rounded-full bg-[#219653]" />
-            </button>
-
-            {/* Menu 2: Meja Kurasi AI */}
-            <button
-              onClick={() => onTabChange("curation")}
-              className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all cursor-pointer ${
-                currentTab === "curation"
-                  ? "bg-[#333A48] text-white font-semibold"
-                  : "text-[#DEE4EE] hover:bg-[#333A48]/60 hover:text-white"
-              }`}
-            >
-              <CheckSquare className={`w-4 h-4 ${currentTab === "curation" ? "text-[#3C50E0]" : "text-[#8A99AD]"}`} />
-              <span className="flex-1 text-left">Meja Kurasi AI</span>
-              <span className="text-[10px] px-1.5 py-0.5 rounded font-mono font-bold bg-[#3C50E0] text-white">
-                8 Antrean
-              </span>
-            </button>
-
-            {/* Menu 3: Moderasi Usulan Publik & OPD */}
-            <button
-              onClick={() => onTabChange("proposals")}
-              className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all cursor-pointer ${
-                currentTab === "proposals"
-                  ? "bg-[#333A48] text-white font-semibold"
-                  : "text-[#DEE4EE] hover:bg-[#333A48]/60 hover:text-white"
-              }`}
-            >
-              <Inbox className={`w-4 h-4 ${currentTab === "proposals" ? "text-[#FFA70B]" : "text-[#8A99AD]"}`} />
-              <span className="flex-1 text-left">Moderasi Usulan OPD</span>
-              <span className="text-[10px] px-1.5 py-0.5 rounded font-mono font-bold bg-[#FFA70B]/20 text-[#FFA70B]">
-                3 Usulan
-              </span>
-            </button>
-
-            {/* Menu 4: Buku Kerja Master Sheet 6503 */}
-            <button
-              onClick={() => onTabChange("ledger")}
-              className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all cursor-pointer ${
-                currentTab === "ledger"
-                  ? "bg-[#333A48] text-white font-semibold"
-                  : "text-[#DEE4EE] hover:bg-[#333A48]/60 hover:text-white"
-              }`}
-            >
-              <FileSpreadsheet className={`w-4 h-4 ${currentTab === "ledger" ? "text-[#219653]" : "text-[#8A99AD]"}`} />
-              <span className="flex-1 text-left">Buku Kerja Sheet 6503</span>
-              <span className="text-[10px] px-1.5 py-0.5 rounded font-mono font-bold bg-[#219653]/20 text-[#219653]">
-                .xlsx
-              </span>
-            </button>
-          </div>
-
-          {/* GROUP 2: ANALISIS & STANDAR */}
-          <div className="space-y-1">
-            <p className="px-3 text-[10px] font-bold uppercase tracking-wider text-[#8A99AD]">
-              Analisis & Standar
-            </p>
-
-            {/* Menu 5: Matriks Bobot PDRB (Internal) */}
-            <button
-              onClick={() => onTabChange("pdrb")}
-              className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all cursor-pointer ${
-                currentTab === "pdrb"
-                  ? "bg-[#333A48] text-white font-semibold"
-                  : "text-[#DEE4EE] hover:bg-[#333A48]/60 hover:text-white"
-              }`}
-            >
-              <Layers className={`w-4 h-4 ${currentTab === "pdrb" ? "text-[#3C50E0]" : "text-[#8A99AD]"}`} />
-              <span className="flex-1 text-left">Bobot PDRB (Internal)</span>
-              <span className="text-[10px] px-1.5 py-0.5 rounded font-mono font-bold bg-[#333A48] text-[#80CAEE]">
-                88.1%
-              </span>
-            </button>
-
-            {/* Menu 6: Draf Narasi Fenomena BRS (Internal) */}
-            <button
-              onClick={() => onTabChange("narratives")}
-              className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all cursor-pointer ${
-                currentTab === "narratives"
-                  ? "bg-[#333A48] text-white font-semibold"
-                  : "text-[#DEE4EE] hover:bg-[#333A48]/60 hover:text-white"
-              }`}
-            >
-              <FileText className={`w-4 h-4 ${currentTab === "narratives" ? "text-[#3C50E0]" : "text-[#8A99AD]"}`} />
-              <span className="flex-1 text-left">Draf Narasi BRS</span>
-            </button>
-
-            {/* Menu 7: Kamus Transisi KBLI 2025 */}
-            <button
-              onClick={() => onTabChange("kbli")}
-              className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all cursor-pointer ${
-                currentTab === "kbli"
-                  ? "bg-[#333A48] text-white font-semibold"
-                  : "text-[#DEE4EE] hover:bg-[#333A48]/60 hover:text-white"
-              }`}
-            >
-              <ArrowLeftRight className={`w-4 h-4 ${currentTab === "kbli" ? "text-[#3C50E0]" : "text-[#8A99AD]"}`} />
-              <span className="flex-1 text-left">Kamus KBLI 2025</span>
-            </button>
-          </div>
-
-          {/* GROUP 3: OTOMASI SISTEM */}
-          <div className="space-y-1">
-            <p className="px-3 text-[10px] font-bold uppercase tracking-wider text-[#8A99AD]">
-              Otomasi Sistem
-            </p>
-
-            {/* Menu 8: Radar Scraper 5 Portal */}
-            <button
-              onClick={() => onTabChange("scrapers")}
-              className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all cursor-pointer ${
-                currentTab === "scrapers"
-                  ? "bg-[#333A48] text-white font-semibold"
-                  : "text-[#DEE4EE] hover:bg-[#333A48]/60 hover:text-white"
-              }`}
-            >
-              <Radar className={`w-4 h-4 ${currentTab === "scrapers" ? "text-[#219653]" : "text-[#8A99AD]"}`} />
-              <span className="flex-1 text-left">Crawler 5 Portal</span>
-              <span className="text-[10px] font-mono font-bold text-[#219653]">
-                05:00
-              </span>
-            </button>
-
-            {/* Menu 9: Buku Pedoman SOP Nerwilis */}
-            <button
-              onClick={() => onTabChange("methodology")}
-              className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all cursor-pointer ${
-                currentTab === "methodology"
-                  ? "bg-[#333A48] text-white font-semibold"
-                  : "text-[#DEE4EE] hover:bg-[#333A48]/60 hover:text-white"
-              }`}
-            >
-              <BookOpen className={`w-4 h-4 ${currentTab === "methodology" ? "text-[#3C50E0]" : "text-[#8A99AD]"}`} />
-              <span className="flex-1 text-left">Pedoman SOP ODON</span>
-            </button>
-          </div>
-
-        </nav>
-
-        {/* NextAdmin User Card Footer */}
-        <div className="pt-3 border-t border-[#2E3A47] space-y-2.5">
-          <div className="p-2.5 rounded-lg bg-[#24303F] border border-[#2E3A47] flex items-center justify-between">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-8 h-8 rounded-full bg-[#3C50E0] text-white font-bold flex items-center justify-center text-xs shrink-0">
-                ADM
-              </div>
-              <div className="min-w-0">
-                <p className="text-xs font-bold text-white truncate">
-                  Tim Nerwilis 6504
-                </p>
-                <p className="text-[10px] text-[#8A99AD] truncate">
-                  Analis PDRB KTT
-                </p>
-              </div>
-            </div>
-            
-            <button
-              onClick={onOpenBlueprintModal}
-              title="Architecture Blueprint"
-              className="p-1.5 rounded-md text-[#8A99AD] hover:text-white hover:bg-[#333A48] transition-colors shrink-0"
-            >
-              <Code2 className="w-3.5 h-3.5" />
-            </button>
-          </div>
-
-          {/* Quick Preview Public Mode Button */}
           <button
-            onClick={onRoleToggle}
-            className="w-full py-2 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 bg-[#333A48] hover:bg-[#333A48]/80 text-[#DEE4EE] border border-[#2E3A47] transition-all cursor-pointer"
+            type="button"
+            onClick={onOpenBlueprintModal}
+            title="Architecture Blueprint"
+            aria-label="Buka Architecture Blueprint"
+            className="w-8 h-8 inline-flex items-center justify-center rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors shrink-0"
           >
-            <Eye className="w-3.5 h-3.5 text-[#3C50E0]" />
-            <span>Lihat Tampilan Publik</span>
+            <Code2 className="w-4 h-4" aria-hidden="true" />
           </button>
         </div>
 
+        <button
+          type="button"
+          onClick={onRoleToggle}
+          className="w-full min-h-10 px-3 rounded-xl text-xs font-semibold inline-flex items-center justify-center gap-2 bg-slate-800/70 hover:bg-slate-800 text-slate-100 border border-slate-700/70 transition-all active:scale-[0.98]"
+        >
+          <Eye className="w-3.5 h-3.5 text-blue-400" aria-hidden="true" />
+          <span>Lihat Tampilan Publik</span>
+        </button>
       </div>
     </aside>
   );

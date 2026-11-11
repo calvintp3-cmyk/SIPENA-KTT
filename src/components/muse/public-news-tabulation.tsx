@@ -130,154 +130,143 @@ export function PublicNewsTabulation({
   });
 
   return (
-    <div className="space-y-5">
-      
-      {/* Top Banner (Full Width NextAdmin Style) */}
-      <div className="bg-white rounded-xl p-5 sm:p-6 shadow-[0_1px_3px_0_rgba(0,0,0,0.06)] border border-[#E2E8F0] flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="space-y-1.5">
-          <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-md bg-[#3C50E0]/10 text-[#3C50E0] text-[11px] font-mono font-bold tracking-wider">
-              SIPENA-KTT ODON 6504
-            </span>
-            <span className="text-xs text-[#64748B] font-medium">
-              BPS Kabupaten Tana Tidung
-            </span>
+    <div className="space-y-6">
+      {/* Intro banner */}
+      <div className="ui-card p-6 sm:p-7 flex flex-col md:flex-row md:items-center justify-between gap-5">
+        <div className="space-y-2 min-w-0">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <span className="ui-badge ui-badge-info num">SIPENA-KTT ODON 6504</span>
+            <span className="text-xs text-slate-500 font-medium">BPS Kabupaten Tana Tidung</span>
           </div>
-          <h2 className="text-lg sm:text-xl font-bold text-[#1C2434] tracking-tight">
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
             Tabulasi Berita Harian Fenomena Ekonomi (ODON)
           </h2>
-          <p className="text-xs text-[#64748B] max-w-2xl leading-relaxed">
+          <p className="text-sm text-slate-600 max-w-3xl leading-relaxed">
             Arsip resmi pencatatan fenomena ekonomi harian (One Day One News) yang dihimpun secara objektif dari media massa untuk pemantauan dinamika ekonomi daerah.
           </p>
         </div>
 
-        <button
-          onClick={onOpenSubmitModal}
-          className="px-4 py-2 rounded-lg bg-[#3C50E0] hover:bg-[#3C50E0]/90 text-white text-xs font-semibold shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer shrink-0"
-        >
-          <PlusCircle className="w-4 h-4" />
+        <button type="button" onClick={onOpenSubmitModal} className="ui-btn ui-btn-primary min-h-11 px-5 shrink-0">
+          <PlusCircle className="w-4 h-4" aria-hidden="true" />
           <span>Usulkan Berita Daerah</span>
         </button>
       </div>
 
-      {/* Instant Search Bar */}
-      <div className="bg-white rounded-xl p-3.5 shadow-[0_1px_3px_0_rgba(0,0,0,0.06)] border border-[#E2E8F0] flex items-center gap-3">
-        <Search className="w-4 h-4 text-[#64748B]" />
+      {/* Command-palette search */}
+      <div className="relative">
+        <Search
+          className="w-4 h-4 text-slate-500 absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none"
+          aria-hidden="true"
+        />
+        <label htmlFor="public-news-search" className="visually-hidden">
+          Cari berita
+        </label>
         <input
+          id="public-news-search"
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Cari berita berdasarkan judul, ringkasan fenomena, sektor (batubara, sawit, konstruksi), atau dampak..."
-          className="w-full text-xs text-[#1C2434] placeholder-[#94A3B8] bg-transparent focus:outline-hidden"
+          className="ui-input pr-20"
         />
         {search && (
           <button
+            type="button"
             onClick={() => setSearch("")}
-            className="text-xs text-[#64748B] hover:text-[#1C2434] font-medium"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-600 hover:text-slate-900 px-2 py-1 rounded-lg hover:bg-slate-100"
           >
             Reset
           </button>
         )}
       </div>
 
-      {/* Public ODON Table (Mirrors Official Sheet 6503 Format) */}
-      <div className="bg-white rounded-xl shadow-[0_1px_3px_0_rgba(0,0,0,0.06)] border border-[#E2E8F0] overflow-hidden">
-        
-        {/* Table Subheader */}
-        <div className="px-5 py-3.5 border-b border-[#E2E8F0] bg-[#F8FAFC] flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <FileSpreadsheet className="w-4 h-4 text-[#3C50E0]" />
-            <span className="text-xs font-bold text-[#1C2434] uppercase tracking-wider">
-              Data Fenomena Ekonomi Terverifikasi ({filteredRows.length} Baris)
+      {/* Public ODON table (mirrors official Sheet 6503) */}
+      <div className="ui-card overflow-hidden">
+        <div className="px-6 py-4 border-b border-slate-200/80 bg-slate-50/70 flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2.5">
+            <FileSpreadsheet className="w-4 h-4 text-blue-600" aria-hidden="true" />
+            <span className="text-xs font-semibold text-slate-800">
+              Data Fenomena Ekonomi Terverifikasi (<span className="num">{filteredRows.length}</span> Baris)
             </span>
           </div>
-          <span className="text-[11px] text-[#64748B] font-mono">
-            Format Resmi Sheet 6503
-          </span>
+          <span className="text-[11px] text-slate-500 num">Format Resmi Sheet 6503</span>
         </div>
 
-        {/* Dense Responsive Table */}
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse text-xs">
+          <table className="ui-table min-w-[960px]">
+            <colgroup>
+              <col style={{ width: "4%" }} />
+              <col style={{ width: "10%" }} />
+              <col style={{ width: "20%" }} />
+              <col style={{ width: "25%" }} />
+              <col style={{ width: "12%" }} />
+              <col style={{ width: "11%" }} />
+              <col style={{ width: "11%" }} />
+              <col style={{ width: "7%" }} />
+            </colgroup>
             <thead>
-              <tr className="bg-[#F1F5F9] text-[#475569] font-bold border-b border-[#E2E8F0]">
-                <th className="py-3 px-3 text-center w-12 font-mono">No</th>
-                <th className="py-3 px-3 w-32 font-mono">Waktu Input</th>
-                <th className="py-3 px-4 min-w-[240px]">Judul Berita</th>
-                <th className="py-3 px-4 min-w-[320px]">Ringkasan Fenomena Ekonomi</th>
-                <th className="py-3 px-3 min-w-[150px]">Kategori (KBLI)</th>
-                <th className="py-3 px-3 min-w-[130px]">Dampak</th>
-                <th className="py-3 px-3 text-center w-28">Tautan Asli</th>
-                <th className="py-3 px-3 text-center w-24 font-mono">Periode</th>
+              <tr>
+                <th scope="col" className="text-center">No</th>
+                <th scope="col">Waktu Input</th>
+                <th scope="col">Judul Berita</th>
+                <th scope="col">Ringkasan Fenomena Ekonomi</th>
+                <th scope="col">Kategori (KBLI)</th>
+                <th scope="col">Dampak</th>
+                <th scope="col" className="text-center">Tautan Asli</th>
+                <th scope="col" className="text-center">Periode</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#E2E8F0]">
+            <tbody>
               {filteredRows.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center text-[#64748B]">
+                  <td colSpan={8} className="!py-14 text-center text-slate-500">
                     Tidak ada data fenomena yang cocok dengan kata kunci pencarian.
                   </td>
                 </tr>
               ) : (
                 filteredRows.map((row) => (
-                  <tr
-                    key={row.no}
-                    className="hover:bg-[#F8FAFC] transition-colors"
-                  >
-                    {/* No */}
-                    <td className="py-3.5 px-3 text-center font-mono text-[#64748B]">
-                      {row.no}
+                  <tr key={row.no}>
+                    <td className="text-center num text-slate-500">{row.no}</td>
+
+                    <td className="num text-slate-600 text-xs leading-relaxed">{row.inputDate}</td>
+
+                    <td className="font-semibold text-slate-900 leading-snug">{row.title}</td>
+
+                    <td className="text-slate-600 leading-relaxed font-normal">{row.summary}</td>
+
+                    <td>
+                      <div className="flex items-start gap-2.5">
+                        <span className="ui-kbli" aria-hidden="true">{row.kbliCategory}</span>
+                        <div className="min-w-0">
+                          <span className="sr-only">KBLI {row.kbliCategory}: </span>
+                          <span className="text-xs text-slate-700 font-medium leading-snug block">
+                            {row.kbliName}
+                          </span>
+                        </div>
+                      </div>
                     </td>
 
-                    {/* Waktu Input */}
-                    <td className="py-3.5 px-3 font-mono text-[#475569] whitespace-nowrap text-[11px]">
-                      {row.inputDate}
-                    </td>
-
-                    {/* Judul Berita */}
-                    <td className="py-3.5 px-4 font-semibold text-[#1C2434] leading-snug">
-                      {row.title}
-                    </td>
-
-                    {/* Ringkasan Fenomena Ekonomi */}
-                    <td className="py-3.5 px-4 text-[#475569] leading-relaxed">
-                      {row.summary}
-                    </td>
-
-                    {/* Lapangan Usaha (KBLI) */}
-                    <td className="py-3.5 px-3">
-                      <span className="font-semibold text-[#1C2434] block">
-                        {row.kbliCategory}
-                      </span>
-                      <span className="text-[11px] text-[#64748B] truncate block">
-                        {row.kbliName}
-                      </span>
-                    </td>
-
-                    {/* Dampak (Badge Hijau Resmi) */}
-                    <td className="py-3.5 px-3 whitespace-nowrap">
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#219653]/10 text-[#219653] border border-[#219653]/20">
-                        <TrendingUp className="w-3 h-3 shrink-0" />
+                    <td>
+                      <span className="ui-badge ui-badge-success whitespace-normal">
+                        <TrendingUp className="w-3 h-3 shrink-0" aria-hidden="true" />
                         <span>{row.impactType}</span>
                       </span>
                     </td>
 
-                    {/* Tautan Asli (Tanpa Kolom Media Sumber Terpisah) */}
-                    <td className="py-3.5 px-3 text-center whitespace-nowrap">
+                    <td className="text-center">
                       <a
                         href={row.sourceUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold text-[#3C50E0] bg-[#3C50E0]/10 hover:bg-[#3C50E0]/20 transition-all cursor-pointer"
+                        className="ui-btn ui-btn-secondary !min-h-8 !px-2.5 !text-[11px]"
                         title="Buka artikel berita asli di tab baru"
                       >
                         <span>Buka Sumber</span>
-                        <ExternalLink className="w-3 h-3" />
+                        <ExternalLink className="w-3 h-3" aria-hidden="true" />
                       </a>
                     </td>
 
-                    {/* Periode */}
-                    <td className="py-3.5 px-3 text-center font-mono font-bold text-[#1C2434] whitespace-nowrap text-[11px]">
+                    <td className="text-center num font-semibold text-slate-800 text-[11px]">
                       {row.quarter}
                     </td>
                   </tr>
@@ -287,17 +276,14 @@ export function PublicNewsTabulation({
           </table>
         </div>
 
-        {/* Table Footer Summary */}
-        <div className="p-4 border-t border-[#E2E8F0] bg-[#F8FAFC] flex flex-wrap items-center justify-between gap-3 text-xs text-[#64748B]">
+        <div className="px-6 py-3.5 border-t border-slate-200/80 bg-slate-50/70 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-600">
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-[#219653]" />
+            <span className="w-2 h-2 rounded-full bg-emerald-500" aria-hidden="true" />
             <span>Data bersumber langsung dari buku kerja resmi Nerwilis BPS 65.04</span>
           </div>
-          <span className="font-mono text-[11px]">Kabupaten Tana Tidung • Kaltara</span>
+          <span className="num text-[11px]">Kabupaten Tana Tidung • Kaltara</span>
         </div>
-
       </div>
-
     </div>
   );
 }

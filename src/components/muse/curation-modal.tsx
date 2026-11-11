@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Scale, X } from "lucide-react";
 import { convertKbli2020To2025 } from "@/lib/kbli/conversions";
 
@@ -32,6 +32,15 @@ export function CurationModal({
   const [pengeluaran, setPengeluaran] = useState(initialPengeluaran);
   const [summary, setSummary] = useState(initialSummary);
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const conv = convertKbli2020To2025(kbli2020);
@@ -48,46 +57,48 @@ export function CurationModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/45 backdrop-blur-2xs z-50 flex items-center justify-center p-4">
-      <div className="bg-white w-full max-w-lg rounded-2xl shadow-[0_1px_3px_0_rgba(0,0,0,0.05),0_20px_25px_-5px_rgba(0,0,0,0.04)] border border-[#f0f0f0] p-6 space-y-4">
-        
-        {/* Modal Header */}
-        <div className="flex items-center justify-between border-b border-[#f0f0f0] pb-3">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
-              <Scale className="w-4 h-4" />
+    <div className="ui-modal-scrim" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="curation-modal-title"
+        className="ui-modal max-w-lg"
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between gap-3 px-6 py-5 border-b border-slate-200/80">
+          <div className="flex items-center gap-3">
+            <div className="rounded-xl p-2.5 bg-blue-50 text-blue-600 ring-1 ring-inset ring-blue-600/15">
+              <Scale className="w-4 h-4" aria-hidden="true" />
             </div>
             <div>
-              <h4 className="text-sm font-bold text-[#141414]">Koreksi Klasifikasi PDRB ODON</h4>
-              <p className="text-[11px] text-[#8c8c8c]">BPS 6504 • Validasi Lapangan Usaha & Pengeluaran</p>
+              <h4 id="curation-modal-title" className="ui-h2">Koreksi Klasifikasi PDRB ODON</h4>
+              <p className="text-xs text-slate-500">BPS 6504 • Validasi Lapangan Usaha & Pengeluaran</p>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="p-1 rounded-lg hover:bg-slate-100 text-[#8c8c8c]"
-          >
-            <X className="w-4 h-4" />
+          <button type="button" onClick={onClose} aria-label="Tutup dialog" className="ui-icon-btn !border-transparent !shadow-none">
+            <X className="w-4 h-4" aria-hidden="true" />
           </button>
         </div>
 
-        {/* Form Body */}
-        <form onSubmit={handleSubmit} className="space-y-3.5 text-xs">
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
-            <label className="block font-bold text-[#141414] mb-1">Judul Berita:</label>
-            <p className="p-2.5 rounded-lg bg-slate-50 border border-slate-200 text-[#141414] font-medium leading-relaxed">
+            <span className="ui-label block mb-1.5">Judul Berita:</span>
+            <p className="p-3 rounded-xl bg-slate-50/90 border-l-2 border-slate-300 rounded-l-none text-[13px] text-slate-800 font-medium leading-relaxed">
               {title}
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block font-bold text-[#141414] mb-1">
+              <label htmlFor="cm-kbli2020" className="ui-label block mb-1.5">
                 KBLI Lapangan Usaha (2020):
               </label>
               <select
+                id="cm-kbli2020"
                 value={kbli2020}
                 onChange={(e) => setKbli2020(e.target.value)}
-                className="w-full p-2 rounded-lg bg-slate-50 border border-slate-200 text-xs text-[#141414]"
+                className="ui-field"
               >
                 <option value="05100">KBLI B • 05100 (Batubara - 37.8%)</option>
                 <option value="01262">KBLI A • 01262 (Sawit - 23.4%)</option>
@@ -98,26 +109,28 @@ export function CurationModal({
             </div>
 
             <div>
-              <label className="block font-bold text-[#141414] mb-1">
+              <label htmlFor="cm-kbli2025" className="ui-label block mb-1.5">
                 KBLI 2025 (Crosswalk Otomatis):
               </label>
               <input
+                id="cm-kbli2025"
                 type="text"
                 readOnly
                 value={`${conv.code2025} (${conv.title2025})`}
-                className="w-full p-2 rounded-lg bg-slate-100 border border-slate-200 text-xs font-mono text-[#141414]"
+                className="ui-field !bg-slate-100 num"
               />
             </div>
           </div>
 
           <div>
-            <label className="block font-bold text-[#141414] mb-1">
+            <label htmlFor="cm-pengeluaran" className="ui-label block mb-1.5">
               Pos Pengeluaran PDRB:
             </label>
             <select
+              id="cm-pengeluaran"
               value={pengeluaran}
               onChange={(e) => setPengeluaran(e.target.value)}
-              className="w-full p-2 rounded-lg bg-slate-50 border border-slate-200 text-xs text-[#141414]"
+              className="ui-field"
             >
               <option value="NET_EKSPOR">Pos 6 • Net Ekspor Antar Daerah (49.98%)</option>
               <option value="PMTB">Pos 4 • PMTB - Modal Tetap Bruto (31.38%)</option>
@@ -129,37 +142,28 @@ export function CurationModal({
           </div>
 
           <div>
-            <label className="block font-bold text-[#141414] mb-1">
+            <label htmlFor="cm-summary" className="ui-label block mb-1.5">
               Ringkasan Fenomena Ekonomi (Catatan Nerwilis):
             </label>
             <textarea
-              rows={3}
+              id="cm-summary"
+              rows={4}
               value={summary}
               onChange={(e) => setSummary(e.target.value)}
-              className="w-full p-2.5 rounded-lg bg-slate-50 border border-slate-200 text-xs text-[#141414] focus:outline-none focus:border-blue-500 focus:bg-white"
+              className="ui-field leading-relaxed"
             />
           </div>
 
-          {/* Action Footer */}
-          <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#f0f0f0]">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-[#141414] hover:bg-slate-100 cursor-pointer"
-            >
+          <div className="flex items-center justify-end gap-2 pt-4 border-t border-slate-200/80">
+            <button type="button" onClick={onClose} className="ui-btn ui-btn-secondary">
               Batal
             </button>
-            <button
-              type="submit"
-              className="px-4 py-1.5 rounded-lg bg-blue-600 text-white text-xs font-bold shadow-[0_4px_14px_0_rgba(24,144,255,0.35)] hover:bg-blue-700 cursor-pointer"
-            >
+            <button type="submit" className="ui-btn ui-btn-primary">
               Simpan ke Sheet 6503
             </button>
           </div>
         </form>
-
       </div>
     </div>
   );
 }
-

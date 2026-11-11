@@ -1,15 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import {
-  Clock,
-  Download,
-  Shield,
-  Eye,
-  FileSpreadsheet,
-  Layers,
-} from "lucide-react";
-import type { MuseViewTab } from "./muse-sidebar";
+import { Clock, Download, Shield, Eye } from "lucide-react";
+import { MUSE_NAV_GROUPS, type MuseViewTab } from "./muse-sidebar";
 
 interface MuseNavbarProps {
   currentTab: MuseViewTab;
@@ -66,8 +59,13 @@ const ADMIN_TAB_TITLES: Record<
   },
 };
 
+const HEADER_SHELL =
+  "sticky top-0 z-30 backdrop-blur-md bg-white/80 border-b border-slate-200/70";
+const HEADER_INNER = "w-full max-w-[1440px] mx-auto px-6 lg:px-10";
+
 export function MuseNavbar({
   currentTab,
+  onTabChange,
   userRole,
   onRoleChange,
   onExportExcel,
@@ -93,112 +91,134 @@ export function MuseNavbar({
     return () => clearInterval(interval);
   }, []);
 
+  const clock = (
+    <div
+      className="hidden sm:inline-flex items-center gap-2 h-9 px-3 rounded-xl bg-slate-50 ring-1 ring-inset ring-slate-200 text-xs text-slate-600 num"
+      role="timer"
+      aria-label="Waktu WITA"
+    >
+      <Clock className="w-3.5 h-3.5 text-blue-600" aria-hidden="true" />
+      <span>{timeString}</span>
+    </div>
+  );
+
   // ========================================================
-  // 1. PUBLIC NAVBAR (Full Width Minimalist Header)
+  // 1. PUBLIC NAVBAR
   // ========================================================
   if (!isAdmin) {
     return (
-      <header className="bg-white rounded-xl shadow-[0_1px_3px_0_rgba(0,0,0,0.06)] border border-[#E2E8F0] px-5 py-3.5 flex items-center justify-between gap-4 sticky top-4 z-20">
-        
-        {/* Brand Satker BPS 6504 */}
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-[#3C50E0] flex items-center justify-center text-white font-bold text-xs shadow-sm">
-            <span>65</span>
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-sm font-bold text-[#1C2434] tracking-tight">
-                SIPENA-KTT
-              </h1>
-              <span className="text-[10px] px-2 py-0.5 rounded font-mono font-bold bg-[#3C50E0]/10 text-[#3C50E0] border border-[#3C50E0]/20">
-                SIPENA-KTT ODON 6504
-              </span>
+      <header className={HEADER_SHELL}>
+        <div className={`${HEADER_INNER} h-16 flex items-center justify-between gap-4`}>
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-9 h-9 shrink-0 rounded-xl bg-blue-600 flex items-center justify-center text-white font-bold text-xs num shadow-sm shadow-blue-600/30">
+              65
             </div>
-            <p className="text-[11px] text-[#64748B] font-medium">
-              Badan Pusat Statistik Kabupaten Tana Tidung
-            </p>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <h1 className="text-sm font-bold text-slate-900 tracking-tight">SIPENA-KTT</h1>
+                <span className="ui-badge ui-badge-info hidden sm:inline-flex num">
+                  SIPENA-KTT ODON 6504
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-500 font-medium truncate">
+                Badan Pusat Statistik Kabupaten Tana Tidung
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 shrink-0">
+            {clock}
+            <button
+              type="button"
+              onClick={() => onRoleChange("admin")}
+              className="ui-btn ui-btn-primary"
+              title="Masuk sebagai Petugas BPS Nerwilis"
+            >
+              <Shield className="w-3.5 h-3.5" aria-hidden="true" />
+              <span>Masuk Petugas BPS</span>
+            </button>
           </div>
         </div>
-
-        {/* Right Action: Clock & Login Admin Button */}
-        <div className="flex items-center gap-3">
-          <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0] text-xs text-[#64748B] font-mono">
-            <Clock className="w-3.5 h-3.5 text-[#3C50E0]" />
-            <span>{timeString}</span>
-          </div>
-
-          <button
-            onClick={() => onRoleChange("admin")}
-            className="px-3.5 py-1.5 rounded-lg bg-[#3C50E0] hover:bg-[#3C50E0]/90 text-white text-xs font-semibold shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
-            title="Masuk sebagai Petugas BPS Nerwilis"
-          >
-            <Shield className="w-3.5 h-3.5" />
-            <span>Masuk Petugas BPS</span>
-          </button>
-        </div>
-
       </header>
     );
   }
 
   // ========================================================
-  // 2. ADMIN NAVBAR (NextAdmin Topbar Layout)
+  // 2. ADMIN NAVBAR
   // ========================================================
   const meta = ADMIN_TAB_TITLES[currentTab] || ADMIN_TAB_TITLES.overview;
+  const mobileItems = MUSE_NAV_GROUPS.flatMap((g) => g.items);
 
   return (
-    <header className="bg-white rounded-xl shadow-[0_1px_3px_0_rgba(0,0,0,0.06)] border border-[#E2E8F0] px-5 py-3.5 flex flex-wrap items-center justify-between gap-4 sticky top-4 z-20">
-      
-      {/* Context & Breadcrumbs */}
-      <div>
-        <div className="flex items-center gap-2 text-xs text-[#8A99AD]">
-          <span className="font-semibold text-[#1C2434]">BPS 65.04</span>
-          <span>/</span>
-          <span className="text-[#64748B]">Nerwilis</span>
-          <span>/</span>
-          <span className="text-[#3C50E0] font-semibold">{meta.breadcrumb}</span>
+    <header className={HEADER_SHELL}>
+      <div className={`${HEADER_INNER} py-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-3`}>
+        {/* Breadcrumbs & title */}
+        <div className="min-w-0">
+          <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs text-slate-500">
+            <span className="font-semibold text-slate-800">BPS 65.04</span>
+            <span aria-hidden="true">/</span>
+            <span>Nerwilis</span>
+            <span aria-hidden="true">/</span>
+            <span className="text-blue-600 font-semibold">{meta.breadcrumb}</span>
+          </nav>
+          <h2 className="text-sm sm:text-[15px] font-semibold tracking-tight text-slate-900 mt-0.5 truncate">
+            {meta.title}
+          </h2>
         </div>
-        <h2 className="text-sm font-bold text-[#1C2434] mt-0.5">{meta.title}</h2>
+
+        {/* Controls */}
+        <div className="flex items-center gap-2.5">
+          <div className="hidden xl:inline-flex ui-badge ui-badge-success h-9 px-3 num">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 ui-dot-live" aria-hidden="true" />
+            <span>SIPENA-KTT ADMIN</span>
+          </div>
+
+          {clock}
+
+          <button
+            type="button"
+            onClick={() => onRoleChange("public")}
+            className="ui-btn ui-btn-secondary"
+            title="Pratinjau tampilan publik"
+          >
+            <Eye className="w-3.5 h-3.5 text-blue-600" aria-hidden="true" />
+            <span className="hidden sm:inline">Pratinjau Publik</span>
+            <span className="sm:hidden">Publik</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={onExportExcel}
+            className="ui-btn ui-btn-primary"
+            title="Unduh Buku Kerja ODON format Sheet 6503 (.xlsx)"
+          >
+            <Download className="w-3.5 h-3.5" aria-hidden="true" />
+            <span className="hidden sm:inline">Ekspor Sheet 6503</span>
+            <span className="sm:hidden">.xlsx</span>
+          </button>
+        </div>
+
+        {/* Mobile section switcher (sidebar is hidden below lg) */}
+        {onTabChange && (
+          <div className="lg:hidden w-full">
+            <div className="ui-seg" role="tablist" aria-label="Menu admin">
+              {mobileItems.map((item) => (
+                <button
+                  key={item.tab}
+                  type="button"
+                  role="tab"
+                  aria-selected={currentTab === item.tab}
+                  data-active={currentTab === item.tab}
+                  onClick={() => onTabChange(item.tab)}
+                  className="ui-seg-item"
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
-
-      {/* Right Controls: Status Pill, Clock, Role Toggle & Export */}
-      <div className="flex items-center gap-2.5">
-        
-        {/* App Status Badge */}
-        <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#219653]/10 text-[#219653] border border-[#219653]/20 text-xs font-semibold font-mono">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#219653]" />
-          <span>SIPENA-KTT ADMIN</span>
-        </div>
-
-        {/* WITA Realtime Clock */}
-        <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#F1F5F9] border border-[#E2E8F0] text-xs text-[#64748B] font-mono">
-          <Clock className="w-3.5 h-3.5 text-[#3C50E0]" />
-          <span>{timeString}</span>
-        </div>
-
-        {/* Toggle to Public Preview */}
-        <button
-          onClick={() => onRoleChange("public")}
-          className="px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 bg-[#F1F5F9] hover:bg-[#E2E8F0] text-[#1C2434] border border-[#E2E8F0] transition-all cursor-pointer"
-          title="Pratinjau tampilan publik"
-        >
-          <Eye className="w-3.5 h-3.5 text-[#3C50E0]" />
-          <span className="hidden sm:inline">Pratinjau Publik</span>
-        </button>
-
-        {/* Export Excel Button (Sheet 6503) */}
-        <button
-          onClick={onExportExcel}
-          className="px-3.5 py-1.5 rounded-lg bg-[#219653] text-white hover:bg-[#219653]/90 text-xs font-semibold transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
-          title="Unduh Buku Kerja ODON format Sheet 6503 (.xlsx)"
-        >
-          <Download className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">Ekspor Sheet 6503</span>
-          <span className="sm:hidden">.xlsx</span>
-        </button>
-
-      </div>
-
     </header>
   );
 }

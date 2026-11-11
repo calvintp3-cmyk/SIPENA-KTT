@@ -43,130 +43,119 @@ export function OdonHeroSpotlight({
   onEditClassification,
 }: OdonHeroSpotlightProps) {
   return (
-    <div className="bg-[linear-gradient(135deg,#061126_0%,#0c214d_45%,#1852a8_85%,#1890ff_100%)] rounded-2xl p-6 sm:p-7 text-white shadow-[0_1px_3px_0_rgba(0,0,0,0.05),0_20px_25px_-5px_rgba(0,0,0,0.04)] flex flex-col justify-between relative overflow-hidden">
-      
-      {/* Subtle lighting backdrop */}
-      <div className="absolute -bottom-16 -right-16 w-80 h-80 bg-white/5 rounded-full blur-3xl pointer-events-none" />
+    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 p-6 sm:p-8 text-white shadow-xl shadow-slate-900/10 ring-1 ring-white/10 h-full flex flex-col justify-between gap-6">
+      {/* Mesh: two soft light sources give the dark surface depth behind the glass panels */}
+      <div aria-hidden="true" className="pointer-events-none absolute -top-24 -left-16 w-96 h-96 rounded-full bg-blue-600/25 blur-3xl" />
+      <div aria-hidden="true" className="pointer-events-none absolute -bottom-28 -right-20 w-96 h-96 rounded-full bg-indigo-500/20 blur-3xl" />
 
-      <div>
-        {/* Banner Top Header */}
-        <div className="flex items-center justify-between gap-2 pb-3.5 border-b border-white/10">
-          <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full bg-white/20 text-white font-mono text-[11px] font-bold">
+      <div className="relative">
+        {/* Banner */}
+        <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-white/10">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <span className="px-3 py-1 rounded-full bg-white/10 ring-1 ring-inset ring-white/20 text-white num text-[11px] font-bold">
               ODON EDISI RESMI H-1
             </span>
-            <span className="text-xs text-white/80 font-medium">{data.entryDate}</span>
+            <span className="text-xs text-slate-300 font-medium">{data.entryDate}</span>
           </div>
-          <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 text-[11px] font-semibold flex items-center gap-1">
-            <ShieldCheck className="w-3.5 h-3.5" />
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-400/10 text-emerald-300 ring-1 ring-inset ring-emerald-400/30 text-[11px] font-semibold">
+            <ShieldCheck className="w-3.5 h-3.5" aria-hidden="true" />
             Terverifikasi Nerwilis BPS
           </span>
         </div>
 
-        {/* Headline & Meta */}
-        <div className="mt-4">
-          <div className="flex items-center gap-2 text-xs text-cyan-200 font-semibold mb-1">
+        {/* Headline */}
+        <div className="mt-5">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-sky-200 font-semibold mb-2">
             <span>{data.source}</span>
-            <span>•</span>
-            <span>Rilis: {data.releaseDate}</span>
-            <span>•</span>
-            <span>Relevansi PDRB: {data.relevanceScore}%</span>
+            <span aria-hidden="true">•</span>
+            <span>Rilis: <span className="num">{data.releaseDate}</span></span>
+            <span aria-hidden="true">•</span>
+            <span>Relevansi PDRB: <span className="num">{data.relevanceScore}%</span></span>
           </div>
-          
-          <h3 className="text-lg sm:text-2xl font-bold text-white leading-snug">
+
+          <h3 className="text-xl sm:text-2xl lg:text-[1.75rem] font-bold text-white leading-tight tracking-tight">
             {data.title}
           </h3>
-          
-          {/* AI Synthesis Box */}
-          <div className="mt-3.5 p-3.5 rounded-xl bg-black/25 border border-white/10 text-xs sm:text-[13px] text-white/90 leading-relaxed">
-            <div className="flex items-center gap-1.5 text-cyan-300 font-bold text-[11px] uppercase tracking-wider mb-1">
-              <Cpu className="w-3.5 h-3.5" />
+
+          {/* AI synthesis */}
+          <div className="mt-4 p-4 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 text-[13px] sm:text-sm text-slate-100 leading-relaxed">
+            <div className="flex items-center gap-1.5 text-sky-300 font-semibold text-xs mb-1.5">
+              <Cpu className="w-3.5 h-3.5" aria-hidden="true" />
               <span>Sintesis Fenomena Ekonomi (AI Nerwilis):</span>
             </div>
             {data.economicPhenomenonSummary}
           </div>
         </div>
 
-        {/* Dual-Pillar Balancing Badges (Lapangan Usaha & Pengeluaran) */}
-        <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3 pt-4 border-t border-white/10 text-xs">
-          
-          {/* Pilar 1: Lapangan Usaha KBLI */}
-          <div className="bg-white/10 rounded-xl p-3.5 backdrop-blur-xs border border-white/10">
-            <div className="flex items-center justify-between mb-1.5">
-              <span className="text-[11px] uppercase tracking-wider text-cyan-200 font-bold flex items-center gap-1">
-                <Layers className="w-3 h-3" /> Sisi Lapangan Usaha (KBLI)
+        {/* Dual pillars */}
+        <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10">
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <span className="text-xs text-sky-300 font-semibold inline-flex items-center gap-1.5">
+                <Layers className="w-3.5 h-3.5" aria-hidden="true" /> Sisi Lapangan Usaha (KBLI)
               </span>
-              <span className="text-emerald-300 font-bold font-mono">+12.4% Output</span>
+              <span className="text-emerald-300 font-bold num text-xs">+12.4% Output</span>
             </div>
-            <p className="font-bold text-white text-xs sm:text-sm">
-              KBLI {data.kbliCode2020} • {data.kbliTitle2020}
+            <p className="font-bold text-white text-sm leading-snug">
+              KBLI <span className="num">{data.kbliCode2020}</span> • {data.kbliTitle2020}
             </p>
             {data.kbliSecondary && (
-              <p className="text-[11px] text-white/70 mt-1">
-                Tambahan: {data.kbliSecondary}
-              </p>
+              <p className="text-xs text-slate-300 mt-1.5">Tambahan: {data.kbliSecondary}</p>
             )}
-            <div className="mt-2 text-[10px] text-cyan-200 font-mono bg-white/10 px-2 py-0.5 rounded w-fit">
+            <div className="mt-3 text-[11px] text-sky-200 num bg-white/10 px-2.5 py-1 rounded-lg w-fit max-w-full break-words">
               Mapping 2025: {data.kbliCode2025} ({data.kbliTitle2025})
             </div>
           </div>
 
-          {/* Pilar 2: Pengeluaran PDRB */}
-          <div className="bg-white/10 rounded-xl p-3.5 backdrop-blur-xs border border-white/10">
-            <div className="flex items-center justify-between mb-1.5">
-              <span className="text-[11px] uppercase tracking-wider text-emerald-300 font-bold flex items-center gap-1">
-                <Scale className="w-3 h-3" /> Sisi Pengeluaran PDRB
+          <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10">
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <span className="text-xs text-emerald-300 font-semibold inline-flex items-center gap-1.5">
+                <Scale className="w-3.5 h-3.5" aria-hidden="true" /> Sisi Pengeluaran PDRB
               </span>
-              <span className="text-emerald-300 font-bold font-mono">
+              <span className="text-emerald-300 font-bold num text-xs">
                 Agregat {data.aggregateShare}
               </span>
             </div>
-            <p className="font-bold text-white text-xs sm:text-sm">
-              {data.expenditureCode}
-            </p>
+            <p className="font-bold text-white text-sm leading-snug">{data.expenditureCode}</p>
             {data.expenditureSecondary && (
-              <p className="text-[11px] text-white/70 mt-1">
-                Komponen: {data.expenditureSecondary}
-              </p>
+              <p className="text-xs text-slate-300 mt-1.5">Komponen: {data.expenditureSecondary}</p>
             )}
-            <div className="mt-2 text-[10px] text-emerald-300 font-mono bg-white/10 px-2 py-0.5 rounded w-fit">
+            <div className="mt-3 text-[11px] text-emerald-200 num bg-white/10 px-2.5 py-1 rounded-lg w-fit max-w-full break-words">
               Konfirmasi: Transshipment pelabuhan & kargo
             </div>
           </div>
-
         </div>
       </div>
 
-      {/* Hero Action Footer */}
-      <div className="mt-6 pt-4 border-t border-white/10 flex flex-wrap items-center justify-between gap-3 text-xs">
-        <div className="flex items-center gap-2 text-white/80">
-          <span className="text-white/60">Verifikator:</span>
-          <span className="font-bold text-white">{data.verifierName}</span>
-          <span className="text-white/60">• {data.verifiedTime}</span>
+      {/* Footer */}
+      <div className="relative pt-4 border-t border-white/10 flex flex-wrap items-center justify-between gap-3 text-xs">
+        <div className="flex flex-wrap items-center gap-x-2 text-slate-300">
+          <span className="text-slate-400">Verifikator:</span>
+          <span className="font-semibold text-white">{data.verifierName}</span>
+          <span className="text-slate-400 num">• {data.verifiedTime}</span>
         </div>
         <div className="flex items-center gap-2">
           <a
             href={data.sourceUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="px-3 py-1.5 rounded-lg bg-white/15 hover:bg-white/25 text-white font-semibold transition-all inline-flex items-center gap-1.5"
+            className="ui-btn bg-white/10 hover:bg-white/20 text-white ring-1 ring-inset ring-white/15"
           >
             <span>Buka Sumber Berita</span>
-            <ExternalLink className="w-3.5 h-3.5" />
+            <ExternalLink className="w-3.5 h-3.5" aria-hidden="true" />
           </a>
           {isAdmin && (
             <button
+              type="button"
               onClick={onEditClassification}
-              className="px-3.5 py-1.5 rounded-lg bg-white text-[#141414] font-bold hover:bg-slate-100 transition-all cursor-pointer inline-flex items-center gap-1.5"
+              className="ui-btn bg-white text-slate-900 hover:bg-slate-100 shadow-sm"
             >
-              <Edit3 className="w-3.5 h-3.5" />
+              <Edit3 className="w-3.5 h-3.5" aria-hidden="true" />
               <span>Koreksi Klasifikasi</span>
             </button>
           )}
         </div>
       </div>
-
     </div>
   );
 }
-
