@@ -169,8 +169,9 @@ const columns: TableColumn<AdminUserItem>[] = [
 </script>
 
 <template>
-  <div class="space-y-5">
-    <div v-if="!isSuperAdmin && !pending" class="space-y-4">
+  <div class="space-y-6">
+    <!-- RBAC Guard Notice -->
+    <div v-if="!isSuperAdmin && !pending" class="saas-card rounded-xl p-6 space-y-4">
       <UAlert
         color="warning"
         variant="subtle"
@@ -178,43 +179,94 @@ const columns: TableColumn<AdminUserItem>[] = [
         title="Akses Khusus Administrator Utama"
         description="Halaman pengelolaan whitelist email staf dan peran admin hanya dapat diakses oleh akun dengan peran Administrator Utama (ADMIN)."
       />
-      <UButton to="/admin/review" color="primary" icon="i-lucide-arrow-left">
-        Kembali ke Antrean Review Harian
-      </UButton>
+      <NuxtLink
+        to="/admin/review"
+        class="obsidian-button h-9 px-3.5 rounded-lg text-xs font-semibold inline-flex items-center gap-1.5"
+      >
+        <UIcon name="i-lucide-arrow-left" class="w-3.5 h-3.5 text-teal-300" />
+        <span>Kembali ke Antrean Review Harian</span>
+      </NuxtLink>
     </div>
 
     <template v-else>
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <!-- Header -->
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
-          <h1 class="text-xl font-bold tracking-tight text-slate-900">
+          <div
+            class="flex items-center gap-2 font-mono text-[11px] font-bold uppercase tracking-wider text-teal-700"
+          >
+            <UIcon name="i-lucide-shield-check" class="w-3.5 h-3.5" />
+            <span>Tata Kelola Akses &amp; RBAC</span>
+          </div>
+          <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-[#0B1220] mt-0.5">
             Kelola Akses Admin &amp; Whitelist Google
           </h1>
-          <p class="text-sm text-slate-600 mt-0.5">
-            Daftar email staf yang diizinkan masuk ke workspace admin menggunakan Login with Google maupun kata sandi lokal.
+          <p class="text-xs sm:text-sm text-[#5B677A] mt-0.5">
+            Daftar email staf yang diizinkan masuk ke workspace admin menggunakan Login with Google
+            maupun kata sandi lokal.
           </p>
         </div>
 
-        <div class="flex flex-wrap items-center gap-2">
-          <UInput
-            v-model="searchText"
-            icon="i-lucide-search"
-            placeholder="Cari nama / Gmail..."
-            size="sm"
-            class="w-full sm:w-56"
-          />
-          <UButton color="primary" icon="i-lucide-user-plus" size="sm" @click="openCreateModal">
-            Tambah Email Staf
-          </UButton>
+        <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+          <div class="relative">
+            <label for="users-search-input" class="sr-only">Cari nama atau Gmail staf</label>
+            <UIcon
+              name="i-lucide-search"
+              class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
+            />
+            <input
+              id="users-search-input"
+              v-model="searchText"
+              type="search"
+              placeholder="Cari nama / Gmail..."
+              class="h-9 w-56 pl-8 pr-7 rounded-lg border border-[#DCE3EC] bg-white text-xs text-[#0B1220] placeholder:text-slate-400 focus:border-teal-700"
+            />
+            <button
+              v-if="searchText"
+              type="button"
+              aria-label="Hapus pencarian staf"
+              class="absolute right-1 top-1/2 -translate-y-1/2 min-w-6 min-h-6 rounded flex items-center justify-center text-slate-400 hover:text-slate-700"
+              @click="searchText = ''"
+            >
+              <UIcon name="i-lucide-x" class="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          <button
+            type="button"
+            class="obsidian-button h-9 px-3.5 rounded-lg text-xs font-semibold inline-flex items-center gap-1.5"
+            @click="openCreateModal"
+          >
+            <UIcon name="i-lucide-user-plus" class="w-3.5 h-3.5 text-teal-300" />
+            <span>Tambah Email Staf</span>
+          </button>
         </div>
       </div>
 
-      <UAlert
-        color="info"
-        variant="subtle"
-        icon="i-lucide-shield-check"
-        :title="`Mekanisme Whitelist Aktif (${activeCount} akun aktif dari ${usersList.length} terdaftar)`"
-        description="Siapa pun yang login memakai Google OAuth akan ditolak secara otomatis apabila alamat Gmail-nya tidak terdaftar atau berstatus nonaktif di tabel ini."
-      />
+      <!-- Whitelist Security Notice Card -->
+      <div class="saas-card rounded-xl p-4 sm:p-5 flex items-start gap-3.5 border-l-4 border-l-teal-700">
+        <div
+          class="w-9 h-9 rounded-lg bg-teal-50 border border-teal-200 text-teal-700 flex items-center justify-center shrink-0"
+        >
+          <UIcon name="i-lucide-shield-check" class="w-4 h-4" />
+        </div>
+        <div class="space-y-1">
+          <div class="flex flex-wrap items-center gap-2">
+            <h2 class="text-sm font-bold text-[#0B1220]">
+              Mekanisme Whitelist Aktif
+            </h2>
+            <span
+              class="px-2 py-0.5 rounded-full bg-teal-50 text-teal-800 border border-teal-200 font-mono text-[11px] font-semibold tabular-nums"
+            >
+              {{ activeCount }} aktif / {{ usersList.length }} terdaftar
+            </span>
+          </div>
+          <p class="text-xs text-[#5B677A] leading-relaxed">
+            Siapa pun yang mencoba masuk menggunakan Google OAuth akan ditolak secara otomatis
+            apabila alamat Gmail-nya tidak terdaftar atau berstatus nonaktif dalam tabel ini.
+          </p>
+        </div>
+      </div>
 
       <UAlert
         v-if="loadError"
@@ -224,127 +276,135 @@ const columns: TableColumn<AdminUserItem>[] = [
         :title="loadError"
       />
 
-      <UCard :ui="{ body: 'p-0 sm:p-0' }">
-        <UTable
-          :data="filteredUsers"
-          :columns="columns"
-          :loading="pending"
-          empty="Belum ada akun staf admin yang terdaftar."
+      <!-- Users Table -->
+      <div class="saas-card rounded-xl overflow-hidden">
+        <div
+          tabindex="0"
+          role="region"
+          aria-label="Tabel Daftar Akses Admin dan Whitelist Google"
+          class="saas-table-scroller"
         >
-          <template #staff-cell="{ row }">
-            <div class="space-y-0.5">
-              <div class="flex items-center gap-2">
-                <span class="font-semibold text-sm text-slate-900">{{ row.original.name }}</span>
-                <UBadge
-                  v-if="row.original.id === user?.id"
-                  color="primary"
-                  variant="soft"
-                  size="xs"
-                >
-                  Anda
-                </UBadge>
+          <UTable
+            :data="filteredUsers"
+            :columns="columns"
+            :loading="pending"
+            empty="Belum ada akun staf admin yang terdaftar."
+          >
+            <template #staff-cell="{ row }">
+              <div class="space-y-0.5">
+                <div class="flex items-center gap-2">
+                  <span class="font-semibold text-sm text-slate-900">{{ row.original.name }}</span>
+                  <UBadge
+                    v-if="row.original.id === user?.id"
+                    color="primary"
+                    variant="soft"
+                    size="xs"
+                  >
+                    Anda
+                  </UBadge>
+                </div>
+                <div class="font-mono text-xs text-slate-600">{{ row.original.email }}</div>
               </div>
-              <div class="font-mono text-xs text-slate-600">{{ row.original.email }}</div>
-            </div>
-          </template>
+            </template>
 
-          <template #role-cell="{ row }">
-            <UBadge
-              :color="row.original.role === UserRoleEnum.ADMIN ? 'primary' : 'info'"
-              variant="subtle"
-              size="xs"
-              :icon="
-                row.original.role === UserRoleEnum.ADMIN
-                  ? 'i-lucide-shield-check'
-                  : 'i-lucide-user-check'
-              "
-            >
-              {{ row.original.role === UserRoleEnum.ADMIN ? 'Admin Utama' : 'Operator Kurasi' }}
-            </UBadge>
-          </template>
-
-          <template #authMethod-cell="{ row }">
-            <UBadge
-              :color="row.original.hasPassword ? 'neutral' : 'info'"
-              variant="outline"
-              size="xs"
-              :icon="row.original.hasPassword ? 'i-lucide-key-round' : 'i-lucide-globe'"
-            >
-              {{ row.original.hasPassword ? 'Google OAuth + Password' : 'Google OAuth Only' }}
-            </UBadge>
-          </template>
-
-          <template #lastLoginAt-cell="{ row }">
-            <span
-              v-if="row.original.lastLoginAt"
-              class="font-mono text-xs tabular-nums text-slate-700"
-            >
-              {{ formatDateTimeWita(row.original.lastLoginAt) }}
-            </span>
-            <span v-else class="text-xs text-slate-400">Belum pernah login</span>
-          </template>
-
-          <template #isActive-cell="{ row }">
-            <div class="flex items-center gap-2">
-              <UTooltip
-                :text="
-                  row.original.id === user?.id
-                    ? 'Akun yang sedang login tidak dapat dinonaktifkan'
-                    : row.original.isActive
-                      ? 'Aktif (klik untuk nonaktifkan)'
-                      : 'Nonaktif (klik untuk aktifkan)'
+            <template #role-cell="{ row }">
+              <UBadge
+                :color="row.original.role === UserRoleEnum.ADMIN ? 'primary' : 'info'"
+                variant="subtle"
+                size="xs"
+                :icon="
+                  row.original.role === UserRoleEnum.ADMIN
+                    ? 'i-lucide-shield-check'
+                    : 'i-lucide-user-check'
                 "
               >
-                <USwitch
-                  :model-value="row.original.isActive"
-                  :disabled="row.original.id === user?.id"
-                  :loading="togglingIds.has(row.original.id)"
-                  :aria-label="`Status aktif untuk ${row.original.email}`"
-                  @update:model-value="toggleActiveStatus(row.original, $event)"
-                />
-              </UTooltip>
+                {{ row.original.role === UserRoleEnum.ADMIN ? 'Admin Utama' : 'Operator Kurasi' }}
+              </UBadge>
+            </template>
+
+            <template #authMethod-cell="{ row }">
+              <UBadge
+                :color="row.original.hasPassword ? 'neutral' : 'info'"
+                variant="outline"
+                size="xs"
+                :icon="row.original.hasPassword ? 'i-lucide-key-round' : 'i-lucide-globe'"
+              >
+                {{ row.original.hasPassword ? 'Google OAuth + Password' : 'Google OAuth Only' }}
+              </UBadge>
+            </template>
+
+            <template #lastLoginAt-cell="{ row }">
               <span
-                class="text-xs font-medium"
-                :class="row.original.isActive ? 'text-emerald-700' : 'text-slate-400'"
+                v-if="row.original.lastLoginAt"
+                class="font-mono text-xs tabular-nums text-slate-700"
               >
-                {{ row.original.isActive ? 'Aktif' : 'Nonaktif' }}
+                {{ formatDateTimeWita(row.original.lastLoginAt) }}
               </span>
-            </div>
-          </template>
+              <span v-else class="text-xs text-slate-400">Belum pernah login</span>
+            </template>
 
-          <template #actions-cell="{ row }">
-            <div class="flex items-center gap-1">
-              <UTooltip text="Edit Akses Staf">
-                <UButton
-                  size="xs"
-                  color="primary"
-                  variant="subtle"
-                  icon="i-lucide-pencil"
-                  aria-label="Edit akses staf"
-                  @click="openEditModal(row.original)"
-                />
-              </UTooltip>
-              <UTooltip
-                :text="
-                  row.original.id === user?.id
-                    ? 'Akun sendiri tidak dapat dihapus'
-                    : 'Hapus dari Whitelist'
-                "
-              >
-                <UButton
-                  size="xs"
-                  color="error"
-                  variant="ghost"
-                  icon="i-lucide-trash-2"
-                  aria-label="Hapus akses staf"
-                  :disabled="row.original.id === user?.id"
-                  @click="askDelete(row.original)"
-                />
-              </UTooltip>
-            </div>
-          </template>
-        </UTable>
-      </UCard>
+            <template #isActive-cell="{ row }">
+              <div class="flex items-center gap-2">
+                <UTooltip
+                  :text="
+                    row.original.id === user?.id
+                      ? 'Akun yang sedang login tidak dapat dinonaktifkan'
+                      : row.original.isActive
+                        ? 'Aktif (klik untuk nonaktifkan)'
+                        : 'Nonaktif (klik untuk aktifkan)'
+                  "
+                >
+                  <USwitch
+                    :model-value="row.original.isActive"
+                    :disabled="row.original.id === user?.id"
+                    :loading="togglingIds.has(row.original.id)"
+                    :aria-label="`Status aktif untuk ${row.original.email}`"
+                    @update:model-value="toggleActiveStatus(row.original, $event)"
+                  />
+                </UTooltip>
+                <span
+                  class="text-xs font-medium"
+                  :class="row.original.isActive ? 'text-emerald-700' : 'text-slate-400'"
+                >
+                  {{ row.original.isActive ? 'Aktif' : 'Nonaktif' }}
+                </span>
+              </div>
+            </template>
+
+            <template #actions-cell="{ row }">
+              <div class="flex items-center gap-1">
+                <UTooltip text="Edit Akses Staf">
+                  <UButton
+                    size="xs"
+                    color="primary"
+                    variant="subtle"
+                    icon="i-lucide-pencil"
+                    aria-label="Edit akses staf"
+                    @click="openEditModal(row.original)"
+                  />
+                </UTooltip>
+                <UTooltip
+                  :text="
+                    row.original.id === user?.id
+                      ? 'Akun sendiri tidak dapat dihapus'
+                      : 'Hapus dari Whitelist'
+                  "
+                >
+                  <UButton
+                    size="xs"
+                    color="error"
+                    variant="ghost"
+                    icon="i-lucide-trash-2"
+                    aria-label="Hapus akses staf"
+                    :disabled="row.original.id === user?.id"
+                    @click="askDelete(row.original)"
+                  />
+                </UTooltip>
+              </div>
+            </template>
+          </UTable>
+        </div>
+      </div>
 
       <AdminUserFormModal
         v-model:open="formModalOpen"
@@ -369,7 +429,7 @@ const columns: TableColumn<AdminUserItem>[] = [
 
         <template #footer>
           <div class="w-full flex justify-end gap-2">
-            <UButton color="neutral" variant="ghost" @click="deleteModalOpen = false">
+            <UButton color="neutral" variant="ghost" @click="() => { deleteModalOpen = false; }">
               Batal
             </UButton>
             <UButton color="error" :loading="isDeleting" @click="confirmDelete">
@@ -381,4 +441,3 @@ const columns: TableColumn<AdminUserItem>[] = [
     </template>
   </div>
 </template>
-

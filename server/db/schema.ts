@@ -65,6 +65,11 @@ export const scraperRunStatusPgEnum = pgEnum(
   enumValues(ScraperRunStatusEnum),
 );
 export const userRolePgEnum = pgEnum('user_role', enumValues(UserRoleEnum));
+export const synthesisStylePgEnum = pgEnum('synthesis_style', [
+  'BRS_FORMAL',
+  'EXECUTIVE_BRIEF',
+  'BULLET_POINTS',
+]);
 
 // ============================================================================
 // 2. Tabel `users` — Autentikasi & Otorisasi Staf Admin Nerwilis
@@ -279,7 +284,68 @@ export const articles = pgTable(
 );
 
 // ============================================================================
-// 6. Drizzle Relations & Inferred Types
+// 6. Tabel `synthesis_drafts` — Draf & Riwayat Narasi BRS PDRB Bersama
+// ============================================================================
+
+export interface SynthesisDraftCitationEntry {
+  index: number;
+  id: string;
+  title: string;
+  sourcePortal: string;
+  publishedAt: string;
+  url: string;
+  kbliCategory: KbliCategoryEnum | null;
+  kbliImpact: KbliImpactEnum | null;
+  expenditureComponent: ExpenditureComponentEnum | null;
+  expenditureImpact: ExpenditureImpactEnum | null;
+}
+
+export const synthesisDrafts = pgTable(
+  'synthesis_drafts',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    year: smallint('year').notNull(),
+    quarter: smallint('quarter').notNull(),
+    dimension: text('dimension').$type<'kbli' | 'expenditure'>().notNull(),
+    targetCode: text('target_code').notNull(),
+    targetLabel: text('target_label').notNull(),
+    style: synthesisStylePgEnum('style').notNull().default('BRS_FORMAL'),
+    title: text('title').notNull(),
+    narrativeMarkdown: text('narrative_markdown').notNull(),
+    generationMode: text('generation_mode')
+      .$type<'gemini' | 'template'>()
+      .notNull()
+      .default('template'),
+    modelUsed: text('model_used'),
+    notice: text('notice'),
+    citations: jsonb('citations').$type<SynthesisDraftCitationEntry[]>().notNull().default([]),
+    articleIds: jsonb('article_ids').$type<string[]>().notNull().default([]),
+    articleCount: integer('article_count').notNull().default(0),
+    createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
+    updatedBy: uuid('updated_by').references(() => users.id, { onDelete: 'set null' }),
+    createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [
+    index('synthesis_drafts_period_updated_idx').on(t.year, t.quarter, t.updatedAt.desc()),
+    index('synthesis_drafts_target_idx').on(t.dimension, t.targetCode),
+    index('synthesis_drafts_created_by_idx').on(t.createdBy),
+    index('synthesis_drafts_updated_by_idx').on(t.updatedBy),
+    check('synthesis_drafts_quarter_range_chk', sql`${t.quarter} BETWEEN 1 AND 4`),
+    check('synthesis_drafts_year_range_chk', sql`${t.year} BETWEEN 2000 AND 2100`),
+    check('synthesis_drafts_dimension_chk', sql`${t.dimension} IN ('kbli', 'expenditure')`),
+    check('synthesis_drafts_mode_chk', sql`${t.generationMode} IN ('gemini', 'template')`),
+    check('synthesis_drafts_article_count_chk', sql`${t.articleCount} >= 0`),
+  ],
+);
+
+// ============================================================================
+// 7. Drizzle Relations & Inferred Types
 // ============================================================================
 
 export const usersRelations = relations(users, ({ many }) => ({
@@ -287,6 +353,8 @@ export const usersRelations = relations(users, ({ many }) => ({
   triggeredRuns: many(scraperLogs),
   verifiedArticles: many(articles, { relationName: 'verifiedByUser' }),
   createdArticles: many(articles, { relationName: 'createdByUser' }),
+  createdSynthesisDrafts: many(synthesisDrafts, { relationName: 'synthesisCreatedBy' }),
+  updatedSynthesisDrafts: many(synthesisDrafts, { relationName: 'synthesisUpdatedBy' }),
 }));
 
 export const nationalKeywordsRelations = relations(nationalKeywords, ({ one, many }) => ({
@@ -326,6 +394,19 @@ export const articlesRelations = relations(articles, ({ one }) => ({
   }),
 }));
 
+export const synthesisDraftsRelations = relations(synthesisDrafts, ({ one }) => ({
+  creator: one(users, {
+    fields: [synthesisDrafts.createdBy],
+    references: [users.id],
+    relationName: 'synthesisCreatedBy',
+  }),
+  updater: one(users, {
+    fields: [synthesisDrafts.updatedBy],
+    references: [users.id],
+    relationName: 'synthesisUpdatedBy',
+  }),
+}));
+
 export type UserRecord = typeof users.$inferSelect;
 export type NewUserRecord = typeof users.$inferInsert;
 export type NationalKeywordRecord = typeof nationalKeywords.$inferSelect;
@@ -334,4 +415,6 @@ export type ScraperLogRecord = typeof scraperLogs.$inferSelect;
 export type NewScraperLogRecord = typeof scraperLogs.$inferInsert;
 export type ArticleRecord = typeof articles.$inferSelect;
 export type NewArticleRecord = typeof articles.$inferInsert;
+export type SynthesisDraftRecord = typeof synthesisDrafts.$inferSelect;
+export type NewSynthesisDraftRecord = typeof synthesisDrafts.$inferInsert;
 

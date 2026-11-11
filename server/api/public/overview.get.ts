@@ -1,11 +1,13 @@
 // server/api/public/overview.get.ts
-import { and, count, desc, eq } from 'drizzle-orm';
+import { and, count, desc, eq, max } from 'drizzle-orm';
 import { defineEventHandler } from 'h3';
 import {
+  ArticleSourceTypeEnum,
   EXPENDITURE_COMPONENT_LABELS,
   ExpenditureImpactEnum,
   KBLI_CATEGORY_META,
   KbliImpactEnum,
+  PDRB_17_SECTORS,
   VerificationStatusEnum,
 } from '../../../shared/enums/pdrb';
 import { PublicOverviewQuerySchema } from '../../../shared/schemas/article.schema';
@@ -51,6 +53,8 @@ export default defineEventHandler(async (event) => {
     expenditureRows,
     kbliImpactRows,
     expImpactRows,
+    sourceRows,
+    [latestTimestampRow],
     periodRows,
   ] = await Promise.all([
     db.select({ total: count() }).from(articles).where(targetPeriodFilter),
@@ -89,6 +93,20 @@ export default defineEventHandler(async (event) => {
       .groupBy(articles.expenditureImpact),
     db
       .select({
+        sourceType: articles.sourceType,
+        total: count(),
+      })
+      .from(articles)
+      .where(targetPeriodFilter)
+      .groupBy(articles.sourceType),
+    db
+      .select({
+        lastUpdated: max(articles.updatedAt),
+      })
+      .from(articles)
+      .where(targetPeriodFilter),
+    db
+      .select({
         year: articles.year,
         quarter: articles.quarter,
         total: count(),
@@ -107,10 +125,12 @@ export default defineEventHandler(async (event) => {
       ? Math.round((deltaCount / previousTotalVerified) * 1000) / 10
       : null;
 
+  const kbliCountMap = new Map<string, number>();
   const kbliDistribution = kbliRows
     .filter((row): row is { code: NonNullable<typeof row.code>; total: number } => row.code !== null)
     .map((row) => {
       const numCount = Number(row.total);
+      kbliCountMap.set(row.code, numCount);
       const meta = KBLI_CATEGORY_META[row.code];
       return {
         code: row.code,
@@ -122,6 +142,21 @@ export default defineEventHandler(async (event) => {
       };
     })
     .sort((a, b) => b.count - a.count || a.code.localeCompare(b.code));
+
+  const pdrb17Distribution = PDRB_17_SECTORS.map((sector) => {
+    const sectorCount = sector.kbliCodes.reduce(
+      (acc, kbliCode) => acc + (kbliCountMap.get(kbliCode) ?? 0),
+      0,
+    );
+    return {
+      groupCode: sector.groupCode,
+      shortName: sector.shortName,
+      officialName: sector.officialName,
+      kbliCodes: [...sector.kbliCodes],
+      count: sectorCount,
+      percentage: totalVerified > 0 ? Math.round((sectorCount / totalVerified) * 1000) / 10 : 0,
+    };
+  });
 
   const expenditureDistribution = expenditureRows
     .filter((row): row is { code: NonNullable<typeof row.code>; total: number } => row.code !== null)
@@ -162,12 +197,23 @@ export default defineEventHandler(async (event) => {
     }
   }
 
+  const sourceBreakdown = {
+    regional: 0,
+    national: 0,
+    manual: 0,
+  };
+  for (const row of sourceRows) {
+    const val = Number(row.total);
+    if (row.sourceType === ArticleSourceTypeEnum.REGIONAL) sourceBreakdown.regional = val;
+    else if (row.sourceType === ArticleSourceTypeEnum.NATIONAL) sourceBreakdown.national = val;
+    else if (row.sourceType === ArticleSourceTypeEnum.MANUAL) sourceBreakdown.manual = val;
+  }
+
   const expansionCount = kbliImpactCounts[KbliImpactEnum.INCREASE_NTB];
   const pressureOrContractionCount = Math.max(0, totalVerified - expansionCount);
   const positiveRealPercent =
     totalVerified > 0 ? Math.round((expansionCount / totalVerified) * 100) : 0;
 
-  // Pastikan periode WITA berjalan selalu muncul di daftar periode
   const periodMap = new Map<string, { year: number; quarter: number; label: string; count: number }>();
   periodMap.set(`${currentPeriod.year}-${currentPeriod.quarter}`, {
     year: currentPeriod.year,
@@ -216,8 +262,12 @@ export default defineEventHandler(async (event) => {
       },
     },
     kbliDistribution,
+    pdrb17Distribution,
     expenditureDistribution,
+    sourceBreakdown,
+    lastUpdatedAt: latestTimestampRow?.lastUpdated
+      ? latestTimestampRow.lastUpdated.toISOString()
+      : null,
     availablePeriods,
   };
 });
-

@@ -1,6 +1,7 @@
 // shared/schemas/article.schema.ts
 import { z } from 'zod';
 import {
+  ArticleSourceTypeEnum,
   ExpenditureComponentEnum,
   ExpenditureImpactEnum,
   KbliCategoryEnum,
@@ -47,6 +48,15 @@ const optionalDateStr = z.preprocess(
     .optional(),
 );
 
+export const ImpactMacroFilterSchema = z.enum([
+  'EXPANSION',
+  'CONTRACTION',
+  'PRICE_UP',
+  'PRICE_DOWN',
+]);
+
+export type ImpactMacroFilter = z.infer<typeof ImpactMacroFilterSchema>;
+
 export const PublicOverviewQuerySchema = z.object({
   year: optionalPositiveInt(2000, 2100),
   quarter: optionalQuarter,
@@ -56,7 +66,19 @@ export const PublicArticlesQuerySchema = z.object({
   year: optionalPositiveInt(2000, 2100),
   quarter: optionalQuarter,
   kbli: optionalEnum(KbliCategoryEnum),
+  pdrbGroup: z.preprocess(
+    (v) => (v === '' || v === 'ALL' || v === null || v === undefined ? undefined : String(v).trim()),
+    z.string().max(16).optional(),
+  ),
   expenditure: optionalEnum(ExpenditureComponentEnum),
+  sourceType: z.preprocess(
+    (v) => (v === '' || v === 'ALL' || v === null || v === undefined ? undefined : v),
+    z.nativeEnum(ArticleSourceTypeEnum).optional(),
+  ),
+  impactMacro: z.preprocess(
+    (v) => (v === '' || v === 'ALL' || v === null || v === undefined ? undefined : v),
+    ImpactMacroFilterSchema.optional(),
+  ),
   q: z
     .string()
     .trim()
@@ -65,6 +87,33 @@ export const PublicArticlesQuerySchema = z.object({
     .transform((v) => (v === '' ? undefined : v)),
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(50).default(20),
+});
+
+export const AdminDashboardQuerySchema = z.object({
+  year: optionalPositiveInt(2000, 2100),
+  quarter: optionalQuarter,
+});
+
+export const AdminTrendsQuerySchema = z.object({
+  year: optionalPositiveInt(2000, 2100),
+  quarter: optionalQuarter,
+  mode: z.enum(['qoq', 'yoy']).default('qoq'),
+  dimension: z.enum(['kbli', 'expenditure']).default('kbli'),
+});
+
+export const SynthesisGenerateSchema = z.object({
+  year: z.coerce.number().int().min(2000).max(2100),
+  quarter: z.coerce
+    .number()
+    .int()
+    .refine((v): v is 1 | 2 | 3 | 4 => v >= 1 && v <= 4, 'Triwulan harus 1 s.d. 4'),
+  dimension: z.enum(['kbli', 'expenditure']),
+  targetCode: z.string().trim().min(1).max(40),
+  style: z.enum(['BRS_FORMAL', 'EXECUTIVE_BRIEF', 'BULLET_POINTS']).default('BRS_FORMAL'),
+  articleIds: z
+    .array(z.string().uuid('ID artikel harus UUID valid'))
+    .min(1, 'Pilih minimal 1 artikel terverifikasi sebagai bahan sintesis')
+    .max(30),
 });
 
 export const AdminArticlesQuerySchema = z.object({
@@ -83,6 +132,10 @@ export const AdminArticlesQuerySchema = z.object({
   year: optionalPositiveInt(2000, 2100),
   quarter: optionalQuarter,
   kbli: optionalEnum(KbliCategoryEnum),
+  pdrbGroup: z.preprocess(
+    (v) => (v === '' || v === 'ALL' || v === null || v === undefined ? undefined : String(v).trim()),
+    z.string().max(16).optional(),
+  ),
   expenditure: optionalEnum(ExpenditureComponentEnum),
   portal: z
     .string()
@@ -119,6 +172,10 @@ export const ExportArticlesQuerySchema = z.object({
   year: optionalPositiveInt(2000, 2100),
   quarter: optionalQuarter,
   kbli: optionalEnum(KbliCategoryEnum),
+  pdrbGroup: z.preprocess(
+    (v) => (v === '' || v === 'ALL' || v === null || v === undefined ? undefined : String(v).trim()),
+    z.string().max(16).optional(),
+  ),
   expenditure: optionalEnum(ExpenditureComponentEnum),
   portal: z
     .string()
@@ -221,6 +278,9 @@ export const ScraperLogsQuerySchema = z.object({
 
 export type PublicOverviewQuery = z.infer<typeof PublicOverviewQuerySchema>;
 export type PublicArticlesQuery = z.infer<typeof PublicArticlesQuerySchema>;
+export type AdminDashboardQuery = z.infer<typeof AdminDashboardQuerySchema>;
+export type AdminTrendsQuery = z.infer<typeof AdminTrendsQuerySchema>;
+export type SynthesisGenerateInput = z.infer<typeof SynthesisGenerateSchema>;
 export type AdminArticlesQuery = z.infer<typeof AdminArticlesQuerySchema>;
 export type ExportArticlesQuery = z.infer<typeof ExportArticlesQuerySchema>;
 export type CreateManualArticleInput = z.infer<typeof CreateManualArticleSchema>;

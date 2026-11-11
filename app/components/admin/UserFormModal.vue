@@ -254,7 +254,7 @@ async function handleSubmit() {
                 size="xs"
                 :icon="showPassword ? 'i-lucide-eye-off' : 'i-lucide-eye'"
                 :aria-label="showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'"
-                @click="showPassword = !showPassword"
+                @click="() => { showPassword = !showPassword; }"
               />
             </template>
           </UInput>
@@ -294,7 +294,7 @@ async function handleSubmit() {
         </div>
 
         <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
-          <UButton color="neutral" variant="ghost" @click="modalOpen = false">
+          <UButton color="neutral" variant="ghost" @click="() => { modalOpen = false; }">
             Batal
           </UButton>
           <UButton type="submit" color="primary" :loading="isSubmitting">

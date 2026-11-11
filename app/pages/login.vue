@@ -35,7 +35,7 @@ const OAUTH_ERROR_MAP: Record<string, OAuthAlertInfo> = {
   not_whitelisted: {
     title: 'Akses Ditolak: Email Tidak Terdaftar pada Whitelist',
     description:
-      'Alamat Gmail / Google Anda belum didaftarkan di sistem SIPENA KTT. Hubungi Administrator Utama untuk menambahkan email Anda di menu Kelola Akses Admin.',
+      'Alamat Gmail / Google Anda belum didaftarkan di sistem SIPENA KTT. Hubungi Administrator Utama untuk menambahkan email Anda di menu Kelola Akses & Tim.',
     color: 'error',
   },
   account_inactive: {
@@ -98,7 +98,7 @@ const oauthAlert = computed<OAuthAlertInfo | null>(() => {
 const googleLoginEnabled = computed(() => providersData.value?.googleEnabled === true);
 
 function sanitizeRedirectTarget(rawTarget: unknown): string {
-  if (typeof rawTarget !== 'string') return '/admin/review';
+  if (typeof rawTarget !== 'string') return '/admin';
   const trimmed = rawTarget.trim();
   if (
     !trimmed ||
@@ -108,7 +108,7 @@ function sanitizeRedirectTarget(rawTarget: unknown): string {
     trimmed === '/login' ||
     trimmed.startsWith('/api/auth')
   ) {
-    return '/admin/review';
+    return '/admin';
   }
   return trimmed;
 }
@@ -143,7 +143,7 @@ async function handleSubmit(event: FormSubmitEvent<LoginRequestInput>) {
     setUser(res.user);
     toast.add({
       title: `Selamat datang, ${res.user.name}`,
-      description: 'Anda berhasil masuk ke workspace kurasi SIPENA KTT.',
+      description: 'Anda berhasil masuk ke Workstation Nerwilis SIPENA KTT.',
       color: 'success',
       icon: 'i-lucide-check-circle-2',
     });
@@ -173,32 +173,46 @@ async function handleSubmit(event: FormSubmitEvent<LoginRequestInput>) {
 </script>
 
 <template>
-  <div class="min-h-screen bg-slate-50 flex flex-col justify-center px-4 py-12">
-    <div class="sm:mx-auto sm:w-full sm:max-w-md space-y-6">
-      <div class="text-center space-y-2">
+  <div class="min-h-screen bg-[#EFF2F7] relative flex flex-col justify-center px-4 py-12 text-[#0B1220]">
+    <div
+      aria-hidden="true"
+      class="pointer-events-none fixed inset-x-0 top-0 h-[440px] bg-[radial-gradient(ellipse_75%_45%_at_50%_-10%,rgba(15,118,110,0.12),rgba(37,99,235,0.05),transparent)]"
+    />
+
+    <div class="relative z-10 sm:mx-auto sm:w-full sm:max-w-[440px] space-y-6">
+      <div class="text-center space-y-2.5">
         <div
-          class="mx-auto h-12 w-12 rounded-xl bg-teal-600 text-white flex items-center justify-center shadow-sm"
+          class="mx-auto h-11 w-11 rounded-xl bg-gradient-to-b from-[#0F766E] to-[#0B5B55] text-white flex items-center justify-center shadow-[inset_0_1px_0_rgba(255,255,255,0.22),0_4px_10px_rgba(15,118,110,0.28)]"
         >
-          <UIcon name="i-lucide-bar-chart-3" class="w-6 h-6" />
+          <UIcon name="i-lucide-box" class="w-5 h-5" />
         </div>
-        <h1 class="text-2xl font-bold tracking-tight text-slate-900">SIPENA KTT</h1>
-        <p class="text-sm text-slate-600 max-w-sm mx-auto">
-          Masuk ke Workstation Kurasi Fenomena Ekonomi &amp; Pemetaan PDRB Kabupaten Tana Tidung
+        <div>
+          <span class="font-mono text-[11px] font-bold uppercase tracking-wider text-teal-700">
+            BPS Kab. Tana Tidung • Nerwilis
+          </span>
+          <h1 class="text-2xl font-bold tracking-tight text-[#0B1220] mt-0.5">
+            Workstation SIPENA <span class="text-teal-700">KTT</span>
+          </h1>
+        </div>
+        <p class="text-[13px] text-[#5B677A] max-w-sm mx-auto leading-relaxed">
+          Kurasi harian fenomena ekonomi, analisis gap sektoral 17 KBLI, dan draf sintesis narasi PDRB.
         </p>
       </div>
 
-      <UCard v-if="user" class="text-center">
-        <div class="space-y-3 py-2">
-          <p class="text-sm text-slate-700">
-            Anda sudah masuk sebagai <strong>{{ user.name }}</strong>.
-          </p>
-          <UButton to="/admin/review" color="primary" block icon="i-lucide-arrow-right">
-            Lanjutkan ke Workspace Admin
-          </UButton>
-        </div>
-      </UCard>
+      <div v-if="user" class="saas-card rounded-2xl p-6 text-center space-y-4">
+        <p class="text-sm text-[#334155]">
+          Anda sudah masuk sebagai <strong class="text-[#0B1220]">{{ user.name }}</strong>.
+        </p>
+        <NuxtLink
+          to="/admin"
+          class="obsidian-button w-full py-2.5 px-4 rounded-xl text-xs font-semibold inline-flex items-center justify-center gap-2"
+        >
+          <span>Lanjutkan ke Dashboard Admin</span>
+          <UIcon name="i-lucide-arrow-right" class="w-4 h-4" />
+        </NuxtLink>
+      </div>
 
-      <UCard v-else>
+      <div v-else class="saas-card rounded-2xl p-6 sm:p-7 space-y-5">
         <UAlert
           v-if="oauthAlert"
           :color="oauthAlert.color"
@@ -206,7 +220,6 @@ async function handleSubmit(event: FormSubmitEvent<LoginRequestInput>) {
           icon="i-lucide-shield-alert"
           :title="oauthAlert.title"
           :description="oauthAlert.description"
-          class="mb-4"
         />
 
         <UAlert
@@ -215,82 +228,72 @@ async function handleSubmit(event: FormSubmitEvent<LoginRequestInput>) {
           variant="subtle"
           icon="i-lucide-shield-alert"
           :title="errorMessage"
-          class="mb-4"
         />
 
-        <!-- Login dengan Akun Google Whitelist -->
-        <div class="space-y-2">
-          <UButton
+        <div class="space-y-2.5">
+          <button
             type="button"
-            color="neutral"
-            variant="outline"
-            size="md"
-            block
-            :loading="isRedirectingGoogle"
-            :disabled="!googleLoginEnabled"
-            class="bg-white hover:bg-slate-50 border-slate-300 text-slate-800 font-medium"
+            :disabled="!googleLoginEnabled || isRedirectingGoogle"
+            class="w-full h-10 px-4 rounded-xl bg-white hover:bg-[#F8FAFC] border border-[#DCE3EC] text-[#0B1220] text-xs font-semibold shadow-[0_1px_2px_rgba(11,18,32,0.05)] transition-colors flex items-center justify-center gap-2.5 disabled:opacity-50 disabled:cursor-not-allowed"
             @click="handleGoogleLogin"
           >
-            <template #leading>
-              <svg
-                class="w-4 h-4 shrink-0"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
-                <path
-                  fill="#4285F4"
-                  d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17Z"
-                />
-                <path
-                  fill="#34A853"
-                  d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.11-6.72-4.96H1.29v3.14C3.26 21.3 7.31 24 12 24Z"
-                />
-                <path
-                  fill="#FBBC05"
-                  d="M5.28 14.24c-.24-.72-.38-1.49-.38-2.24s.14-1.52.38-2.24V6.62H1.29C.47 8.24 0 10.06 0 12s.47 3.76 1.29 5.38l3.99-3.14Z"
-                />
-                <path
-                  fill="#EA4335"
-                  d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.62l3.99 3.14c.95-2.85 3.6-4.96 6.72-4.96Z"
-                />
-              </svg>
-            </template>
-            Masuk dengan Google (Staf Terdaftar)
-          </UButton>
+            <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                fill="#4285F4"
+                d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17Z"
+              />
+              <path
+                fill="#34A853"
+                d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.11-6.72-4.96H1.29v3.14C3.26 21.3 7.31 24 12 24Z"
+              />
+              <path
+                fill="#FBBC05"
+                d="M5.28 14.24c-.24-.72-.38-1.49-.38-2.24s.14-1.52.38-2.24V6.62H1.29C.47 8.24 0 10.06 0 12s.47 3.76 1.29 5.38l3.99-3.14Z"
+              />
+              <path
+                fill="#EA4335"
+                d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.62l3.99 3.14c.95-2.85 3.6-4.96 6.72-4.96Z"
+              />
+            </svg>
+            <span>{{ isRedirectingGoogle ? 'Mengalihkan ke Google...' : 'Masuk dengan Google (Staf Whitelist)' }}</span>
+          </button>
 
           <p
             v-if="providersData && !googleLoginEnabled"
-            class="text-xs text-amber-700 bg-amber-50/80 border border-amber-200/80 rounded-md px-2.5 py-1.5 text-center"
+            class="text-[11px] text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-center leading-relaxed"
           >
             Login Google belum aktif — isi <code class="font-mono">GOOGLE_CLIENT_ID</code> &amp;
-            <code class="font-mono">GOOGLE_CLIENT_SECRET</code> di <code class="font-mono">.env</code> server.
+            <code class="font-mono">GOOGLE_CLIENT_SECRET</code> pada <code class="font-mono">.env</code> server.
           </p>
-          <p v-else class="text-[11px] text-slate-500 text-center">
-            Autentikasi OAuth-First: khusus Gmail Super Admin dan staf yang terdaftar pada whitelist admin.
+          <p v-else class="text-[11px] text-[#5B677A] text-center leading-relaxed">
+            Autentikasi OAuth-First khusus Super Admin dan akun staf aktif pada daftar whitelist.
           </p>
         </div>
 
-        <div class="mt-5 pt-4 border-t border-slate-100 text-center">
-          <UButton
+        <div class="pt-4 border-t border-[#E2E8F0] text-center">
+          <button
             type="button"
-            color="neutral"
-            variant="ghost"
-            size="xs"
-            :icon="showLocalLogin ? 'i-lucide-chevron-up' : 'i-lucide-chevron-down'"
+            class="inline-flex items-center gap-1.5 text-xs font-medium text-[#5B677A] hover:text-[#0B1220] transition-colors"
             @click="showLocalLogin = !showLocalLogin"
           >
-            {{ showLocalLogin ? 'Sembunyikan login kata sandi cadangan' : 'Login alternatif dengan email & kata sandi lokal' }}
-          </UButton>
+            <UIcon
+              :name="showLocalLogin ? 'i-lucide-chevron-up' : 'i-lucide-chevron-down'"
+              class="w-3.5 h-3.5"
+            />
+            <span>
+              {{ showLocalLogin ? 'Sembunyikan login kata sandi cadangan' : 'Login alternatif email & kata sandi lokal' }}
+            </span>
+          </button>
         </div>
 
         <UForm
           v-if="showLocalLogin"
           :schema="LoginRequestSchema"
           :state="formState"
-          class="space-y-4 mt-4 pt-4 border-t border-slate-100"
+          class="space-y-4 pt-3 border-t border-[#E2E8F0]"
           @submit="handleSubmit"
         >
-          <UFormField label="Email Instansi" name="email" required>
+          <UFormField label="Email Instansi / Gmail Terdaftar" name="email" required>
             <UInput
               v-model="formState.email"
               type="email"
@@ -320,34 +323,30 @@ async function handleSubmit(event: FormSubmitEvent<LoginRequestInput>) {
                   size="xs"
                   :icon="showPassword ? 'i-lucide-eye-off' : 'i-lucide-eye'"
                   :aria-label="showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'"
-                  @click="showPassword = !showPassword"
+                  @click="() => { showPassword = !showPassword; }"
                 />
               </template>
             </UInput>
           </UFormField>
 
-          <div class="pt-2">
-            <UButton
-              type="submit"
-              color="primary"
-              variant="solid"
-              size="md"
-              block
-              :loading="isSubmitting"
-              icon="i-lucide-log-in"
-            >
-              Masuk ke Workspace Admin
-            </UButton>
-          </div>
+          <button
+            type="submit"
+            :disabled="isSubmitting"
+            class="obsidian-button w-full h-10 rounded-xl text-xs font-semibold inline-flex items-center justify-center gap-2"
+          >
+            <UIcon v-if="isSubmitting" name="i-lucide-loader-circle" class="w-4 h-4 animate-spin" />
+            <UIcon v-else name="i-lucide-log-in" class="w-4 h-4 text-teal-300" />
+            <span>{{ isSubmitting ? 'Memverifikasi...' : 'Masuk ke Workstation Admin' }}</span>
+          </button>
         </UForm>
-      </UCard>
+      </div>
 
       <div class="text-center">
         <NuxtLink
           to="/"
-          class="inline-flex items-center gap-1.5 text-sm font-medium text-teal-700 hover:text-teal-800 hover:underline"
+          class="inline-flex items-center gap-1.5 text-xs font-semibold text-teal-700 hover:text-teal-800 hover:underline"
         >
-          <UIcon name="i-lucide-arrow-left" class="w-4 h-4" />
+          <UIcon name="i-lucide-arrow-left" class="w-3.5 h-3.5" />
           Kembali ke Portal Publik SIPENA KTT
         </NuxtLink>
       </div>

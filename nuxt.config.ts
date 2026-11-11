@@ -14,17 +14,30 @@ export default defineNuxtConfig({
     colorMode: false,
   },
 
+  icon: {
+    provider: 'server',
+    fallbackToApi: 'server-only',
+  },
+
   app: {
     head: {
       htmlAttrs: {
         lang: 'id',
       },
-      title: 'SIPENA KTT — Sistem Informasi Pencari Fenomena Ekonomi Kab. Tana Tidung',
+      title: 'SIPENA KTT — Sistem Pemantauan Fenomena Ekonomi Kab. Tana Tidung',
+      link: [
+        { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
+        { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
+        {
+          rel: 'stylesheet',
+          href: 'https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap',
+        },
+      ],
       meta: [
         {
           name: 'description',
           content:
-            'Pemantauan harian fenomena ekonomi Kabupaten Tana Tidung berbasis pemetaan dua sisi PDRB (KBLI & Pengeluaran).',
+            'Pemantauan harian fenomena ekonomi Kabupaten Tana Tidung berbasis pemetaan dua sisi PDRB (17 Lapangan Usaha KBLI & 6 Komponen Pengeluaran).',
         },
       ],
     },

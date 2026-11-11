@@ -19,9 +19,19 @@ import {
 } from '#shared/utils/period';
 import type { AdminArticleItem } from '~/types/sipena';
 
-const props = defineProps<{
-  open: boolean;
-}>();
+const props = withDefaults(
+  defineProps<{
+    open: boolean;
+    defaultKbli?: KbliCategoryEnum | null;
+    defaultYear?: number | null;
+    defaultQuarter?: PdrbQuarter | null;
+  }>(),
+  {
+    defaultKbli: null,
+    defaultYear: null,
+    defaultQuarter: null,
+  },
+);
 
 const emit = defineEmits<{
   'update:open': [value: boolean];
@@ -67,21 +77,26 @@ const formState = reactive<CreateManualArticleInput>({
 
 const isSubmitting = ref(false);
 const submitError = ref<string | null>(null);
+const ignoreNextDateQuarterSync = ref(false);
 
 function resetForm() {
   const period = getCurrentQuarterYearWita();
+  const todayStr = getTodayWitaDateInput();
+  if (formState.publishedAt !== todayStr && (props.defaultQuarter || props.defaultYear)) {
+    ignoreNextDateQuarterSync.value = true;
+  }
   formState.title = '';
   formState.url = '';
   formState.sourcePortal = 'Input Manual';
-  formState.publishedAt = getTodayWitaDateInput();
+  formState.publishedAt = todayStr;
   formState.snippetText = '';
   formState.summary = '';
-  formState.kbliCategory = KbliCategoryEnum.A;
+  formState.kbliCategory = props.defaultKbli ?? KbliCategoryEnum.A;
   formState.kbliImpact = KbliImpactEnum.INCREASE_NTB;
   formState.expenditureComponent = ExpenditureComponentEnum.PK_RT;
   formState.expenditureImpact = ExpenditureImpactEnum.INCREASE_REAL;
-  formState.quarter = period.quarter;
-  formState.year = period.year;
+  formState.quarter = props.defaultQuarter ?? period.quarter;
+  formState.year = props.defaultYear ?? period.year;
   formState.verifyImmediately = true;
   submitError.value = null;
 }
@@ -89,6 +104,10 @@ function resetForm() {
 watch(
   () => formState.publishedAt,
   (nextDate: string) => {
+    if (ignoreNextDateQuarterSync.value) {
+      ignoreNextDateQuarterSync.value = false;
+      return;
+    }
     if (!nextDate) return;
     try {
       const derived = getQuarterFromDateWita(nextDate);
@@ -271,7 +290,7 @@ async function handleSubmit(event: FormSubmitEvent<CreateManualArticleInput>) {
         />
 
         <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
-          <UButton color="neutral" variant="ghost" @click="modalOpen = false">
+          <UButton color="neutral" variant="ghost" @click="() => { modalOpen = false; }">
             Batal
           </UButton>
           <UButton

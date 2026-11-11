@@ -71,14 +71,20 @@ const form = reactive({
 
 const submittingAction = ref<'VERIFIED' | 'IGNORED' | 'DRAFT' | null>(null);
 const validationAlert = ref<string | null>(null);
+const initialSummarySnapshot = ref<string>('');
 
 watch(
   () => props.article,
   (nextArticle: AdminArticleItem | null) => {
     validationAlert.value = null;
-    if (!nextArticle) return;
+    if (!nextArticle) {
+      initialSummarySnapshot.value = '';
+      return;
+    }
+    const rawSummary = nextArticle.summary ?? '';
+    initialSummarySnapshot.value = rawSummary;
     form.title = nextArticle.title;
-    form.summary = nextArticle.summary ?? '';
+    form.summary = rawSummary;
     form.kbliCategory = nextArticle.kbliCategory ?? '';
     form.kbliImpact = nextArticle.kbliImpact ?? '';
     form.expenditureComponent = nextArticle.expenditureComponent ?? '';
@@ -89,6 +95,17 @@ watch(
   },
   { immediate: true },
 );
+
+const canRestoreInitialSummary = computed(
+  () =>
+    initialSummarySnapshot.value.trim().length > 0 &&
+    form.summary !== initialSummarySnapshot.value,
+);
+
+function restoreInitialSummary() {
+  if (!initialSummarySnapshot.value) return;
+  form.summary = initialSummarySnapshot.value;
+}
 
 const kbliModel = computed<string | undefined>({
   get: () => (form.kbliCategory === '' ? undefined : form.kbliCategory),
@@ -232,13 +249,13 @@ async function submitUpdate(action: 'VERIFIED' | 'IGNORED' | 'DRAFT') {
               {{ llmBadge.label }}
             </UBadge>
             <UBadge
-              v-if="article.aiConfidence !== null"
+              v-if="article.llmConfidence !== null"
               color="neutral"
               variant="outline"
               size="xs"
               class="font-mono tabular-nums"
             >
-              AI Conf: {{ Math.round(article.aiConfidence * 100) }}%
+              AI Conf: {{ Math.round(article.llmConfidence * 100) }}%
             </UBadge>
             <UBadge color="neutral" variant="outline" size="xs">
               {{ getSourceTypeLabel(article.sourceType) }}
@@ -278,7 +295,7 @@ async function submitUpdate(action: 'VERIFIED' | 'IGNORED' | 'DRAFT') {
           icon="i-lucide-alert-triangle"
           title="Klasifikasi AI tertunda/gagal"
           :description="
-            article.llmErrorMessage ||
+            article.llmError ||
             'Silakan lengkapi ringkasan dan pemetaan PDRB secara manual dari cuplikan berita di bawah.'
           "
         />
@@ -307,29 +324,43 @@ async function submitUpdate(action: 'VERIFIED' | 'IGNORED' | 'DRAFT') {
             </span>
           </div>
           <div
-            class="max-h-48 overflow-y-auto rounded-lg bg-slate-50 border border-slate-200/90 p-3 text-sm leading-relaxed text-slate-800 whitespace-pre-line"
+            class="max-h-48 overflow-y-auto saas-scroll rounded-lg bg-slate-50 border border-slate-200/90 p-3 text-sm leading-relaxed text-slate-800 whitespace-pre-line"
           >
             {{ article.snippetText }}
           </div>
         </div>
 
         <!-- Ringkasan Berita -->
-        <UFormField
-          label="Ringkasan Berita (2–3 Kalimat untuk Publik & Excel)"
-          required
-          :error="
-            highlightIncomplete && form.summary.trim().length < 10
-              ? 'Wajib diisi minimal 10 karakter sebelum verifikasi'
-              : undefined
-          "
-        >
-          <UTextarea
-            v-model="form.summary"
-            :rows="3"
-            placeholder="Tuliskan ringkasan 2–3 kalimat padat mengenai fenomena ekonomi daerah..."
-            class="w-full"
-          />
-        </UFormField>
+        <div class="space-y-1.5">
+          <div class="flex items-center justify-between gap-2">
+            <label class="text-xs font-semibold text-slate-700">
+              Ringkasan Berita (2–3 Kalimat untuk Publik &amp; Excel) <span class="text-rose-600">*</span>
+            </label>
+            <button
+              v-if="canRestoreInitialSummary"
+              type="button"
+              class="inline-flex items-center gap-1 text-[11px] font-medium text-teal-700 hover:text-teal-900 hover:underline"
+              @click="restoreInitialSummary"
+            >
+              <UIcon name="i-lucide-rotate-ccw" class="w-3 h-3" />
+              <span>Kembalikan Teks AI</span>
+            </button>
+          </div>
+          <UFormField
+            :error="
+              highlightIncomplete && form.summary.trim().length < 10
+                ? 'Wajib diisi minimal 10 karakter sebelum verifikasi'
+                : undefined
+            "
+          >
+            <UTextarea
+              v-model="form.summary"
+              :rows="3"
+              placeholder="Tuliskan ringkasan 2–3 kalimat padat mengenai fenomena ekonomi daerah..."
+              class="w-full"
+            />
+          </UFormField>
+        </div>
 
         <!-- Grid Klasifikasi Dua Sisi PDRB -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">

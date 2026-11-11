@@ -34,7 +34,13 @@ const columns: TableColumn<ScraperLogItem>[] = [
 
 <template>
   <div>
-    <UTable :data="logs" :columns="columns" :loading="loading" empty="Belum ada riwayat eksekusi scraper.">
+    <div
+      tabindex="0"
+      role="region"
+      aria-label="Riwayat Eksekusi Scraper & Pipeline AI"
+      class="saas-table-scroller"
+    >
+      <UTable :data="logs" :columns="columns" :loading="loading" empty="Belum ada riwayat eksekusi scraper.">
       <template #startedAt-cell="{ row }">
         <div class="space-y-0.5">
           <div class="font-mono text-xs tabular-nums text-slate-800">
@@ -113,6 +119,7 @@ const columns: TableColumn<ScraperLogItem>[] = [
         </UButton>
       </template>
     </UTable>
+    </div>
 
     <!-- Modal Detail Log & Error Summary -->
     <UModal
@@ -163,7 +170,7 @@ const columns: TableColumn<ScraperLogItem>[] = [
               title="Tidak ada error yang tercatat pada sesi eksekusi ini."
             />
 
-            <div v-else class="max-h-72 overflow-y-auto space-y-2 pr-1">
+            <div v-else class="max-h-72 overflow-y-auto saas-scroll space-y-2 pr-1">
               <div
                 v-for="(entry, idx) in selectedLog.errorSummary"
                 :key="idx"
@@ -187,7 +194,7 @@ const columns: TableColumn<ScraperLogItem>[] = [
 
       <template #footer>
         <div class="w-full flex justify-end">
-          <UButton color="neutral" variant="outline" @click="detailModalOpen = false">
+          <UButton color="neutral" variant="outline" @click="() => { detailModalOpen = false; }">
             Tutup
           </UButton>
         </div>

@@ -1,6 +1,10 @@
 // server/services/articles/query.ts
-import { and, count, eq, gte, ilike, lte, or, type SQL } from 'drizzle-orm';
-import { LlmStatusEnum, VerificationStatusEnum } from '../../../shared/enums/pdrb';
+import { and, count, eq, gte, ilike, inArray, lte, or, type SQL } from 'drizzle-orm';
+import {
+  LlmStatusEnum,
+  resolvePdrbGroupCodes,
+  VerificationStatusEnum,
+} from '../../../shared/enums/pdrb';
 import type { AdminArticlesQuery, ExportArticlesQuery } from '../../../shared/schemas/article.schema';
 import { parseWitaDateBoundary } from '../../../shared/utils/period';
 import { db } from '../../db';
@@ -15,6 +19,7 @@ export type ArticleFilterInput = Partial<
     | 'year'
     | 'quarter'
     | 'kbli'
+    | 'pdrbGroup'
     | 'expenditure'
     | 'portal'
     | 'from'
@@ -63,6 +68,13 @@ export function buildAdminArticleFilters(filter: ArticleFilterInput): SQL | unde
   }
   if (filter.kbli) {
     conditions.push(eq(articles.kbliCategory, filter.kbli));
+  } else if (filter.pdrbGroup) {
+    const codes = resolvePdrbGroupCodes(filter.pdrbGroup);
+    if (codes.length === 1) {
+      conditions.push(eq(articles.kbliCategory, codes[0]!));
+    } else if (codes.length > 1) {
+      conditions.push(inArray(articles.kbliCategory, codes));
+    }
   }
   if (filter.expenditure) {
     conditions.push(eq(articles.expenditureComponent, filter.expenditure));

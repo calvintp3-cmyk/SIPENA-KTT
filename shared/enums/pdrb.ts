@@ -292,3 +292,249 @@ export enum UserRoleEnum {
   OPERATOR = 'OPERATOR',
 }
 
+export interface Pdrb17SectorMeta {
+  groupCode: string;
+  shortName: string;
+  officialName: string;
+  kbliCodes: ReadonlyArray<KbliCategoryEnum>;
+  description: string;
+  typicalSignals: string;
+}
+
+export const PDRB_17_SECTORS: ReadonlyArray<Pdrb17SectorMeta> = [
+  {
+    groupCode: 'A',
+    shortName: 'Pertanian, Kehutanan & Perikanan',
+    officialName: 'Pertanian, Kehutanan, dan Perikanan',
+    kbliCodes: [KbliCategoryEnum.A],
+    description:
+      'Tanaman pangan, perkebunan kelapa sawit/TBS, kehutanan/perkayuan, serta perikanan tangkap & budidaya tambak di pesisir KTT.',
+    typicalSignals: 'Harga TBS sawit, panen padi/hortikultura, ekspor hasil perikanan & kayu, subsidi pupuk.',
+  },
+  {
+    groupCode: 'B',
+    shortName: 'Pertambangan & Penggalian',
+    officialName: 'Pertambangan dan Penggalian',
+    kbliCodes: [KbliCategoryEnum.B],
+    description:
+      'Pertambangan batubara, minyak & gas bumi, serta penggalian material konstruksi (pasir, batu, sirtu).',
+    typicalSignals: 'Produksi batubara & lifting migas, harga acuan HBA/ICP, aktivitas kuari material lokal.',
+  },
+  {
+    groupCode: 'C',
+    shortName: 'Industri Pengolahan',
+    officialName: 'Industri Pengolahan',
+    kbliCodes: [KbliCategoryEnum.C],
+    description:
+      'Pengolahan CPO/pabrik kelapa sawit (PKS), industri kayu lapis/chipmill, industri makanan-minuman, dan UMKM olahan.',
+    typicalSignals: 'Kapasitas giling CPO, ekspor produk olahan kayu, investasi pabrik baru & IKM pangan.',
+  },
+  {
+    groupCode: 'D',
+    shortName: 'Pengadaan Listrik & Gas',
+    officialName: 'Pengadaan Listrik dan Gas',
+    kbliCodes: [KbliCategoryEnum.D],
+    description:
+      'Pembangkitan & distribusi tenaga listrik PLN/swasta serta suplai gas untuk rumah tangga dan industri.',
+    typicalSignals: 'Penambahan kapasitas PLTD/PLTS, rasio elektrifikasi desa, tarif & konsumsi kWh.',
+  },
+  {
+    groupCode: 'E',
+    shortName: 'Pengadaan Air & Pengelolaan Limbah',
+    officialName: 'Pengadaan Air, Pengelolaan Sampah, Limbah dan Daur Ulang',
+    kbliCodes: [KbliCategoryEnum.E],
+    description:
+      'Layanan air bersih PDAM Tirta Taka, sistem penyediaan air minum (SPAM), serta pengelolaan persampahan & limbah.',
+    typicalSignals: 'Perluasan sambungan rumah PDAM, pembangunan IPA/SPAM, program persampahan daerah.',
+  },
+  {
+    groupCode: 'F',
+    shortName: 'Konstruksi',
+    officialName: 'Konstruksi',
+    kbliCodes: [KbliCategoryEnum.F],
+    description:
+      'Pembangunan gedung pemerintahan/Puspem KTT, proyek jalan & jembatan, irigasi, pelabuhan, serta perumahan.',
+    typicalSignals: 'Progres fisik APBD/APBN, tender infrastruktur jalan-jembatan, pembangunan kawasan Puspem.',
+  },
+  {
+    groupCode: 'G',
+    shortName: 'Perdagangan Besar & Eceran',
+    officialName: 'Perdagangan Besar dan Eceran; Reparasi Mobil dan Sepeda Motor',
+    kbliCodes: [KbliCategoryEnum.G],
+    description:
+      'Perdagangan barang kebutuhan pokok, niaga BBM & material bangunan, pasar tradisional, ritel modern, serta bengkel kendaraan.',
+    typicalSignals: 'Pasokan & harga sembako, omzet pasar rakyat, penjualan kendaraan/BBM, bazar UMKM.',
+  },
+  {
+    groupCode: 'H',
+    shortName: 'Transportasi & Pergudangan',
+    officialName: 'Transportasi dan Pergudangan',
+    kbliCodes: [KbliCategoryEnum.H],
+    description:
+      'Angkutan sungai/laut (speedboat, feri, tongkang logistik), angkutan darat lintas kabupaten, pelabuhan, dan pergudangan.',
+    typicalSignals: 'Arus bongkar muat Pelabuhan Tideng Pale/Sesayap, trayek speedboat & feri, tarif logistik.',
+  },
+  {
+    groupCode: 'I',
+    shortName: 'Akomodasi & Makan Minum',
+    officialName: 'Penyediaan Akomodasi dan Makan Minum',
+    kbliCodes: [KbliCategoryEnum.I],
+    description:
+      'Usaha perhotelan, penginapan, homestay, rumah makan, kafe, serta jasa katering dan acara daerah.',
+    typicalSignals: 'Tingkat hunian kamar hotel (TPK), event/rapat dinas daerah, pembukaan sentra kuliner.',
+  },
+  {
+    groupCode: 'J',
+    shortName: 'Informasi & Komunikasi',
+    officialName: 'Informasi dan Komunikasi',
+    kbliCodes: [KbliCategoryEnum.J],
+    description:
+      'Jaringan telekomunikasi seluler & fiber optik, menara BTS, layanan internet, serta penyiaran & media lokal.',
+    typicalSignals: 'Pembangunan BTS blankspot, perluasan jaringan internet desa, digitalisasi layanan publik.',
+  },
+  {
+    groupCode: 'K',
+    shortName: 'Jasa Keuangan & Asuransi',
+    officialName: 'Jasa Keuangan dan Asuransi',
+    kbliCodes: [KbliCategoryEnum.K],
+    description:
+      'Layanan perbankan umum/BPD Kaltimtara, penyaluran KUR/kredit usaha, koperasi simpan pinjam, dan asuransi.',
+    typicalSignals: 'Realisasi kredit UMKM/KUR, transaksi perbankan digital QRIS, likuiditas simpanan daerah.',
+  },
+  {
+    groupCode: 'L',
+    shortName: 'Real Estat',
+    officialName: 'Real Estat',
+    kbliCodes: [KbliCategoryEnum.L],
+    description:
+      'Pengembangan kawasan perumahan, transaksi sewa lahan/ruko/gedung, serta nilai properti komersial & residensial.',
+    typicalSignals: 'Pembangunan klaster perumahan subsidi/komersial, kenaikan sewa properti & ruko.',
+  },
+  {
+    groupCode: 'M,N',
+    shortName: 'Jasa Perusahaan',
+    officialName: 'Jasa Perusahaan (KBLI M & N)',
+    kbliCodes: [KbliCategoryEnum.M, KbliCategoryEnum.N],
+    description:
+      'Mencakup KBLI M (konsultan teknik/hukum, survei, jasa profesional) dan KBLI N (penyewaan alat berat/kendaraan, biro perjalanan, tenaga kerja, kebersihan).',
+    typicalSignals: 'Jasa konsultan perencanaan konstruksi, sewa alat berat tambang/proyek, travel dinas.',
+  },
+  {
+    groupCode: 'O',
+    shortName: 'Administrasi Pemerintahan',
+    officialName: 'Administrasi Pemerintahan, Pertahanan dan Jaminan Sosial Wajib',
+    kbliCodes: [KbliCategoryEnum.O],
+    description:
+      'Aktivitas operasional Pemkab Tana Tidung, belanja pegawai/operasional OPD, TKD/DBH, serta program jaminan sosial.',
+    typicalSignals: 'Realisasi APBD KTT, penyaluran gaji/TPP ASN, dana transfer pusat (DBH/DAK/DAU).',
+  },
+  {
+    groupCode: 'P',
+    shortName: 'Jasa Pendidikan',
+    officialName: 'Jasa Pendidikan',
+    kbliCodes: [KbliCategoryEnum.P],
+    description:
+      'Layanan pendidikan formal/nonformal (PAUD, SD, SMP, SMA/SMK, kursus, beasiswa daerah, sarana belajar).',
+    typicalSignals: 'Realisasi BOSDA/beasiswa KTT, operasional satuan pendidikan & pelatihan vokasi.',
+  },
+  {
+    groupCode: 'Q',
+    shortName: 'Jasa Kesehatan & Kegiatan Sosial',
+    officialName: 'Jasa Kesehatan dan Kegiatan Sosial',
+    kbliCodes: [KbliCategoryEnum.Q],
+    description:
+      'Layanan RSUD Akhmad Berahim, puskesmas, klinik/apotek, tenaga kesehatan, serta layanan sosial masyarakat.',
+    typicalSignals: 'Peningkatan layanan RSUD/puskesmas, program jaminan kesehatan daerah, bansos rentan.',
+  },
+  {
+    groupCode: 'R,S,T,U',
+    shortName: 'Jasa Lainnya',
+    officialName: 'Jasa Lainnya (KBLI R, S, T & U)',
+    kbliCodes: [
+      KbliCategoryEnum.R,
+      KbliCategoryEnum.S,
+      KbliCategoryEnum.T,
+      KbliCategoryEnum.U,
+    ],
+    description:
+      'Mencakup KBLI R (wisata, festival budaya, olahraga/rekreasi), KBLI S (organisasi kemasyarakatan, reparasi personal, salon/laundry), KBLI T (jasa rumah tangga), dan KBLI U (badan internasional).',
+    typicalSignals: 'Festival budaya Irau/wisata Tana Tidung, event olahraga daerah, jasa personal.',
+  },
+];
+
+export interface ExpenditureComponentMeta {
+  code: ExpenditureComponentEnum;
+  short: string;
+  official: string;
+  description: string;
+}
+
+export const PDRB_6_EXPENDITURE_LIST: ReadonlyArray<ExpenditureComponentMeta> = [
+  {
+    code: ExpenditureComponentEnum.PK_RT,
+    short: 'PK-RT',
+    official: 'PK-RT (Pengeluaran Konsumsi Rumah Tangga)',
+    description:
+      'Belanja konsumsi makanan-minuman, sandang, perumahan, transportasi, pendidikan, dan hiburan oleh rumah tangga KTT.',
+  },
+  {
+    code: ExpenditureComponentEnum.PK_LNPRT,
+    short: 'PK-LNPRT',
+    official: 'PK-LNPRT (Pengeluaran Konsumsi LNPRT)',
+    description:
+      'Pengeluaran operasional lembaga nonprofit melayani rumah tangga (ormas, keagamaan, adat, parpol, LSM lokal).',
+  },
+  {
+    code: ExpenditureComponentEnum.PK_P,
+    short: 'PK-P',
+    official: 'PK-P (Pengeluaran Konsumsi Pemerintah)',
+    description:
+      'Realisasi belanja pegawai, belanja barang/jasa operasional OPD Pemkab Tana Tidung dan instansi vertikal.',
+  },
+  {
+    code: ExpenditureComponentEnum.PMTB,
+    short: 'PMTB',
+    official: 'PMTB (Pembentukan Modal Tetap Bruto)',
+    description:
+      'Belanja modal konstruksi gedung/jalan, pengadaan mesin, alat berat, kendaraan niaga, dan investasi fisik jangka panjang.',
+  },
+  {
+    code: ExpenditureComponentEnum.INVENTORY_CHANGE,
+    short: 'Perubahan Inventori',
+    official: 'Perubahan Inventori',
+    description:
+      'Penumpukan atau penarikan stok barang jadi, bahan baku industri, komoditas tambang, serta cadangan pangan di gudang.',
+  },
+  {
+    code: ExpenditureComponentEnum.NET_EXPORT,
+    short: 'Ekspor Bersih Antar Daerah/Luar Negeri',
+    official: 'Ekspor Bersih Antar Daerah/Luar Negeri',
+    description:
+      'Arus keluar komoditas unggulan KTT (batubara, CPO/TBS, perikanan, kayu) dikurangi arus masuk barang konsumsi/modal dari luar daerah.',
+  },
+];
+
+/**
+ * Mengurai kode grup 17 sektor PDRB (mis. 'M,N', 'R,S,T,U', atau 'A') menjadi array kode KBLI Enum.
+ */
+export function resolvePdrbGroupCodes(groupCode: string | null | undefined): KbliCategoryEnum[] {
+  const normalized = groupCode?.trim().toUpperCase();
+  if (!normalized || normalized === 'ALL') return [];
+  const matchedSector = PDRB_17_SECTORS.find((s) => s.groupCode === normalized);
+  if (matchedSector) {
+    return [...matchedSector.kbliCodes];
+  }
+  if (normalized in KbliCategoryEnum) {
+    return [normalized as KbliCategoryEnum];
+  }
+  return [];
+}
+
+/**
+ * Mengembalikan metadata sektor PDRB (17 sektor) tempat bernaungnya sebuah kode KBLI (21 huruf).
+ */
+export function getPdrb17GroupForKbli(code: KbliCategoryEnum): Pdrb17SectorMeta {
+  const groupCode = KBLI_CATEGORY_META[code].pdrb17GroupCode;
+  return PDRB_17_SECTORS.find((s) => s.groupCode === groupCode) ?? PDRB_17_SECTORS[0]!;
+}
+

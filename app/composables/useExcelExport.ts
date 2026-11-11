@@ -7,6 +7,7 @@ export interface ExportArticlesParams {
   year?: number | string;
   quarter?: number | string;
   kbli?: string;
+  pdrbGroup?: string;
   expenditure?: string;
   portal?: string;
   from?: string;
@@ -54,6 +55,7 @@ export function useExcelExport() {
         ['year', params.year],
         ['quarter', params.quarter],
         ['kbli', params.kbli],
+        ['pdrbGroup', params.pdrbGroup],
         ['expenditure', params.expenditure],
         ['portal', params.portal],
         ['from', params.from],

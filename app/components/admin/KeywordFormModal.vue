@@ -200,7 +200,7 @@ async function handleSubmit(event: FormSubmitEvent<CreateKeywordInput>) {
         </div>
 
         <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
-          <UButton color="neutral" variant="ghost" @click="modalOpen = false">
+          <UButton color="neutral" variant="ghost" @click="() => { modalOpen = false; }">
             Batal
           </UButton>
           <UButton type="submit" color="primary" :loading="isSubmitting">

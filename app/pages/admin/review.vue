@@ -1,8 +1,20 @@
 <!-- app/pages/admin/review.vue -->
 <script setup lang="ts">
-import type { TableColumn, TabsItem } from '@nuxt/ui';
-import { LlmStatusEnum, VerificationStatusEnum } from '#shared/enums/pdrb';
-import { formatDateId, formatPeriodLabel } from '#shared/utils/period';
+import {
+  ExpenditureComponentEnum,
+  ExpenditureImpactEnum,
+  KbliCategoryEnum,
+  KbliImpactEnum,
+  LlmStatusEnum,
+  VerificationStatusEnum,
+} from '#shared/enums/pdrb';
+import {
+  formatDateId,
+  formatDateTimeWita,
+  getCurrentQuarterYearWita,
+  toRomanQuarter,
+  type PdrbQuarter,
+} from '#shared/utils/period';
 import type { AdminArticleItem, AdminArticlesResponse } from '~/types/sipena';
 
 definePageMeta({
@@ -10,18 +22,39 @@ definePageMeta({
   middleware: 'auth',
 });
 
+const route = useRoute();
 const toast = useToast();
 const { setQueueCounts } = useAdminSession();
+const { selectedYear, selectedQuarter, shortPeriodLabel } = useAdminPeriod();
 const {
+  kbliOptions,
+  kbliImpactOptions,
+  expenditureOptions,
+  expenditureImpactOptions,
+  quarterOptions,
   getKbliShortCodeName,
   getKbliImpactBadge,
   getExpenditureLabel,
   getExpenditureImpactBadge,
   getLlmStatusBadge,
+  getVerificationStatusBadge,
+  getSourceTypeLabel,
   isSafeHttpUrl,
 } = usePdrbLabels();
 
-const activeStatus = ref<VerificationStatusEnum>(VerificationStatusEnum.PENDING);
+function parseInitialStatus(raw: unknown): VerificationStatusEnum {
+  if (
+    raw === VerificationStatusEnum.PENDING ||
+    raw === VerificationStatusEnum.VERIFIED ||
+    raw === VerificationStatusEnum.IGNORED
+  ) {
+    return raw;
+  }
+  return VerificationStatusEnum.PENDING;
+}
+
+const activeStatus = ref<VerificationStatusEnum>(parseInitialStatus(route.query.status));
+const periodScope = ref<'all' | 'period'>('all');
 const onlyLlmFailed = ref(false);
 const searchInput = ref('');
 const debouncedSearch = ref('');
@@ -47,6 +80,10 @@ const queryParams = computed(() => {
     page: page.value,
     limit: PAGE_LIMIT,
   };
+  if (periodScope.value === 'period') {
+    q.year = selectedYear.value;
+    q.quarter = selectedQuarter.value;
+  }
   if (onlyLlmFailed.value) q.llmStatus = LlmStatusEnum.FAILED;
   if (debouncedSearch.value) q.q = debouncedSearch.value;
   return q;
@@ -55,6 +92,7 @@ const queryParams = computed(() => {
 const {
   data: reviewData,
   pending,
+  error,
   refresh,
 } = await useFetch<AdminArticlesResponse>('/api/admin/articles', {
   query: queryParams,
@@ -69,51 +107,9 @@ watchEffect(() => {
   }
 });
 
-const tabValueModel = computed<string | number>({
-  get: () => activeStatus.value,
-  set: (val: string | number) => {
-    activeStatus.value = val as VerificationStatusEnum;
-    page.value = 1;
-    clearSelection();
-  },
-});
+const currentRows = computed<AdminArticleItem[]>(() => reviewData.value?.items ?? []);
 
-const tabItems = computed<TabsItem[]>(() => {
-  const counts = reviewData.value?.summaryCounts;
-  return [
-    {
-      label: 'Menunggu Review',
-      value: VerificationStatusEnum.PENDING,
-      icon: 'i-lucide-clock',
-      badge: counts
-        ? { label: String(counts.pendingCount), color: 'warning', variant: 'subtle' }
-        : undefined,
-    },
-    {
-      label: 'Terverifikasi',
-      value: VerificationStatusEnum.VERIFIED,
-      icon: 'i-lucide-check-circle-2',
-      badge: counts
-        ? { label: String(counts.verifiedCount), color: 'success', variant: 'subtle' }
-        : undefined,
-    },
-    {
-      label: 'Diabaikan',
-      value: VerificationStatusEnum.IGNORED,
-      icon: 'i-lucide-archive-x',
-      badge: counts
-        ? { label: String(counts.ignoredCount), color: 'neutral', variant: 'subtle' }
-        : undefined,
-    },
-  ];
-});
-
-watch(onlyLlmFailed, () => {
-  page.value = 1;
-  clearSelection();
-});
-
-// Batch selection state keyed by article UUID
+// Selection state for batch actions
 const selectedMap = ref<Record<string, boolean>>({});
 const selectedIds = computed(() =>
   Object.entries(selectedMap.value)
@@ -125,59 +121,355 @@ function clearSelection() {
   selectedMap.value = {};
 }
 
-const currentRows = computed<AdminArticleItem[]>(() => reviewData.value?.items ?? []);
+const allVisibleChecked = computed<boolean>(
+  () =>
+    currentRows.value.length > 0 &&
+    currentRows.value.every((row: AdminArticleItem) => Boolean(selectedMap.value[row.id])),
+);
 
-const headerCheckboxState = computed<boolean | 'indeterminate'>(() => {
-  if (currentRows.value.length === 0) return false;
-  const checkedCount = currentRows.value.filter(
-    (row: AdminArticleItem) => Boolean(selectedMap.value[row.id]),
-  ).length;
-  if (checkedCount === 0) return false;
-  if (checkedCount === currentRows.value.length) return true;
-  return 'indeterminate';
-});
-
-function toggleSelectAll(nextState: boolean | 'indeterminate') {
-  const shouldSelect = nextState === true;
-  const updated = { ...selectedMap.value };
-  for (const row of currentRows.value) {
-    if (shouldSelect) {
-      updated[row.id] = true;
-    } else {
-      delete updated[row.id];
+function toggleSelectAllVisible() {
+  if (allVisibleChecked.value) {
+    const next = { ...selectedMap.value };
+    for (const row of currentRows.value) {
+      delete next[row.id];
     }
-  }
-  selectedMap.value = updated;
-}
-
-function toggleRowSelection(id: string, nextState: boolean | 'indeterminate') {
-  const updated = { ...selectedMap.value };
-  if (nextState === true) {
-    updated[id] = true;
+    selectedMap.value = next;
   } else {
-    delete updated[id];
+    const next = { ...selectedMap.value };
+    for (const row of currentRows.value) {
+      next[row.id] = true;
+    }
+    selectedMap.value = next;
   }
-  selectedMap.value = updated;
 }
 
-// Slide-over Drawer State
-const drawerOpen = ref(false);
-const activeDrawerArticle = ref<AdminArticleItem | null>(null);
+function toggleRowSelection(id: string) {
+  const next = { ...selectedMap.value };
+  if (next[id]) {
+    delete next[id];
+  } else {
+    next[id] = true;
+  }
+  selectedMap.value = next;
+}
+
+// Desktop Sticky Right Inspector State + Mobile Slideover Fallback
+const inspectedArticle = ref<AdminArticleItem | null>(null);
+const deepLinkedArticle = ref<AdminArticleItem | null>(null);
+const pendingDeepLinkId = ref<string | null>(
+  typeof route.query.articleId === 'string' && route.query.articleId.trim()
+    ? route.query.articleId.trim()
+    : null,
+);
+let deepLinkSeq = 0;
+let isSyncingFromDeepLink = false;
+
 const highlightIncomplete = ref(false);
 const autoAdvanceNext = ref(true);
+const drawerOpen = ref(false);
 
-function openReviewDrawer(article: AdminArticleItem, incompleteFlag = false) {
-  activeDrawerArticle.value = article;
-  highlightIncomplete.value = incompleteFlag;
+const defaultPeriod = getCurrentQuarterYearWita();
+const inspectorForm = reactive({
+  title: '',
+  summary: '',
+  kbliCategory: '' as KbliCategoryEnum | '',
+  kbliImpact: '' as KbliImpactEnum | '',
+  expenditureComponent: '' as ExpenditureComponentEnum | '',
+  expenditureImpact: '' as ExpenditureImpactEnum | '',
+  quarter: defaultPeriod.quarter as PdrbQuarter,
+  year: defaultPeriod.year,
+  isEconomicPhenomenon: true,
+});
+
+const initialSummarySnapshot = ref('');
+const inspectorSubmitting = ref<'VERIFIED' | 'IGNORED' | 'DRAFT' | null>(null);
+const inspectorAlert = ref<string | null>(null);
+
+watch(
+  inspectedArticle,
+  (nextArt: AdminArticleItem | null) => {
+    inspectorAlert.value = null;
+    if (!nextArt) {
+      initialSummarySnapshot.value = '';
+      return;
+    }
+    const rawSummary = nextArt.summary ?? '';
+    initialSummarySnapshot.value = rawSummary;
+    inspectorForm.title = nextArt.title;
+    inspectorForm.summary = rawSummary;
+    inspectorForm.kbliCategory = nextArt.kbliCategory ?? '';
+    inspectorForm.kbliImpact = nextArt.kbliImpact ?? '';
+    inspectorForm.expenditureComponent = nextArt.expenditureComponent ?? '';
+    inspectorForm.expenditureImpact = nextArt.expenditureImpact ?? '';
+    inspectorForm.quarter = nextArt.quarter as PdrbQuarter;
+    inspectorForm.year = nextArt.year;
+    inspectorForm.isEconomicPhenomenon = nextArt.isEconomicPhenomenon ?? true;
+  },
+  { immediate: true },
+);
+
+async function resolveDeepLinkedArticle(articleId: string) {
+  const inRows = currentRows.value.find((r: AdminArticleItem) => r.id === articleId);
+  if (inRows) {
+    deepLinkedArticle.value = inRows;
+    inspectedArticle.value = inRows;
+    pendingDeepLinkId.value = null;
+    return;
+  }
+
+  if (!import.meta.client) return;
+
+  const seq = ++deepLinkSeq;
+  try {
+    const res = await $fetch<{ item: AdminArticleItem }>(
+      `/api/admin/articles/${encodeURIComponent(articleId)}`,
+      { credentials: 'include' },
+    );
+    if (seq !== deepLinkSeq) return;
+    deepLinkedArticle.value = res.item;
+    inspectedArticle.value = res.item;
+    pendingDeepLinkId.value = null;
+    if (!route.query.status && res.item.verificationStatus !== activeStatus.value) {
+      isSyncingFromDeepLink = true;
+      activeStatus.value = res.item.verificationStatus;
+      await nextTick();
+      isSyncingFromDeepLink = false;
+    }
+  } catch {
+    if (seq !== deepLinkSeq) return;
+    pendingDeepLinkId.value = null;
+  }
+}
+
+watch(
+  () => [route.query.status, route.query.articleId] as const,
+  async ([rawStatus, rawArticleId]: readonly [unknown, unknown]) => {
+    if (rawStatus !== undefined) {
+      isSyncingFromDeepLink = true;
+      activeStatus.value = parseInitialStatus(rawStatus);
+      await nextTick();
+      isSyncingFromDeepLink = false;
+    }
+    const nextId = typeof rawArticleId === 'string' && rawArticleId.trim() ? rawArticleId.trim() : null;
+    if (nextId) {
+      pendingDeepLinkId.value = nextId;
+      void resolveDeepLinkedArticle(nextId);
+    }
+  },
+);
+
+onMounted(() => {
+  if (pendingDeepLinkId.value) {
+    void resolveDeepLinkedArticle(pendingDeepLinkId.value);
+  }
+});
+
+watch(
+  currentRows,
+  (rows: AdminArticleItem[]) => {
+    const targetId = pendingDeepLinkId.value;
+    if (targetId) {
+      const target = rows.find((r: AdminArticleItem) => r.id === targetId);
+      if (target) {
+        deepLinkedArticle.value = target;
+        inspectedArticle.value = target;
+        pendingDeepLinkId.value = null;
+        return;
+      }
+      if (deepLinkedArticle.value?.id === targetId) {
+        inspectedArticle.value = deepLinkedArticle.value;
+        return;
+      }
+      if (import.meta.client) {
+        void resolveDeepLinkedArticle(targetId);
+        return;
+      }
+    }
+
+    if (deepLinkedArticle.value && inspectedArticle.value?.id === deepLinkedArticle.value.id) {
+      const updatedInRows = rows.find((r: AdminArticleItem) => r.id === deepLinkedArticle.value!.id);
+      if (updatedInRows) {
+        deepLinkedArticle.value = updatedInRows;
+        inspectedArticle.value = updatedInRows;
+      }
+      return;
+    }
+
+    if (rows.length === 0) {
+      inspectedArticle.value = null;
+      return;
+    }
+
+    if (inspectedArticle.value) {
+      const stillPresent = rows.find((r: AdminArticleItem) => r.id === inspectedArticle.value!.id);
+      if (stillPresent) {
+        inspectedArticle.value = stillPresent;
+        return;
+      }
+    }
+    inspectedArticle.value = rows[0] ?? null;
+  },
+  { immediate: true },
+);
+
+watch([activeStatus, periodScope, onlyLlmFailed], () => {
+  page.value = 1;
+  clearSelection();
+  highlightIncomplete.value = false;
+  if (!isSyncingFromDeepLink && !pendingDeepLinkId.value) {
+    deepLinkedArticle.value = null;
+  }
+});
+
+const canRestoreAiSummary = computed(
+  () =>
+    initialSummarySnapshot.value.trim().length > 0 &&
+    inspectorForm.summary !== initialSummarySnapshot.value,
+);
+
+function restoreAiSummary() {
+  if (initialSummarySnapshot.value) {
+    inspectorForm.summary = initialSummarySnapshot.value;
+  }
+}
+
+const missingForVerify = computed(() => {
+  const missing: string[] = [];
+  if (inspectorForm.summary.trim().length < 10) missing.push('Ringkasan (min. 10 karakter)');
+  if (!inspectorForm.kbliCategory) missing.push('Kategori KBLI');
+  if (!inspectorForm.kbliImpact) missing.push('Dampak KBLI');
+  if (!inspectorForm.expenditureComponent) missing.push('Komponen Pengeluaran');
+  if (!inspectorForm.expenditureImpact) missing.push('Dampak Pengeluaran');
+  return missing;
+});
+
+const kbliSelectModel = computed<string | undefined>({
+  get: () => (inspectorForm.kbliCategory === '' ? undefined : inspectorForm.kbliCategory),
+  set: (v: string | undefined) => {
+    inspectorForm.kbliCategory = (v as KbliCategoryEnum | undefined) ?? '';
+  },
+});
+
+const expSelectModel = computed<string | undefined>({
+  get: () =>
+    inspectorForm.expenditureComponent === '' ? undefined : inspectorForm.expenditureComponent,
+  set: (v: string | undefined) => {
+    inspectorForm.expenditureComponent = (v as ExpenditureComponentEnum | undefined) ?? '';
+  },
+});
+
+function selectArticleForInspection(article: AdminArticleItem, incomplete = false) {
+  pendingDeepLinkId.value = null;
+  deepLinkedArticle.value = null;
+  inspectedArticle.value = article;
+  highlightIncomplete.value = incomplete || article.llmStatus === LlmStatusEnum.FAILED;
+}
+
+function openMobileSlideover(article: AdminArticleItem, incomplete = false) {
+  pendingDeepLinkId.value = null;
+  deepLinkedArticle.value = null;
+  inspectedArticle.value = article;
+  highlightIncomplete.value = incomplete || article.llmStatus === LlmStatusEnum.FAILED;
   drawerOpen.value = true;
 }
 
-async function handleDrawerSaved(payload: {
+async function submitInspectorAction(action: 'VERIFIED' | 'IGNORED' | 'DRAFT') {
+  if (!inspectedArticle.value || inspectorSubmitting.value) return;
+  inspectorAlert.value = null;
+
+  if (inspectorForm.title.trim().length < 5) {
+    inspectorAlert.value = 'Judul berita minimal 5 karakter.';
+    return;
+  }
+
+  if (action === 'VERIFIED' && missingForVerify.value.length > 0) {
+    highlightIncomplete.value = true;
+    inspectorAlert.value = `Field wajib belum lengkap untuk Verifikasi: ${missingForVerify.value.join(', ')}.`;
+    return;
+  }
+
+  const trimmedSummary = inspectorForm.summary.trim();
+  if (trimmedSummary.length > 0 && trimmedSummary.length < 10) {
+    inspectorAlert.value = 'Jika diisi, ringkasan minimal 10 karakter (atau kosongkan).';
+    return;
+  }
+
+  inspectorSubmitting.value = action;
+  const savedId = inspectedArticle.value.id;
+
+  try {
+    const nextStatus =
+      action === 'VERIFIED'
+        ? VerificationStatusEnum.VERIFIED
+        : action === 'IGNORED'
+          ? VerificationStatusEnum.IGNORED
+          : undefined;
+
+    const res = await $fetch<{ item: AdminArticleItem }>(`/api/admin/articles/${savedId}`, {
+      method: 'PATCH',
+      body: {
+        title: inspectorForm.title.trim(),
+        summary: trimmedSummary.length >= 10 ? trimmedSummary : null,
+        isEconomicPhenomenon:
+          action === 'VERIFIED' ? true : inspectorForm.isEconomicPhenomenon,
+        kbliCategory: inspectorForm.kbliCategory || null,
+        kbliImpact: inspectorForm.kbliImpact || null,
+        expenditureComponent: inspectorForm.expenditureComponent || null,
+        expenditureImpact: inspectorForm.expenditureImpact || null,
+        quarter: inspectorForm.quarter,
+        year: Number(inspectorForm.year),
+        ...(nextStatus ? { verificationStatus: nextStatus } : {}),
+      },
+      credentials: 'include',
+    });
+
+    toast.add({
+      title:
+        action === 'VERIFIED'
+          ? 'Artikel Terverifikasi'
+          : action === 'IGNORED'
+            ? 'Artikel Diabaikan'
+            : 'Perubahan Disimpan',
+      description: res.item.title,
+      color: action === 'VERIFIED' ? 'success' : action === 'IGNORED' ? 'neutral' : 'info',
+      icon: action === 'VERIFIED' ? 'i-lucide-check-circle-2' : 'i-lucide-save',
+    });
+
+    const nextMap = { ...selectedMap.value };
+    delete nextMap[savedId];
+    selectedMap.value = nextMap;
+    highlightIncomplete.value = false;
+
+    await refresh();
+
+    if (
+      autoAdvanceNext.value &&
+      activeStatus.value === VerificationStatusEnum.PENDING &&
+      action !== 'DRAFT'
+    ) {
+      deepLinkedArticle.value = null;
+      const nextCandidate =
+        currentRows.value.find((r: AdminArticleItem) => r.id !== savedId) ?? currentRows.value[0];
+      inspectedArticle.value = nextCandidate ?? null;
+    } else if (deepLinkedArticle.value?.id === savedId) {
+      deepLinkedArticle.value = res.item;
+      inspectedArticle.value = res.item;
+    }
+  } catch (err: unknown) {
+    const fetchErr = err as { data?: { message?: string } };
+    inspectorAlert.value = fetchErr.data?.message || 'Gagal menyimpan perubahan artikel.';
+  } finally {
+    inspectorSubmitting.value = null;
+  }
+}
+
+async function handleSlideoverSaved(payload: {
   article: AdminArticleItem;
   action: 'VERIFIED' | 'IGNORED' | 'DRAFT';
 }) {
-  const savedId = payload.article.id;
-  toggleRowSelection(savedId, false);
+  const nextMap = { ...selectedMap.value };
+  delete nextMap[payload.article.id];
+  selectedMap.value = nextMap;
   await refresh();
 
   if (
@@ -185,21 +477,20 @@ async function handleDrawerSaved(payload: {
     activeStatus.value === VerificationStatusEnum.PENDING &&
     payload.action !== 'DRAFT'
   ) {
-    const nextItem = (reviewData.value?.items ?? []).find(
-      (item: AdminArticleItem) => item.id !== savedId,
+    const nextItem = currentRows.value.find(
+      (item: AdminArticleItem) => item.id !== payload.article.id,
     );
     if (nextItem) {
-      activeDrawerArticle.value = nextItem;
+      inspectedArticle.value = nextItem;
       highlightIncomplete.value = nextItem.llmStatus === LlmStatusEnum.FAILED;
       return;
     }
   }
-
   drawerOpen.value = false;
   highlightIncomplete.value = false;
 }
 
-// Row 1-click quick actions
+// 1-click actions on queue cards
 const rowBusyId = ref<string | null>(null);
 
 async function quickApprove(article: AdminArticleItem) {
@@ -209,13 +500,14 @@ async function quickApprove(article: AdminArticleItem) {
   try {
     await $fetch(`/api/admin/articles/${article.id}`, {
       method: 'PATCH',
-      body: {
-        verificationStatus: VerificationStatusEnum.VERIFIED,
-      },
+      body: { verificationStatus: VerificationStatusEnum.VERIFIED },
       credentials: 'include',
     });
 
-    toggleRowSelection(article.id, false);
+    const nextMap = { ...selectedMap.value };
+    delete nextMap[article.id];
+    selectedMap.value = nextMap;
+
     toast.add({
       title: 'Artikel Terverifikasi',
       description: article.title,
@@ -228,16 +520,15 @@ async function quickApprove(article: AdminArticleItem) {
     if (fetchErr.statusCode === 422) {
       toast.add({
         title: 'Klasifikasi Belum Lengkap',
-        description:
-          fetchErr.data?.message || 'Silakan lengkapi bidang yang ditandai di panel edit.',
+        description: fetchErr.data?.message || 'Lengkapi bidang di Panel Inspeksi.',
         color: 'warning',
         icon: 'i-lucide-alert-triangle',
       });
-      openReviewDrawer(article, true);
+      selectArticleForInspection(article, true);
     } else {
       toast.add({
         title: 'Gagal Memverifikasi',
-        description: fetchErr.data?.message || 'Terjadi kesalahan saat memperbarui status.',
+        description: fetchErr.data?.message || 'Terjadi kesalahan.',
         color: 'error',
         icon: 'i-lucide-alert-circle',
       });
@@ -254,13 +545,14 @@ async function quickIgnore(article: AdminArticleItem) {
   try {
     await $fetch(`/api/admin/articles/${article.id}`, {
       method: 'PATCH',
-      body: {
-        verificationStatus: VerificationStatusEnum.IGNORED,
-      },
+      body: { verificationStatus: VerificationStatusEnum.IGNORED },
       credentials: 'include',
     });
 
-    toggleRowSelection(article.id, false);
+    const nextMap = { ...selectedMap.value };
+    delete nextMap[article.id];
+    selectedMap.value = nextMap;
+
     toast.add({
       title: 'Artikel Diabaikan',
       description: article.title,
@@ -272,7 +564,7 @@ async function quickIgnore(article: AdminArticleItem) {
     const fetchErr = err as { data?: { message?: string } };
     toast.add({
       title: 'Gagal Mengabaikan Artikel',
-      description: fetchErr.data?.message || 'Terjadi kesalahan saat memperbarui status.',
+      description: fetchErr.data?.message || 'Terjadi kesalahan.',
       color: 'error',
       icon: 'i-lucide-alert-circle',
     });
@@ -281,7 +573,6 @@ async function quickIgnore(article: AdminArticleItem) {
   }
 }
 
-// Batch action handler
 const batchLoading = ref(false);
 
 async function runBatchAction(action: 'VERIFY' | 'IGNORE') {
@@ -292,14 +583,10 @@ async function runBatchAction(action: 'VERIFY' | 'IGNORE') {
     const res = await $fetch<{
       action: 'VERIFY' | 'IGNORE';
       updatedCount: number;
-      updatedIds: string[];
-      incompleteItems: Array<{ id: string; title: string; missingFields: string[] }>;
+      incompleteItems: Array<{ id: string; title: string }>;
     }>('/api/admin/articles/batch', {
       method: 'POST',
-      body: {
-        ids: selectedIds.value,
-        action,
-      },
+      body: { ids: selectedIds.value, action },
       credentials: 'include',
     });
 
@@ -308,8 +595,8 @@ async function runBatchAction(action: 'VERIFY' | 'IGNORE') {
 
     if (res.incompleteItems.length > 0) {
       toast.add({
-        title: `${res.updatedCount} Terverifikasi, ${res.incompleteItems.length} Perlu Kurasi Manual`,
-        description: `${res.incompleteItems[0]?.title} belum memiliki pemetaan AI lengkap. Klik ikon Edit (✎) untuk melengkapi.`,
+        title: `${res.updatedCount} Terverifikasi, ${res.incompleteItems.length} Perlu Lengkapi Manual`,
+        description: `${res.incompleteItems[0]?.title} belum memiliki pemetaan AI lengkap.`,
         color: 'warning',
         icon: 'i-lucide-alert-triangle',
       });
@@ -336,327 +623,714 @@ async function runBatchAction(action: 'VERIFY' | 'IGNORE') {
   }
 }
 
-const columns: TableColumn<AdminArticleItem>[] = [
-  { id: 'select', header: '' },
-  { id: 'meta', header: 'Tgl / Sumber / Periode' },
-  { id: 'title', header: 'Judul & Pratinjau Ringkasan' },
-  { id: 'kbli', header: 'KBLI & Dampak' },
-  { id: 'expenditure', header: 'Pengeluaran & Dampak' },
-  { id: 'actions', header: 'Aksi' },
-];
+const statusTabs = computed(() => {
+  const c = reviewData.value?.summaryCounts;
+  return [
+    {
+      value: VerificationStatusEnum.PENDING,
+      label: 'Menunggu Review',
+      count: c?.pendingCount ?? 0,
+      toneClass: 'bg-amber-50 text-amber-800 border-amber-200',
+    },
+    {
+      value: VerificationStatusEnum.VERIFIED,
+      label: 'Terverifikasi',
+      count: c?.verifiedCount ?? 0,
+      toneClass: 'bg-emerald-50 text-emerald-800 border-emerald-200',
+    },
+    {
+      value: VerificationStatusEnum.IGNORED,
+      label: 'Diabaikan',
+      count: c?.ignoredCount ?? 0,
+      toneClass: 'bg-slate-100 text-slate-700 border-slate-200',
+    },
+  ];
+});
 </script>
 
 <template>
-  <div class="space-y-5">
-    <!-- Page Header -->
-    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-      <div>
-        <h1 class="text-xl font-bold tracking-tight text-slate-900">
-          Review Harian Fenomena Ekonomi
-        </h1>
-        <p class="text-sm text-slate-600 mt-0.5">
-          Kurasi antrean hasil crawling subuh (H-1) &amp; pemetaan dua sisi PDRB sebelum diterbitkan.
-        </p>
+  <div class="space-y-5 pb-16">
+    <!-- Page Header & Filter Bar -->
+    <div class="space-y-4">
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2 font-mono text-[11px] font-bold uppercase tracking-wider text-teal-700">
+            <UIcon name="i-lucide-inbox" class="w-3.5 h-3.5" />
+            <span>Kurasi &amp; Validasi Harian Nerwilis</span>
+          </div>
+          <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-[#0B1220] mt-0.5">
+            Review Harian Fenomena Ekonomi
+          </h1>
+          <p class="text-xs sm:text-sm text-[#5B677A] mt-0.5">
+            Audit hasil klasifikasi AI dan lengkapi pemetaan dua sisi PDRB sebelum ditayangkan ke publik.
+          </p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2.5">
+          <!-- Scope Switcher -->
+          <div
+            role="group"
+            aria-label="Cakupan periode review"
+            class="inline-flex p-0.5 bg-slate-200/75 rounded-lg border border-slate-200"
+          >
+            <button
+              type="button"
+              :aria-pressed="periodScope === 'all'"
+              class="px-2.5 py-1 rounded-md text-xs transition-all"
+              :class="periodScope === 'all' ? 'bg-white font-semibold text-[#0B1220] shadow-xs' : 'text-slate-600'"
+              @click="periodScope = 'all'"
+            >
+              Semua Antrean
+            </button>
+            <button
+              type="button"
+              :aria-pressed="periodScope === 'period'"
+              class="px-2.5 py-1 rounded-md font-mono text-xs transition-all"
+              :class="periodScope === 'period' ? 'bg-white font-semibold text-teal-800 shadow-xs' : 'text-slate-600'"
+              @click="periodScope = 'period'"
+            >
+              Hanya {{ shortPeriodLabel }}
+            </button>
+          </div>
+
+          <label
+            class="inline-flex items-center gap-2 rounded-lg bg-white border border-[#DCE3EC] px-3 py-1.5 cursor-pointer"
+          >
+            <USwitch v-model="onlyLlmFailed" size="sm" />
+            <span class="text-xs font-medium text-[#0B1220]">AI Gagal</span>
+            <span
+              v-if="(reviewData?.summaryCounts.llmFailedCount ?? 0) > 0"
+              class="px-1.5 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-200 font-mono text-[10px] font-bold tabular-nums"
+            >
+              {{ reviewData?.summaryCounts.llmFailedCount }}
+            </span>
+          </label>
+        </div>
       </div>
 
-      <div class="flex flex-wrap items-center gap-3">
-        <UInput
-          v-model="searchInput"
-          icon="i-lucide-search"
-          placeholder="Cari judul / portal..."
-          size="sm"
-          class="w-full sm:w-56"
-        />
-
+      <!-- Status Tabs & Search -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div
-          class="flex items-center gap-2 rounded-lg bg-white border border-slate-200 px-3 py-1.5"
+          role="group"
+          aria-label="Status kurasi"
+          class="inline-flex flex-nowrap overflow-x-auto saas-scroll p-0.5 bg-slate-200/75 rounded-xl border border-slate-200 max-w-full"
         >
-          <USwitch v-model="onlyLlmFailed" size="sm" />
-          <span class="text-xs font-medium text-slate-700">Hanya LLM Gagal</span>
-          <UBadge
-            v-if="(reviewData?.summaryCounts.llmFailedCount ?? 0) > 0"
-            color="error"
-            variant="subtle"
-            size="xs"
-            class="tabular-nums"
+          <button
+            v-for="tab in statusTabs"
+            :key="tab.value"
+            type="button"
+            :aria-pressed="activeStatus === tab.value"
+            class="px-3 py-1.5 rounded-lg text-xs inline-flex items-center gap-2 whitespace-nowrap transition-all"
+            :class="
+              activeStatus === tab.value
+                ? 'bg-white font-semibold text-[#0B1220] shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 font-medium'
+            "
+            @click="activeStatus = tab.value"
           >
-            {{ reviewData?.summaryCounts.llmFailedCount }}
-          </UBadge>
+            <span>{{ tab.label }}</span>
+            <span
+              class="px-1.5 py-0.5 rounded font-mono text-[10px] font-bold tabular-nums border"
+              :class="tab.toneClass"
+            >
+              {{ tab.count }}
+            </span>
+          </button>
+        </div>
+
+        <div class="relative w-full sm:w-64">
+          <UIcon
+            name="i-lucide-search"
+            class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
+          />
+          <label for="review-queue-search" class="sr-only">Cari artikel pada antrean</label>
+          <input
+            id="review-queue-search"
+            v-model="searchInput"
+            type="search"
+            placeholder="Cari judul atau portal..."
+            class="w-full h-9 pl-8 pr-3 bg-white border border-[#DCE3EC] rounded-lg text-xs text-[#0B1220]"
+          >
         </div>
       </div>
     </div>
 
-    <!-- Navigation Tabs -->
-    <UTabs v-model="tabValueModel" :items="tabItems" :content="false" />
-
-    <!-- Batch Selection Action Bar -->
-    <div
-      v-if="selectedIds.length > 0"
-      class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-teal-200 bg-teal-50/90 px-4 py-2.5 shadow-xs"
+    <UAlert
+      v-if="error"
+      color="error"
+      variant="subtle"
+      icon="i-lucide-alert-circle"
+      title="Gagal memuat antrean review harian"
+      description="Pastikan koneksi database aktif lalu muat ulang."
     >
-      <div class="flex items-center gap-2 text-sm font-semibold text-teal-900 tabular-nums">
-        <UIcon name="i-lucide-check-square" class="w-4 h-4 text-teal-700" />
-        <span>{{ selectedIds.length }} artikel dipilih</span>
-      </div>
+      <template #actions>
+        <UButton size="xs" color="error" variant="solid" @click="refresh()">Muat Ulang</UButton>
+      </template>
+    </UAlert>
 
-      <div class="flex flex-wrap items-center gap-2">
-        <UButton
-          v-if="activeStatus !== VerificationStatusEnum.VERIFIED"
-          size="xs"
-          color="primary"
-          variant="solid"
-          icon="i-lucide-check"
-          :loading="batchLoading"
-          @click="runBatchAction('VERIFY')"
-        >
-          Verifikasi Terpilih
-        </UButton>
-        <UButton
-          v-if="activeStatus !== VerificationStatusEnum.IGNORED"
-          size="xs"
-          color="neutral"
-          variant="outline"
-          icon="i-lucide-x"
-          :loading="batchLoading"
-          @click="runBatchAction('IGNORE')"
-        >
-          Abaikan Terpilih
-        </UButton>
-        <UButton
-          size="xs"
-          color="neutral"
-          variant="ghost"
-          :disabled="batchLoading"
-          @click="clearSelection"
-        >
-          Batal Pilih
-        </UButton>
-      </div>
-    </div>
+    <!-- ASYMMETRIC 7/5 WORKBENCH -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+      <!-- LEFT 7: QUEUE CARDS -->
+      <div class="lg:col-span-7 space-y-3">
+        <!-- Bulk Selection Header -->
+        <div class="flex items-center justify-between px-1 text-xs text-[#5B677A]">
+          <button
+            type="button"
+            class="inline-flex items-center gap-2 font-medium hover:text-[#0B1220]"
+            @click="toggleSelectAllVisible"
+          >
+            <input
+              type="checkbox"
+              :checked="allVisibleChecked"
+              aria-label="Pilih semua artikel pada halaman ini"
+              class="rounded border-slate-300 text-teal-700 pointer-events-none"
+            >
+            <span>Pilih semua di halaman ({{ currentRows.length }})</span>
+          </button>
 
-    <!-- Review Queue Table -->
-    <UCard :ui="{ body: 'p-0 sm:p-0' }">
-      <UTable
-        :data="currentRows"
-        :columns="columns"
-        :loading="pending"
-        empty="Tidak ada artikel pada antrean tab ini."
-      >
-        <template #select-header>
-          <UCheckbox
-            :model-value="headerCheckboxState"
-            aria-label="Pilih semua artikel di halaman ini"
-            @update:model-value="toggleSelectAll"
-          />
-        </template>
+          <span v-if="reviewData" class="font-mono text-[11px] tabular-nums">
+            Hal {{ reviewData.pagination.page }}/{{ reviewData.pagination.totalPages }} •
+            {{ reviewData.pagination.total }} artikel
+          </span>
+        </div>
 
-        <template #select-cell="{ row }">
-          <UCheckbox
-            :model-value="Boolean(selectedMap[row.original.id])"
-            :aria-label="`Pilih artikel ${row.original.title}`"
-            @update:model-value="toggleRowSelection(row.original.id, $event)"
-          />
-        </template>
-
-        <template #meta-cell="{ row }">
-          <div class="space-y-1 min-w-[130px]">
-            <div class="font-mono text-xs font-semibold tabular-nums text-slate-800">
-              {{ formatDateId(row.original.publishedAt) }}
-            </div>
-            <div class="text-xs text-slate-600 truncate max-w-[150px]" :title="row.original.sourcePortal">
-              {{ row.original.sourcePortal }}
-            </div>
-            <UBadge color="neutral" variant="outline" size="xs" class="font-mono tabular-nums">
-              {{ formatPeriodLabel(row.original.quarter, row.original.year) }}
-            </UBadge>
+        <!-- Skeletons -->
+        <div v-if="pending && !reviewData" class="space-y-3">
+          <div v-for="i in 4" :key="i" class="saas-card rounded-xl p-4 space-y-2.5">
+            <div class="h-3 w-40 rounded bg-slate-200" />
+            <div class="h-5 w-4/5 rounded bg-slate-200" />
+            <div class="h-10 w-full rounded bg-slate-100" />
           </div>
-        </template>
+        </div>
 
-        <template #title-cell="{ row }">
-          <div class="space-y-1.5 min-w-[240px] max-w-md">
-            <div class="flex items-start gap-1.5">
-              <button
-                type="button"
-                class="text-left font-semibold text-sm text-slate-900 hover:text-teal-700 leading-snug line-clamp-2 focus:outline-none focus-visible:underline"
-                :title="row.original.title"
-                @click="
-                  openReviewDrawer(
-                    row.original,
-                    row.original.llmStatus === LlmStatusEnum.FAILED,
-                  )
-                "
-              >
-                {{ row.original.title }}
-              </button>
-              <a
-                v-if="isSafeHttpUrl(row.original.url)"
-                :href="row.original.url"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="text-slate-400 hover:text-teal-600 shrink-0 mt-0.5"
-                title="Buka berita sumber di tab baru"
-                aria-label="Buka berita sumber di tab baru"
-              >
-                <UIcon name="i-lucide-external-link" class="w-3.5 h-3.5" />
-              </a>
+        <!-- Empty Queue -->
+        <div v-else-if="!currentRows.length" class="saas-card rounded-xl py-12 px-6 text-center space-y-2">
+          <UIcon name="i-lucide-inbox" class="w-9 h-9 text-slate-300 mx-auto" />
+          <div class="text-sm font-bold text-[#0B1220]">
+            Tidak ada artikel pada tab {{ activeStatus }}
+          </div>
+          <p class="text-xs text-[#5B677A]">
+            Coba ubah cakupan ke <strong>Semua Antrean</strong> atau bersihkan kata pencarian.
+          </p>
+        </div>
+
+        <!-- Queue Card List -->
+        <div v-else class="space-y-2.5">
+          <div
+            v-for="art in currentRows"
+            :key="art.id"
+            class="saas-card rounded-xl p-4 transition-all cursor-pointer"
+            :class="
+              inspectedArticle?.id === art.id
+                ? 'ring-2 ring-[#0F766E] border-[#0F766E]'
+                : 'hover:border-slate-300'
+            "
+            @click="selectArticleForInspection(art)"
+          >
+            <div class="flex items-start gap-3">
+              <div class="pt-0.5 shrink-0" @click.stop>
+                <input
+                  type="checkbox"
+                  :checked="Boolean(selectedMap[art.id])"
+                  :aria-label="`Pilih ${art.title}`"
+                  class="rounded border-slate-300 text-teal-700 w-4 h-4 cursor-pointer"
+                  @change="toggleRowSelection(art.id)"
+                >
+              </div>
+
+              <div class="min-w-0 flex-1 space-y-2">
+                <!-- Metadata Row -->
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                  <div class="flex flex-wrap items-center gap-1.5 font-mono text-[11px] text-[#5B677A] tabular-nums">
+                    <span class="font-semibold text-[#0B1220]">{{ formatDateId(art.publishedAt) }}</span>
+                    <span>•</span>
+                    <span class="truncate max-w-[140px]">{{ art.sourcePortal }}</span>
+                    <span>•</span>
+                    <span class="px-1.5 py-0.5 rounded bg-slate-100 border border-slate-200 text-slate-700 text-[10px]">
+                      TW {{ toRomanQuarter(art.quarter) }} {{ art.year }}
+                    </span>
+                  </div>
+
+                  <div class="flex items-center gap-1.5">
+                    <UBadge
+                      v-if="art.llmStatus === LlmStatusEnum.FAILED"
+                      :color="getLlmStatusBadge(art.llmStatus).color"
+                      variant="subtle"
+                      size="xs"
+                      :icon="getLlmStatusBadge(art.llmStatus).icon"
+                    >
+                      AI Gagal
+                    </UBadge>
+                    <UBadge
+                      v-else-if="art.llmConfidence !== null"
+                      color="neutral"
+                      variant="subtle"
+                      size="xs"
+                      class="font-mono tabular-nums"
+                    >
+                      AI {{ Math.round(art.llmConfidence * 100) }}%
+                    </UBadge>
+                    <UBadge
+                      v-if="art.isEconomicPhenomenon === false"
+                      color="neutral"
+                      variant="outline"
+                      size="xs"
+                    >
+                      Non-Ekonomi
+                    </UBadge>
+                  </div>
+                </div>
+
+                <!-- Title & Summary -->
+                <h2 class="text-sm font-bold text-[#0B1220] leading-snug">
+                  <button
+                    type="button"
+                    class="w-full text-left line-clamp-2 hover:text-teal-700 transition-colors rounded cursor-pointer"
+                    @click.stop="selectArticleForInspection(art)"
+                  >
+                    {{ art.title }}
+                  </button>
+                </h2>
+                <p class="text-xs text-[#5B677A] line-clamp-2 leading-relaxed">
+                  {{ art.summary || art.snippetText }}
+                </p>
+
+                <!-- Dual-Axis Preview Chips + Quick Actions -->
+                <div class="pt-1 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100">
+                  <div class="flex flex-wrap items-center gap-1.5 text-[11px]">
+                    <span
+                      class="px-2 py-0.5 rounded border font-medium"
+                      :class="
+                        art.kbliCategory
+                          ? 'bg-teal-50/70 border-teal-200 text-teal-900'
+                          : 'bg-amber-50 border-amber-200 text-amber-800'
+                      "
+                    >
+                      {{ art.kbliCategory ? getKbliShortCodeName(art.kbliCategory) : 'KBLI Belum Dipetakan' }}
+                    </span>
+                    <span
+                      class="px-2 py-0.5 rounded border font-medium"
+                      :class="
+                        art.expenditureComponent
+                          ? 'bg-sky-50/70 border-sky-200 text-sky-900'
+                          : 'bg-amber-50 border-amber-200 text-amber-800'
+                      "
+                    >
+                      {{ art.expenditureComponent ? getExpenditureLabel(art.expenditureComponent, false) : 'Pengeluaran Kosong' }}
+                    </span>
+                  </div>
+
+                  <div class="flex items-center gap-1" @click.stop>
+                    <button
+                      v-if="activeStatus !== VerificationStatusEnum.VERIFIED"
+                      type="button"
+                      :disabled="rowBusyId === art.id"
+                      class="px-2 py-1 rounded-md bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-[11px] font-semibold inline-flex items-center gap-1"
+                      @click="quickApprove(art)"
+                    >
+                      <UIcon name="i-lucide-check" class="w-3 h-3" />
+                      <span>Verifikasi</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      class="lg:hidden px-2 py-1 rounded-md bg-white border border-[#DCE3EC] text-[#0B1220] text-[11px] font-semibold inline-flex items-center gap-1"
+                      @click="openMobileSlideover(art)"
+                    >
+                      <UIcon name="i-lucide-pencil" class="w-3 h-3" />
+                      <span>Edit</span>
+                    </button>
+
+                    <button
+                      v-if="activeStatus !== VerificationStatusEnum.IGNORED"
+                      type="button"
+                      :disabled="rowBusyId === art.id"
+                      class="px-2 py-1 rounded-md hover:bg-slate-100 text-slate-600 text-[11px] font-medium"
+                      @click="quickIgnore(art)"
+                    >
+                      Abaikan
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
+          </div>
 
-            <p class="text-xs text-slate-600 line-clamp-2 leading-relaxed">
-              {{
-                row.original.summary ||
-                row.original.snippetText ||
-                'Ringkasan belum tersedia.'
-              }}
-            </p>
+          <!-- Pagination -->
+          <div
+            v-if="reviewData && reviewData.pagination.total > PAGE_LIMIT"
+            class="flex justify-center pt-3"
+          >
+            <UPagination
+              v-model:page="page"
+              :total="reviewData.pagination.total"
+              :items-per-page="PAGE_LIMIT"
+            />
+          </div>
+        </div>
+      </div>
 
-            <div class="flex flex-wrap items-center gap-1.5 pt-0.5">
+      <!-- RIGHT 5: STICKY DESKTOP INSPECTOR -->
+      <aside
+        aria-label="Panel Inspeksi & Kurasi Artikel"
+        class="hidden lg:block lg:col-span-5 lg:sticky lg:top-[72px]"
+      >
+        <div
+          v-if="!inspectedArticle"
+          class="saas-card rounded-xl p-8 text-center text-xs text-[#5B677A]"
+        >
+          Pilih salah satu artikel di daftar sebelah kiri untuk mulai mengurasi.
+        </div>
+
+        <div
+          v-else
+          class="saas-card rounded-xl overflow-hidden flex flex-col max-h-[calc(100vh-92px)]"
+        >
+          <!-- Inspector Header -->
+          <div class="px-4 py-3 border-b border-[#DCE3EC] bg-[#F8FAFC] flex items-center justify-between gap-2">
+            <div class="flex flex-wrap items-center gap-1.5">
               <UBadge
-                v-if="row.original.llmStatus === LlmStatusEnum.FAILED"
-                :color="getLlmStatusBadge(row.original.llmStatus).color"
+                :color="getVerificationStatusBadge(inspectedArticle.verificationStatus).color"
                 variant="subtle"
                 size="xs"
-                :icon="getLlmStatusBadge(row.original.llmStatus).icon"
+                :icon="getVerificationStatusBadge(inspectedArticle.verificationStatus).icon"
               >
-                AI Gagal — Klik ✎ untuk isi
+                {{ getVerificationStatusBadge(inspectedArticle.verificationStatus).label }}
               </UBadge>
               <UBadge
-                v-else-if="row.original.aiConfidence !== null"
-                color="neutral"
+                :color="getLlmStatusBadge(inspectedArticle.llmStatus).color"
                 variant="subtle"
                 size="xs"
-                class="font-mono tabular-nums"
+                :icon="getLlmStatusBadge(inspectedArticle.llmStatus).icon"
               >
-                AI Conf: {{ Math.round(row.original.aiConfidence * 100) }}%
+                {{ getLlmStatusBadge(inspectedArticle.llmStatus).label }}
               </UBadge>
-
               <UBadge
-                v-if="row.original.isEconomicPhenomenon === false"
+                v-if="inspectedArticle.llmConfidence !== null"
                 color="neutral"
                 variant="outline"
                 size="xs"
+                class="font-mono tabular-nums"
               >
-                Non-Ekonomi
+                AI {{ Math.round(inspectedArticle.llmConfidence * 100) }}%
               </UBadge>
+              <span class="font-mono text-[10px] text-[#5B677A]">
+                {{ getSourceTypeLabel(inspectedArticle.sourceType) }}
+              </span>
             </div>
-          </div>
-        </template>
 
-        <template #kbli-cell="{ row }">
-          <div v-if="row.original.kbliCategory" class="space-y-1.5 min-w-[160px]">
-            <div class="text-xs font-medium text-slate-800 leading-snug">
-              {{ getKbliShortCodeName(row.original.kbliCategory) }}
+            <a
+              v-if="isSafeHttpUrl(inspectedArticle.url)"
+              :href="inspectedArticle.url"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="inline-flex items-center gap-1 px-2 py-1 rounded-md border border-[#DCE3EC] bg-white hover:bg-slate-50 text-[11px] font-semibold text-teal-700 shrink-0"
+            >
+              <span>Sumber</span>
+              <UIcon name="i-lucide-external-link" class="w-3 h-3" />
+            </a>
+          </div>
+
+          <!-- Scrollable Inspector Body -->
+          <div class="flex-1 overflow-y-auto saas-scroll p-4 space-y-4">
+            <div class="text-[11px] font-mono text-[#5B677A] flex items-center justify-between">
+              <span>{{ inspectedArticle.sourcePortal }}</span>
+              <span>{{ formatDateTimeWita(inspectedArticle.publishedAt) }}</span>
             </div>
-            <UBadge
-              v-if="row.original.kbliImpact"
-              :color="getKbliImpactBadge(row.original.kbliImpact).color"
+
+            <UAlert
+              v-if="inspectedArticle.llmStatus === LlmStatusEnum.FAILED"
+              color="warning"
               variant="subtle"
-              size="xs"
-              :icon="getKbliImpactBadge(row.original.kbliImpact).icon"
-            >
-              {{ getKbliImpactBadge(row.original.kbliImpact).label }}
-            </UBadge>
-          </div>
-          <UBadge v-else color="warning" variant="subtle" size="xs" icon="i-lucide-help-circle">
-            Belum Dipetakan
-          </UBadge>
-        </template>
+              icon="i-lucide-alert-triangle"
+              title="Klasifikasi AI tertunda/gagal"
+              :description="
+                inspectedArticle.llmError ||
+                'Lengkapi ringkasan dan pemetaan PDRB secara manual.'
+              "
+            />
 
-        <template #expenditure-cell="{ row }">
-          <div v-if="row.original.expenditureComponent" class="space-y-1.5 min-w-[160px]">
-            <div class="text-xs font-medium text-slate-800 leading-snug">
-              {{ getExpenditureLabel(row.original.expenditureComponent, false) }}
-            </div>
-            <UBadge
-              v-if="row.original.expenditureImpact"
-              :color="getExpenditureImpactBadge(row.original.expenditureImpact).color"
+            <UAlert
+              v-if="inspectorAlert"
+              color="error"
               variant="subtle"
-              size="xs"
-              :icon="getExpenditureImpactBadge(row.original.expenditureImpact).icon"
-            >
-              {{ getExpenditureImpactBadge(row.original.expenditureImpact).shortLabel }}
-            </UBadge>
+              icon="i-lucide-shield-alert"
+              :title="inspectorAlert"
+            />
+
+            <!-- Auto-Advance & Economic Relevance Toggle -->
+            <div class="grid grid-cols-2 gap-2 text-xs">
+              <div
+                role="group"
+                aria-label="Relevansi Fenomena Ekonomi"
+                class="col-span-2 grid grid-cols-2 p-0.5 bg-slate-100 rounded-lg border border-slate-200"
+              >
+                <button
+                  type="button"
+                  :aria-pressed="inspectorForm.isEconomicPhenomenon === true"
+                  class="py-1.5 px-2 rounded-md text-xs transition-all"
+                  :class="
+                    inspectorForm.isEconomicPhenomenon === true
+                      ? 'bg-white font-semibold text-emerald-800 shadow-xs'
+                      : 'text-slate-600'
+                  "
+                  @click="inspectorForm.isEconomicPhenomenon = true"
+                >
+                  Fenomena Ekonomi Sah
+                </button>
+                <button
+                  type="button"
+                  :aria-pressed="inspectorForm.isEconomicPhenomenon === false"
+                  class="py-1.5 px-2 rounded-md text-xs transition-all"
+                  :class="
+                    inspectorForm.isEconomicPhenomenon === false
+                      ? 'bg-white font-semibold text-rose-700 shadow-xs'
+                      : 'text-slate-600'
+                  "
+                  @click="inspectorForm.isEconomicPhenomenon = false"
+                >
+                  Non-Ekonomi / Abaikan
+                </button>
+              </div>
+            </div>
+
+            <!-- Editable Title -->
+            <div class="space-y-1">
+              <label for="insp-title" class="text-[11px] font-mono font-bold uppercase text-slate-500">
+                Judul Berita
+              </label>
+              <UInput id="insp-title" v-model="inspectorForm.title" size="sm" class="w-full" />
+            </div>
+
+            <!-- Editable Summary + Kembalikan Teks AI -->
+            <div class="space-y-1">
+              <div class="flex items-center justify-between gap-2">
+                <label for="insp-summary" class="text-[11px] font-mono font-bold uppercase text-slate-500">
+                  Ringkasan Publik (Min. 10 Karakter)
+                </label>
+                <button
+                  v-if="canRestoreAiSummary"
+                  type="button"
+                  class="inline-flex items-center gap-1 text-[11px] font-semibold text-teal-700 hover:underline"
+                  @click="restoreAiSummary"
+                >
+                  <UIcon name="i-lucide-rotate-ccw" class="w-3 h-3" />
+                  <span>Kembalikan Teks AI</span>
+                </button>
+              </div>
+              <UTextarea
+                id="insp-summary"
+                v-model="inspectorForm.summary"
+                :rows="3"
+                placeholder="Ringkasan faktual 2–3 kalimat..."
+                class="w-full"
+              />
+              <p
+                v-if="highlightIncomplete && inspectorForm.summary.trim().length < 10"
+                class="text-[11px] text-rose-600 font-medium"
+              >
+                Wajib diisi minimal 10 karakter sebelum verifikasi.
+              </p>
+            </div>
+
+            <!-- Sisi Lapangan Usaha (KBLI + Concise 2x2 Grid) -->
+            <div class="rounded-xl border border-slate-200/90 bg-[#F8FAFC] p-3 space-y-2.5">
+              <span class="block font-mono text-[10px] font-bold uppercase tracking-wider text-teal-800">
+                1. Lapangan Usaha (KBLI A–U)
+              </span>
+              <USelectMenu
+                v-model="kbliSelectModel"
+                :items="kbliOptions"
+                value-key="value"
+                label-key="label"
+                placeholder="Pilih kategori KBLI..."
+                size="sm"
+                class="w-full"
+              />
+              <div role="group" aria-label="Dampak Lapangan Usaha" class="grid grid-cols-2 gap-1.5">
+                <button
+                  v-for="opt in kbliImpactOptions"
+                  :key="opt.value"
+                  type="button"
+                  :aria-pressed="inspectorForm.kbliImpact === opt.value"
+                  class="px-2.5 py-1.5 rounded-lg border text-xs font-medium text-left transition-all"
+                  :class="
+                    inspectorForm.kbliImpact === opt.value
+                      ? 'bg-[#0B1220] text-white border-[#0B1220]'
+                      : 'bg-white text-slate-700 border-[#DCE3EC] hover:border-slate-300'
+                  "
+                  @click="inspectorForm.kbliImpact = opt.value"
+                >
+                  {{ opt.shortLabel }}
+                </button>
+              </div>
+            </div>
+
+            <!-- Sisi Pengeluaran (Component + Concise 2x2 Grid) -->
+            <div class="rounded-xl border border-slate-200/90 bg-[#F8FAFC] p-3 space-y-2.5">
+              <span class="block font-mono text-[10px] font-bold uppercase tracking-wider text-sky-800">
+                2. Komponen Pengeluaran PDRB
+              </span>
+              <USelect
+                v-model="expSelectModel"
+                :items="expenditureOptions"
+                value-key="value"
+                label-key="label"
+                placeholder="Pilih komponen pengeluaran..."
+                size="sm"
+                class="w-full"
+              />
+              <div role="group" aria-label="Dampak Pengeluaran" class="grid grid-cols-2 gap-1.5">
+                <button
+                  v-for="opt in expenditureImpactOptions"
+                  :key="opt.value"
+                  type="button"
+                  :aria-pressed="inspectorForm.expenditureImpact === opt.value"
+                  class="px-2.5 py-1.5 rounded-lg border text-xs font-medium text-left transition-all"
+                  :class="
+                    inspectorForm.expenditureImpact === opt.value
+                      ? 'bg-[#0B1220] text-white border-[#0B1220]'
+                      : 'bg-white text-slate-700 border-[#DCE3EC] hover:border-slate-300'
+                  "
+                  @click="inspectorForm.expenditureImpact = opt.value"
+                >
+                  {{ opt.shortLabel }}
+                </button>
+              </div>
+            </div>
+
+            <!-- Periode -->
+            <div class="grid grid-cols-2 gap-2.5">
+              <UFormField label="Triwulan PDRB">
+                <USelect
+                  v-model="inspectorForm.quarter"
+                  :items="quarterOptions"
+                  value-key="value"
+                  label-key="label"
+                  size="sm"
+                  class="w-full"
+                />
+              </UFormField>
+              <UFormField label="Tahun">
+                <UInput
+                  v-model.number="inspectorForm.year"
+                  type="number"
+                  size="sm"
+                  :min="2000"
+                  :max="2100"
+                  class="w-full"
+                />
+              </UFormField>
+            </div>
+
+            <!-- Cuplikan Sumber Asli -->
+            <div class="space-y-1">
+              <span class="block font-mono text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                Cuplikan Teks Asli (Referensi Verifikasi)
+              </span>
+              <div
+                class="max-h-32 overflow-y-auto saas-scroll rounded-lg bg-slate-50 border border-slate-200 p-2.5 text-xs text-slate-700 leading-relaxed whitespace-pre-line"
+              >
+                {{ inspectedArticle.snippetText }}
+              </div>
+            </div>
           </div>
-          <UBadge v-else color="warning" variant="subtle" size="xs" icon="i-lucide-help-circle">
-            Belum Dipetakan
-          </UBadge>
-        </template>
 
-        <template #actions-cell="{ row }">
-          <div class="flex items-center gap-1">
-            <UTooltip
-              v-if="activeStatus !== VerificationStatusEnum.VERIFIED"
-              text="Verifikasi 1-Klik"
+          <!-- Sticky Inspector Footer -->
+          <div class="px-4 py-3 border-t border-[#DCE3EC] bg-[#F8FAFC] space-y-2.5">
+            <div
+              v-if="activeStatus === VerificationStatusEnum.PENDING"
+              class="flex items-center justify-between text-[11px] text-[#5B677A]"
             >
-              <UButton
-                size="xs"
-                color="success"
-                variant="subtle"
-                icon="i-lucide-check"
-                aria-label="Verifikasi artikel 1 klik"
-                :loading="rowBusyId === row.original.id"
-                @click="quickApprove(row.original)"
-              />
-            </UTooltip>
+              <span>Otomatis buka antrean berikutnya</span>
+              <USwitch v-model="autoAdvanceNext" size="xs" />
+            </div>
 
-            <UTooltip text="Edit & Kurasi di Drawer">
-              <UButton
-                size="xs"
-                color="primary"
-                variant="subtle"
-                icon="i-lucide-pencil"
-                aria-label="Edit dan kurasi artikel"
-                @click="
-                  openReviewDrawer(
-                    row.original,
-                    row.original.llmStatus === LlmStatusEnum.FAILED,
-                  )
-                "
-              />
-            </UTooltip>
+            <div class="flex items-center justify-between gap-2">
+              <button
+                type="button"
+                :disabled="inspectorSubmitting !== null"
+                class="h-8 px-3 rounded-lg border border-[#DCE3EC] bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 disabled:opacity-50"
+                @click="submitInspectorAction('IGNORED')"
+              >
+                Abaikan
+              </button>
 
-            <UTooltip
-              v-if="activeStatus !== VerificationStatusEnum.IGNORED"
-              text="Abaikan Artikel"
-            >
-              <UButton
-                size="xs"
-                color="neutral"
-                variant="ghost"
-                icon="i-lucide-x"
-                aria-label="Abaikan artikel"
-                :loading="rowBusyId === row.original.id"
-                @click="quickIgnore(row.original)"
-              />
-            </UTooltip>
+              <div class="flex items-center gap-2">
+                <button
+                  type="button"
+                  :disabled="inspectorSubmitting !== null"
+                  class="h-8 px-3 rounded-lg border border-[#DCE3EC] bg-white hover:bg-slate-50 text-xs font-semibold text-[#0B1220] disabled:opacity-50"
+                  @click="submitInspectorAction('DRAFT')"
+                >
+                  Simpan Draft
+                </button>
+                <button
+                  type="button"
+                  :disabled="inspectorSubmitting !== null"
+                  class="obsidian-button h-8 px-3.5 rounded-lg text-xs font-semibold inline-flex items-center gap-1.5"
+                  @click="submitInspectorAction('VERIFIED')"
+                >
+                  <UIcon name="i-lucide-check-circle-2" class="w-3.5 h-3.5 text-teal-300" />
+                  <span>Verifikasi</span>
+                </button>
+              </div>
+            </div>
           </div>
-        </template>
-      </UTable>
-    </UCard>
-
-    <!-- Pagination -->
-    <div
-      v-if="reviewData && reviewData.pagination.total > PAGE_LIMIT"
-      class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1"
-    >
-      <span class="text-xs text-slate-500 font-mono tabular-nums">
-        Halaman {{ reviewData.pagination.page }} dari {{ reviewData.pagination.totalPages }} (Total:
-        {{ reviewData.pagination.total }} artikel)
-      </span>
-      <UPagination
-        v-model:page="page"
-        :total="reviewData.pagination.total"
-        :items-per-page="PAGE_LIMIT"
-      />
+        </div>
+      </aside>
     </div>
 
-    <!-- Slide-over Drawer Kurasi -->
+    <!-- Floating Obsidian Batch Action Bar -->
+    <div
+      v-if="selectedIds.length > 0"
+      class="fixed bottom-5 left-1/2 -translate-x-1/2 lg:left-[calc(50%+8rem)] z-30 bg-[#0B1220] text-white rounded-2xl shadow-[0_20px_50px_rgba(11,18,32,0.35)] border border-white/15 px-4 py-2.5 flex flex-wrap items-center gap-3"
+    >
+      <span class="font-mono text-xs font-bold tabular-nums">
+        {{ selectedIds.length }} Artikel Dipilih
+      </span>
+
+      <div class="flex items-center gap-2">
+        <button
+          v-if="activeStatus !== VerificationStatusEnum.VERIFIED"
+          type="button"
+          :disabled="batchLoading"
+          class="px-3 py-1.5 rounded-lg bg-[#0F766E] hover:bg-[#0D9488] text-white text-xs font-semibold inline-flex items-center gap-1 disabled:opacity-50"
+          @click="runBatchAction('VERIFY')"
+        >
+          <UIcon name="i-lucide-check" class="w-3.5 h-3.5" />
+          <span>Verifikasi</span>
+        </button>
+
+        <button
+          v-if="activeStatus !== VerificationStatusEnum.IGNORED"
+          type="button"
+          :disabled="batchLoading"
+          class="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-semibold disabled:opacity-50"
+          @click="runBatchAction('IGNORE')"
+        >
+          Abaikan
+        </button>
+
+        <button
+          type="button"
+          :disabled="batchLoading"
+          class="px-2.5 py-1.5 rounded-lg text-slate-300 hover:text-white text-xs"
+          @click="clearSelection"
+        >
+          Batal
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile / Tablet Slide-over Fallback (< lg) -->
     <AdminReviewSlideover
       v-model:open="drawerOpen"
       v-model:auto-advance-next="autoAdvanceNext"
-      :article="activeDrawerArticle"
+      :article="inspectedArticle"
       :highlight-incomplete="highlightIncomplete"
       :show-auto-next-toggle="activeStatus === VerificationStatusEnum.PENDING"
-      @saved="handleDrawerSaved"
+      @saved="handleSlideoverSaved"
     />
   </div>
 </template>

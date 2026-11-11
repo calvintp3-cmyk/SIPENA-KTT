@@ -1,7 +1,11 @@
 // server/api/public/articles.get.ts
-import { and, count, desc, eq, ilike, or, type SQL } from 'drizzle-orm';
+import { and, count, desc, eq, ilike, inArray, or, type SQL } from 'drizzle-orm';
 import { defineEventHandler } from 'h3';
-import { VerificationStatusEnum } from '../../../shared/enums/pdrb';
+import {
+  KbliImpactEnum,
+  resolvePdrbGroupCodes,
+  VerificationStatusEnum,
+} from '../../../shared/enums/pdrb';
 import { PublicArticlesQuerySchema } from '../../../shared/schemas/article.schema';
 import { db } from '../../db';
 import { articles } from '../../db/schema';
@@ -24,9 +28,28 @@ export default defineEventHandler(async (event) => {
   }
   if (query.kbli) {
     conditions.push(eq(articles.kbliCategory, query.kbli));
+  } else if (query.pdrbGroup) {
+    const groupCodes = resolvePdrbGroupCodes(query.pdrbGroup);
+    if (groupCodes.length === 1) {
+      conditions.push(eq(articles.kbliCategory, groupCodes[0]!));
+    } else if (groupCodes.length > 1) {
+      conditions.push(inArray(articles.kbliCategory, groupCodes));
+    }
   }
   if (query.expenditure) {
     conditions.push(eq(articles.expenditureComponent, query.expenditure));
+  }
+  if (query.sourceType) {
+    conditions.push(eq(articles.sourceType, query.sourceType));
+  }
+  if (query.impactMacro) {
+    const impactMap: Record<NonNullable<typeof query.impactMacro>, KbliImpactEnum> = {
+      EXPANSION: KbliImpactEnum.INCREASE_NTB,
+      CONTRACTION: KbliImpactEnum.DECREASE_NTB,
+      PRICE_UP: KbliImpactEnum.INCREASE_PRICE,
+      PRICE_DOWN: KbliImpactEnum.DECREASE_PRICE,
+    };
+    conditions.push(eq(articles.kbliImpact, impactMap[query.impactMacro]));
   }
   if (query.q) {
     const pattern = `%${escapeSqlLikePattern(query.q)}%`;
@@ -81,4 +104,3 @@ export default defineEventHandler(async (event) => {
     },
   };
 });
-

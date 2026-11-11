@@ -69,6 +69,15 @@ export interface ExpenditureDistributionItem {
   percentage: number;
 }
 
+export interface Pdrb17DistributionItem {
+  groupCode: string;
+  shortName: string;
+  officialName: string;
+  kbliCodes: KbliCategoryEnum[];
+  count: number;
+  percentage: number;
+}
+
 export interface PublicOverviewResponse {
   period: {
     year: number;
@@ -96,13 +105,210 @@ export interface PublicOverviewResponse {
     };
   };
   kbliDistribution: KbliDistributionItem[];
+  pdrb17Distribution: Pdrb17DistributionItem[];
   expenditureDistribution: ExpenditureDistributionItem[];
+  sourceBreakdown: {
+    regional: number;
+    national: number;
+    manual: number;
+  };
+  lastUpdatedAt: string | null;
   availablePeriods: Array<{
     year: number;
     quarter: number;
     label: string;
     count: number;
   }>;
+}
+
+export interface DashboardGapTileItem {
+  groupCode: string;
+  shortName: string;
+  officialName: string;
+  kbliCodes: KbliCategoryEnum[];
+  primaryKbliCode: KbliCategoryEnum;
+  count: number;
+  sharePercent: number;
+  isGap: boolean;
+  isThin: boolean;
+  dominantImpact: KbliImpactEnum | null;
+  latestHeadline: string | null;
+  latestPublishedAt: string | null;
+}
+
+export interface DashboardHeatmapRow {
+  groupCode: string;
+  shortName: string;
+  totalCount: number;
+  cells: Record<ExpenditureComponentEnum, number>;
+}
+
+export interface AdminDashboardResponse {
+  period: {
+    year: number;
+    quarter: 1 | 2 | 3 | 4;
+    label: string;
+    previousYear: number;
+    previousQuarter: 1 | 2 | 3 | 4;
+    previousLabel: string;
+  };
+  kpi: {
+    totalVerifiedPeriod: number;
+    previousTotalVerified: number;
+    deltaPercent: number | null;
+    coveredSectors: number;
+    totalSectors: number;
+    gapSectorsCount: number;
+    pendingQueueCount: number;
+    llmFailedCount: number;
+    expansionPercent: number;
+  };
+  gapTiles: DashboardGapTileItem[];
+  gapSectorCodes: string[];
+  heatmapMatrix: DashboardHeatmapRow[];
+  availableYears: number[];
+}
+
+export interface TrendPeriodPoint {
+  year: number;
+  quarter: 1 | 2 | 3 | 4;
+  label: string;
+  shortLabel: string;
+  total: number;
+  increaseNtb: number;
+  decreaseNtb: number;
+  pricePressure: number;
+  isTarget: boolean;
+}
+
+export interface TrendComparisonRow {
+  code: string;
+  label: string;
+  officialLabel: string;
+  kbliCodes?: KbliCategoryEnum[];
+  currentCount: number;
+  baselineCount: number;
+  deltaCount: number;
+  deltaPercent: number | null;
+  dominantImpact: string | null;
+  latestHeadline: string | null;
+  isGap: boolean;
+}
+
+export interface AdminTrendsResponse {
+  mode: 'qoq' | 'yoy';
+  dimension: 'kbli' | 'expenditure';
+  period: {
+    year: number;
+    quarter: 1 | 2 | 3 | 4;
+    label: string;
+  };
+  baseline: {
+    year: number;
+    quarter: 1 | 2 | 3 | 4;
+    label: string;
+  };
+  kpi: {
+    currentTotal: number;
+    baselineTotal: number;
+    deltaCount: number;
+    deltaPercent: number | null;
+    topRiser: TrendComparisonRow | null;
+    topDecliner: TrendComparisonRow | null;
+    gapCount: number;
+  };
+  history8Quarters: TrendPeriodPoint[];
+  rows: TrendComparisonRow[];
+  availableYears: number[];
+}
+
+export interface PortalDirectoryItem {
+  id: string;
+  label: string;
+  sourcePortal: string;
+  sourceType: ArticleSourceTypeEnum;
+  indexUrl: string | null;
+  additionalIndexUrls: string[];
+  allowedHosts: string[];
+  totalArticles: number;
+  verifiedArticles: number;
+  pendingArticles: number;
+  lastArticleAt: string | null;
+  recentErrorsCount: number;
+  lastErrorMessage: string | null;
+  lastErrorAt: string | null;
+}
+
+export interface AdminPortalsResponse {
+  portals: PortalDirectoryItem[];
+  otherSources: Array<{
+    sourcePortal: string;
+    sourceType: ArticleSourceTypeEnum;
+    totalArticles: number;
+    verifiedArticles: number;
+    pendingArticles: number;
+    lastArticleAt: string | null;
+  }>;
+  lastCrawlerRun: {
+    id: string;
+    startedAt: string;
+    status: ScraperRunStatusEnum;
+    portalsChecked: number;
+    articlesInserted: number;
+  } | null;
+}
+
+export interface SynthesisCitationItem {
+  index: number;
+  id: string;
+  title: string;
+  sourcePortal: string;
+  publishedAt: string;
+  url: string;
+  kbliCategory: KbliCategoryEnum | null;
+  kbliImpact: KbliImpactEnum | null;
+  expenditureComponent: ExpenditureComponentEnum | null;
+  expenditureImpact: ExpenditureImpactEnum | null;
+}
+
+export type SynthesisStyle = 'BRS_FORMAL' | 'EXECUTIVE_BRIEF' | 'BULLET_POINTS';
+
+export interface SynthesisGenerateResponse {
+  narrativeMarkdown: string;
+  mode: 'gemini' | 'template';
+  modelUsed: string | null;
+  notice: string | null;
+  citations: SynthesisCitationItem[];
+  generatedAt: string;
+  articleCount: number;
+}
+
+export interface SynthesisDraftItem {
+  id: string;
+  year: number;
+  quarter: number;
+  dimension: 'kbli' | 'expenditure';
+  targetCode: string;
+  targetLabel: string;
+  style: SynthesisStyle;
+  title: string;
+  narrativeMarkdown: string;
+  generationMode: 'gemini' | 'template';
+  modelUsed: string | null;
+  notice: string | null;
+  citations: SynthesisCitationItem[];
+  articleIds: string[];
+  articleCount: number;
+  createdBy: string | null;
+  createdByName: string | null;
+  updatedBy: string | null;
+  updatedByName: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SynthesisDraftsResponse {
+  items: SynthesisDraftItem[];
 }
 
 export interface PublicArticleItem {
@@ -137,7 +343,7 @@ export interface AdminArticleItem {
   snippetText: string;
   summary: string | null;
   isEconomicPhenomenon: boolean | null;
-  aiConfidence: number | null;
+  llmConfidence: number | null;
   kbliCategory: KbliCategoryEnum | null;
   kbliImpact: KbliImpactEnum | null;
   expenditureComponent: ExpenditureComponentEnum | null;
@@ -145,8 +351,9 @@ export interface AdminArticleItem {
   publishedAt: string;
   quarter: number;
   year: number;
+  llmModel: string | null;
   llmStatus: LlmStatusEnum;
-  llmErrorMessage: string | null;
+  llmError: string | null;
   verificationStatus: VerificationStatusEnum;
   verifiedBy: string | null;
   verifiedAt: string | null;
@@ -183,7 +390,7 @@ export interface KeywordItem {
 
 export interface ScraperErrorEntry {
   source: string;
-  stage: 'FETCH' | 'EXTRACT' | 'LLM' | 'DB';
+  stage: 'HARVEST' | 'FETCH' | 'EXTRACT' | 'LLM' | 'SYSTEM';
   message: string;
   url?: string;
 }
