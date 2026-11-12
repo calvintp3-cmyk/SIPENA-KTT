@@ -1,9 +1,9 @@
 # Spesifikasi Skema Database PostgreSQL & Drizzle ORM — SIPENA KTT
 
-**Versi Dokumen:** 1.0.0 (Single Source of Truth)  
+**Versi Dokumen:** 2.0.0 (Single Source of Truth — KBLI 2025 `A–V` & Multi-LLM Telemetry)  
 **Database Engine:** PostgreSQL 16 (Lokal VPS Ubuntu 24.04)  
 **ORM & Migrasi:** Drizzle ORM (`drizzle-orm/pg-core`) + Drizzle Kit (`drizzle-kit generate` & `drizzle-kit migrate`)  
-**Konvensi Skema:** `UUID` primary key, semua stempel waktu bertipe `TIMESTAMPTZ`, string panjang bebas bertipe `TEXT`, indeks eksplisit pada seluruh *Foreign Key* dan kolom filter utama, serta `CHECK` constraint integritas PDRB.
+**Konvensi Skema:** `UUID` primary key, semua stempel waktu bertipe `TIMESTAMPTZ`, string panjang bebas bertipe `TEXT`, indeks eksplisit pada seluruh *Foreign Key* dan kolom filter utama, `CHECK` constraint integritas PDRB, serta enumerasi **KBLI 2025 (`A–V`)** dan tabel **`synthesis_drafts`**.
 
 ---
 
@@ -14,6 +14,7 @@ erDiagram
     users ||--o{ national_keywords : "created_by"
     users ||--o{ scraper_logs : "triggered_by"
     users ||--o{ articles : "verified_by / created_by"
+    users ||--o{ synthesis_drafts : "created_by / updated_by"
     national_keywords ||--o{ articles : "keyword_id"
     scraper_logs ||--o{ articles : "scraper_log_id"
 
@@ -35,6 +36,7 @@ erDiagram
         text keyword UK
         kbli_category default_kbli_category
         expenditure_component default_expenditure_component
+        text description
         boolean is_active
         uuid created_by FK
         timestamptz created_at
@@ -59,6 +61,7 @@ erDiagram
         integer avg_response_time_ms
         integer duration_ms
         jsonb error_summary
+        jsonb provider_stats
         uuid triggered_by FK
         timestamptz started_at
         timestamptz finished_at
@@ -95,16 +98,42 @@ erDiagram
         timestamptz created_at
         timestamptz updated_at
     }
+
+    synthesis_drafts {
+        uuid id PK
+        smallint year
+        smallint quarter
+        text dimension
+        text target_code
+        text target_label
+        synthesis_style style
+        text title
+        text narrative_markdown
+        text generation_mode
+        text model_used
+        text notice
+        jsonb citations
+        jsonb article_ids
+        integer article_count
+        uuid created_by FK
+        uuid updated_by FK
+        timestamptz created_at
+        timestamptz updated_at
+    }
 ```
 
 ---
 
-## 2. Enums TypeScript & Katalog Label Domain (`shared/enums/pdrb.ts`)
+## 2. Enums TypeScript & Katalog Label Domain KBLI 2025 (`shared/enums/pdrb.ts`)
 
-Seluruh enum domain PDRB didefinisikan pada berkas isomorfik `shared/enums/pdrb.ts` agar dipakai bersama oleh **Drizzle Schema (PostgreSQL)**, **Zod Validation (API & LLM)**, **Komponen Nuxt UI v3**, dan **Generator Ekspor ExcelJS**.
+Seluruh enum domain PDRB didefinisikan pada berkas isomorfik `shared/enums/pdrb.ts` mengacu **KBLI 2025 (`A–V`, 22 kategori — Peraturan BPS No. 7 Tahun 2025)** dan pemetaan grup **17 Sektor PDRB** (`J,K`, `N,O`, `S,T,U,V`), dengan helper format wajib `formatLapusLabel(code, name)` (`kode_lapus - nama_lapus`) untuk dipakai bersama oleh Drizzle Schema, Zod Validation, Nuxt UI v3, dan ExcelJS.
 
 ```ts
 // shared/enums/pdrb.ts
+
+export function formatLapusLabel(code: string, name: string): string {
+  return `${code.trim()} - ${name.trim()}`;
+}
 
 export enum KbliCategoryEnum {
   A = 'A',
@@ -128,6 +157,7 @@ export enum KbliCategoryEnum {
   S = 'S',
   T = 'T',
   U = 'U',
+  V = 'V',
 }
 
 export interface KbliCategoryMeta {
@@ -142,148 +172,155 @@ export const KBLI_CATEGORY_META: Record<KbliCategoryEnum, KbliCategoryMeta> = {
   [KbliCategoryEnum.A]: {
     code: KbliCategoryEnum.A,
     name: 'Pertanian, Kehutanan, dan Perikanan',
-    fullLabel: 'A - Pertanian, Kehutanan, dan Perikanan',
+    fullLabel: formatLapusLabel('A', 'Pertanian, Kehutanan, dan Perikanan'),
     pdrb17GroupCode: 'A',
     pdrb17GroupLabel: 'Pertanian, Kehutanan, dan Perikanan',
   },
   [KbliCategoryEnum.B]: {
     code: KbliCategoryEnum.B,
     name: 'Pertambangan dan Penggalian',
-    fullLabel: 'B - Pertambangan dan Penggalian',
+    fullLabel: formatLapusLabel('B', 'Pertambangan dan Penggalian'),
     pdrb17GroupCode: 'B',
     pdrb17GroupLabel: 'Pertambangan dan Penggalian',
   },
   [KbliCategoryEnum.C]: {
     code: KbliCategoryEnum.C,
-    name: 'Industri Pengolahan',
-    fullLabel: 'C - Industri Pengolahan',
+    name: 'Industri',
+    fullLabel: formatLapusLabel('C', 'Industri'),
     pdrb17GroupCode: 'C',
     pdrb17GroupLabel: 'Industri Pengolahan',
   },
   [KbliCategoryEnum.D]: {
     code: KbliCategoryEnum.D,
-    name: 'Pengadaan Listrik dan Gas',
-    fullLabel: 'D - Pengadaan Listrik dan Gas',
+    name: 'Penyediaan Listrik, Gas, Uap/Air Panas, dan Udara Dingin',
+    fullLabel: formatLapusLabel('D', 'Penyediaan Listrik, Gas, Uap/Air Panas, dan Udara Dingin'),
     pdrb17GroupCode: 'D',
     pdrb17GroupLabel: 'Pengadaan Listrik dan Gas',
   },
   [KbliCategoryEnum.E]: {
     code: KbliCategoryEnum.E,
-    name: 'Pengadaan Air, Pengelolaan Sampah, Limbah dan Daur Ulang',
-    fullLabel: 'E - Pengadaan Air, Pengelolaan Sampah, Limbah dan Daur Ulang',
+    name: 'Penyediaan Air; Pengelolaan Air Limbah, Penanganan Limbah, dan Remediasi',
+    fullLabel: formatLapusLabel('E', 'Penyediaan Air; Pengelolaan Air Limbah, Penanganan Limbah, dan Remediasi'),
     pdrb17GroupCode: 'E',
     pdrb17GroupLabel: 'Pengadaan Air, Pengelolaan Sampah, Limbah dan Daur Ulang',
   },
   [KbliCategoryEnum.F]: {
     code: KbliCategoryEnum.F,
     name: 'Konstruksi',
-    fullLabel: 'F - Konstruksi',
+    fullLabel: formatLapusLabel('F', 'Konstruksi'),
     pdrb17GroupCode: 'F',
     pdrb17GroupLabel: 'Konstruksi',
   },
   [KbliCategoryEnum.G]: {
     code: KbliCategoryEnum.G,
-    name: 'Perdagangan Besar dan Eceran; Reparasi Mobil dan Sepeda Motor',
-    fullLabel: 'G - Perdagangan Besar dan Eceran; Reparasi Mobil dan Sepeda Motor',
+    name: 'Perdagangan Besar dan Eceran',
+    fullLabel: formatLapusLabel('G', 'Perdagangan Besar dan Eceran'),
     pdrb17GroupCode: 'G',
-    pdrb17GroupLabel: 'Perdagangan Besar dan Eceran; Reparasi Mobil dan Sepeda Motor',
+    pdrb17GroupLabel: 'Perdagangan Besar dan Eceran',
   },
   [KbliCategoryEnum.H]: {
     code: KbliCategoryEnum.H,
-    name: 'Pengangkutan dan Pergudangan',
-    fullLabel: 'H - Pengangkutan dan Pergudangan',
+    name: 'Transportasi dan Penyimpanan',
+    fullLabel: formatLapusLabel('H', 'Transportasi dan Penyimpanan'),
     pdrb17GroupCode: 'H',
     pdrb17GroupLabel: 'Transportasi dan Pergudangan',
   },
   [KbliCategoryEnum.I]: {
     code: KbliCategoryEnum.I,
-    name: 'Penyediaan Akomodasi dan Makan Minum',
-    fullLabel: 'I - Penyediaan Akomodasi dan Makan Minum',
+    name: 'Aktivitas Penyediaan Akomodasi dan Makan Minum',
+    fullLabel: formatLapusLabel('I', 'Aktivitas Penyediaan Akomodasi dan Makan Minum'),
     pdrb17GroupCode: 'I',
     pdrb17GroupLabel: 'Penyediaan Akomodasi dan Makan Minum',
   },
   [KbliCategoryEnum.J]: {
     code: KbliCategoryEnum.J,
-    name: 'Informasi dan Komunikasi',
-    fullLabel: 'J - Informasi dan Komunikasi',
-    pdrb17GroupCode: 'J',
+    name: 'Aktivitas Penerbitan, Penyiaran, serta Produksi dan Distribusi Konten',
+    fullLabel: formatLapusLabel('J', 'Aktivitas Penerbitan, Penyiaran, serta Produksi dan Distribusi Konten'),
+    pdrb17GroupCode: 'J,K',
     pdrb17GroupLabel: 'Informasi dan Komunikasi',
   },
   [KbliCategoryEnum.K]: {
     code: KbliCategoryEnum.K,
-    name: 'Aktivitas Keuangan dan Asuransi',
-    fullLabel: 'K - Aktivitas Keuangan dan Asuransi',
-    pdrb17GroupCode: 'K',
-    pdrb17GroupLabel: 'Jasa Keuangan dan Asuransi',
+    name: 'Aktivitas Telekomunikasi, Pemrograman Komputer, Konsultansi, Infrastruktur Komputasi, dan Jasa Informasi Lainnya',
+    fullLabel: formatLapusLabel('K', 'Aktivitas Telekomunikasi, Pemrograman Komputer, Konsultansi, Infrastruktur Komputasi, dan Jasa Informasi Lainnya'),
+    pdrb17GroupCode: 'J,K',
+    pdrb17GroupLabel: 'Informasi dan Komunikasi',
   },
   [KbliCategoryEnum.L]: {
     code: KbliCategoryEnum.L,
-    name: 'Real Estat',
-    fullLabel: 'L - Real Estat',
+    name: 'Aktivitas Keuangan dan Asuransi',
+    fullLabel: formatLapusLabel('L', 'Aktivitas Keuangan dan Asuransi'),
     pdrb17GroupCode: 'L',
-    pdrb17GroupLabel: 'Real Estat',
+    pdrb17GroupLabel: 'Jasa Keuangan dan Asuransi',
   },
   [KbliCategoryEnum.M]: {
     code: KbliCategoryEnum.M,
-    name: 'Aktivitas Profesional, Ilmiah dan Teknis',
-    fullLabel: 'M - Aktivitas Profesional, Ilmiah dan Teknis',
-    pdrb17GroupCode: 'M,N',
-    pdrb17GroupLabel: 'Jasa Perusahaan',
+    name: 'Aktivitas Real Estat',
+    fullLabel: formatLapusLabel('M', 'Aktivitas Real Estat'),
+    pdrb17GroupCode: 'M',
+    pdrb17GroupLabel: 'Real Estat',
   },
   [KbliCategoryEnum.N]: {
     code: KbliCategoryEnum.N,
-    name: 'Aktivitas Penyewaan dan Sewa Guna Usaha Tanpa Hak Opsi, Ketenagakerjaan, Agen Perjalanan dan Penunjang Usaha Lainnya',
-    fullLabel: 'N - Aktivitas Penyewaan dan Sewa Guna Usaha Tanpa Hak Opsi, Ketenagakerjaan, Agen Perjalanan dan Penunjang Usaha Lainnya',
-    pdrb17GroupCode: 'M,N',
+    name: 'Aktivitas Profesional, Ilmiah, dan Teknis',
+    fullLabel: formatLapusLabel('N', 'Aktivitas Profesional, Ilmiah, dan Teknis'),
+    pdrb17GroupCode: 'N,O',
     pdrb17GroupLabel: 'Jasa Perusahaan',
   },
   [KbliCategoryEnum.O]: {
     code: KbliCategoryEnum.O,
-    name: 'Administrasi Pemerintahan, Pertahanan dan Jaminan Sosial Wajib',
-    fullLabel: 'O - Administrasi Pemerintahan, Pertahanan dan Jaminan Sosial Wajib',
-    pdrb17GroupCode: 'O',
-    pdrb17GroupLabel: 'Administrasi Pemerintahan, Pertahanan dan Jaminan Sosial Wajib',
+    name: 'Aktivitas Administratif dan Penunjang Usaha',
+    fullLabel: formatLapusLabel('O', 'Aktivitas Administratif dan Penunjang Usaha'),
+    pdrb17GroupCode: 'N,O',
+    pdrb17GroupLabel: 'Jasa Perusahaan',
   },
   [KbliCategoryEnum.P]: {
     code: KbliCategoryEnum.P,
-    name: 'Pendidikan',
-    fullLabel: 'P - Pendidikan',
+    name: 'Administrasi Pemerintahan dan Pertahanan, serta Jaminan Sosial Wajib',
+    fullLabel: formatLapusLabel('P', 'Administrasi Pemerintahan dan Pertahanan, serta Jaminan Sosial Wajib'),
     pdrb17GroupCode: 'P',
-    pdrb17GroupLabel: 'Jasa Pendidikan',
+    pdrb17GroupLabel: 'Administrasi Pemerintahan, Pertahanan dan Jaminan Sosial Wajib',
   },
   [KbliCategoryEnum.Q]: {
     code: KbliCategoryEnum.Q,
-    name: 'Aktivitas Kesehatan Manusia dan Aktivitas Sosial',
-    fullLabel: 'Q - Aktivitas Kesehatan Manusia dan Aktivitas Sosial',
+    name: 'Pendidikan',
+    fullLabel: formatLapusLabel('Q', 'Pendidikan'),
     pdrb17GroupCode: 'Q',
-    pdrb17GroupLabel: 'Jasa Kesehatan dan Kegiatan Sosial',
+    pdrb17GroupLabel: 'Jasa Pendidikan',
   },
   [KbliCategoryEnum.R]: {
     code: KbliCategoryEnum.R,
-    name: 'Kesenian, Hiburan dan Rekreasi',
-    fullLabel: 'R - Kesenian, Hiburan dan Rekreasi',
-    pdrb17GroupCode: 'R,S,T,U',
-    pdrb17GroupLabel: 'Jasa Lainnya',
+    name: 'Aktivitas Kesehatan Manusia dan Aktivitas Sosial',
+    fullLabel: formatLapusLabel('R', 'Aktivitas Kesehatan Manusia dan Aktivitas Sosial'),
+    pdrb17GroupCode: 'R',
+    pdrb17GroupLabel: 'Jasa Kesehatan dan Kegiatan Sosial',
   },
   [KbliCategoryEnum.S]: {
     code: KbliCategoryEnum.S,
-    name: 'Aktivitas Jasa Lainnya',
-    fullLabel: 'S - Aktivitas Jasa Lainnya',
-    pdrb17GroupCode: 'R,S,T,U',
+    name: 'Kesenian, Olahraga, dan Rekreasi',
+    fullLabel: formatLapusLabel('S', 'Kesenian, Olahraga, dan Rekreasi'),
+    pdrb17GroupCode: 'S,T,U,V',
     pdrb17GroupLabel: 'Jasa Lainnya',
   },
   [KbliCategoryEnum.T]: {
     code: KbliCategoryEnum.T,
-    name: 'Aktivitas Rumah Tangga Sebagai Pemberi Kerja; Aktivitas yang Menghasilkan Barang dan Jasa oleh Rumah Tangga yang Digunakan untuk Memenuhi Kebutuhan Sendiri',
-    fullLabel: 'T - Aktivitas Rumah Tangga Sebagai Pemberi Kerja dan Produksi Sendiri',
-    pdrb17GroupCode: 'R,S,T,U',
+    name: 'Aktivitas Jasa Lainnya',
+    fullLabel: formatLapusLabel('T', 'Aktivitas Jasa Lainnya'),
+    pdrb17GroupCode: 'S,T,U,V',
     pdrb17GroupLabel: 'Jasa Lainnya',
   },
   [KbliCategoryEnum.U]: {
     code: KbliCategoryEnum.U,
+    name: 'Aktivitas Rumah Tangga Sebagai Pemberi Kerja dan Aktivitas Produksi Barang dan Jasa oleh Rumah Tangga untuk Keperluan Sendiri yang Tidak Terdiferensiasi',
+    fullLabel: formatLapusLabel('U', 'Aktivitas Rumah Tangga Sebagai Pemberi Kerja dan Aktivitas Produksi Barang dan Jasa oleh Rumah Tangga untuk Keperluan Sendiri yang Tidak Terdiferensiasi'),
+    pdrb17GroupCode: 'S,T,U,V',
+    pdrb17GroupLabel: 'Jasa Lainnya',
+  },
+  [KbliCategoryEnum.V]: {
+    code: KbliCategoryEnum.V,
     name: 'Aktivitas Badan Internasional dan Badan Ekstra Internasional Lainnya',
-    fullLabel: 'U - Aktivitas Badan Internasional dan Badan Ekstra Internasional Lainnya',
-    pdrb17GroupCode: 'R,S,T,U',
+    fullLabel: formatLapusLabel('V', 'Aktivitas Badan Internasional dan Badan Ekstra Internasional Lainnya'),
+    pdrb17GroupCode: 'S,T,U,V',
     pdrb17GroupLabel: 'Jasa Lainnya',
   },
 };
@@ -472,6 +509,11 @@ export const scraperRunStatusPgEnum = pgEnum(
   enumValues(ScraperRunStatusEnum),
 );
 export const userRolePgEnum = pgEnum('user_role', enumValues(UserRoleEnum));
+export const synthesisStylePgEnum = pgEnum('synthesis_style', [
+  'BRS_FORMAL',
+  'EXECUTIVE_BRIEF',
+  'BULLET_POINTS',
+]);
 
 // ============================================================================
 // 2. Tabel `users` — Autentikasi & Otorisasi Staf Admin Nerwilis
@@ -542,6 +584,20 @@ export interface ScraperPortalErrorEntry {
   url?: string;
 }
 
+export interface ScraperProviderStatEntry {
+  slotId: string;
+  provider: 'gemini' | 'groq' | 'openrouter';
+  model: string;
+  calls: number;
+  successes: number;
+  rateLimits: number;
+  failures: number;
+  inputTokens: number;
+  outputTokens: number;
+  totalTokens: number;
+  totalLatencyMs: number;
+}
+
 export const scraperLogs = pgTable(
   'scraper_logs',
   {
@@ -562,6 +618,10 @@ export const scraperLogs = pgTable(
     avgResponseTimeMs: integer('avg_response_time_ms').notNull().default(0),
     durationMs: integer('duration_ms'),
     errorSummary: jsonb('error_summary').$type<ScraperPortalErrorEntry[]>().notNull().default([]),
+    providerStats: jsonb('provider_stats')
+      .$type<Record<string, ScraperProviderStatEntry>>()
+      .notNull()
+      .default({}),
     triggeredBy: uuid('triggered_by').references(() => users.id, { onDelete: 'set null' }),
     startedAt: timestamp('started_at', { withTimezone: true, mode: 'date' })
       .notNull()
@@ -610,8 +670,8 @@ export const articles = pgTable(
     expenditureComponent: expenditureComponentPgEnum('expenditure_component'),
     expenditureImpact: expenditureImpactPgEnum('expenditure_impact'),
 
-    // Telemetry & Fallback LLM Worker
-    llmModel: text('llm_model'), // mis. 'gemini-3.8-flash' | 'gemini-3.5-flash-lite'
+    // Telemetry & Multi-LLM Router
+    llmModel: text('llm_model'), // mis. 'gemini:gemini-3.8-flash' | 'groq:llama-3.3-70b-versatile' | 'openrouter:...' | 'geo-filter'
     llmStatus: llmStatusPgEnum('llm_status').notNull().default(LlmStatusEnum.SUCCESS),
     llmError: text('llm_error'),
     llmConfidence: doublePrecision('llm_confidence'), // 0.0 - 1.0 opsional untuk prioritas review
@@ -686,7 +746,53 @@ export const articles = pgTable(
 );
 
 // ============================================================================
-// 6. Drizzle Relations & Inferred Types
+// 6. Tabel `synthesis_drafts` — Draf & Riwayat Narasi BRS PDRB Bersama
+// ============================================================================
+
+export const synthesisDrafts = pgTable(
+  'synthesis_drafts',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    year: smallint('year').notNull(),
+    quarter: smallint('quarter').notNull(),
+    dimension: text('dimension').$type<'kbli' | 'expenditure'>().notNull(),
+    targetCode: text('target_code').notNull(),
+    targetLabel: text('target_label').notNull(),
+    style: synthesisStylePgEnum('style').notNull().default('BRS_FORMAL'),
+    title: text('title').notNull(),
+    narrativeMarkdown: text('narrative_markdown').notNull(),
+    generationMode: text('generation_mode')
+      .$type<'gemini' | 'llm' | 'template'>()
+      .notNull()
+      .default('template'),
+    modelUsed: text('model_used'),
+    notice: text('notice'),
+    citations: jsonb('citations').$type<SynthesisDraftCitationEntry[]>().notNull().default([]),
+    articleIds: jsonb('article_ids').$type<string[]>().notNull().default([]),
+    articleCount: integer('article_count').notNull().default(0),
+    createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
+    updatedBy: uuid('updated_by').references(() => users.id, { onDelete: 'set null' }),
+    createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [
+    index('synthesis_drafts_period_updated_idx').on(t.year, t.quarter, t.updatedAt.desc()),
+    index('synthesis_drafts_target_idx').on(t.dimension, t.targetCode),
+    index('synthesis_drafts_created_by_idx').on(t.createdBy),
+    index('synthesis_drafts_updated_by_idx').on(t.updatedBy),
+    check('synthesis_drafts_quarter_range_chk', sql`${t.quarter} BETWEEN 1 AND 4`),
+    check('synthesis_drafts_year_range_chk', sql`${t.year} BETWEEN 2000 AND 2100`),
+    check('synthesis_drafts_dimension_chk', sql`${t.dimension} IN ('kbli', 'expenditure')`),
+    check('synthesis_drafts_mode_chk', sql`${t.generationMode} IN ('gemini', 'llm', 'template')`),
+    check('synthesis_drafts_article_count_chk', sql`${t.articleCount} >= 0`),
+  ],
+);
+
+// ============================================================================
+// 7. Drizzle Relations & Inferred Types
 // ============================================================================
 
 export const usersRelations = relations(users, ({ many }) => ({

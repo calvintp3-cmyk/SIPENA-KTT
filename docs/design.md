@@ -1,6 +1,6 @@
 # Rancangan Antarmuka UI/UX & Layout Nuxt UI — SIPENA KTT
 
-**Versi Dokumen:** 2.0.0 (Single Source of Truth — *Cobalt–Emerald Luminous SaaS*)  
+**Versi Dokumen:** 2.1.0 (Single Source of Truth — *Cobalt–Emerald Luminous SaaS* & KBLI 2025)  
 **Framework UI & Motion:** Nuxt UI v3 (`@nuxt/ui ^3.3.7`), Tailwind CSS v4, `motion-v` (`^2.12.0`), `echarts` (`^6.1.0`) + `vue-echarts` (`^8.3.2`) + `nuxt-echarts` (`^1.1.0`)  
 **Ikonografi:** `@nuxt/icon` (`provider: 'server'`) dengan koleksi `@iconify-json/solar` (`i-solar-*-bold-duotone` untuk navigasi, KPI, hero bento) + `i-lucide-*` untuk mikro-kontrol (`chevron`, `x`, `check`)  
 **Arah Estetika:** *Cobalt–Emerald Luminous SaaS* — antarmuka SaaS modern terang bercahaya untuk portal publik & workstation analitis BPS Kabupaten Tana Tidung (Nerwilis), dipadukan panel showcase gelap *Midnight Cobalt–Emerald* (`hero-mesh-dark`) pada Landing Hero (`/`) dan Split Login (`/login`), tanpa kekakuan birokratis dan bebas font monospace di antarmuka.
@@ -94,13 +94,13 @@ Token CSS inti di `app/assets/css/main.css`:
 
 Selain semantik arah dampak (`usePdrbLabels.ts`), antarmuka v2.0.0 menambahkan spektrum warna terstruktur di `shared/utils/pdrb-colors.ts` (diekspos juga lewat `usePdrbLabels()`):
 
-#### A. 4 Klaster Warna 17 Sektor KBLI (`getKbliClusterKey` & `getKbliClusterTheme`)
-| Klaster (`PdrbClusterKey`) | Cakupan Huruf / Grup KBLI | Warna Dominan | Hex Utama | Kelas Pill (WCAG ≥ 4.5:1) |
+#### A. 4 Klaster Warna 17 Sektor PDRB / 22 Kategori KBLI 2025 (`getKbliClusterKey` & `getKbliClusterTheme`)
+| Klaster (`PdrbClusterKey`) | Cakupan Huruf / Grup KBLI 2025 | Warna Dominan | Hex Utama | Kelas Pill (WCAG ≥ 4.5:1) |
 |---|---|---|---|---|
 | `PRIMARY_SDA` | `A`, `B` | **Emerald** | `#059669` | `bg-emerald-50 text-emerald-800 border-emerald-200/90` |
 | `INDUSTRY_BUILD` | `C`, `D`, `E`, `F` | **Amber** | `#D97706` | `bg-amber-50 text-amber-800 border-amber-200/90` |
-| `TRADE_LOGISTICS` | `G`, `H`, `I`, `J` | **Cobalt Blue** | `#2563EB` | `bg-blue-50 text-blue-800 border-blue-200/90` |
-| `FINANCE_PUBLIC` | `K`, `L`, `M,N`, `O`, `P`, `Q`, `R,S,T,U` | **Violet Indigo** | `#7C3AED` | `bg-violet-50 text-violet-800 border-violet-200/90` |
+| `TRADE_LOGISTICS` | `G`, `H`, `I`, `J`, `K`, grup `J,K` | **Cobalt Blue** | `#2563EB` | `bg-blue-50 text-blue-800 border-blue-200/90` |
+| `FINANCE_PUBLIC` | `L`, `M`, `N`, `O`, grup `N,O`, `P`, `Q`, `R`, `S`..`V`, grup `S,T,U,V` | **Violet Indigo** | `#7C3AED` | `bg-violet-50 text-violet-800 border-violet-200/90` |
 
 Setiap objek `PdrbClusterTheme` menyediakan `hex`, `hexLight`, `pillClass`, `accentBarClass`, `softStripClass`, dan `iconBgClass`.
 
@@ -151,13 +151,13 @@ Setiap objek `PdrbClusterTheme` menyediakan `hex`, `hexLight`, `pillClass`, `acc
 | **Root & Chart Wrapper** | `app/app.vue`, `app/components/shared/AppChart.vue` | `<MotionConfig>`, `<NuxtRouteAnnouncer>`, `<NuxtLoadingIndicator>`, `<AppChart>` pembungkus `<VChart>` tree-shaken di dalam `<ClientOnly>` + loading skeleton + empty state aman SSR. |
 | **Layout Publik** | `app/layouts/default.vue` | *Floating Frosted Glass Navbar* (`Beranda`, `Linimasa Ekonomi`, `Metodologi`), Quick Search bar (`⌘K`) aktif di `/linimasa`, pill periode WITA, CTA gradien, `<USlideover>` menu mobile, footer institusional. |
 | **Landing Page** (`/`) | `app/pages/index.vue` | Hero *Midnight Cobalt–Emerald* + **Live PDRB Snapshot Bento** dari `/api/public/overview` (fallback otomatis via `pickLandingSnapshotPeriod`), strip 4 pilar taksonomi, Bento Grid 4 kapabilitas (`#cara-kerja`), preview maksimal 3 fenomena terbaru, redirect query lama (`/?year=...`) ke `/linimasa`. |
-| **Public View** (`/linimasa`) | `app/pages/linimasa.vue` & `app/components/public/*` | `KpiSnapshotGrid` (4 kartu KPI berikon Solar), `SectorDistributionCharts` (**2 grafik interaktif ECharts**: Bar KBLI per klaster warna & Donut 6 Pengeluaran dengan klik-filter), `PublicFilterBar` (`USelectMenu` searchable KBLI + multi-warna filter), `PhenomenonFeedCard` (aksen garis kiri warna klaster), `PublicArticleDetailModal`, serta switcher Stream Timeline / Tabel Ringkas. |
+| **Public Portal** (`/linimasa`) | `app/pages/linimasa.vue` & `app/components/public/*` | `KpiSnapshotGrid` (4 kartu KPI berikon Solar + format `kode_lapus - nama_lapus`), `SectorDistributionCharts` (**2 grafik interaktif ECharts**: Bar 17 Sektor KBLI `A–V` per klaster warna & Donut 6 Pengeluaran dengan klik-filter), `PublicFilterBar` (`USelectMenu` searchable + multi-warna filter), `PhenomenonFeedCard`, `PublicArticleDetailModal`, serta switcher Stream Timeline / Tabel Ringkas (`tabindex="0" role="region"`). |
 | **Split Login Showcase** (`/login`) | `app/pages/login.vue` | Layout 2 kolom (`lg:grid-cols-12`): kiri panel showcase *hero-mesh-dark* dengan 3 highlight Nerwilis, kanan kartu auth elevated berfokus pada Google OAuth Whitelist + form cadangan email/kata sandi dengan `OAUTH_ERROR_MAP` lengkap; mobile menempatkan form OAuth di atas lipatan layar. |
 | **Layout Admin** (`/admin/**`) | `app/layouts/admin.vue` & `CommandPaletteModal.vue` | **Collapsible Sidebar Rail** (`w-64` ↔ `w-20` tersimpan di `localStorage` + `UTooltip` saat ciut), item aktif `.active-nav-card`, badge `PENDING` & `FAILED`, Floating Glass Header dengan `<USelect>` tahun + pill triwulan global + Command Palette (`⌘K`), serta judul tab dinamis per rute. |
 | **Dashboard & Tren** | `app/pages/admin/index.vue`, `app/pages/admin/trends.vue` | `admin/index.vue`: 4 KPI + **ECharts Donut Ketercakupan 17 Sektor** + Heatmap 17×6 Cobalt–Emerald + radar gap. `trends.vue`: **ECharts Stacked Bar + Smooth Area Trendline** 8 triwulan interaktif dengan klik-navigasi periode + ekspor Excel. |
-| **Kurasi, Bank Data, Sintesis** | `review.vue`, `articles.vue`, `synthesis.vue`, `ReviewSlideover.vue`, `ManualArticleModal.vue` | Antrean tab kurasi + batch action, Bank Data dengan multi-filter `<USelect>`/`<USelectMenu>` & ekspor 10 kolom `.xlsx`/`.csv`, generator narasi BRS dengan `<USelectMenu>` target + `<USelect>` gaya narasi + draft PostgreSQL + `.synthesis-print-sheet` cetak A4 utuh. |
-| **Sumber & Taksonomi** | `portals.vue`, `keywords.vue`, `taxonomy.vue`, `KeywordFormModal.vue` | Direktori portal Kaltara + external ingestion health, master keyword nasional dengan multi-warna KBLI/pengeluaran & switch instan, serta kamus interaktif 17 KBLI × 6 Pengeluaran + matriks dampak. |
-| **Monitor & Akses** | `scrapers.vue`, `users.vue`, `ScraperLogTable.vue`, `UserFormModal.vue` | Panel kontrol manual/retry LLM + polling live + 4 kartu telemetri token, riwayat log dengan modal error JSON, dan kelola akses tim whitelist OAuth-First + RBAC role badge. |
+| **Kurasi, Bank Data, Sintesis** | `review.vue`, `articles.vue`, `synthesis.vue`, `ReviewSlideover.vue`, `ManualArticleModal.vue` | Antrean tab kurasi + batch action + pill penyedia Multi-LLM (`formatLlmProviderBadge`), Bank Data dengan multi-filter `<USelect>`/`<USelectMenu>` & ekspor 10 kolom `.xlsx`/`.csv`, generator narasi BRS via `MultiLlmRouter` + draft PostgreSQL + `.synthesis-print-sheet` cetak A4 utuh. |
+| **Sumber & Taksonomi** | `portals.vue`, `keywords.vue`, `taxonomy.vue`, `KeywordFormModal.vue` | Direktori portal Kaltara + status RSS/Bing+Google News, master keyword nasional dengan multi-warna KBLI 2025/pengeluaran & switch instan, serta kamus interaktif **22 Kategori KBLI 2025 (`A–V`) -> 17 Sektor PDRB × 6 Pengeluaran** berformat `kode_lapus - nama_lapus`. |
+| **Monitor & Akses** | `scrapers.vue`, `users.vue`, `ScraperLogTable.vue`, `UserFormModal.vue` | Panel kontrol manual/retry LLM + polling live + 4 kartu telemetri token + **grid Status & Kapasitas Penyedia Multi-LLM (`providerHealth` & `providerStats30d`)**, riwayat log berkolom Rute LLM & modal rincian per slot + error JSON, serta kelola akses tim whitelist OAuth-First + RBAC role badge. |
 
 ---
 
