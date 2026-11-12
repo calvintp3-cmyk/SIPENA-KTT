@@ -42,7 +42,7 @@ const kbliChartOption = computed<ECOption | null>(() => {
           : -1;
         const item = list[idx];
         if (!item) return '';
-        return `<strong>[${item.code}] ${item.name}</strong><br/>Jumlah: ${item.count} berita (${item.percentage}%)`;
+        return `<strong>${item.code} - ${item.name}</strong><br/>Jumlah: ${item.count} berita (${item.percentage}%)`;
       },
     },
     grid: {
@@ -60,7 +60,7 @@ const kbliChartOption = computed<ECOption | null>(() => {
     },
     yAxis: {
       type: 'category',
-      data: list.map((i) => `[${i.code}] ${i.name.length > 22 ? `${i.name.slice(0, 21)}…` : i.name}`),
+      data: list.map((i) => `${i.code} - ${i.name.length > 22 ? `${i.name.slice(0, 21)}…` : i.name}`),
       axisLine: { lineStyle: { color: '#E2E8F0' } },
       axisTick: { show: false },
       axisLabel: {
@@ -197,7 +197,7 @@ function handleExpenditureChartClick(params: unknown) {
     aria-label="Sebaran Proporsi Sektor PDRB"
     class="grid grid-cols-1 lg:grid-cols-2 gap-4"
   >
-    <!-- Grafik KBLI A-U -->
+    <!-- Grafik KBLI A-V -->
     <div class="saas-card rounded-2xl overflow-hidden flex flex-col">
       <div class="px-5 py-3.5 border-b border-slate-200/80 flex items-center justify-between gap-2 bg-slate-50/75">
         <div class="flex items-center gap-2.5">
@@ -206,7 +206,7 @@ function handleExpenditureChartClick(params: unknown) {
           </div>
           <div>
             <h2 class="text-sm font-bold text-[#0F172A]">
-              Sebaran Lapangan Usaha (KBLI A–U)
+              Sebaran Lapangan Usaha (KBLI A–V)
             </h2>
             <p class="text-[11px] text-slate-500">
               Klik batang grafik atau badge sektor untuk menyaring linimasa
@@ -256,7 +256,7 @@ function handleExpenditureChartClick(params: unknown) {
                 backgroundColor: selectedKbli === item.code ? '#FFFFFF' : getKbliClusterTheme(item.code).hex,
               }"
             />
-            <span>[{{ item.code }}] {{ item.count }}</span>
+            <span>{{ item.code }} ({{ item.count }})</span>
           </button>
         </div>
       </div>

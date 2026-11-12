@@ -3,6 +3,7 @@ import {
   ExpenditureComponentEnum,
   ExpenditureImpactEnum,
   EXPENDITURE_COMPONENT_LABELS,
+  formatLapusLabel,
   getPdrb17GroupForKbli,
   KBLI_IMPACT_LABELS,
   KbliCategoryEnum,
@@ -401,7 +402,7 @@ export function resolveSynthesisTargetLabel(
 ): string {
   if (dimension === 'kbli') {
     const sector = PDRB_17_SECTORS.find((s) => s.groupCode === targetCode);
-    return sector ? `[KBLI ${sector.groupCode}] ${sector.officialName}` : `KBLI ${targetCode}`;
+    return sector ? formatLapusLabel(sector.groupCode, sector.officialName) : `KBLI ${targetCode}`;
   }
   const exp = EXPENDITURE_COMPONENT_LABELS[targetCode as ExpenditureComponentEnum];
   return exp ? exp.official : targetCode;

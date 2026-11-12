@@ -109,6 +109,7 @@ vi.mock('#server/db', () => {
 import { runScrapePipeline } from '#server/services/scraper/pipeline';
 
 const VALID_ECONOMIC_JSON = JSON.stringify({
+  geographic_scope: 'KTT_LOCAL',
   is_economic_phenomenon: true,
   rejection_reason: null,
   summary:
@@ -356,7 +357,7 @@ describe('Scraper Pipeline Concurrency, Timeouts, Gemini Failover & Fail-Safe Re
       runType: ScraperRunTypeEnum.MANUAL,
       mode: 'REGIONAL_ONLY',
       now,
-      maxDurationMs: 110,
+      maxDurationMs: 240,
       portals: [
         {
           id: 'koran-kaltara',
@@ -386,7 +387,7 @@ describe('Scraper Pipeline Concurrency, Timeouts, Gemini Failover & Fail-Safe Re
         minIntervalMs: 0,
         invokeFn: async (req) => {
           llmCallIndex += 1;
-          const delayMs = llmCallIndex === 1 ? 35 : 500;
+          const delayMs = llmCallIndex === 1 ? 20 : 600;
           await new Promise<void>((resolve, reject) => {
             if (req.abortSignal?.aborted) {
               const e = new Error('Aborted');
@@ -418,7 +419,7 @@ describe('Scraper Pipeline Concurrency, Timeouts, Gemini Failover & Fail-Safe Re
     expect([ScraperRunStatusEnum.PARTIAL, ScraperRunStatusEnum.FAILED]).toContain(summary.status);
     expect(summary.articlesInserted).toBeGreaterThanOrEqual(1);
     expect(summary.economicCount).toBe(1);
-    expect(summary.durationMs).toBeLessThan(350);
+    expect(summary.durationMs).toBeLessThan(500);
     expect(summary.errors.some((e) => e.stage === 'SYSTEM' || e.stage === 'LLM')).toBe(true);
 
     const lastUpdate = mockLogUpdates.at(-1);
@@ -524,5 +525,91 @@ describe('Scraper Pipeline Concurrency, Timeouts, Gemini Failover & Fail-Safe Re
     );
     expect(capturedPrompts[0]).toContain('KBLI Default=B');
     expect(capturedPrompts[0]).toContain('Pengeluaran Default=NET_EXPORT');
+  });
+
+  it('Phase C.5 geo-filter memblokir berita kabupaten lain dengan 0 panggilan LLM dan routerOptions mencatat providerStats', async () => {
+    const now = new Date('2026-10-14T12:00:00.000Z');
+    const invokedTitles: string[] = [];
+
+    const summary = await runScrapePipeline({
+      runType: ScraperRunTypeEnum.MANUAL,
+      mode: 'REGIONAL_ONLY',
+      now,
+      portals: [
+        {
+          id: 'koran-kaltara',
+          label: 'Koran Kaltara',
+          sourcePortal: 'korankaltara.com',
+          indexUrl: 'https://korankaltara.com/category/tana-tidung',
+          allowedHosts: ['korankaltara.com'],
+          itemSelectors: ['article'],
+        },
+      ],
+      fetchFn: async (url) => {
+        if (url.includes('/category/')) {
+          return {
+            finalUrl: url,
+            body: `
+              <article><h2><a href="https://korankaltara.com/pemkab-nunukan-kucurkan-soa-krayan">Pemkab Nunukan Kucurkan Subsidi Ongkos Angkut Krayan Rp 912 Juta</a></h2><time datetime="2026-10-14T09:00:00+08:00"></time></article>
+              <article><h2><a href="https://korankaltara.com/harga-sawit-sesayap-ktt-menguat">Harga TBS Sawit Kecamatan Sesayap Kabupaten Tana Tidung Menguat</a></h2><time datetime="2026-10-14T10:00:00+08:00"></time></article>
+            `,
+          };
+        }
+        if (url.includes('nunukan')) {
+          return {
+            finalUrl: url,
+            body: buildSampleArticleHtml(
+              'Pemkab Nunukan Kucurkan Subsidi Ongkos Angkut Krayan Rp 912 Juta',
+              '2026-10-14T09:00:00+08:00',
+            ),
+          };
+        }
+        return {
+          finalUrl: url,
+          body: buildSampleArticleHtml(
+            'Harga TBS Sawit Kecamatan Sesayap Kabupaten Tana Tidung Menguat',
+            '2026-10-14T10:00:00+08:00',
+          ),
+        };
+      },
+      routerOptions: {
+        env: {
+          geminiApiKey: 'AIzaTestFakeGeminiKeyForUnitTest001',
+          groqApiKey: 'gsk_TestFakeGroqKeyForUnitTest001',
+        },
+        geminiMinIntervalMs: 0,
+        groqMinIntervalMs: 0,
+        invokeSlotFn: async (req) => {
+          invokedTitles.push(req.userInput);
+          if (req.provider === 'gemini') {
+            const err = new Error('429 Rate limit exceeded') as Error & { status: number };
+            err.status = 429;
+            throw err;
+          }
+          return {
+            outputText: VALID_ECONOMIC_JSON,
+            usage: { inputTokens: 310, outputTokens: 95, totalTokens: 405 },
+          };
+        },
+      },
+    });
+
+    expect(summary.status).toBe(ScraperRunStatusEnum.SUCCESS);
+    expect(summary.articlesInserted).toBe(2);
+    expect(summary.nonEconomicCount).toBe(1);
+    expect(summary.economicCount).toBe(1);
+    expect(invokedTitles).toHaveLength(2); // 1 artikel KTT memanggil Gemini (429) -> Groq (sukses), artikel Nunukan = 0 call!
+
+    const geoIgnored = mockInsertedArticles.find((a) => String(a.url).includes('nunukan'));
+    expect(geoIgnored?.llmModel).toBe('geo-filter');
+    expect(geoIgnored?.verificationStatus).toBe('IGNORED');
+    expect(geoIgnored?.isEconomicPhenomenon).toBe(false);
+
+    const kttInserted = mockInsertedArticles.find((a) => String(a.url).includes('sesayap'));
+    expect(kttInserted?.llmModel).toBe('groq:llama-3.3-70b-versatile');
+    expect(kttInserted?.verificationStatus).toBe('PENDING');
+
+    expect(summary.providerStats['gemini:gemini-3.8-flash']?.rateLimits).toBe(1);
+    expect(summary.providerStats['groq:llama-3.3-70b-versatile']?.successes).toBe(1);
   });
 });

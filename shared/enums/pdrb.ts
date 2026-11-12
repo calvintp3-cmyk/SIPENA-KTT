@@ -1,5 +1,9 @@
 // shared/enums/pdrb.ts
 
+export function formatLapusLabel(code: string, name: string): string {
+  return `${code.trim()} - ${name.trim()}`;
+}
+
 export enum KbliCategoryEnum {
   A = 'A',
   B = 'B',
@@ -22,6 +26,7 @@ export enum KbliCategoryEnum {
   S = 'S',
   T = 'T',
   U = 'U',
+  V = 'V',
 }
 
 export interface KbliCategoryMeta {
@@ -36,149 +41,173 @@ export const KBLI_CATEGORY_META: Record<KbliCategoryEnum, KbliCategoryMeta> = {
   [KbliCategoryEnum.A]: {
     code: KbliCategoryEnum.A,
     name: 'Pertanian, Kehutanan, dan Perikanan',
-    fullLabel: 'A - Pertanian, Kehutanan, dan Perikanan',
+    fullLabel: formatLapusLabel('A', 'Pertanian, Kehutanan, dan Perikanan'),
     pdrb17GroupCode: 'A',
     pdrb17GroupLabel: 'Pertanian, Kehutanan, dan Perikanan',
   },
   [KbliCategoryEnum.B]: {
     code: KbliCategoryEnum.B,
     name: 'Pertambangan dan Penggalian',
-    fullLabel: 'B - Pertambangan dan Penggalian',
+    fullLabel: formatLapusLabel('B', 'Pertambangan dan Penggalian'),
     pdrb17GroupCode: 'B',
     pdrb17GroupLabel: 'Pertambangan dan Penggalian',
   },
   [KbliCategoryEnum.C]: {
     code: KbliCategoryEnum.C,
-    name: 'Industri Pengolahan',
-    fullLabel: 'C - Industri Pengolahan',
+    name: 'Industri',
+    fullLabel: formatLapusLabel('C', 'Industri'),
     pdrb17GroupCode: 'C',
     pdrb17GroupLabel: 'Industri Pengolahan',
   },
   [KbliCategoryEnum.D]: {
     code: KbliCategoryEnum.D,
-    name: 'Pengadaan Listrik dan Gas',
-    fullLabel: 'D - Pengadaan Listrik dan Gas',
+    name: 'Penyediaan Listrik, Gas, Uap/Air Panas, dan Udara Dingin',
+    fullLabel: formatLapusLabel('D', 'Penyediaan Listrik, Gas, Uap/Air Panas, dan Udara Dingin'),
     pdrb17GroupCode: 'D',
     pdrb17GroupLabel: 'Pengadaan Listrik dan Gas',
   },
   [KbliCategoryEnum.E]: {
     code: KbliCategoryEnum.E,
-    name: 'Pengadaan Air, Pengelolaan Sampah, Limbah dan Daur Ulang',
-    fullLabel: 'E - Pengadaan Air, Pengelolaan Sampah, Limbah dan Daur Ulang',
+    name: 'Penyediaan Air; Pengelolaan Air Limbah, Penanganan Limbah, dan Remediasi',
+    fullLabel: formatLapusLabel(
+      'E',
+      'Penyediaan Air; Pengelolaan Air Limbah, Penanganan Limbah, dan Remediasi',
+    ),
     pdrb17GroupCode: 'E',
     pdrb17GroupLabel: 'Pengadaan Air, Pengelolaan Sampah, Limbah dan Daur Ulang',
   },
   [KbliCategoryEnum.F]: {
     code: KbliCategoryEnum.F,
     name: 'Konstruksi',
-    fullLabel: 'F - Konstruksi',
+    fullLabel: formatLapusLabel('F', 'Konstruksi'),
     pdrb17GroupCode: 'F',
     pdrb17GroupLabel: 'Konstruksi',
   },
   [KbliCategoryEnum.G]: {
     code: KbliCategoryEnum.G,
-    name: 'Perdagangan Besar dan Eceran; Reparasi Mobil dan Sepeda Motor',
-    fullLabel: 'G - Perdagangan Besar dan Eceran; Reparasi Mobil dan Sepeda Motor',
+    name: 'Perdagangan Besar dan Eceran',
+    fullLabel: formatLapusLabel('G', 'Perdagangan Besar dan Eceran'),
     pdrb17GroupCode: 'G',
-    pdrb17GroupLabel: 'Perdagangan Besar dan Eceran; Reparasi Mobil dan Sepeda Motor',
+    pdrb17GroupLabel: 'Perdagangan Besar dan Eceran',
   },
   [KbliCategoryEnum.H]: {
     code: KbliCategoryEnum.H,
-    name: 'Pengangkutan dan Pergudangan',
-    fullLabel: 'H - Pengangkutan dan Pergudangan',
+    name: 'Transportasi dan Penyimpanan',
+    fullLabel: formatLapusLabel('H', 'Transportasi dan Penyimpanan'),
     pdrb17GroupCode: 'H',
     pdrb17GroupLabel: 'Transportasi dan Pergudangan',
   },
   [KbliCategoryEnum.I]: {
     code: KbliCategoryEnum.I,
-    name: 'Penyediaan Akomodasi dan Makan Minum',
-    fullLabel: 'I - Penyediaan Akomodasi dan Makan Minum',
+    name: 'Aktivitas Penyediaan Akomodasi dan Makan Minum',
+    fullLabel: formatLapusLabel('I', 'Aktivitas Penyediaan Akomodasi dan Makan Minum'),
     pdrb17GroupCode: 'I',
     pdrb17GroupLabel: 'Penyediaan Akomodasi dan Makan Minum',
   },
   [KbliCategoryEnum.J]: {
     code: KbliCategoryEnum.J,
-    name: 'Informasi dan Komunikasi',
-    fullLabel: 'J - Informasi dan Komunikasi',
-    pdrb17GroupCode: 'J',
+    name: 'Aktivitas Penerbitan, Penyiaran, serta Produksi dan Distribusi Konten',
+    fullLabel: formatLapusLabel(
+      'J',
+      'Aktivitas Penerbitan, Penyiaran, serta Produksi dan Distribusi Konten',
+    ),
+    pdrb17GroupCode: 'J,K',
     pdrb17GroupLabel: 'Informasi dan Komunikasi',
   },
   [KbliCategoryEnum.K]: {
     code: KbliCategoryEnum.K,
-    name: 'Aktivitas Keuangan dan Asuransi',
-    fullLabel: 'K - Aktivitas Keuangan dan Asuransi',
-    pdrb17GroupCode: 'K',
-    pdrb17GroupLabel: 'Jasa Keuangan dan Asuransi',
+    name: 'Aktivitas Telekomunikasi, Pemrograman Komputer, Konsultansi, Infrastruktur Komputasi, dan Jasa Informasi Lainnya',
+    fullLabel: formatLapusLabel(
+      'K',
+      'Aktivitas Telekomunikasi, Pemrograman Komputer, Konsultansi, Infrastruktur Komputasi, dan Jasa Informasi Lainnya',
+    ),
+    pdrb17GroupCode: 'J,K',
+    pdrb17GroupLabel: 'Informasi dan Komunikasi',
   },
   [KbliCategoryEnum.L]: {
     code: KbliCategoryEnum.L,
-    name: 'Real Estat',
-    fullLabel: 'L - Real Estat',
+    name: 'Aktivitas Keuangan dan Asuransi',
+    fullLabel: formatLapusLabel('L', 'Aktivitas Keuangan dan Asuransi'),
     pdrb17GroupCode: 'L',
-    pdrb17GroupLabel: 'Real Estat',
+    pdrb17GroupLabel: 'Jasa Keuangan dan Asuransi',
   },
   [KbliCategoryEnum.M]: {
     code: KbliCategoryEnum.M,
-    name: 'Aktivitas Profesional, Ilmiah dan Teknis',
-    fullLabel: 'M - Aktivitas Profesional, Ilmiah dan Teknis',
-    pdrb17GroupCode: 'M,N',
-    pdrb17GroupLabel: 'Jasa Perusahaan',
+    name: 'Aktivitas Real Estat',
+    fullLabel: formatLapusLabel('M', 'Aktivitas Real Estat'),
+    pdrb17GroupCode: 'M',
+    pdrb17GroupLabel: 'Real Estat',
   },
   [KbliCategoryEnum.N]: {
     code: KbliCategoryEnum.N,
-    name: 'Aktivitas Penyewaan dan Sewa Guna Usaha Tanpa Hak Opsi, Ketenagakerjaan, Agen Perjalanan dan Penunjang Usaha Lainnya',
-    fullLabel:
-      'N - Aktivitas Penyewaan dan Sewa Guna Usaha Tanpa Hak Opsi, Ketenagakerjaan, Agen Perjalanan dan Penunjang Usaha Lainnya',
-    pdrb17GroupCode: 'M,N',
+    name: 'Aktivitas Profesional, Ilmiah, dan Teknis',
+    fullLabel: formatLapusLabel('N', 'Aktivitas Profesional, Ilmiah, dan Teknis'),
+    pdrb17GroupCode: 'N,O',
     pdrb17GroupLabel: 'Jasa Perusahaan',
   },
   [KbliCategoryEnum.O]: {
     code: KbliCategoryEnum.O,
-    name: 'Administrasi Pemerintahan, Pertahanan dan Jaminan Sosial Wajib',
-    fullLabel: 'O - Administrasi Pemerintahan, Pertahanan dan Jaminan Sosial Wajib',
-    pdrb17GroupCode: 'O',
-    pdrb17GroupLabel: 'Administrasi Pemerintahan, Pertahanan dan Jaminan Sosial Wajib',
+    name: 'Aktivitas Administratif dan Penunjang Usaha',
+    fullLabel: formatLapusLabel('O', 'Aktivitas Administratif dan Penunjang Usaha'),
+    pdrb17GroupCode: 'N,O',
+    pdrb17GroupLabel: 'Jasa Perusahaan',
   },
   [KbliCategoryEnum.P]: {
     code: KbliCategoryEnum.P,
-    name: 'Pendidikan',
-    fullLabel: 'P - Pendidikan',
+    name: 'Administrasi Pemerintahan dan Pertahanan, serta Jaminan Sosial Wajib',
+    fullLabel: formatLapusLabel(
+      'P',
+      'Administrasi Pemerintahan dan Pertahanan, serta Jaminan Sosial Wajib',
+    ),
     pdrb17GroupCode: 'P',
-    pdrb17GroupLabel: 'Jasa Pendidikan',
+    pdrb17GroupLabel: 'Administrasi Pemerintahan, Pertahanan dan Jaminan Sosial Wajib',
   },
   [KbliCategoryEnum.Q]: {
     code: KbliCategoryEnum.Q,
-    name: 'Aktivitas Kesehatan Manusia dan Aktivitas Sosial',
-    fullLabel: 'Q - Aktivitas Kesehatan Manusia dan Aktivitas Sosial',
+    name: 'Pendidikan',
+    fullLabel: formatLapusLabel('Q', 'Pendidikan'),
     pdrb17GroupCode: 'Q',
-    pdrb17GroupLabel: 'Jasa Kesehatan dan Kegiatan Sosial',
+    pdrb17GroupLabel: 'Jasa Pendidikan',
   },
   [KbliCategoryEnum.R]: {
     code: KbliCategoryEnum.R,
-    name: 'Kesenian, Hiburan dan Rekreasi',
-    fullLabel: 'R - Kesenian, Hiburan dan Rekreasi',
-    pdrb17GroupCode: 'R,S,T,U',
-    pdrb17GroupLabel: 'Jasa Lainnya',
+    name: 'Aktivitas Kesehatan Manusia dan Aktivitas Sosial',
+    fullLabel: formatLapusLabel('R', 'Aktivitas Kesehatan Manusia dan Aktivitas Sosial'),
+    pdrb17GroupCode: 'R',
+    pdrb17GroupLabel: 'Jasa Kesehatan dan Kegiatan Sosial',
   },
   [KbliCategoryEnum.S]: {
     code: KbliCategoryEnum.S,
-    name: 'Aktivitas Jasa Lainnya',
-    fullLabel: 'S - Aktivitas Jasa Lainnya',
-    pdrb17GroupCode: 'R,S,T,U',
+    name: 'Kesenian, Olahraga, dan Rekreasi',
+    fullLabel: formatLapusLabel('S', 'Kesenian, Olahraga, dan Rekreasi'),
+    pdrb17GroupCode: 'S,T,U,V',
     pdrb17GroupLabel: 'Jasa Lainnya',
   },
   [KbliCategoryEnum.T]: {
     code: KbliCategoryEnum.T,
-    name: 'Aktivitas Rumah Tangga Sebagai Pemberi Kerja; Aktivitas yang Menghasilkan Barang dan Jasa oleh Rumah Tangga yang Digunakan untuk Memenuhi Kebutuhan Sendiri',
-    fullLabel: 'T - Aktivitas Rumah Tangga Sebagai Pemberi Kerja dan Produksi Sendiri',
-    pdrb17GroupCode: 'R,S,T,U',
+    name: 'Aktivitas Jasa Lainnya',
+    fullLabel: formatLapusLabel('T', 'Aktivitas Jasa Lainnya'),
+    pdrb17GroupCode: 'S,T,U,V',
     pdrb17GroupLabel: 'Jasa Lainnya',
   },
   [KbliCategoryEnum.U]: {
     code: KbliCategoryEnum.U,
+    name: 'Aktivitas Rumah Tangga Sebagai Pemberi Kerja dan Aktivitas Produksi Barang dan Jasa oleh Rumah Tangga untuk Keperluan Sendiri yang Tidak Terdiferensiasi',
+    fullLabel: formatLapusLabel(
+      'U',
+      'Aktivitas Rumah Tangga Sebagai Pemberi Kerja dan Aktivitas Produksi Barang dan Jasa oleh Rumah Tangga untuk Keperluan Sendiri yang Tidak Terdiferensiasi',
+    ),
+    pdrb17GroupCode: 'S,T,U,V',
+    pdrb17GroupLabel: 'Jasa Lainnya',
+  },
+  [KbliCategoryEnum.V]: {
+    code: KbliCategoryEnum.V,
     name: 'Aktivitas Badan Internasional dan Badan Ekstra Internasional Lainnya',
-    fullLabel: 'U - Aktivitas Badan Internasional dan Badan Ekstra Internasional Lainnya',
-    pdrb17GroupCode: 'R,S,T,U',
+    fullLabel: formatLapusLabel(
+      'V',
+      'Aktivitas Badan Internasional dan Badan Ekstra Internasional Lainnya',
+    ),
+    pdrb17GroupCode: 'S,T,U,V',
     pdrb17GroupLabel: 'Jasa Lainnya',
   },
 };
@@ -296,6 +325,7 @@ export interface Pdrb17SectorMeta {
   groupCode: string;
   shortName: string;
   officialName: string;
+  fullLabel: string;
   kbliCodes: ReadonlyArray<KbliCategoryEnum>;
   description: string;
   typicalSignals: string;
@@ -306,6 +336,7 @@ export const PDRB_17_SECTORS: ReadonlyArray<Pdrb17SectorMeta> = [
     groupCode: 'A',
     shortName: 'Pertanian, Kehutanan & Perikanan',
     officialName: 'Pertanian, Kehutanan, dan Perikanan',
+    fullLabel: formatLapusLabel('A', 'Pertanian, Kehutanan, dan Perikanan'),
     kbliCodes: [KbliCategoryEnum.A],
     description:
       'Tanaman pangan, perkebunan kelapa sawit/TBS, kehutanan/perkayuan, serta perikanan tangkap & budidaya tambak di pesisir KTT.',
@@ -315,150 +346,169 @@ export const PDRB_17_SECTORS: ReadonlyArray<Pdrb17SectorMeta> = [
     groupCode: 'B',
     shortName: 'Pertambangan & Penggalian',
     officialName: 'Pertambangan dan Penggalian',
+    fullLabel: formatLapusLabel('B', 'Pertambangan dan Penggalian'),
     kbliCodes: [KbliCategoryEnum.B],
     description:
-      'Pertambangan batubara, minyak & gas bumi, serta penggalian material konstruksi (pasir, batu, sirtu).',
+      'Pertambangan batubara (termasuk pencucian/benefisiasi), minyak & gas bumi, serta penggalian material konstruksi (pasir, batu, sirtu).',
     typicalSignals: 'Produksi batubara & lifting migas, harga acuan HBA/ICP, aktivitas kuari material lokal.',
   },
   {
     groupCode: 'C',
     shortName: 'Industri Pengolahan',
     officialName: 'Industri Pengolahan',
+    fullLabel: formatLapusLabel('C', 'Industri Pengolahan'),
     kbliCodes: [KbliCategoryEnum.C],
     description:
-      'Pengolahan CPO/pabrik kelapa sawit (PKS), industri kayu lapis/chipmill, industri makanan-minuman, dan UMKM olahan.',
+      'Pengolahan CPO/pabrik kelapa sawit (PKS), industri kayu lapis/chipmill, industri makanan-minuman, dan UMKM olahan (KBLI 2025: Industri).',
     typicalSignals: 'Kapasitas giling CPO, ekspor produk olahan kayu, investasi pabrik baru & IKM pangan.',
   },
   {
     groupCode: 'D',
     shortName: 'Pengadaan Listrik & Gas',
     officialName: 'Pengadaan Listrik dan Gas',
+    fullLabel: formatLapusLabel('D', 'Pengadaan Listrik dan Gas'),
     kbliCodes: [KbliCategoryEnum.D],
     description:
-      'Pembangkitan & distribusi tenaga listrik PLN/swasta serta suplai gas untuk rumah tangga dan industri.',
+      'Pembangkitan & distribusi tenaga listrik PLN/swasta, EBT, serta suplai gas untuk rumah tangga dan industri.',
     typicalSignals: 'Penambahan kapasitas PLTD/PLTS, rasio elektrifikasi desa, tarif & konsumsi kWh.',
   },
   {
     groupCode: 'E',
     shortName: 'Pengadaan Air & Pengelolaan Limbah',
     officialName: 'Pengadaan Air, Pengelolaan Sampah, Limbah dan Daur Ulang',
+    fullLabel: formatLapusLabel('E', 'Pengadaan Air, Pengelolaan Sampah, Limbah dan Daur Ulang'),
     kbliCodes: [KbliCategoryEnum.E],
     description:
-      'Layanan air bersih PDAM Tirta Taka, sistem penyediaan air minum (SPAM), serta pengelolaan persampahan & limbah.',
+      'Layanan air bersih PDAM Tirta Taka, sistem penyediaan air minum (SPAM), pengelolaan persampahan, limbah, dan remediasi lingkungan.',
     typicalSignals: 'Perluasan sambungan rumah PDAM, pembangunan IPA/SPAM, program persampahan daerah.',
   },
   {
     groupCode: 'F',
     shortName: 'Konstruksi',
     officialName: 'Konstruksi',
+    fullLabel: formatLapusLabel('F', 'Konstruksi'),
     kbliCodes: [KbliCategoryEnum.F],
     description:
-      'Pembangunan gedung pemerintahan/Puspem KTT, proyek jalan & jembatan, irigasi, pelabuhan, serta perumahan.',
+      'Pembangunan gedung pemerintahan/Puspem KTT, proyek jalan & jembatan, irigasi, pelabuhan, gedung sekolah/RSUD, serta perumahan.',
     typicalSignals: 'Progres fisik APBD/APBN, tender infrastruktur jalan-jembatan, pembangunan kawasan Puspem.',
   },
   {
     groupCode: 'G',
     shortName: 'Perdagangan Besar & Eceran',
-    officialName: 'Perdagangan Besar dan Eceran; Reparasi Mobil dan Sepeda Motor',
+    officialName: 'Perdagangan Besar dan Eceran',
+    fullLabel: formatLapusLabel('G', 'Perdagangan Besar dan Eceran'),
     kbliCodes: [KbliCategoryEnum.G],
     description:
-      'Perdagangan barang kebutuhan pokok, niaga BBM & material bangunan, pasar tradisional, ritel modern, serta bengkel kendaraan.',
+      'Perdagangan barang kebutuhan pokok, niaga BBM & material bangunan, pasar tradisional, ritel modern, serta niaga-el (KBLI 2025 memindahkan reparasi kendaraan ke KBLI T).',
     typicalSignals: 'Pasokan & harga sembako, omzet pasar rakyat, penjualan kendaraan/BBM, bazar UMKM.',
   },
   {
     groupCode: 'H',
     shortName: 'Transportasi & Pergudangan',
     officialName: 'Transportasi dan Pergudangan',
+    fullLabel: formatLapusLabel('H', 'Transportasi dan Pergudangan'),
     kbliCodes: [KbliCategoryEnum.H],
     description:
-      'Angkutan sungai/laut (speedboat, feri, tongkang logistik), angkutan darat lintas kabupaten, pelabuhan, dan pergudangan.',
-    typicalSignals: 'Arus bongkar muat Pelabuhan Tideng Pale/Sesayap, trayek speedboat & feri, tarif logistik.',
+      'Angkutan sungai/laut (speedboat, feri, tongkang logistik), angkutan darat lintas kabupaten, pelabuhan, kurir, dan pergudangan.',
+    typicalSignals: 'Arus bongkar muat Pelabuhan Tideng Pale/Sesayap, trayek speedboat & feri, subsidi SOA logistik.',
   },
   {
     groupCode: 'I',
     shortName: 'Akomodasi & Makan Minum',
     officialName: 'Penyediaan Akomodasi dan Makan Minum',
+    fullLabel: formatLapusLabel('I', 'Penyediaan Akomodasi dan Makan Minum'),
     kbliCodes: [KbliCategoryEnum.I],
     description:
-      'Usaha perhotelan, penginapan, homestay, rumah makan, kafe, serta jasa katering dan acara daerah.',
+      'Usaha perhotelan, penginapan, homestay, rumah makan, kafe, jasa katering, serta acara daerah.',
     typicalSignals: 'Tingkat hunian kamar hotel (TPK), event/rapat dinas daerah, pembukaan sentra kuliner.',
   },
   {
-    groupCode: 'J',
+    groupCode: 'J,K',
     shortName: 'Informasi & Komunikasi',
-    officialName: 'Informasi dan Komunikasi',
-    kbliCodes: [KbliCategoryEnum.J],
+    officialName: 'Informasi dan Komunikasi (KBLI J & K)',
+    fullLabel: formatLapusLabel('J,K', 'Informasi dan Komunikasi (KBLI J & K)'),
+    kbliCodes: [KbliCategoryEnum.J, KbliCategoryEnum.K],
     description:
-      'Jaringan telekomunikasi seluler & fiber optik, menara BTS, layanan internet, serta penyiaran & media lokal.',
-    typicalSignals: 'Pembangunan BTS blankspot, perluasan jaringan internet desa, digitalisasi layanan publik.',
-  },
-  {
-    groupCode: 'K',
-    shortName: 'Jasa Keuangan & Asuransi',
-    officialName: 'Jasa Keuangan dan Asuransi',
-    kbliCodes: [KbliCategoryEnum.K],
-    description:
-      'Layanan perbankan umum/BPD Kaltimtara, penyaluran KUR/kredit usaha, koperasi simpan pinjam, dan asuransi.',
-    typicalSignals: 'Realisasi kredit UMKM/KUR, transaksi perbankan digital QRIS, likuiditas simpanan daerah.',
+      'Mencakup KBLI 2025 J (penerbitan media, penyiaran TV/radio, produksi konten digital) dan KBLI 2025 K (telekomunikasi, BTS, internet desa, TI & komputasi).',
+    typicalSignals: 'Pembangunan BTS blankspot, perluasan jaringan internet desa, digitalisasi layanan publik & media lokal.',
   },
   {
     groupCode: 'L',
-    shortName: 'Real Estat',
-    officialName: 'Real Estat',
+    shortName: 'Jasa Keuangan & Asuransi',
+    officialName: 'Jasa Keuangan dan Asuransi',
+    fullLabel: formatLapusLabel('L', 'Jasa Keuangan dan Asuransi'),
     kbliCodes: [KbliCategoryEnum.L],
     description:
-      'Pengembangan kawasan perumahan, transaksi sewa lahan/ruko/gedung, serta nilai properti komersial & residensial.',
+      'Layanan perbankan umum/BPD Kaltimtara, penyaluran KUR/kredit usaha, koperasi simpan pinjam, asuransi, dan fintech.',
+    typicalSignals: 'Realisasi kredit UMKM/KUR, transaksi perbankan digital QRIS, likuiditas simpanan daerah.',
+  },
+  {
+    groupCode: 'M',
+    shortName: 'Real Estat',
+    officialName: 'Real Estat',
+    fullLabel: formatLapusLabel('M', 'Real Estat'),
+    kbliCodes: [KbliCategoryEnum.M],
+    description:
+      'Pengembangan kawasan perumahan, transaksi sewa lahan/ruko/gedung/gudang penyimpanan mandiri, serta nilai properti komersial & residensial.',
     typicalSignals: 'Pembangunan klaster perumahan subsidi/komersial, kenaikan sewa properti & ruko.',
   },
   {
-    groupCode: 'M,N',
+    groupCode: 'N,O',
     shortName: 'Jasa Perusahaan',
-    officialName: 'Jasa Perusahaan (KBLI M & N)',
-    kbliCodes: [KbliCategoryEnum.M, KbliCategoryEnum.N],
+    officialName: 'Jasa Perusahaan (KBLI N & O)',
+    fullLabel: formatLapusLabel('N,O', 'Jasa Perusahaan (KBLI N & O)'),
+    kbliCodes: [KbliCategoryEnum.N, KbliCategoryEnum.O],
     description:
-      'Mencakup KBLI M (konsultan teknik/hukum, survei, jasa profesional) dan KBLI N (penyewaan alat berat/kendaraan, biro perjalanan, tenaga kerja, kebersihan).',
+      'Mencakup KBLI 2025 N (konsultan teknik/hukum, AMDAL, survei, sertifikasi) dan KBLI 2025 O (penyewaan alat berat/armada, biro perjalanan, tenaga kerja, kebersihan).',
     typicalSignals: 'Jasa konsultan perencanaan konstruksi, sewa alat berat tambang/proyek, travel dinas.',
   },
   {
-    groupCode: 'O',
+    groupCode: 'P',
     shortName: 'Administrasi Pemerintahan',
     officialName: 'Administrasi Pemerintahan, Pertahanan dan Jaminan Sosial Wajib',
-    kbliCodes: [KbliCategoryEnum.O],
+    fullLabel: formatLapusLabel(
+      'P',
+      'Administrasi Pemerintahan, Pertahanan dan Jaminan Sosial Wajib',
+    ),
+    kbliCodes: [KbliCategoryEnum.P],
     description:
-      'Aktivitas operasional Pemkab Tana Tidung, belanja pegawai/operasional OPD, TKD/DBH, serta program jaminan sosial.',
+      'Aktivitas operasional Pemkab Tana Tidung, belanja pegawai/operasional OPD, TKD/DBH/DAK/DAU, serta administrasi jaminan sosial wajib.',
     typicalSignals: 'Realisasi APBD KTT, penyaluran gaji/TPP ASN, dana transfer pusat (DBH/DAK/DAU).',
   },
   {
-    groupCode: 'P',
+    groupCode: 'Q',
     shortName: 'Jasa Pendidikan',
     officialName: 'Jasa Pendidikan',
-    kbliCodes: [KbliCategoryEnum.P],
+    fullLabel: formatLapusLabel('Q', 'Jasa Pendidikan'),
+    kbliCodes: [KbliCategoryEnum.Q],
     description:
-      'Layanan pendidikan formal/nonformal (PAUD, SD, SMP, SMA/SMK, kursus, beasiswa daerah, sarana belajar).',
-    typicalSignals: 'Realisasi BOSDA/beasiswa KTT, operasional satuan pendidikan & pelatihan vokasi.',
+      'Layanan pendidikan formal/nonformal (PAUD, SD, SMP, SMA/SMK, kursus, beasiswa daerah, pelatihan vokasi/BLK).',
+    typicalSignals: 'Realisasi BOS/BOSDA/beasiswa KTT, operasional satuan pendidikan & pelatihan vokasi.',
   },
   {
-    groupCode: 'Q',
+    groupCode: 'R',
     shortName: 'Jasa Kesehatan & Kegiatan Sosial',
     officialName: 'Jasa Kesehatan dan Kegiatan Sosial',
-    kbliCodes: [KbliCategoryEnum.Q],
+    fullLabel: formatLapusLabel('R', 'Jasa Kesehatan dan Kegiatan Sosial'),
+    kbliCodes: [KbliCategoryEnum.R],
     description:
       'Layanan RSUD Akhmad Berahim, puskesmas, klinik/apotek, tenaga kesehatan, serta layanan sosial masyarakat.',
     typicalSignals: 'Peningkatan layanan RSUD/puskesmas, program jaminan kesehatan daerah, bansos rentan.',
   },
   {
-    groupCode: 'R,S,T,U',
+    groupCode: 'S,T,U,V',
     shortName: 'Jasa Lainnya',
-    officialName: 'Jasa Lainnya (KBLI R, S, T & U)',
+    officialName: 'Jasa Lainnya (KBLI S, T, U & V)',
+    fullLabel: formatLapusLabel('S,T,U,V', 'Jasa Lainnya (KBLI S, T, U & V)'),
     kbliCodes: [
-      KbliCategoryEnum.R,
       KbliCategoryEnum.S,
       KbliCategoryEnum.T,
       KbliCategoryEnum.U,
+      KbliCategoryEnum.V,
     ],
     description:
-      'Mencakup KBLI R (wisata, festival budaya, olahraga/rekreasi), KBLI S (organisasi kemasyarakatan, reparasi personal, salon/laundry), KBLI T (jasa rumah tangga), dan KBLI U (badan internasional).',
-    typicalSignals: 'Festival budaya Irau/wisata Tana Tidung, event olahraga daerah, jasa personal.',
+      'Mencakup KBLI 2025 S (festival budaya Irau, wisata, olahraga/rekreasi), KBLI 2025 T (organisasi kemasyarakatan/ibadah, reparasi/bengkel mobil & motor, salon/laundry), KBLI 2025 U (jasa rumah tangga), dan KBLI 2025 V (badan internasional).',
+    typicalSignals: 'Festival budaya Irau/wisata Tana Tidung, event olahraga daerah, bengkel kendaraan & jasa personal.',
   },
 ];
 
@@ -503,7 +553,7 @@ export const PDRB_6_EXPENDITURE_LIST: ReadonlyArray<ExpenditureComponentMeta> = 
     short: 'Perubahan Inventori',
     official: 'Perubahan Inventori',
     description:
-      'Penumpukan atau penarikan stok barang jadi, bahan baku industri, komoditas tambang, serta cadangan pangan di gudang.',
+      'Penumpukan atau penarikan stok barang jadi, bahan baku industri, komoditas tambang (stockpile), serta cadangan pangan di gudang.',
   },
   {
     code: ExpenditureComponentEnum.NET_EXPORT,
@@ -515,7 +565,7 @@ export const PDRB_6_EXPENDITURE_LIST: ReadonlyArray<ExpenditureComponentMeta> = 
 ];
 
 /**
- * Mengurai kode grup 17 sektor PDRB (mis. 'M,N', 'R,S,T,U', atau 'A') menjadi array kode KBLI Enum.
+ * Mengurai kode grup 17 sektor PDRB (mis. 'J,K', 'N,O', 'S,T,U,V', atau 'A') menjadi array kode KBLI 2025 Enum.
  */
 export function resolvePdrbGroupCodes(groupCode: string | null | undefined): KbliCategoryEnum[] {
   const normalized = groupCode?.trim().toUpperCase();
@@ -531,10 +581,9 @@ export function resolvePdrbGroupCodes(groupCode: string | null | undefined): Kbl
 }
 
 /**
- * Mengembalikan metadata sektor PDRB (17 sektor) tempat bernaungnya sebuah kode KBLI (21 huruf).
+ * Mengembalikan metadata sektor PDRB (17 sektor) tempat bernaungnya sebuah kode KBLI 2025 (22 huruf).
  */
 export function getPdrb17GroupForKbli(code: KbliCategoryEnum): Pdrb17SectorMeta {
   const groupCode = KBLI_CATEGORY_META[code].pdrb17GroupCode;
   return PDRB_17_SECTORS.find((s) => s.groupCode === groupCode) ?? PDRB_17_SECTORS[0]!;
 }
-

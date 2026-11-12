@@ -7,8 +7,18 @@ import {
   KbliImpactEnum,
 } from '../enums/pdrb';
 
+export const GeographicScopeSchema = z.enum([
+  'KTT_LOCAL',
+  'KALTARA_PROVINCIAL',
+  'NATIONAL_MACRO_IMPACT',
+  'OTHER_REGION_IRRELEVANT',
+]);
+
+export type GeographicScope = z.infer<typeof GeographicScopeSchema>;
+
 export const LlmClassificationRawSchema = z
   .object({
+    geographic_scope: GeographicScopeSchema.optional(),
     is_economic_phenomenon: z.boolean(),
     rejection_reason: z.string().trim().max(300).nullable(),
     summary: z.string().trim().min(20).max(1500),
@@ -21,6 +31,15 @@ export const LlmClassificationRawSchema = z
     confidence: z.number().min(0).max(1),
   })
   .superRefine((data, ctx) => {
+    if (data.geographic_scope === 'OTHER_REGION_IRRELEVANT' && data.is_economic_phenomenon) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['is_economic_phenomenon'],
+        message:
+          'Berita dengan geographic_scope OTHER_REGION_IRRELEVANT wajib memiliki is_economic_phenomenon = false.',
+      });
+    }
+
     if (data.is_economic_phenomenon) {
       if (!data.kbli_category) {
         ctx.addIssue({
@@ -60,7 +79,8 @@ export const LlmClassificationRawSchema = z
         ctx.addIssue({
           code: 'custom',
           path: ['is_economic_phenomenon'],
-          message: 'Seluruh kolom klasifikasi PDRB harus null ketika is_economic_phenomenon = false.',
+          message:
+            'Seluruh kolom klasifikasi PDRB harus null ketika is_economic_phenomenon = false.',
         });
       }
     }
@@ -68,16 +88,35 @@ export const LlmClassificationRawSchema = z
 
 export type LlmClassificationOutput = z.infer<typeof LlmClassificationRawSchema>;
 
-// JSON Schema eksplisit untuk `response_format` Gemini Interactions API
-// (kompatibel penuh dengan subset JSON Schema Gemini Structured Outputs)
+// JSON Schema eksplisit untuk Structured Outputs Gemini & OpenAI-compatible router
+// propertyOrdering memandu model menalar lokus geografis & ringkasan fakta sebelum mengunci kode enum PDRB.
 export const LLM_CLASSIFICATION_JSON_SCHEMA = {
   type: 'object',
   additionalProperties: false,
+  propertyOrdering: [
+    'geographic_scope',
+    'is_economic_phenomenon',
+    'rejection_reason',
+    'summary',
+    'kbli_category',
+    'kbli_impact',
+    'expenditure_component',
+    'expenditure_impact',
+    'quarter',
+    'year',
+    'confidence',
+  ],
   properties: {
+    geographic_scope: {
+      type: 'string',
+      enum: ['KTT_LOCAL', 'KALTARA_PROVINCIAL', 'NATIONAL_MACRO_IMPACT', 'OTHER_REGION_IRRELEVANT'],
+      description:
+        'Klasifikasi cakupan geografis fakta artikel: KTT_LOCAL (terjadi di Kab. Tana Tidung / Sesayap / Tideng Pale / Tana Lia / Betayau / Muruk Rian), KALTARA_PROVINCIAL (kebijakan/data Kalimantan Utara yang langsung berimbas ke KTT), NATIONAL_MACRO_IMPACT (kebijakan/komoditas acuan nasional relevan ke ekonomi KTT), atau OTHER_REGION_IRRELEVANT (peristiwa khusus kabupaten/kota/provinsi lain tanpa dampak langsung ke KTT).',
+    },
     is_economic_phenomenon: {
       type: 'boolean',
       description:
-        'true apabila berita memuat fenomena ekonomi nyata (produksi, harga, investasi, konsumsi, fiskal, perdagangan) yang relevan bagi PDRB Kab. Tana Tidung; false untuk berita seremonial/kriminal/politik non-ekonomi.',
+        'true apabila berita memuat fenomena ekonomi nyata (perubahan produksi, harga, investasi, konsumsi, fiskal, perdagangan) yang relevan bagi PDRB Kab. Tana Tidung (geographic_scope != OTHER_REGION_IRRELEVANT); false untuk berita lokal daerah lain, tarif/data historis statis tanpa perubahan, seremonial, kriminal, atau politik non-ekonomi.',
     },
     rejection_reason: {
       type: ['string', 'null'],
@@ -87,13 +126,13 @@ export const LLM_CLASSIFICATION_JSON_SCHEMA = {
     summary: {
       type: 'string',
       description:
-        'Ringkasan komprehensif 3-5 kalimat bahasa Indonesia baku (50-110 kata) yang menguraikan peristiwa ekonomi utama, pelaku dan lokasi/kecamatan, besaran angka/harga/volume/anggaran jika ada, serta implikasi dampaknya terhadap sektor KBLI dan Pengeluaran PDRB Kab. Tana Tidung.',
+        'Ringkasan komprehensif 3-5 kalimat bahasa Indonesia baku (50-110 kata) yang menguraikan peristiwa ekonomi utama, pelaku dan lokasi/kecamatan, besaran angka/harga/volume/anggaran jika ada, serta mekanisme dampaknya terhadap Lapangan Usaha dan Pengeluaran PDRB Kab. Tana Tidung.',
     },
     kbli_category: {
       type: ['string', 'null'],
       enum: [...Object.values(KbliCategoryEnum), null],
       description:
-        'Kode kategori KBLI 2020 (A s.d. U) sektor paling dominan terdampak; wajib null bila is_economic_phenomenon = false.',
+        'Kode kategori KBLI 2025 (A s.d. V) sektor paling dominan terdampak; wajib null bila is_economic_phenomenon = false.',
     },
     kbli_impact: {
       type: ['string', 'null'],
@@ -133,6 +172,7 @@ export const LLM_CLASSIFICATION_JSON_SCHEMA = {
     },
   },
   required: [
+    'geographic_scope',
     'is_economic_phenomenon',
     'rejection_reason',
     'summary',
@@ -145,4 +185,3 @@ export const LLM_CLASSIFICATION_JSON_SCHEMA = {
     'confidence',
   ],
 } as const;
-

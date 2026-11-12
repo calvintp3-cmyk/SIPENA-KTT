@@ -55,6 +55,36 @@ module.exports = {
         ...(parsedEnv.GEMINI_API_KEY && !parsedEnv.NUXT_GEMINI_API_KEY
           ? { NUXT_GEMINI_API_KEY: parsedEnv.GEMINI_API_KEY }
           : {}),
+        ...(parsedEnv.GEMINI_API_KEYS && !parsedEnv.NUXT_GEMINI_API_KEYS
+          ? { NUXT_GEMINI_API_KEYS: parsedEnv.GEMINI_API_KEYS }
+          : {}),
+        ...(parsedEnv.GROQ_API_KEY && !parsedEnv.NUXT_GROQ_API_KEY
+          ? { NUXT_GROQ_API_KEY: parsedEnv.GROQ_API_KEY }
+          : {}),
+        ...(parsedEnv.GROQ_API_KEYS && !parsedEnv.NUXT_GROQ_API_KEYS
+          ? { NUXT_GROQ_API_KEYS: parsedEnv.GROQ_API_KEYS }
+          : {}),
+        ...(parsedEnv.OPENROUTER_API_KEY && !parsedEnv.NUXT_OPENROUTER_API_KEY
+          ? { NUXT_OPENROUTER_API_KEY: parsedEnv.OPENROUTER_API_KEY }
+          : {}),
+        ...(parsedEnv.OPENROUTER_FREE_MODEL && !parsedEnv.NUXT_OPENROUTER_FREE_MODEL
+          ? { NUXT_OPENROUTER_FREE_MODEL: parsedEnv.OPENROUTER_FREE_MODEL }
+          : {}),
+        ...(parsedEnv.LLM_CLASSIFY_CHAIN && !parsedEnv.NUXT_LLM_CLASSIFY_CHAIN
+          ? { NUXT_LLM_CLASSIFY_CHAIN: parsedEnv.LLM_CLASSIFY_CHAIN }
+          : {}),
+        ...(parsedEnv.LLM_SYNTHESIS_CHAIN && !parsedEnv.NUXT_LLM_SYNTHESIS_CHAIN
+          ? { NUXT_LLM_SYNTHESIS_CHAIN: parsedEnv.LLM_SYNTHESIS_CHAIN }
+          : {}),
+        ...(parsedEnv.SCRAPER_MAX_ARTICLES_PER_RUN
+          ? { SCRAPER_MAX_ARTICLES_PER_RUN: parsedEnv.SCRAPER_MAX_ARTICLES_PER_RUN }
+          : {}),
+        ...(parsedEnv.SCRAPER_MAX_ARTICLES_PER_RUN && !parsedEnv.NUXT_SCRAPER_MAX_ARTICLES_PER_RUN
+          ? { NUXT_SCRAPER_MAX_ARTICLES_PER_RUN: parsedEnv.SCRAPER_MAX_ARTICLES_PER_RUN }
+          : {}),
+        ...(parsedEnv.SCRAPER_MAX_LLM_CALLS_PER_RUN && !parsedEnv.NUXT_SCRAPER_MAX_LLM_CALLS_PER_RUN
+          ? { NUXT_SCRAPER_MAX_LLM_CALLS_PER_RUN: parsedEnv.SCRAPER_MAX_LLM_CALLS_PER_RUN }
+          : {}),
         ...(parsedEnv.NUXT_SESSION_PASSWORD
           ? { NUXT_SESSION_PASSWORD: parsedEnv.NUXT_SESSION_PASSWORD }
           : {}),

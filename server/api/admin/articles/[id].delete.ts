@@ -4,8 +4,10 @@ import { createError, defineEventHandler } from 'h3';
 import { db } from '../../../db';
 import { articles } from '../../../db/schema';
 import { getValidatedUuidParam } from '../../../utils/request';
+import { requireAdminSession } from '../../../utils/session';
 
 export default defineEventHandler(async (event) => {
+  await requireAdminSession(event);
   const articleId = getValidatedUuidParam(event, 'id');
 
   const [deleted] = await db

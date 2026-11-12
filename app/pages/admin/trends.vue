@@ -423,7 +423,7 @@ function handleExportXlsx() {
         </div>
         <template v-if="trendData.kpi.topRiser">
           <div class="text-sm font-bold text-[#0F172A] leading-snug line-clamp-2">
-            [{{ trendData.kpi.topRiser.code }}] {{ trendData.kpi.topRiser.label }}
+            {{ trendData.kpi.topRiser.code }} - {{ trendData.kpi.topRiser.label }}
           </div>
           <div class="text-xs font-bold text-emerald-700 tabular-nums">
             +{{ trendData.kpi.topRiser.deltaCount }} bukti vs baseline
@@ -445,7 +445,7 @@ function handleExportXlsx() {
         </div>
         <template v-if="trendData.kpi.topDecliner">
           <div class="text-sm font-bold text-[#0F172A] leading-snug line-clamp-2">
-            [{{ trendData.kpi.topDecliner.code }}] {{ trendData.kpi.topDecliner.label }}
+            {{ trendData.kpi.topDecliner.code }} - {{ trendData.kpi.topDecliner.label }}
           </div>
           <div class="text-xs font-bold text-rose-700 tabular-nums">
             {{ trendData.kpi.topDecliner.deltaCount }} bukti vs baseline

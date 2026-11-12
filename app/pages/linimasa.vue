@@ -308,7 +308,7 @@ const activeFilterChips = computed(() => {
     const sector = PDRB_17_SECTORS.find((s) => s.groupCode === selectedPdrbGroup.value);
     chips.push({
       key: 'pdrbGroup',
-      label: `Sektor: [${selectedPdrbGroup.value}] ${sector?.shortName ?? selectedPdrbGroup.value}`,
+      label: `Sektor: ${selectedPdrbGroup.value} - ${sector?.shortName ?? selectedPdrbGroup.value}`,
       dotClass: getKbliClusterTheme(selectedPdrbGroup.value).accentBarClass,
       clear: () => {
         selectedPdrbGroup.value = 'ALL';
@@ -867,8 +867,16 @@ function openDetailModal(article: PublicArticleItem) {
             <span class="text-xs text-slate-500">Klik baris untuk membuka detail &amp; sitasi</span>
           </div>
 
-          <div class="saas-table-scroller">
+          <div
+            class="saas-table-scroller"
+            tabindex="0"
+            role="region"
+            aria-label="Daftar Ringkas Fenomena Ekonomi Terverifikasi"
+          >
             <table class="min-w-full divide-y divide-slate-200 text-left text-xs">
+              <caption class="sr-only">
+                Daftar ringkas fenomena ekonomi terverifikasi BPS Kabupaten Tana Tidung
+              </caption>
               <thead class="bg-slate-50 text-slate-600 font-semibold">
                 <tr>
                   <th scope="col" class="px-4 py-3 whitespace-nowrap">Tanggal</th>
@@ -974,7 +982,7 @@ function openDetailModal(article: PublicArticleItem) {
             </div>
             <p>
               Seluruh catatan pada halaman ini merupakan bukti fenomena ekonomi terkurasi yang
-              diselaraskan terhadap 17 Sektor Lapangan Usaha (KBLI A–U) dan 6 Komponen Pengeluaran
+              diselaraskan terhadap 17 Sektor Lapangan Usaha (KBLI A–V) dan 6 Komponen Pengeluaran
               sebagai dokumentasi pendukung penghitungan PDRB Triwulanan.
             </p>
           </div>

@@ -15,6 +15,7 @@ export const PRIMARY_GEMINI_MODEL = 'gemini-3.8-flash' as const;
 export const FALLBACK_GEMINI_MODEL = 'gemini-3.5-flash-lite' as const;
 
 export const GEMINI_REQUEST_TIMEOUT_MS = 15_000;
+export const DEFAULT_GEMINI_MAX_OUTPUT_TOKENS = 3_072;
 
 export type SupportedGeminiModel = typeof PRIMARY_GEMINI_MODEL | typeof FALLBACK_GEMINI_MODEL;
 
@@ -280,7 +281,7 @@ export class GeminiClassificationWorker {
         systemInstruction: request.systemInstruction,
         responseMimeType: 'application/json',
         responseJsonSchema: LLM_CLASSIFICATION_JSON_SCHEMA as unknown as Record<string, unknown>,
-        maxOutputTokens: 1536,
+        maxOutputTokens: DEFAULT_GEMINI_MAX_OUTPUT_TOKENS,
         temperature: 0.1,
         thinkingConfig: {
           thinkingLevel:

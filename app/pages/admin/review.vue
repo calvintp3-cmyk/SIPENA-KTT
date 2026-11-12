@@ -40,6 +40,7 @@ const {
   getKbliClusterTheme,
   getExpenditureColorTheme,
   getLlmStatusBadge,
+  formatLlmProviderBadge,
   getVerificationStatusBadge,
   getSourceTypeLabel,
   isSafeHttpUrl,
@@ -1038,6 +1039,14 @@ const statusTabs = computed(() => {
               >
                 AI {{ Math.round(inspectedArticle.llmConfidence * 100) }}%
               </UBadge>
+              <span
+                v-if="inspectedArticle.llmModel"
+                class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[11px] font-semibold"
+                :class="formatLlmProviderBadge(inspectedArticle.llmModel).pillClass"
+                :title="inspectedArticle.llmModel"
+              >
+                {{ formatLlmProviderBadge(inspectedArticle.llmModel).shortLabel }}
+              </span>
               <span class="text-[11px] font-medium text-slate-500">
                 {{ getSourceTypeLabel(inspectedArticle.sourceType) }}
               </span>
@@ -1160,7 +1169,7 @@ const statusTabs = computed(() => {
             <!-- Sisi Lapangan Usaha (KBLI + Concise 2x2 Grid) -->
             <div class="rounded-xl border border-indigo-200/70 bg-indigo-50/35 p-3.5 space-y-2.5">
               <span class="block text-xs font-bold text-indigo-900">
-                1. Lapangan Usaha (KBLI A–U)
+                1. Lapangan Usaha (KBLI A–V)
               </span>
               <USelectMenu
                 v-model="kbliSelectModel"

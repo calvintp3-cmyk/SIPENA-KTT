@@ -87,6 +87,13 @@ export default defineNuxtConfig({
   runtimeConfig: {
     databaseUrl: process.env.DATABASE_URL || '',
     geminiApiKey: process.env.GEMINI_API_KEY || '',
+    geminiApiKeys: process.env.GEMINI_API_KEYS || '',
+    groqApiKey: process.env.GROQ_API_KEY || '',
+    groqApiKeys: process.env.GROQ_API_KEYS || '',
+    openrouterApiKey: process.env.OPENROUTER_API_KEY || '',
+    openrouterFreeModel: process.env.OPENROUTER_FREE_MODEL || '',
+    llmClassifyChain: process.env.LLM_CLASSIFY_CHAIN || '',
+    llmSynthesisChain: process.env.LLM_SYNTHESIS_CHAIN || '',
     sessionPassword: process.env.NUXT_SESSION_PASSWORD || '',
     cronSecret: process.env.CRON_SECRET || '',
     googleClientId: process.env.GOOGLE_CLIENT_ID || '',
@@ -94,6 +101,7 @@ export default defineNuxtConfig({
     googleRedirectUri: process.env.GOOGLE_REDIRECT_URI || '',
     enableNitroCron: process.env.ENABLE_NITRO_CRON !== 'false',
     scraperMaxLlmCallsPerRun: Number(process.env.SCRAPER_MAX_LLM_CALLS_PER_RUN || 150),
+    scraperMaxArticlesPerRun: Number(process.env.SCRAPER_MAX_ARTICLES_PER_RUN || 35),
     public: {
       appName: 'SIPENA KTT',
       timezone: 'Asia/Makassar',

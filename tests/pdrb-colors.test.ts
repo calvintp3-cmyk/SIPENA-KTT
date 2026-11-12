@@ -12,9 +12,9 @@ import {
 } from '#shared/utils/pdrb-colors';
 
 describe('pdrb-colors taxonomy helpers', () => {
-  it('maps all 21 official KBLI A-U codes plus grouped codes into 4 semantic clusters', () => {
+  it('maps all 22 official KBLI 2025 A-V codes plus grouped codes into 4 semantic clusters', () => {
     const allCodes = Object.values(KbliCategoryEnum);
-    expect(allCodes).toHaveLength(21);
+    expect(allCodes).toHaveLength(22);
 
     for (const code of allCodes) {
       const key = getKbliClusterKey(code);
@@ -27,8 +27,12 @@ describe('pdrb-colors taxonomy helpers', () => {
     expect(getKbliClusterKey('A')).toBe('PRIMARY_SDA');
     expect(getKbliClusterKey('F')).toBe('INDUSTRY_BUILD');
     expect(getKbliClusterKey('G')).toBe('TRADE_LOGISTICS');
-    expect(getKbliClusterKey('M,N')).toBe('FINANCE_PUBLIC');
-    expect(getKbliClusterKey('R,S,T,U')).toBe('FINANCE_PUBLIC');
+    expect(getKbliClusterKey('K')).toBe('TRADE_LOGISTICS');
+    expect(getKbliClusterKey('J,K')).toBe('TRADE_LOGISTICS');
+    expect(getKbliClusterKey('L')).toBe('FINANCE_PUBLIC');
+    expect(getKbliClusterKey('N,O')).toBe('FINANCE_PUBLIC');
+    expect(getKbliClusterKey('S,T,U,V')).toBe('FINANCE_PUBLIC');
+    expect(getKbliClusterKey('V')).toBe('FINANCE_PUBLIC');
   });
 
   it('returns DEFAULT theme cleanly when KBLI code is missing or unknown', () => {

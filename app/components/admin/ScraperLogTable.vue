@@ -2,15 +2,20 @@
 <script setup lang="ts">
 import type { TableColumn } from '@nuxt/ui';
 import { formatDateTimeWita } from '#shared/utils/period';
-import type { ScraperLogItem } from '~/types/sipena';
+import type { ScraperLogItem, ScraperProviderStatEntry } from '~/types/sipena';
 
 defineProps<{
   logs: ScraperLogItem[];
   loading: boolean;
 }>();
 
-const { getScraperStatusBadge, getScraperRunTypeLabel, formatDurationMs, formatNumberId } =
-  usePdrbLabels();
+const {
+  getScraperStatusBadge,
+  getScraperRunTypeLabel,
+  formatLlmProviderBadge,
+  formatDurationMs,
+  formatNumberId,
+} = usePdrbLabels();
 
 const detailModalOpen = ref(false);
 const selectedLog = ref<ScraperLogItem | null>(null);
@@ -20,12 +25,26 @@ function openDetail(log: ScraperLogItem) {
   detailModalOpen.value = true;
 }
 
+function getProviderEntries(log: ScraperLogItem | null | undefined): ScraperProviderStatEntry[] {
+  const stats = log?.providerStats;
+  if (!stats || typeof stats !== 'object') return [];
+  return Object.values(stats)
+    .filter((entry): entry is ScraperProviderStatEntry => Boolean(entry && entry.calls > 0))
+    .sort((a, b) => b.calls - a.calls);
+}
+
+function formatAvgLatency(entry: ScraperProviderStatEntry): string {
+  if (!entry.calls || entry.totalLatencyMs <= 0) return '-';
+  return `${Math.round(entry.totalLatencyMs / entry.calls)} ms`;
+}
+
 const columns: TableColumn<ScraperLogItem>[] = [
   { id: 'startedAt', header: 'Waktu Mulai (WITA)' },
   { id: 'runType', header: 'Jenis' },
   { id: 'status', header: 'Status' },
   { id: 'pipeline', header: 'Diambil / Dedup / Masuk' },
   { id: 'classification', header: 'Ekon / Non / Gagal' },
+  { id: 'providers', header: 'Rute LLM' },
   { id: 'tokens', header: 'Token LLM' },
   { id: 'duration', header: 'Durasi' },
   { id: 'actions', header: 'Log' },
@@ -86,6 +105,25 @@ const columns: TableColumn<ScraperLogItem>[] = [
               (+{{ row.original.llmFailedCount }}!)
             </span>
           </div>
+        </template>
+
+        <template #providers-cell="{ row }">
+          <div
+            v-if="getProviderEntries(row.original).length > 0"
+            class="flex flex-wrap items-center gap-1 max-w-[230px]"
+          >
+            <span
+              v-for="entry in getProviderEntries(row.original)"
+              :key="entry.slotId"
+              class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[11px] font-semibold tabular-nums"
+              :class="formatLlmProviderBadge(`${entry.provider}:${entry.model}`).pillClass"
+              :title="`${entry.slotId} (${entry.model}) • 429: ${entry.rateLimits}, Gagal: ${entry.failures}`"
+            >
+              <span>{{ formatLlmProviderBadge(`${entry.provider}:${entry.model}`).shortLabel }}</span>
+              <span class="opacity-75">{{ entry.successes }}/{{ entry.calls }}</span>
+            </span>
+          </div>
+          <span v-else class="text-xs text-slate-400">—</span>
         </template>
 
         <template #tokens-cell="{ row }">
@@ -154,6 +192,78 @@ const columns: TableColumn<ScraperLogItem>[] = [
               <div class="font-extrabold text-[#0F172A] mt-0.5 tabular-nums">
                 {{ formatDurationMs(selectedLog.durationMs) }}
               </div>
+            </div>
+          </div>
+
+          <!-- Rincian Pemakaian per Slot Penyedia LLM -->
+          <div class="space-y-2">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-600">
+              Rincian Pemakaian per Slot LLM
+            </h4>
+
+            <div
+              v-if="getProviderEntries(selectedLog).length === 0"
+              class="rounded-xl border border-slate-200/80 bg-[#FAFBFD] px-3.5 py-2.5 text-xs text-slate-500"
+            >
+              Belum ada panggilan LLM tercatat pada sesi ini.
+            </div>
+
+            <div
+              v-else
+              tabindex="0"
+              role="region"
+              aria-label="Rincian pemakaian per slot penyedia LLM"
+              class="saas-table-scroller rounded-xl border border-slate-200/80"
+            >
+              <table class="min-w-full divide-y divide-slate-200 text-left text-xs">
+                <caption class="sr-only">
+                  Rincian panggilan, keberhasilan, HTTP 429, latensi rata-rata, dan token per slot LLM pada sesi ini
+                </caption>
+                <thead class="bg-[#FAFBFD] text-[11px] font-semibold text-slate-600">
+                  <tr>
+                    <th scope="col" class="px-3 py-2">Slot / Model</th>
+                    <th scope="col" class="px-3 py-2 text-right">Calls</th>
+                    <th scope="col" class="px-3 py-2 text-right">Sukses / Gagal</th>
+                    <th scope="col" class="px-3 py-2 text-right">429</th>
+                    <th scope="col" class="px-3 py-2 text-right">Latensi</th>
+                    <th scope="col" class="px-3 py-2 text-right">Token</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 bg-white">
+                  <tr v-for="entry in getProviderEntries(selectedLog)" :key="entry.slotId">
+                    <td class="px-3 py-2">
+                      <span
+                        class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[11px] font-semibold"
+                        :class="formatLlmProviderBadge(`${entry.provider}:${entry.model}`).pillClass"
+                      >
+                        {{ formatLlmProviderBadge(`${entry.provider}:${entry.model}`).shortLabel }}
+                      </span>
+                      <div class="text-[11px] text-slate-500 mt-0.5">{{ entry.slotId }}</div>
+                    </td>
+                    <td class="px-3 py-2 text-right tabular-nums font-semibold text-[#0F172A]">
+                      {{ formatNumberId(entry.calls) }}
+                    </td>
+                    <td class="px-3 py-2 text-right tabular-nums">
+                      <span class="font-semibold text-emerald-700">{{ formatNumberId(entry.successes) }}</span>
+                      /
+                      <span :class="entry.failures > 0 ? 'font-semibold text-rose-600' : 'text-slate-500'">
+                        {{ formatNumberId(entry.failures) }}
+                      </span>
+                    </td>
+                    <td class="px-3 py-2 text-right tabular-nums">
+                      <span :class="entry.rateLimits > 0 ? 'font-semibold text-amber-700' : 'text-slate-500'">
+                        {{ formatNumberId(entry.rateLimits) }}
+                      </span>
+                    </td>
+                    <td class="px-3 py-2 text-right tabular-nums text-slate-700">
+                      {{ formatAvgLatency(entry) }}
+                    </td>
+                    <td class="px-3 py-2 text-right tabular-nums font-semibold text-indigo-700">
+                      {{ formatNumberId(entry.totalTokens) }}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
 

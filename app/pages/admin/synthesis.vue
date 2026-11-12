@@ -31,6 +31,7 @@ const {
   getKbliClusterTheme,
   getExpenditureImpactBadge,
   getExpenditureColorTheme,
+  formatLlmProviderBadge,
 } = usePdrbLabels();
 
 const dimension = ref<'kbli' | 'expenditure'>('kbli');
@@ -56,7 +57,7 @@ const targetOptions = computed<Array<{ value: string; label: string }>>(() => {
   if (dimension.value === 'kbli') {
     return PDRB_17_SECTORS.map((s: Pdrb17SectorMeta) => ({
       value: s.groupCode,
-      label: `[${s.groupCode}] ${s.shortName}`,
+      label: `${s.groupCode} - ${s.shortName}`,
     }));
   }
   return PDRB_6_EXPENDITURE_LIST.map((e: ExpenditureComponentMeta) => ({
@@ -925,14 +926,18 @@ const manualModalOpen = ref(false);
             <div class="flex items-center gap-2">
               <span
                 v-if="result"
-                class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold border"
+                class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold border inline-flex items-center gap-1.5"
                 :class="
-                  result.mode === 'gemini'
-                    ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-                    : 'bg-indigo-50 text-indigo-800 border-indigo-200'
+                  result.mode === 'template'
+                    ? 'bg-indigo-50 text-indigo-800 border-indigo-200'
+                    : formatLlmProviderBadge(result.modelUsed).pillClass
                 "
               >
-                {{ result.mode === 'gemini' ? `Gemini (${result.modelUsed})` : 'Template Analitis Terverifikasi' }}
+                {{
+                  result.mode === 'template'
+                    ? 'Template Analitis Terverifikasi'
+                    : formatLlmProviderBadge(result.modelUsed).label
+                }}
               </span>
               <span v-else class="text-xs font-bold text-slate-700">
                 Lembar Kerja Narasi BRS
@@ -1215,7 +1220,14 @@ const manualModalOpen = ref(false);
               <div class="pt-1.5 border-t border-slate-100 flex items-center justify-between gap-2 text-[11px]">
                 <span class="text-slate-500 truncate">
                   {{ d.updatedByName || d.createdByName || 'Staf Nerwilis' }}
-                  • {{ d.generationMode === 'gemini' ? 'Gemini' : 'Template' }}
+                  •
+                  {{
+                    d.generationMode === 'template'
+                      ? 'Template'
+                      : d.modelUsed
+                        ? formatLlmProviderBadge(d.modelUsed).shortLabel
+                        : 'AI Multi-LLM'
+                  }}
                 </span>
 
                 <div class="flex items-center gap-1.5 shrink-0">

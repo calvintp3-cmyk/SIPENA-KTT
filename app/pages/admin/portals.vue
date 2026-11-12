@@ -409,7 +409,8 @@ const lastRunBadge = computed(() =>
             Sumber Eksternal Lainnya ({{ portalsData.otherSources.length }})
           </h2>
           <p class="text-xs text-slate-600 mt-0.5">
-            Portal berita nasional hasil penjaringan Google News Keyword serta entri Input Manual tim Nerwilis.
+            Portal berita nasional hasil penjaringan Google News &amp; Bing News Keyword serta entri
+            Input Manual tim Nerwilis.
           </p>
         </div>
 

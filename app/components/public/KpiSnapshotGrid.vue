@@ -93,7 +93,7 @@ const deltaBadge = computed(() => {
         </div>
         <template v-if="overview?.kpi.dominantKbli">
           <div class="text-sm sm:text-[15px] font-bold text-[#0F172A] leading-snug line-clamp-2">
-            [{{ overview.kpi.dominantKbli.code }}] {{ overview.kpi.dominantKbli.name }}
+            {{ overview.kpi.dominantKbli.code }} - {{ overview.kpi.dominantKbli.name }}
           </div>
           <div class="text-xs text-slate-600 font-medium tabular-nums">
             {{ formatNumberId(overview.kpi.dominantKbli.count) }} fenomena ({{

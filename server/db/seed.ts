@@ -34,10 +34,10 @@ const INITIAL_KEYWORDS: InitialKeywordSeed[] = [
   },
   {
     keyword: 'DBH migas kaltara',
-    defaultKbliCategory: KbliCategoryEnum.O,
+    defaultKbliCategory: KbliCategoryEnum.P,
     defaultExpenditureComponent: ExpenditureComponentEnum.PK_P,
     description:
-      'Memantau alokasi Dana Bagi Hasil (DBH) migas & sumber daya alam Kalimantan Utara yang memengaruhi kapasitas belanja Pemkab Tana Tidung.',
+      'Memantau alokasi Dana Bagi Hasil (DBH) migas & sumber daya alam Kalimantan Utara yang memengaruhi kapasitas belanja Pemkab Tana Tidung (KBLI 2025: P).',
   },
   {
     keyword: 'subsidi ongkos angkut',

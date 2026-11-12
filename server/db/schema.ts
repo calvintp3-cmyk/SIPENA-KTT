@@ -140,6 +140,20 @@ export interface ScraperPortalErrorEntry {
   url?: string;
 }
 
+export interface ScraperProviderStatEntry {
+  slotId: string;
+  provider: 'gemini' | 'groq' | 'openrouter';
+  model: string;
+  calls: number;
+  successes: number;
+  rateLimits: number;
+  failures: number;
+  inputTokens: number;
+  outputTokens: number;
+  totalTokens: number;
+  totalLatencyMs: number;
+}
+
 export const scraperLogs = pgTable(
   'scraper_logs',
   {
@@ -160,6 +174,10 @@ export const scraperLogs = pgTable(
     avgResponseTimeMs: integer('avg_response_time_ms').notNull().default(0),
     durationMs: integer('duration_ms'),
     errorSummary: jsonb('error_summary').$type<ScraperPortalErrorEntry[]>().notNull().default([]),
+    providerStats: jsonb('provider_stats')
+      .$type<Record<string, ScraperProviderStatEntry>>()
+      .notNull()
+      .default({}),
     triggeredBy: uuid('triggered_by').references(() => users.id, { onDelete: 'set null' }),
     startedAt: timestamp('started_at', { withTimezone: true, mode: 'date' })
       .notNull()
@@ -313,7 +331,7 @@ export const synthesisDrafts = pgTable(
     title: text('title').notNull(),
     narrativeMarkdown: text('narrative_markdown').notNull(),
     generationMode: text('generation_mode')
-      .$type<'gemini' | 'template'>()
+      .$type<'gemini' | 'llm' | 'template'>()
       .notNull()
       .default('template'),
     modelUsed: text('model_used'),
@@ -339,7 +357,7 @@ export const synthesisDrafts = pgTable(
     check('synthesis_drafts_quarter_range_chk', sql`${t.quarter} BETWEEN 1 AND 4`),
     check('synthesis_drafts_year_range_chk', sql`${t.year} BETWEEN 2000 AND 2100`),
     check('synthesis_drafts_dimension_chk', sql`${t.dimension} IN ('kbli', 'expenditure')`),
-    check('synthesis_drafts_mode_chk', sql`${t.generationMode} IN ('gemini', 'template')`),
+    check('synthesis_drafts_mode_chk', sql`${t.generationMode} IN ('gemini', 'llm', 'template')`),
     check('synthesis_drafts_article_count_chk', sql`${t.articleCount} >= 0`),
   ],
 );

@@ -47,7 +47,7 @@ const optionalQuarter = z.preprocess(
 
 export const SynthesisDimensionSchema = z.enum(['kbli', 'expenditure']);
 export const SynthesisStyleSchema = z.enum(['BRS_FORMAL', 'EXECUTIVE_BRIEF', 'BULLET_POINTS']);
-export const SynthesisGenerationModeSchema = z.enum(['gemini', 'template']);
+export const SynthesisGenerationModeSchema = z.enum(['gemini', 'llm', 'template']);
 
 export const SynthesisCitationSchema = z.object({
   index: z.coerce.number().int().min(1).max(30),

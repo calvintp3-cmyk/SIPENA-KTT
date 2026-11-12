@@ -6,18 +6,21 @@ import {
   ScrapeConflictError,
   startScrapeJobInBackground,
 } from '../../../services/scraper/pipeline';
+import { buildScraperPipelineRuntimeOptions } from '../../../utils/llm-config';
 import { parseBodyWithSchema } from '../../../utils/request';
 import { requireAdminSession } from '../../../utils/session';
 
 export default defineEventHandler(async (event) => {
   const adminUser = await requireAdminSession(event);
   const body = await parseBodyWithSchema(event, TriggerScraperSchema);
+  const runtimeCfg = useRuntimeConfig(event);
 
   try {
     const started = await startScrapeJobInBackground({
       runType: ScraperRunTypeEnum.MANUAL,
       mode: body.mode,
       triggeredBy: adminUser.id,
+      ...buildScraperPipelineRuntimeOptions(runtimeCfg),
     });
 
     setResponseStatus(event, 202);

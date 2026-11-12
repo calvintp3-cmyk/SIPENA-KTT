@@ -51,7 +51,7 @@ const routeItems = computed<PaletteRouteItem[]>(() => {
       label: 'Sintesis Narasi PDRB',
       section: 'Analitik & Sintesis PDRB',
       icon: 'i-solar-magic-stick-3-bold-duotone',
-      keywords: 'sintesis narasi brs gemini export doc pdf',
+      keywords: 'sintesis narasi brs gemini groq openrouter multi llm export doc pdf',
     },
     {
       to: '/admin/review',
@@ -316,7 +316,7 @@ async function handleSubmitEnter() {
                   <span>{{ art.sourcePortal }}</span>
                   <span>•</span>
                   <span>TW {{ toRomanQuarter(art.quarter) }} {{ art.year }}</span>
-                  <span v-if="art.kbliCategory" class="text-indigo-700 font-semibold">• KBLI [{{ art.kbliCategory }}]</span>
+                  <span v-if="art.kbliCategory" class="text-indigo-700 font-semibold">• KBLI {{ art.kbliCategory }}</span>
                 </div>
               </div>
               <UBadge

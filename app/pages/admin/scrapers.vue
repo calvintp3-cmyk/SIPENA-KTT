@@ -1,7 +1,11 @@
 <!-- app/pages/admin/scrapers.vue -->
 <script setup lang="ts">
 import { formatDateTimeWita } from '#shared/utils/period';
-import type { ScraperLogsResponse } from '~/types/sipena';
+import type {
+  LlmProviderSlotStatus,
+  ScraperLogsResponse,
+  ScraperProviderStatEntry,
+} from '~/types/sipena';
 
 definePageMeta({
   layout: 'admin',
@@ -10,7 +14,12 @@ definePageMeta({
 
 const toast = useToast();
 const { refreshQueueCounters } = useAdminSession();
-const { getScraperStatusBadge, formatDurationMs, formatNumberId } = usePdrbLabels();
+const {
+  getScraperStatusBadge,
+  formatLlmProviderBadge,
+  formatDurationMs,
+  formatNumberId,
+} = usePdrbLabels();
 
 const page = ref(1);
 const PAGE_LIMIT = 15;
@@ -100,7 +109,7 @@ async function triggerManualRun() {
 
     toast.add({
       title: 'Scraping Dimulai',
-      description: 'Worker sedang mengambil artikel dan memetakan via Gemini Flash.',
+      description: 'Worker sedang mengambil artikel dan memetakan via pipeline Multi-LLM (Gemini, Groq & OpenRouter).',
       color: 'info',
       icon: 'i-lucide-play-circle',
     });
@@ -152,6 +161,21 @@ async function triggerRetryFailedLlm() {
 
 const latestRun = computed(() => observability.value?.latestRun ?? null);
 const latestStatusBadge = computed(() => getScraperStatusBadge(latestRun.value?.status));
+const providerSlots = computed<LlmProviderSlotStatus[]>(
+  () => observability.value?.providerHealth ?? [],
+);
+const configuredProviderSlotsCount = computed<number>(
+  () => providerSlots.value.filter((slot: LlmProviderSlotStatus) => slot.configured).length,
+);
+
+function getSlotStat30d(slotId: string): ScraperProviderStatEntry | null {
+  return observability.value?.providerStats30d?.[slotId] ?? null;
+}
+
+function getSlotSuccessRate(stat: ScraperProviderStatEntry): number {
+  if (!stat.calls) return 0;
+  return Math.round((stat.successes / stat.calls) * 100);
+}
 </script>
 
 <template>
@@ -163,14 +187,14 @@ const latestStatusBadge = computed(() => getScraperStatusBadge(latestRun.value?.
           class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200/80 text-xs font-semibold"
         >
           <UIcon name="i-solar-cpu-bolt-bold-duotone" class="w-3.5 h-3.5" />
-          <span>Observabilitas Crawler &amp; Gemini Flash</span>
+          <span>Observabilitas Crawler &amp; Pipeline Multi-LLM</span>
         </div>
         <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-[#0F172A] mt-2">
-          Monitor Crawler &amp; Pemakaian Token Gemini Flash
+          Monitor Crawler &amp; Rute Multi-LLM
         </h1>
         <p class="text-xs sm:text-sm text-slate-600 mt-0.5">
-          Pemantauan eksekusi harian otomatis (04:00 WITA), pemulihan antrean AI gagal, dan
-          efisiensi deduplikasi kuota Free Tier.
+          Pemantauan eksekusi harian otomatis (04:00 WITA), pemulihan antrean AI gagal, serta
+          efisiensi deduplikasi kuota Free Tier (Gemini, Groq &amp; OpenRouter).
         </p>
       </div>
 
@@ -316,6 +340,141 @@ const latestStatusBadge = computed(() => getScraperStatusBadge(latestRun.value?.
         </div>
       </div>
     </div>
+
+    <!-- Status & Kapasitas Penyedia Multi-LLM -->
+    <section
+      v-if="providerSlots.length > 0"
+      aria-label="Status dan Kapasitas Penyedia LLM"
+      class="saas-card rounded-2xl p-5 space-y-4"
+    >
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div class="flex items-center gap-2.5">
+          <div
+            class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-200/80 flex items-center justify-center shrink-0"
+          >
+            <UIcon name="i-solar-routing-2-bold-duotone" class="w-4 h-4" />
+          </div>
+          <div>
+            <h2 class="text-sm font-bold text-[#0F172A]">
+              Status &amp; Kapasitas Penyedia LLM
+            </h2>
+            <p class="text-xs text-slate-600">
+              Urutan failover otomatis antar slot berdasarkan batas RPM, TPM, dan kuota harian.
+            </p>
+          </div>
+        </div>
+
+        <span
+          class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border tabular-nums self-start sm:self-auto"
+          :class="
+            configuredProviderSlotsCount > 0
+              ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+              : 'bg-amber-50 text-amber-800 border-amber-200'
+          "
+        >
+          <span
+            class="w-1.5 h-1.5 rounded-full"
+            :class="configuredProviderSlotsCount > 0 ? 'bg-emerald-600' : 'bg-amber-500'"
+          />
+          <span>{{ configuredProviderSlotsCount }} / {{ providerSlots.length }} Slot Aktif</span>
+        </span>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3.5">
+        <div
+          v-for="slot in providerSlots"
+          :key="slot.slotId"
+          class="rounded-xl border p-4 space-y-3 transition-colors"
+          :class="
+            slot.configured
+              ? 'bg-white border-slate-200/90'
+              : 'bg-slate-50/80 border-dashed border-slate-200'
+          "
+        >
+          <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center gap-1.5 min-w-0">
+              <span
+                class="px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200 text-[11px] font-bold tabular-nums text-slate-700 shrink-0"
+              >
+                #{{ slot.priority }}
+              </span>
+              <span
+                class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border text-[11px] font-semibold truncate"
+                :class="formatLlmProviderBadge(`${slot.provider}:${slot.model}`).pillClass"
+                :title="slot.model"
+              >
+                <span
+                  class="w-1.5 h-1.5 rounded-full shrink-0"
+                  :class="formatLlmProviderBadge(`${slot.provider}:${slot.model}`).dotClass"
+                />
+                <span class="truncate">
+                  {{ formatLlmProviderBadge(`${slot.provider}:${slot.model}`).shortLabel }}
+                </span>
+              </span>
+            </div>
+
+            <span
+              class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold border shrink-0 tabular-nums"
+              :class="
+                slot.configured
+                  ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                  : 'bg-slate-100 text-slate-500 border-slate-200'
+              "
+            >
+              {{ slot.configured ? `Siap • ${slot.keyCount} Key` : 'Belum Diisi' }}
+            </span>
+          </div>
+
+          <div class="space-y-1 text-xs">
+            <div class="font-semibold text-[#0F172A] truncate" :title="slot.model">
+              {{ slot.model }}
+            </div>
+            <div class="text-[11px] text-slate-600 tabular-nums">
+              Batas: {{ slot.rpmLimit }} RPM • {{ formatNumberId(slot.tpmLimit) }} TPM
+            </div>
+            <div class="text-[11px] text-slate-500">
+              Kuota Harian: {{ slot.dailyQuotaNote }}
+            </div>
+          </div>
+
+          <div
+            v-if="getSlotStat30d(slot.slotId)"
+            class="pt-2.5 border-t border-slate-100 grid grid-cols-4 gap-2 text-[11px] tabular-nums"
+          >
+            <div>
+              <div class="text-slate-500">Calls</div>
+              <div class="font-bold text-[#0F172A]">
+                {{ formatNumberId(getSlotStat30d(slot.slotId)!.calls) }}
+              </div>
+            </div>
+            <div>
+              <div class="text-slate-500">Sukses</div>
+              <div class="font-bold text-emerald-700">
+                {{ getSlotSuccessRate(getSlotStat30d(slot.slotId)!) }}%
+              </div>
+            </div>
+            <div>
+              <div class="text-slate-500">HTTP 429</div>
+              <div
+                class="font-bold"
+                :class="getSlotStat30d(slot.slotId)!.rateLimits > 0 ? 'text-amber-700' : 'text-slate-600'"
+              >
+                {{ formatNumberId(getSlotStat30d(slot.slotId)!.rateLimits) }}
+              </div>
+            </div>
+            <div>
+              <div class="text-slate-500">Token</div>
+              <div class="font-bold text-indigo-700">
+                {{ formatNumberId(getSlotStat30d(slot.slotId)!.totalTokens) }}
+              </div>
+            </div>
+          </div>
+          <div v-else class="pt-2.5 border-t border-slate-100 text-[11px] text-slate-400">
+            Belum ada panggilan 30 hari terakhir
+          </div>
+        </div>
+      </div>
+    </section>
 
     <!-- Panel Kontrol Manual Trigger -->
     <div class="saas-card rounded-2xl p-5 space-y-4">

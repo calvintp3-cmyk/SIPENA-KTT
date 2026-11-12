@@ -19,8 +19,10 @@ node_modules
 *.key
 *.ppk
 
-# Local raw skills archive & Python cache
+# Local raw skills archive, internal BPS references & Python cache
 /000 - SKILLS_cleaned
+/pedoman_pdrb/
+/kbli/
 __pycache__/
 *.py[cod]
 

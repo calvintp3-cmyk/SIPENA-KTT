@@ -41,11 +41,11 @@ const SAMPLE_ARTICLES: AnalyticsArticleRow[] = [
   },
   {
     id: '00000000-0000-4000-8000-000000000002',
-    title: 'Jasa Konsultan Teknik dan Sewa Alat Berat Proyek Puspem Bertambah',
-    summary: 'Permintaan jasa teknik sipil dan penyewaan alat berat proyek daerah naik signifikan.',
+    title: 'Jasa Konsultan Teknik dan Perencanaan Proyek Puspem KTT Bertambah',
+    summary: 'Permintaan jasa teknik sipil dan konsultansi perencanaan proyek daerah naik signifikan.',
     sourcePortal: 'TribunKaltara.com',
-    url: 'https://kaltara.tribunnews.com/puspem-alat-berat',
-    kbliCategory: KbliCategoryEnum.M,
+    url: 'https://kaltara.tribunnews.com/puspem-konsultan-teknik',
+    kbliCategory: KbliCategoryEnum.N,
     kbliImpact: KbliImpactEnum.INCREASE_NTB,
     expenditureComponent: ExpenditureComponentEnum.PMTB,
     expenditureImpact: ExpenditureImpactEnum.INCREASE_REAL,
@@ -55,11 +55,11 @@ const SAMPLE_ARTICLES: AnalyticsArticleRow[] = [
   },
   {
     id: '00000000-0000-4000-8000-000000000003',
-    title: 'Tarif Sewa Armada Penunjang Operasional Tambang Terkoreksi',
-    summary: 'Biaya sewa armada penunjang usaha di Kecamatan Sesayap cenderung stabil menurun.',
+    title: 'Tarif Sewa Alat Berat dan Armada Penunjang Tambang Terkoreksi',
+    summary: 'Biaya sewa alat berat penunjang usaha di Kecamatan Sesayap cenderung stabil menurun.',
     sourcePortal: 'KoranKaltara.com',
     url: 'https://korankaltara.com/sewa-armada',
-    kbliCategory: KbliCategoryEnum.N,
+    kbliCategory: KbliCategoryEnum.O,
     kbliImpact: KbliImpactEnum.DECREASE_PRICE,
     expenditureComponent: ExpenditureComponentEnum.PMTB,
     expenditureImpact: ExpenditureImpactEnum.DECREASE_DEFLATOR,
@@ -69,11 +69,11 @@ const SAMPLE_ARTICLES: AnalyticsArticleRow[] = [
   },
   {
     id: '00000000-0000-4000-8000-000000000004',
-    title: 'Festival Budaya Irau Dongkrak Sektor Hiburan dan Jasa Personal',
+    title: 'Festival Budaya Irau Dongkrak Sektor Kesenian, Wisata, dan Jasa Lainnya',
     summary: 'Penyelenggaraan agenda budaya daerah meningkatkan aktivitas pelaku seni serta UMKM lokal.',
     sourcePortal: 'RadarTarakan.co.id',
     url: 'https://radartarakan.jawapos.com/festival-ktt',
-    kbliCategory: KbliCategoryEnum.R,
+    kbliCategory: KbliCategoryEnum.S,
     kbliImpact: KbliImpactEnum.INCREASE_NTB,
     expenditureComponent: ExpenditureComponentEnum.PK_RT,
     expenditureImpact: ExpenditureImpactEnum.INCREASE_REAL,
@@ -83,12 +83,13 @@ const SAMPLE_ARTICLES: AnalyticsArticleRow[] = [
   },
 ];
 
-describe('Taksonomi 17 Kategori PDRB, Query Schema, Analitik & Sintesis BRS', () => {
-  it('memetakan seluruh 21 huruf KBLI (A-U) ke tepat 17 kategori PDRB tanpa duplikasi atau celah', () => {
+describe('Taksonomi 17 Kategori PDRB (KBLI 2025 A-V), Query Schema, Analitik & Sintesis BRS', () => {
+  it('memetakan seluruh 22 huruf KBLI 2025 (A-V) ke tepat 17 kategori PDRB tanpa duplikasi atau celah', () => {
     expect(PDRB_17_SECTORS).toHaveLength(17);
 
     const seen = new Set<KbliCategoryEnum>();
     for (const sector of PDRB_17_SECTORS) {
+      expect(sector.fullLabel).toBe(`${sector.groupCode} - ${sector.officialName}`);
       for (const code of sector.kbliCodes) {
         expect(seen.has(code)).toBe(false);
         seen.add(code);
@@ -96,39 +97,42 @@ describe('Taksonomi 17 Kategori PDRB, Query Schema, Analitik & Sintesis BRS', ()
     }
 
     const allKbli = Object.values(KbliCategoryEnum);
+    expect(allKbli).toHaveLength(22);
     expect(seen.size).toBe(allKbli.length);
     for (const code of allKbli) {
       expect(seen.has(code)).toBe(true);
     }
 
-    expect(resolvePdrbGroupCodes('M,N')).toEqual([KbliCategoryEnum.M, KbliCategoryEnum.N]);
-    expect(resolvePdrbGroupCodes('r,s,t,u')).toEqual([
-      KbliCategoryEnum.R,
+    expect(resolvePdrbGroupCodes('J,K')).toEqual([KbliCategoryEnum.J, KbliCategoryEnum.K]);
+    expect(resolvePdrbGroupCodes('N,O')).toEqual([KbliCategoryEnum.N, KbliCategoryEnum.O]);
+    expect(resolvePdrbGroupCodes('s,t,u,v')).toEqual([
       KbliCategoryEnum.S,
       KbliCategoryEnum.T,
       KbliCategoryEnum.U,
+      KbliCategoryEnum.V,
     ]);
     expect(resolvePdrbGroupCodes('ALL')).toEqual([]);
-    expect(getPdrb17GroupForKbli(KbliCategoryEnum.N).groupCode).toBe('M,N');
-    expect(getPdrb17GroupForKbli(KbliCategoryEnum.U).groupCode).toBe('R,S,T,U');
+    expect(getPdrb17GroupForKbli(KbliCategoryEnum.K).groupCode).toBe('J,K');
+    expect(getPdrb17GroupForKbli(KbliCategoryEnum.O).groupCode).toBe('N,O');
+    expect(getPdrb17GroupForKbli(KbliCategoryEnum.V).groupCode).toBe('S,T,U,V');
   });
 
   it('memvalidasi PublicArticlesQuerySchema, AdminArticlesQuerySchema (pdrbGroup), dan SynthesisGenerateSchema', () => {
     const publicParsed = PublicArticlesQuerySchema.parse({
       year: '2026',
       quarter: '2',
-      pdrbGroup: ' M,N ',
+      pdrbGroup: ' N,O ',
       impactMacro: 'EXPANSION',
     });
     expect(publicParsed.year).toBe(2026);
     expect(publicParsed.quarter).toBe(2);
-    expect(publicParsed.pdrbGroup).toBe('M,N');
+    expect(publicParsed.pdrbGroup).toBe('N,O');
     expect(publicParsed.impactMacro).toBe('EXPANSION');
 
     const publicAllGroup = PublicArticlesQuerySchema.parse({ pdrbGroup: 'ALL' });
     expect(publicAllGroup.pdrbGroup).toBeUndefined();
 
-    const adminGroupQuery = AdminArticlesQuerySchema.parse({ pdrbGroup: 'R,S,T,U' });
+    const adminGroupQuery = AdminArticlesQuerySchema.parse({ pdrbGroup: 'S,T,U,V' });
     expect(buildAdminArticleFilters(adminGroupQuery)).toBeDefined();
 
     // Synthesis: minimal 1 UUID valid & maksimal 30
@@ -137,7 +141,7 @@ describe('Taksonomi 17 Kategori PDRB, Query Schema, Analitik & Sintesis BRS', ()
         year: 2026,
         quarter: 2,
         dimension: 'kbli',
-        targetCode: 'M,N',
+        targetCode: 'N,O',
         style: 'BRS_FORMAL',
         articleIds: [],
       }).success,
@@ -161,7 +165,7 @@ describe('Taksonomi 17 Kategori PDRB, Query Schema, Analitik & Sintesis BRS', ()
       year: 2026,
       quarter: 2,
       dimension: 'kbli',
-      targetCode: 'M,N',
+      targetCode: 'N,O',
       style: 'BULLET_POINTS',
       articleIds: [SAMPLE_ARTICLES[1]!.id, SAMPLE_ARTICLES[2]!.id],
     });
@@ -175,7 +179,7 @@ describe('Taksonomi 17 Kategori PDRB, Query Schema, Analitik & Sintesis BRS', ()
     expect(series[7]).toEqual({ quarter: 2, year: 2026 });
   });
 
-  it('menghitung KPI Dashboard, Gap 17 Sektor (termasuk penggabungan M,N & R,S,T,U), serta Heatmap 17x6', () => {
+  it('menghitung KPI Dashboard, Gap 17 Sektor (termasuk penggabungan N,O & S,T,U,V), serta Heatmap 17x6', () => {
     const dash = computeDashboardAnalytics({
       periodArticles: SAMPLE_ARTICLES,
       prevTotalVerified: 2,
@@ -190,25 +194,25 @@ describe('Taksonomi 17 Kategori PDRB, Query Schema, Analitik & Sintesis BRS', ()
     expect(dash.period.previousLabel).toBe('Triwulan I 2026');
     expect(dash.kpi.totalVerifiedPeriod).toBe(4);
     expect(dash.kpi.deltaPercent).toBe(100);
-    // Sektor tercakup: A (1), M,N (2), R,S,T,U (1) => 3 covered, 14 gap
+    // Sektor tercakup: A (1), N,O (2), S,T,U,V (1) => 3 covered, 14 gap
     expect(dash.kpi.coveredSectors).toBe(3);
     expect(dash.kpi.gapSectorsCount).toBe(14);
     expect(dash.kpi.expansionPercent).toBe(75); // 3 dari 4 INCREASE_NTB
 
-    const sectorMN = dash.gapTiles.find((t) => t.groupCode === 'M,N');
-    expect(sectorMN).toBeDefined();
-    expect(sectorMN?.count).toBe(2);
-    expect(sectorMN?.isGap).toBe(false);
-    expect(sectorMN?.isThin).toBe(true);
+    const sectorNO = dash.gapTiles.find((t) => t.groupCode === 'N,O');
+    expect(sectorNO).toBeDefined();
+    expect(sectorNO?.count).toBe(2);
+    expect(sectorNO?.isGap).toBe(false);
+    expect(sectorNO?.isThin).toBe(true);
 
     const sectorB = dash.gapTiles.find((t) => t.groupCode === 'B');
     expect(sectorB?.isGap).toBe(true);
     expect(sectorB?.count).toBe(0);
 
-    const heatMN = dash.heatmapMatrix.find((r) => r.groupCode === 'M,N');
-    expect(heatMN?.cells[ExpenditureComponentEnum.PMTB]).toBe(2);
-    const heatR = dash.heatmapMatrix.find((r) => r.groupCode === 'R,S,T,U');
-    expect(heatR?.cells[ExpenditureComponentEnum.PK_RT]).toBe(1);
+    const heatNO = dash.heatmapMatrix.find((r) => r.groupCode === 'N,O');
+    expect(heatNO?.cells[ExpenditureComponentEnum.PMTB]).toBe(2);
+    const heatS = dash.heatmapMatrix.find((r) => r.groupCode === 'S,T,U,V');
+    expect(heatS?.cells[ExpenditureComponentEnum.PK_RT]).toBe(1);
   });
 
   it('menghitung perbandingan tren q-to-q dan y-on-y pada dimensi KBLI maupun Pengeluaran', () => {
@@ -237,7 +241,7 @@ describe('Taksonomi 17 Kategori PDRB, Query Schema, Analitik & Sintesis BRS', ()
     expect(trendKbli.kpi.baselineTotal).toBe(1);
     expect(trendKbli.kpi.deltaCount).toBe(3);
     expect(trendKbli.kpi.deltaPercent).toBe(300);
-    expect(trendKbli.kpi.topRiser?.code).toBe('M,N');
+    expect(trendKbli.kpi.topRiser?.code).toBe('N,O');
     expect(trendKbli.kpi.topRiser?.deltaCount).toBe(2);
 
     const q1Point = trendKbli.history8Quarters.find((p) => p.year === 2026 && p.quarter === 1);
@@ -264,15 +268,16 @@ describe('Taksonomi 17 Kategori PDRB, Query Schema, Analitik & Sintesis BRS', ()
     expect(pmtbRow?.deltaPercent).toBeNull();
   });
 
-  it('menghasilkan narasi fallback BRS yang berakar pada sitasi [1]..[N] tanpa angka palsu', () => {
+  it('menghasilkan targetLabel format kode - nama dan narasi fallback BRS yang berakar pada sitasi [1]..[N] tanpa angka palsu', () => {
     const selected = [SAMPLE_ARTICLES[1]!, SAMPLE_ARTICLES[2]!];
-    expect(resolveSynthesisTargetLabel('kbli', 'M,N')).toContain('Jasa Perusahaan');
+    expect(resolveSynthesisTargetLabel('kbli', 'N,O')).toBe('N,O - Jasa Perusahaan (KBLI N & O)');
+    expect(resolveSynthesisTargetLabel('kbli', 'J,K')).toBe('J,K - Informasi dan Komunikasi (KBLI J & K)');
 
     for (const style of ['BRS_FORMAL', 'EXECUTIVE_BRIEF', 'BULLET_POINTS'] as const) {
       const md = buildGroundedBrsFallbackNarrative({
         periodLabel: 'Triwulan II 2026',
         dimension: 'kbli',
-        targetCode: 'M,N',
+        targetCode: 'N,O',
         style,
         articles: selected,
       });
@@ -285,4 +290,3 @@ describe('Taksonomi 17 Kategori PDRB, Query Schema, Analitik & Sintesis BRS', ()
     }
   });
 });
-

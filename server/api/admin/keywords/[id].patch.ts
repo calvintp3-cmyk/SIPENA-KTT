@@ -5,6 +5,7 @@ import { UpdateKeywordSchema } from '../../../../shared/schemas/keyword.schema';
 import { db } from '../../../db';
 import { articles, nationalKeywords } from '../../../db/schema';
 import { getValidatedUuidParam, parseBodyWithSchema } from '../../../utils/request';
+import { requireAdminSession } from '../../../utils/session';
 
 function isPgUniqueViolation(err: unknown): boolean {
   if (!err || typeof err !== 'object') return false;
@@ -13,6 +14,7 @@ function isPgUniqueViolation(err: unknown): boolean {
 }
 
 export default defineEventHandler(async (event) => {
+  await requireAdminSession(event);
   const keywordId = getValidatedUuidParam(event, 'id');
   const body = await parseBodyWithSchema(event, UpdateKeywordSchema);
 

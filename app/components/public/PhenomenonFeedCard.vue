@@ -243,7 +243,7 @@ async function copyCitation() {
             class="font-semibold text-[#0F172A] truncate min-w-0"
             :title="getKbliLabel(article.kbliCategory, true)"
           >
-            {{ getKbliLabel(article.kbliCategory, true).replace(' - ', ' • ') }}
+            {{ getKbliLabel(article.kbliCategory, true) }}
           </span>
           <span
             class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full border text-[11px] font-semibold shrink-0"

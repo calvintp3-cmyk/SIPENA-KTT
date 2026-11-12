@@ -56,7 +56,7 @@ const sectorOptions = computed<Pdrb17DistributionItem[]>(() => {
 const pdrbSelectItems = computed<SelectOptionItem<string>[]>(() => [
   { label: `Semua Lapangan Usaha (${totalInPeriod.value})`, value: 'ALL' },
   ...sectorOptions.value.map((sector: Pdrb17DistributionItem) => ({
-    label: `[${sector.groupCode}] ${sector.shortName} (${sector.count})`,
+    label: `${sector.groupCode} - ${sector.shortName} (${sector.count})`,
     value: sector.groupCode,
   })),
 ]);

@@ -77,13 +77,20 @@ export function getKbliClusterKey(codeOrGroup: string | null | undefined): PdrbC
   if (firstToken === 'C' || firstToken === 'D' || firstToken === 'E' || firstToken === 'F') {
     return 'INDUSTRY_BUILD';
   }
-  if (firstToken === 'G' || firstToken === 'H' || firstToken === 'I' || firstToken === 'J') {
+  if (
+    firstToken === 'G' ||
+    firstToken === 'H' ||
+    firstToken === 'I' ||
+    firstToken === 'J' ||
+    firstToken === 'K' ||
+    normalized === 'J,K'
+  ) {
     return 'TRADE_LOGISTICS';
   }
   if (
-    ['K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U'].includes(firstToken) ||
-    normalized === 'M,N' ||
-    normalized === 'R,S,T,U'
+    ['L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V'].includes(firstToken) ||
+    normalized === 'N,O' ||
+    normalized === 'S,T,U,V'
   ) {
     return 'FINANCE_PUBLIC';
   }

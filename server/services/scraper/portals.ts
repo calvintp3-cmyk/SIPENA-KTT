@@ -6,6 +6,7 @@ import {
   type KbliCategoryEnum,
 } from '../../../shared/enums/pdrb';
 import { getWitaDateParts, WITA_UTC_OFFSET } from '../../../shared/utils/period';
+import type { ScraperPortalErrorEntry } from '../../db/schema';
 import { DEFAULT_SCRAPER_CONCURRENCY, runWithConcurrency } from '../../utils/concurrency';
 import {
   DEFAULT_BROWSER_HEADERS,
@@ -15,8 +16,8 @@ import {
   type SafeFetchOptions,
 } from '../../utils/ssrf';
 import { hashNormalizedUrl, isSafeHttpUrl } from '../../utils/url-hash';
-import { parseIndonesianDateTime } from './extractor';
-import type { ScraperPortalErrorEntry } from '../../db/schema';
+import { accumulateParagraphsToThreshold, parseIndonesianDateTime } from './extractor';
+import { KTT_ANCHOR_RE } from './geo-filter';
 
 export const DEFAULT_REGIONAL_MAX_ITEMS = 15;
 export const DEFAULT_LOOKBACK_DAYS = 7;
@@ -26,6 +27,7 @@ export interface RegionalPortalConfig {
   label: string;
   sourcePortal: string;
   indexUrl: string;
+  feedUrls?: ReadonlyArray<string>;
   additionalIndexUrls?: ReadonlyArray<string>;
   allowedHosts: ReadonlyArray<string>;
   itemSelectors: ReadonlyArray<string>;
@@ -44,6 +46,8 @@ export interface DiscoveredArticleCandidate {
   defaultKbliCategory?: KbliCategoryEnum | null;
   defaultExpenditureComponent?: ExpenditureComponentEnum | null;
   fallbackDescription: string | null;
+  prefetchedSnippetText?: string | null;
+  prefetchedWordCount?: number;
 }
 
 export const REGIONAL_PORTALS: ReadonlyArray<RegionalPortalConfig> = [
@@ -84,6 +88,12 @@ export const REGIONAL_PORTALS: ReadonlyArray<RegionalPortalConfig> = [
     label: 'Benuanta (Tana Tidung)',
     sourcePortal: 'benuanta.co.id',
     indexUrl: 'https://benuanta.co.id/?s=tana+tidung',
+    feedUrls: [
+      'https://benuanta.co.id/topic/berita-ktt/feed/',
+      'https://benuanta.co.id/category/tana-tidung/feed/',
+      'https://benuanta.co.id/category/pemkab-tana-tidung/feed/',
+      'https://benuanta.co.id/feed/?s=tana+tidung',
+    ],
     additionalIndexUrls: [
       'https://benuanta.co.id/topic/berita-ktt/',
       'https://benuanta.co.id/category/pemkab-tana-tidung/',
@@ -155,6 +165,29 @@ const NON_ARTICLE_PATH_PREFIXES = [
 const NON_ARTICLE_SLUG_RE =
   /(?:kode-etik|pedoman-media|tentang-kami|hubungi-kami|redaksi|disclaimer|privacy-policy|syarat-ketentuan)/i;
 
+const OTHER_REGENCY_URL_SEGMENTS_RE =
+  /\/(?:nunukan|tarakan|bulungan|malinau|krayan|sebatik|berau|samarinda|balikpapan|kaltim)\//i;
+
+const SIDEBAR_WIDGET_CONTAINER_SELECTORS = [
+  'nav',
+  'footer',
+  'aside',
+  '.sidebar',
+  '#sidebar',
+  '.widget',
+  '.related',
+  '.related-posts',
+  '.related-news',
+  '.popular',
+  '.terpopuler',
+  '.berita-terkait',
+  '.w300',
+  '.menu',
+  '.site-header',
+  '.jeg_header',
+  '.td-header-wrap',
+].join(', ');
+
 const ANCHOR_PRIORITY_SELECTORS = [
   '.entry-title a[href], .latest__link[href], .ui-heading a[href]',
   'h1 a[href], h2 a[href], h3 a[href], a[href]:has(h1), a[href]:has(h2), a[href]:has(h3)',
@@ -205,7 +238,11 @@ function isLikelyPortalArticleUrl(rawUrl: string, portal: RegionalPortalConfig):
     const pathname = parsed.pathname.toLowerCase();
     if (pathname === '/' || pathname.length < 6) return false;
 
-    const allIndexUrls = [portal.indexUrl, ...(portal.additionalIndexUrls ?? [])];
+    const allIndexUrls = [
+      portal.indexUrl,
+      ...(portal.feedUrls ?? []),
+      ...(portal.additionalIndexUrls ?? []),
+    ];
     const normalizedPath = pathname.replace(/\/+$/, '');
     for (const idxUrl of allIndexUrls) {
       try {
@@ -233,6 +270,15 @@ function isLikelyPortalArticleUrl(rawUrl: string, portal: RegionalPortalConfig):
     if (segments.length === 0) return false;
     const lastSegment = segments[segments.length - 1] ?? '';
     return lastSegment.length >= 8 || segments.length >= 2;
+  } catch {
+    return false;
+  }
+}
+
+function isOtherRegencyArticleWithoutKtt(resolvedUrl: string, title: string): boolean {
+  try {
+    const pathname = new URL(resolvedUrl).pathname.toLowerCase();
+    return OTHER_REGENCY_URL_SEGMENTS_RE.test(pathname) && !KTT_ANCHOR_RE.test(title);
   } catch {
     return false;
   }
@@ -283,7 +329,92 @@ function resolveAnchorCandidate(
 }
 
 /**
+ * Mengekstrak daftar kandidat artikel dari dokumen RSS XML portal regional WordPress (`benuanta.co.id`).
+ * Bila tag `<content:encoded>` atau `<description>` memuat teks lengkap >= 30 kata, kandidat menyimpan
+ * `prefetchedSnippetText` sehingga Phase C tidak perlu fetch HTML ulang.
+ */
+export function parseRegionalRssFeed(
+  xml: string,
+  portal: RegionalPortalConfig,
+  options?: { now?: Date; lookbackDays?: number; maxItems?: number; feedUrl?: string },
+): DiscoveredArticleCandidate[] {
+  const now = options?.now ?? new Date();
+  const cutoff = getWitaLookbackCutoff(now, options?.lookbackDays ?? DEFAULT_LOOKBACK_DAYS);
+  const maxItems = options?.maxItems ?? DEFAULT_REGIONAL_MAX_ITEMS;
+  const isSearchFeed = Boolean(options?.feedUrl && /[?&]s=/i.test(options.feedUrl));
+
+  const $ = load(xml, { xmlMode: true });
+  const results: DiscoveredArticleCandidate[] = [];
+  const seenHashes = new Set<string>();
+
+  $('item').each((_idx, el) => {
+    if (results.length >= maxItems) return;
+
+    const item = $(el);
+    const rawTitle = item.find('title').first().text().trim();
+    const rawLink = item.find('link').first().text().trim();
+    const rawPubDate =
+      item.find('pubDate').first().text().trim() ||
+      item.find('dc\\:date, date').first().text().trim();
+    const rawEncoded = item.find('content\\:encoded, encoded').first().text().trim();
+    const rawDesc = item.find('description').first().text().trim();
+
+    if (!isLikelyPortalArticleUrl(rawLink, portal)) return;
+
+    const title = cleanInlineText(rawTitle);
+    if (!isValidCandidateTitle(title)) return;
+    if (isOtherRegencyArticleWithoutKtt(rawLink, title)) return;
+
+    const publishedHint = parseIndonesianDateTime(rawPubDate, now);
+    if (!isWithinLookbackWindow(publishedHint, cutoff)) return;
+
+    // Ekstrak paragraf dari HTML CDATA `<content:encoded>` atau `<description>`
+    const htmlPayload = rawEncoded || rawDesc;
+    const contentDoc = load(`<div>${htmlPayload}</div>`);
+    const paragraphs: string[] = [];
+    contentDoc('p').each((_pIdx, pEl) => {
+      const txt = cleanInlineText(contentDoc(pEl).text());
+      if (txt) paragraphs.push(txt);
+    });
+    if (paragraphs.length === 0) {
+      const flatText = cleanInlineText(contentDoc('div').text());
+      if (flatText) paragraphs.push(flatText);
+    }
+
+    const accumulated = accumulateParagraphsToThreshold(paragraphs);
+
+    if (isSearchFeed && !KTT_ANCHOR_RE.test(`${title}\n${accumulated.snippetText}`)) {
+      return;
+    }
+
+    const { normalizedUrl, urlHash } = hashNormalizedUrl(rawLink);
+    if (seenHashes.has(urlHash)) return;
+    seenHashes.add(urlHash);
+
+    results.push({
+      url: normalizedUrl,
+      normalizedUrl,
+      urlHash,
+      title,
+      sourcePortal: portal.sourcePortal,
+      sourceType: ArticleSourceTypeEnum.REGIONAL,
+      publishedHint,
+      keywordId: null,
+      matchedKeyword: null,
+      defaultKbliCategory: null,
+      defaultExpenditureComponent: null,
+      fallbackDescription: null,
+      prefetchedSnippetText: accumulated.isValidContent ? accumulated.snippetText : null,
+      prefetchedWordCount: accumulated.isValidContent ? accumulated.wordCount : 0,
+    });
+  });
+
+  return results;
+}
+
+/**
  * Mengekstrak daftar kandidat artikel dari dokumen HTML halaman kategori/tag/pencarian portal regional.
+ * Memblokir seluruh blok sidebar, widget terpopuler, related news, dan subkanal kabupaten tetangga.
  */
 export function parseRegionalPortalIndex(
   html: string,
@@ -296,6 +427,9 @@ export function parseRegionalPortalIndex(
   const baseUrl = options?.baseUrl ?? portal.indexUrl;
 
   const $ = load(html);
+  // Sterilkan widget/sidebar/terpopuler sebelum mencari kandidat artikel utama
+  $(SIDEBAR_WIDGET_CONTAINER_SELECTORS).remove();
+
   const results: DiscoveredArticleCandidate[] = [];
   const seenHashes = new Set<string>();
   let sawStructuredArticleLink = false;
@@ -308,10 +442,12 @@ export function parseRegionalPortalIndex(
     if (!resolvedUrl) return false;
     if (!isLikelyPortalArticleUrl(resolvedUrl, portal)) return false;
 
+    const title = cleanInlineText(rawTitle);
+    if (isOtherRegencyArticleWithoutKtt(resolvedUrl, title)) return false;
+
     sawStructuredArticleLink = true;
     if (results.length >= maxItems) return true;
 
-    const title = cleanInlineText(rawTitle);
     if (!isValidCandidateTitle(title)) {
       return false;
     }
@@ -353,6 +489,7 @@ export function parseRegionalPortalIndex(
     nodes.each((_idx, el) => {
       if (results.length >= maxItems) return;
       const item = $(el);
+      if (item.closest(SIDEBAR_WIDGET_CONTAINER_SELECTORS).length > 0) return;
 
       const resolved = resolveAnchorCandidate($, item, portal, baseUrl);
       if (!resolved) return;
@@ -392,10 +529,7 @@ export function parseRegionalPortalIndex(
       (_idx, el) => {
         if (results.length >= maxItems) return;
         const anchor = $(el);
-        if (
-          anchor.closest('nav, footer, header, aside, .sidebar, .widget, #sidebar, .footer, .menu')
-            .length > 0
-        ) {
+        if (anchor.closest(`header, ${SIDEBAR_WIDGET_CONTAINER_SELECTORS}`).length > 0) {
           return;
         }
         const href = anchor.attr('href');
@@ -439,7 +573,7 @@ export interface RegionalHarvestOptions {
 
 /**
  * Mengambil indeks artikel terkini dari seluruh portal regional Kabupaten Tana Tidung secara paralel.
- * Mendukung fallback ke `additionalIndexUrls` bila halaman indeks utama menghasilkan sedikit kandidat.
+ * Portal dengan `feedUrls` WordPress RSS memprioritaskan jalur cepat RSS terstruktur sebelum HTML index.
  */
 export async function harvestRegionalPortals(
   options: RegionalHarvestOptions = {},
@@ -465,10 +599,51 @@ export async function harvestRegionalPortals(
       if (signal?.aborted) return;
       portalsChecked += 1;
 
-      const urlsToCheck = [portal.indexUrl, ...(portal.additionalIndexUrls ?? [])];
       let portalFoundCount = 0;
+      const portalErrors: ScraperPortalErrorEntry[] = [];
 
-      for (const targetIndexUrl of urlsToCheck) {
+      // 1. Jalur cepat RSS XML WordPress (jika tersedia, mis. benuanta.co.id)
+      for (const feedUrl of portal.feedUrls ?? []) {
+        if (signal?.aborted) break;
+        if (portalFoundCount >= maxItemsPerPortal) break;
+
+        try {
+          const response = await fetchFn(feedUrl, {
+            timeoutMs,
+            maxBytes: 1024 * 1024,
+            accept: 'application/rss+xml, application/xml, text/xml;q=0.9, */*;q=0.5',
+            userAgent: DEFAULT_BROWSER_USER_AGENT,
+            headers: DEFAULT_BROWSER_HEADERS,
+            signal,
+          });
+
+          const feedCandidates = parseRegionalRssFeed(response.body, portal, {
+            now,
+            lookbackDays,
+            maxItems: maxItemsPerPortal - portalFoundCount,
+            feedUrl,
+          });
+
+          for (const candidate of feedCandidates) {
+            if (!globalSeenHashes.has(candidate.urlHash)) {
+              globalSeenHashes.add(candidate.urlHash);
+              candidates.push(candidate);
+              portalFoundCount += 1;
+            }
+          }
+        } catch (err) {
+          portalErrors.push({
+            source: portal.sourcePortal,
+            stage: 'HARVEST',
+            message: err instanceof Error ? err.message : String(err),
+            url: feedUrl,
+          });
+        }
+      }
+
+      // 2. HTML index & additionalIndexUrls (utama untuk portal non-RSS atau pelengkap bila RSS < 5 kandidat)
+      const htmlUrlsToCheck = [portal.indexUrl, ...(portal.additionalIndexUrls ?? [])];
+      for (const targetIndexUrl of htmlUrlsToCheck) {
         if (signal?.aborted) break;
         if (portalFoundCount >= 5) break;
 
@@ -496,13 +671,21 @@ export async function harvestRegionalPortals(
             }
           }
         } catch (err) {
-          errors.push({
+          portalErrors.push({
             source: portal.sourcePortal,
             stage: 'HARVEST',
             message: err instanceof Error ? err.message : String(err),
             url: targetIndexUrl,
           });
         }
+      }
+
+      // Catat error HARVEST hanya bila seluruh upaya HTML/RSS gagal menemukan satu pun artikel
+      // atau jika portal tidak memakai RSS (menjaga isolasi error portal).
+      if (portalFoundCount === 0 && portalErrors.length > 0) {
+        errors.push(...portalErrors);
+      } else if (!(portal.feedUrls && portal.feedUrls.length > 0) && portalErrors.length > 0) {
+        errors.push(...portalErrors);
       }
     },
     signal,

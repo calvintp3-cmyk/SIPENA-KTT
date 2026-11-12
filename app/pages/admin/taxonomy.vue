@@ -203,8 +203,8 @@ const expenditureImpactRows: Array<{
           Kamus &amp; Taksonomi PDRB Dua Sisi
         </h1>
         <p class="text-xs sm:text-sm text-slate-600 mt-0.5">
-          Panduan baku pemetaan 21 huruf KBLI (A–U) ke dalam 17 Kategori Lapangan Usaha, 6 Komponen
-          Pengeluaran, dan matriks arah dampak ADHK/ADHB Kabupaten Tana Tidung.
+          Panduan baku pemetaan 22 huruf KBLI 2025 (A–V) ke dalam 17 Kategori Lapangan Usaha, 6
+          Komponen Pengeluaran, dan matriks arah dampak ADHK/ADHB Kabupaten Tana Tidung.
         </p>
       </div>
 
@@ -243,8 +243,9 @@ const expenditureImpactRows: Array<{
         <div>
           <div class="text-xs sm:text-sm font-bold text-[#0F172A]">17 Kategori PDRB Lapangan Usaha</div>
           <p class="text-xs text-slate-600 mt-0.5 leading-relaxed">
-            Menggabungkan 21 huruf KBLI (A–U): huruf <strong>M &amp; N</strong> masuk Jasa
-            Perusahaan; huruf <strong>R, S, T &amp; U</strong> masuk Jasa Lainnya.
+            Memetakan 22 huruf KBLI 2025 (A–V, PerBPS No. 7/2025): <strong>J &amp; K</strong> masuk
+            Informasi &amp; Komunikasi; <strong>N &amp; O</strong> masuk Jasa Perusahaan;
+            <strong>S, T, U &amp; V</strong> masuk Jasa Lainnya (termasuk reparasi kendaraan 95).
           </p>
         </div>
       </div>
@@ -294,7 +295,7 @@ const expenditureImpactRows: Array<{
           id="taxonomy-search"
           v-model="searchQuery"
           type="search"
-          placeholder="Cari kode KBLI (mis. M, A, PMTB), sektor, atau sinyal..."
+          placeholder="Cari kode KBLI (mis. J, N, T, PMTB), sektor, atau sinyal..."
           class="w-full h-9 pl-9 pr-8 rounded-xl border border-slate-200 bg-slate-50/70 focus:bg-white text-xs text-[#0F172A] placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none transition-colors"
         >
         <button
@@ -336,11 +337,11 @@ const expenditureImpactRows: Array<{
       </div>
     </div>
 
-    <!-- Section 1: 17 Kategori Lapangan Usaha (21 KBLI) -->
+    <!-- Section 1: 17 Kategori Lapangan Usaha (22 KBLI 2025) -->
     <section v-if="activeTab === 'all' || activeTab === 'kbli'" class="space-y-3">
       <div class="flex flex-wrap items-center justify-between gap-2">
         <h2 class="text-base font-extrabold text-[#0F172A]">
-          A. 17 Kategori PDRB Lapangan Usaha (KBLI 21 Huruf A–U)
+          A. 17 Kategori PDRB Lapangan Usaha (KBLI 2025 • 22 Huruf A–V)
         </h2>
         <div class="flex items-center gap-2 text-xs tabular-nums text-slate-600">
           <span
@@ -434,7 +435,7 @@ const expenditureImpactRows: Array<{
                 :key="kCode"
                 class="flex items-baseline gap-1.5 text-xs text-slate-700"
               >
-                <span class="font-bold text-indigo-700 shrink-0">[{{ kCode }}]</span>
+                <span class="font-bold text-indigo-700 shrink-0">{{ kCode }} -</span>
                 <span>{{ getKbliLabel(kCode, false) }}</span>
               </div>
             </div>
@@ -457,7 +458,7 @@ const expenditureImpactRows: Array<{
               :to="`/admin/articles?pdrbGroup=${encodeURIComponent(sector.groupCode)}&year=${selectedYear}&quarter=${selectedQuarter}&status=${VerificationStatusEnum.VERIFIED}`"
               class="inline-flex items-center gap-1 text-xs font-semibold text-indigo-700 hover:text-indigo-900 hover:underline"
             >
-              <span>Arsip Sektor [{{ sector.groupCode }}]</span>
+              <span>Arsip Sektor {{ sector.groupCode }}</span>
               <UIcon name="i-lucide-arrow-right" class="w-3.5 h-3.5" />
             </NuxtLink>
           </div>
@@ -548,7 +549,7 @@ const expenditureImpactRows: Array<{
           C. Matriks Klasifikasi Arah Dampak Ekonomi (ADHK vs ADHB)
         </h2>
         <p class="text-xs text-slate-600 mt-0.5">
-          Acuan pengisian kolom Dampak KBLI dan Dampak Pengeluaran pada Review Harian serta verifikasi AI Gemini Flash.
+          Acuan pengisian kolom Dampak KBLI dan Dampak Pengeluaran pada Review Harian serta verifikasi pipeline Multi-LLM (Gemini, Groq &amp; OpenRouter).
         </p>
       </div>
 

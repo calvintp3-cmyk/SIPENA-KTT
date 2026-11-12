@@ -157,7 +157,7 @@ async function handleSubmit(event: FormSubmitEvent<CreateKeywordInput>) {
         <UFormField label="Frasa Kata Kunci" name="keyword" required>
           <UInput
             v-model="formState.keyword"
-            placeholder="Mis. harga TBS kelapa sawit, DBH migas kaltara"
+            placeholder="Mis. harga TBS kelapa sawit Kalimantan Utara, HBA batubara Kaltara, subsidi ongkos angkut Tana Tidung"
             class="w-full"
           />
         </UFormField>

@@ -371,7 +371,7 @@ async function submitUpdate(action: 'VERIFIED' | 'IGNORED' | 'DRAFT') {
             </div>
 
             <UFormField
-              label="Kategori KBLI (A–U)"
+              label="Kategori KBLI (A–V)"
               required
               :error="highlightIncomplete && !form.kbliCategory ? 'Wajib dipilih' : undefined"
             >

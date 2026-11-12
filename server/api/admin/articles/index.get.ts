@@ -9,8 +9,10 @@ import {
   getAdminArticleSummaryCounts,
 } from '../../../services/articles/query';
 import { parseQueryWithSchema } from '../../../utils/request';
+import { requireAdminSession } from '../../../utils/session';
 
 export default defineEventHandler(async (event) => {
+  await requireAdminSession(event);
   const query = parseQueryWithSchema(event, AdminArticlesQuerySchema);
   const whereClause = buildAdminArticleFilters(query);
   const offset = (query.page - 1) * query.limit;

@@ -9,6 +9,7 @@ import { buildAdminArticleFilters } from '../../../services/articles/query';
 import { generateArticlesCsvString } from '../../../services/export/csv';
 import { generateArticlesExcelBuffer } from '../../../services/export/excel';
 import { parseQueryWithSchema } from '../../../utils/request';
+import { requireAdminSession } from '../../../utils/session';
 
 const MAX_EXPORT_ROWS = 10_000;
 
@@ -22,6 +23,7 @@ function buildExportTimestampStamp(): string {
 }
 
 export default defineEventHandler(async (event) => {
+  await requireAdminSession(event);
   const query = parseQueryWithSchema(event, ExportArticlesQuerySchema);
   const whereClause = buildAdminArticleFilters(query);
 

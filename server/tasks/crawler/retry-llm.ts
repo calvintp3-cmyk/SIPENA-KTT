@@ -5,6 +5,7 @@ import {
   ScrapeConflictError,
   type RetryLlmSummary,
 } from '../../services/scraper/pipeline';
+import { buildScraperPipelineRuntimeOptions } from '../../utils/llm-config';
 
 export type RetryLlmTaskResult =
   | { skipped: true; reason: string }
@@ -14,7 +15,7 @@ export default defineTask<RetryLlmTaskResult>({
   meta: {
     name: 'crawler:retry-llm',
     description:
-      'Memproses ulang artikel berstatus llm_status = FAILED menggunakan Gemini Flash pada pukul 06:30 WITA.',
+      'Memproses ulang artikel berstatus llm_status = FAILED menggunakan pipeline Multi-LLM (Gemini, Groq, OpenRouter) pada pukul 06:30 WITA.',
   },
   async run() {
     const config = useRuntimeConfig();
@@ -28,7 +29,8 @@ export default defineTask<RetryLlmTaskResult>({
     }
 
     try {
-      const summary = await runRetryFailedLlmBatch({ limit: 50 });
+      const { routerOptions } = buildScraperPipelineRuntimeOptions(config);
+      const summary = await runRetryFailedLlmBatch({ limit: 50, routerOptions });
       return {
         result: {
           skipped: false,

@@ -5,8 +5,10 @@ import { ArticleSourceTypeEnum } from '../../../../shared/enums/pdrb';
 import { db } from '../../../db';
 import { articles, scraperLogs } from '../../../db/schema';
 import { REGIONAL_PORTALS } from '../../../services/scraper/portals';
+import { requireAdminSession } from '../../../utils/session';
 
-export default defineEventHandler(async () => {
+export default defineEventHandler(async (event) => {
+  await requireAdminSession(event);
   const [sourceAggRows, recentLogs] = await Promise.all([
     db
       .select({

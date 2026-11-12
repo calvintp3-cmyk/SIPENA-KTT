@@ -229,13 +229,13 @@ const yearFilterItems = computed(() => {
 const pdrbGroupFilterItems = computed<SelectOptionItem<string>[]>(() => [
   { label: 'Semua 17 Sektor PDRB', value: 'ALL' },
   ...PDRB_17_SECTORS.map((sector) => ({
-    label: `[${sector.groupCode}] ${sector.shortName}`,
+    label: `${sector.groupCode} - ${sector.shortName}`,
     value: sector.groupCode,
   })),
 ]);
 
 const kbliFilterItems = computed<SelectOptionItem<string>[]>(() => [
-  { label: 'Semua Huruf KBLI (A–U)', value: 'ALL' },
+  { label: 'Semua Huruf KBLI (A–V)', value: 'ALL' },
   ...kbliOptions,
 ]);
 
@@ -519,14 +519,14 @@ const columns: TableColumn<AdminArticleItem>[] = [
         </div>
 
         <div>
-          <label for="articles-filter-kbli" class="sr-only">Filter Huruf KBLI A–U</label>
+          <label for="articles-filter-kbli" class="sr-only">Filter Huruf KBLI A–V</label>
           <USelectMenu
             id="articles-filter-kbli"
             v-model="filters.kbli"
             :items="kbliFilterItems"
             value-key="value"
             label-key="label"
-            aria-label="Filter Huruf KBLI A sampai U"
+            aria-label="Filter Huruf KBLI A sampai V"
             size="sm"
             class="w-full"
           />
@@ -614,7 +614,7 @@ const columns: TableColumn<AdminArticleItem>[] = [
           :class="getKbliClusterTheme(selectedGroupMeta.groupCode).pillClass"
           @click="() => { filters.pdrbGroup = 'ALL'; }"
         >
-          <span>Sektor [{{ selectedGroupMeta.groupCode }}] {{ selectedGroupMeta.shortName }}</span>
+          <span>Sektor {{ selectedGroupMeta.groupCode }} - {{ selectedGroupMeta.shortName }}</span>
           <UIcon name="i-lucide-x" class="w-3 h-3" />
         </button>
 

@@ -14,6 +14,7 @@ import {
   startScrapeJobInBackground,
 } from '../../services/scraper/pipeline';
 import { verifyCronSecret } from '../../utils/cron-secret';
+import { buildScraperPipelineRuntimeOptions } from '../../utils/llm-config';
 
 const CronTriggerBodySchema = z
   .object({
@@ -44,10 +45,15 @@ export default defineEventHandler(async (event) => {
     });
   }
 
+  const runtimeOptions = buildScraperPipelineRuntimeOptions(config);
+
   try {
     setResponseStatus(event, 202);
     if (parsed.data.job === 'retry-llm') {
-      const started = await startRetryFailedLlmInBackground({ limit: 50 });
+      const started = await startRetryFailedLlmInBackground({
+        limit: 50,
+        routerOptions: runtimeOptions.routerOptions,
+      });
       return {
         accepted: true,
         job: 'retry-llm',
@@ -58,6 +64,7 @@ export default defineEventHandler(async (event) => {
     const started = await startScrapeJobInBackground({
       runType: ScraperRunTypeEnum.SCHEDULED,
       mode: parsed.data.mode,
+      ...runtimeOptions,
     });
     return {
       accepted: true,

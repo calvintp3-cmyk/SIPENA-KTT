@@ -1,6 +1,7 @@
 // tests/ssrf-and-security.test.ts
 import { afterEach, describe, expect, it } from 'vitest';
 import { UserRoleEnum } from '#shared/enums/pdrb';
+import { isAdminApiPath } from '#server/utils/admin-path';
 import { verifyCronSecret } from '#server/utils/cron-secret';
 import { hashPassword, verifyPassword } from '#server/utils/password';
 import {
@@ -134,6 +135,20 @@ describe('SSRF Guard, URL Hash, Auth Security & Rate Limit', () => {
     // Setelah reset login berhasil, IP langsung pulih
     resetLoginRateLimit(ip);
     expect(checkLoginRateLimit(ip, baseTime + 12_000).allowed).toBe(true);
+  });
+
+  it('mendeteksi path /api/admin secara case-insensitive dan tahan variasi slash/encoding', () => {
+    expect(isAdminApiPath('/api/admin')).toBe(true);
+    expect(isAdminApiPath('/api/admin/')).toBe(true);
+    expect(isAdminApiPath('/api/admin/articles')).toBe(true);
+    expect(isAdminApiPath('/API/Admin/scrapers/logs')).toBe(true);
+    expect(isAdminApiPath('/api/%61dmin/articles')).toBe(true);
+    expect(isAdminApiPath('//api//admin/users')).toBe(true);
+
+    expect(isAdminApiPath('/api/admin-public')).toBe(false);
+    expect(isAdminApiPath('/api/public/articles')).toBe(false);
+    expect(isAdminApiPath('/admin/articles')).toBe(false);
+    expect(isAdminApiPath('/api/%ZZinvalid')).toBe(false);
   });
 });
 

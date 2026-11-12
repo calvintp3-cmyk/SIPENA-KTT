@@ -10,8 +10,11 @@ import {
   VerificationStatusEnum,
 } from '#shared/enums/pdrb';
 import {
+  compressArticleTextForLlm,
   mapClassificationToPersistence,
   parseAndValidateLlmJson,
+  SIPENA_SYSTEM_INSTRUCTION_COMPACT,
+  SIPENA_SYSTEM_INSTRUCTION_FULL,
 } from '#server/services/llm/classifier';
 import {
   FALLBACK_GEMINI_MODEL,
@@ -32,6 +35,7 @@ const SAMPLE_INPUT = {
 };
 
 const VALID_ECONOMIC_JSON = JSON.stringify({
+  geographic_scope: 'KTT_LOCAL',
   is_economic_phenomenon: true,
   rejection_reason: null,
   summary:
@@ -46,6 +50,7 @@ const VALID_ECONOMIC_JSON = JSON.stringify({
 });
 
 const VALID_NON_ECONOMIC_JSON = JSON.stringify({
+  geographic_scope: 'KTT_LOCAL',
   is_economic_phenomenon: false,
   rejection_reason: 'Berita seremonial pelantikan organisasi tanpa dampak output atau harga.',
   summary:
@@ -57,6 +62,21 @@ const VALID_NON_ECONOMIC_JSON = JSON.stringify({
   quarter: 4,
   year: 2026,
   confidence: 0.92,
+});
+
+const VALID_OTHER_REGION_JSON = JSON.stringify({
+  geographic_scope: 'OTHER_REGION_IRRELEVANT',
+  is_economic_phenomenon: false,
+  rejection_reason: 'Peristiwa lokal penyaluran subsidi angkutan udara di Kecamatan Krayan, Nunukan tanpa kaitan langsung ke KTT.',
+  summary:
+    'Pemerintah Kabupaten Nunukan menyalurkan subsidi ongkos angkut udara menuju Kecamatan Krayan pada Oktober 2026 tanpa menyebutkan dampak atau keterkaitan dengan Kabupaten Tana Tidung.',
+  kbli_category: null,
+  kbli_impact: null,
+  expenditure_component: null,
+  expenditure_impact: null,
+  quarter: 4,
+  year: 2026,
+  confidence: 0.97,
 });
 
 describe('LLM Classifier Schema & Gemini Worker Resilience', () => {
@@ -99,6 +119,46 @@ describe('LLM Classifier Schema & Gemini Worker Resilience', () => {
         }),
       ),
     ).toThrow();
+
+    // Invalid: OTHER_REGION_IRRELEVANT tapi is_economic_phenomenon = true
+    expect(() =>
+      parseAndValidateLlmJson(
+        JSON.stringify({
+          ...JSON.parse(VALID_ECONOMIC_JSON),
+          geographic_scope: 'OTHER_REGION_IRRELEVANT',
+        }),
+      ),
+    ).toThrow();
+
+    // Valid: OTHER_REGION_IRRELEVANT dipetakan menjadi IGNORED & seluruh kolom PDRB null
+    const parsedOtherRegion = parseAndValidateLlmJson(VALID_OTHER_REGION_JSON);
+    expect(parsedOtherRegion.geographic_scope).toBe('OTHER_REGION_IRRELEVANT');
+    const mappedOtherRegion = mapClassificationToPersistence(parsedOtherRegion, 'groq:llama-3.3-70b-versatile');
+    expect(mappedOtherRegion.verificationStatus).toBe(VerificationStatusEnum.IGNORED);
+    expect(mappedOtherRegion.isEconomicPhenomenon).toBe(false);
+    expect(mappedOtherRegion.kbliCategory).toBeNull();
+  });
+
+  it('menerima seluruh kode KBLI 2025 hingga huruf V, memampatkan teks <=290 kata, dan menyediakan COMPACT instruction', () => {
+    const parsedV = parseAndValidateLlmJson(
+      JSON.stringify({
+        ...JSON.parse(VALID_ECONOMIC_JSON),
+        kbli_category: KbliCategoryEnum.V,
+      }),
+    );
+    expect(parsedV.kbli_category).toBe(KbliCategoryEnum.V);
+
+    const longSentence =
+      'Produksi kelapa sawit dan komoditas unggulan di Kabupaten Tana Tidung menunjukkan kenaikan volume pengapalan pada awal triwulan keempat.';
+    const longArticle = Array.from({ length: 24 }, () => longSentence).join(' ');
+    const compressed = compressArticleTextForLlm(longArticle);
+    expect(compressed.split(/\s+/).length).toBeLessThanOrEqual(290);
+    expect(compressed.length).toBeLessThanOrEqual(1900);
+    expect(compressed.endsWith('.')).toBe(true);
+
+    expect(SIPENA_SYSTEM_INSTRUCTION_COMPACT.length).toBeLessThan(SIPENA_SYSTEM_INSTRUCTION_FULL.length);
+    expect(SIPENA_SYSTEM_INSTRUCTION_FULL).toContain('KBLI 2025');
+    expect(SIPENA_SYSTEM_INSTRUCTION_COMPACT).toContain('OTHER_REGION_IRRELEVANT');
   });
 
   it('melakukan exponential backoff + jitter pada HTTP 429 dan fallback ke gemini-3.5-flash-lite', async () => {

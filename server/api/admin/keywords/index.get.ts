@@ -3,8 +3,10 @@ import { asc, count, desc, eq } from 'drizzle-orm';
 import { defineEventHandler } from 'h3';
 import { db } from '../../../db';
 import { articles, nationalKeywords } from '../../../db/schema';
+import { requireAdminSession } from '../../../utils/session';
 
-export default defineEventHandler(async () => {
+export default defineEventHandler(async (event) => {
+  await requireAdminSession(event);
   const rows = await db
     .select({
       id: nationalKeywords.id,

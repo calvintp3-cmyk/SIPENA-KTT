@@ -1,5 +1,5 @@
 // server/services/scraper/pipeline.ts
-import { and, desc, eq, inArray, lte, sql } from 'drizzle-orm';
+import { and, desc, eq, gte, inArray, lte, sql } from 'drizzle-orm';
 import {
   ArticleSourceTypeEnum,
   LlmStatusEnum,
@@ -13,6 +13,7 @@ import {
   articles,
   scraperLogs,
   type ScraperPortalErrorEntry,
+  type ScraperProviderStatEntry,
 } from '../../db/schema';
 import { DEFAULT_SCRAPER_CONCURRENCY, runWithConcurrency } from '../../utils/concurrency';
 import {
@@ -25,7 +26,20 @@ import {
 import { extractHostnameLabel, hashNormalizedUrl, isSafeHttpUrl } from '../../utils/url-hash';
 import { mapClassificationToPersistence } from '../llm/classifier';
 import { GeminiClassificationWorker, type GeminiWorkerOptions } from '../llm/gemini-client';
+import { MultiLlmRouter, type MultiLlmRouterOptions } from '../llm/router';
+import {
+  DEFAULT_DB_DEDUP_LOOKBACK_DAYS,
+  deduplicateCandidatesByTitle,
+  getCandidateSourcePriority,
+} from './dedup';
 import { extractArticleContent } from './extractor';
+import { evaluateGeographicRelevance } from './geo-filter';
+import {
+  DEFAULT_GOOGLE_NEWS_DECODE_CAP_PER_RUN,
+  DEFAULT_GOOGLE_NEWS_DECODE_DELAY_MS,
+  decodeGoogleNewsUrlFromHtml,
+  extractGoogleNewsDecodeParams,
+} from './google-news-decoder';
 import {
   buildNationalFallbackSnippet,
   extractRedirectTargetFromGoogleHtml,
@@ -46,6 +60,7 @@ export const SCRAPER_ADVISORY_LOCK_KEY = 982451;
 export const DEFAULT_MAX_RUN_DURATION_MS = 3 * 60 * 1000;
 export const STALE_RUN_TIMEOUT_MS = 5 * 60 * 1000;
 export const DEFAULT_FETCH_CONCURRENCY = DEFAULT_SCRAPER_CONCURRENCY;
+export const DEFAULT_MAX_ARTICLES_PER_RUN = 35;
 const CIRCUIT_BREAKER_CONSECUTIVE_429_THRESHOLD = 5;
 
 export class ScrapeConflictError extends Error {
@@ -65,12 +80,14 @@ export interface RunScrapePipelineParams {
   now?: Date;
   lookbackDays?: number;
   maxDurationMs?: number;
+  maxArticlesPerRun?: number;
   fetchTimeoutMs?: number;
   fetchConcurrency?: number;
   portals?: ReadonlyArray<RegionalPortalConfig>;
   keywords?: ReadonlyArray<ActiveKeywordTarget>;
   fetchFn?: (url: string, options?: SafeFetchOptions) => Promise<{ finalUrl: string; body: string }>;
   workerOptions?: GeminiWorkerOptions;
+  routerOptions?: MultiLlmRouterOptions;
 }
 
 export interface ScrapeRunSummary {
@@ -90,6 +107,7 @@ export interface ScrapeRunSummary {
   totalTokens: number;
   avgResponseTimeMs: number;
   durationMs: number;
+  providerStats: Record<string, ScraperProviderStatEntry>;
   errors: ScraperPortalErrorEntry[];
 }
 
@@ -105,6 +123,7 @@ export interface RetryLlmSummary {
   totalOutputTokens: number;
   totalTokens: number;
   durationMs: number;
+  providerStats: Record<string, ScraperProviderStatEntry>;
   errors: ScraperPortalErrorEntry[];
 }
 
@@ -147,6 +166,23 @@ async function queryExistingHashes(hashes: string[]): Promise<Set<string>> {
   }
 
   return existing;
+}
+
+async function queryRecentArticleTitles(
+  now: Date,
+  lookbackDays: number = DEFAULT_DB_DEDUP_LOOKBACK_DAYS,
+): Promise<string[]> {
+  try {
+    const cutoff = getWitaLookbackCutoff(now, lookbackDays);
+    const rows = await db
+      .select({ title: articles.title })
+      .from(articles)
+      .where(gte(articles.publishedAt, cutoff))
+      .limit(1000);
+    return rows.map((r) => r.title).filter(Boolean);
+  } catch {
+    return [];
+  }
 }
 
 /**
@@ -261,10 +297,6 @@ interface AcquiredScrapeLock {
   releaseLock: () => Promise<void>;
 }
 
-/**
- * Mengambil PostgreSQL Advisory Lock eksklusif, memulihkan setiap log RUNNING yatim
- * yang tidak lagi memiliki proses aktif, lalu membuat entri baru pada `scraper_logs`.
- */
 async function acquireScrapeExecutionLock(
   runType: ScraperRunTypeEnum,
   triggeredBy: string | null = null,
@@ -289,8 +321,6 @@ async function acquireScrapeExecutionLock(
       throw new ScrapeConflictError();
     }
 
-    // Karena advisory lock eksklusif baru saja berhasil diambil, tidak ada proses worker aktif lain:
-    // semua baris RUNNING yang masih tersisa dipastikan yatim (terputus/restart) dan langsung dilepas.
     await recoverOrphanedRunningLogsInternal(
       'Eksekusi sebelumnya berhenti tidak normal (restart/crash proses) dan dipulihkan otomatis.',
     );
@@ -318,6 +348,17 @@ async function acquireScrapeExecutionLock(
   }
 }
 
+function getEffectiveMaxArticlesPerRun(explicit?: number): number {
+  if (explicit !== undefined && Number.isFinite(explicit) && explicit > 0) {
+    return Math.floor(explicit);
+  }
+  const envVal = Number(process.env.SCRAPER_MAX_ARTICLES_PER_RUN);
+  if (Number.isFinite(envVal) && envVal > 0) {
+    return Math.floor(envVal);
+  }
+  return DEFAULT_MAX_ARTICLES_PER_RUN;
+}
+
 async function executeLockedScrapePipeline(
   logId: string,
   params: RunScrapePipelineParams,
@@ -330,6 +371,7 @@ async function executeLockedScrapePipeline(
   const fetchTimeoutMs = params.fetchTimeoutMs ?? DEFAULT_FETCH_TIMEOUT_MS;
   const fetchConcurrency = params.fetchConcurrency ?? DEFAULT_FETCH_CONCURRENCY;
   const maxDurationMs = Math.max(50, params.maxDurationMs ?? DEFAULT_MAX_RUN_DURATION_MS);
+  const maxArticlesPerRun = getEffectiveMaxArticlesPerRun(params.maxArticlesPerRun);
   const deadlineAtMs = startedAtMs + maxDurationMs;
   const cutoffDate = getWitaLookbackCutoff(now, lookbackDays);
 
@@ -362,6 +404,19 @@ async function executeLockedScrapePipeline(
 
   const errors: ScraperPortalErrorEntry[] = [];
 
+  const legacyWorker = params.workerOptions?.invokeFn
+    ? new GeminiClassificationWorker(params.workerOptions)
+    : null;
+  const llmRouter = legacyWorker
+    ? null
+    : new MultiLlmRouter({
+        task: 'classify',
+        ...(params.routerOptions ?? {}),
+      });
+
+  const getCurrentProviderStats = (): Record<string, ScraperProviderStatEntry> =>
+    llmRouter ? llmRouter.getProviderStats() : {};
+
   const persistLogSnapshot = async (status: ScraperRunStatusEnum, isFinal: boolean) => {
     const durationMs = Date.now() - startedAtMs;
     const avgResponseTimeMs = timedLlmCalls > 0 ? Math.round(totalResponseTimeMs / timedLlmCalls) : 0;
@@ -383,6 +438,7 @@ async function executeLockedScrapePipeline(
         totalTokens,
         avgResponseTimeMs,
         durationMs,
+        providerStats: getCurrentProviderStats(),
         errorSummary: errors.slice(0, 100),
         finishedAt: isFinal ? new Date() : null,
       })
@@ -395,7 +451,7 @@ async function executeLockedScrapePipeline(
 
   try {
     // -------------------------------------------------------------------------
-    // Phase A: Link Discovery Paralel (Regional + Keyword Nasional secara bersamaan)
+    // Phase A: Link Discovery Paralel (RSS + HTML Regional + Keyword Nasional)
     // -------------------------------------------------------------------------
     const rawCandidates: DiscoveredArticleCandidate[] = [];
 
@@ -440,22 +496,22 @@ async function executeLockedScrapePipeline(
     }
 
     // Deduplikasi kandidat in-memory berdasarkan urlHash
-    const uniqueCandidates: DiscoveredArticleCandidate[] = [];
+    const uniqueUrlCandidates: DiscoveredArticleCandidate[] = [];
     const seenCandidateHashes = new Set<string>();
     for (const item of rawCandidates) {
       if (!seenCandidateHashes.has(item.urlHash)) {
         seenCandidateHashes.add(item.urlHash);
-        uniqueCandidates.push(item);
+        uniqueUrlCandidates.push(item);
       }
     }
 
-    articlesFetched = uniqueCandidates.length;
+    articlesFetched = uniqueUrlCandidates.length;
 
     // -------------------------------------------------------------------------
-    // Phase B: Title Hard-Noise Filter & DB URL Deduplication
+    // Phase B: Hard-Noise Filter, DB URL Hash Dedup & Dedup Judul 10 Hari Lintas Sumber
     // -------------------------------------------------------------------------
     const noiseFilteredCandidates: DiscoveredArticleCandidate[] = [];
-    for (const candidate of uniqueCandidates) {
+    for (const candidate of uniqueUrlCandidates) {
       if (
         candidate.sourceType === ArticleSourceTypeEnum.NATIONAL &&
         isHardNoiseTitleForNational(candidate.title)
@@ -470,26 +526,41 @@ async function executeLockedScrapePipeline(
       noiseFilteredCandidates.map((c) => c.urlHash),
     );
 
-    const newCandidates: DiscoveredArticleCandidate[] = [];
+    const hashFilteredCandidates: DiscoveredArticleCandidate[] = [];
     for (const candidate of noiseFilteredCandidates) {
       if (existingUrlHashes.has(candidate.urlHash)) {
         articlesDeduplicated += 1;
         continue;
       }
-      newCandidates.push(candidate);
+      hashFilteredCandidates.push(candidate);
     }
 
-    // Simpan checkpoint awal agar UI live-polling segera melihat progres Phase A+B
+    const recentHistoricalTitles = await queryRecentArticleTitles(
+      now,
+      DEFAULT_DB_DEDUP_LOOKBACK_DAYS,
+    );
+    const titleDedupResult = deduplicateCandidatesByTitle(
+      hashFilteredCandidates,
+      recentHistoricalTitles,
+    );
+    articlesDeduplicated += titleDedupResult.deduplicatedCount;
+    const newCandidates = titleDedupResult.uniqueCandidates;
+
     await persistLogSnapshot(ScraperRunStatusEnum.RUNNING, false).catch(() => {});
 
     // -------------------------------------------------------------------------
-    // Phase C: Parallel HTML Fetch (concurrency 5, timeout 7s) + Extractor (300-450 kata)
+    // Phase C: Parallel HTML Fetch / RSS Fast Path + Dekoder Google News CBMi
     // -------------------------------------------------------------------------
     const extractedReady: ExtractedReadyArticle[] = [];
     const extractedSeenHashes = new Set<string>();
+    let googleDecodeAttempts = 0;
 
-    const pushNationalMetadataFallback = (candidate: DiscoveredArticleCandidate, finalUrlOverride?: string) => {
-      const targetUrl = finalUrlOverride && isSafeHttpUrl(finalUrlOverride) ? finalUrlOverride : candidate.url;
+    const pushNationalMetadataFallback = (
+      candidate: DiscoveredArticleCandidate,
+      finalUrlOverride?: string,
+    ) => {
+      const targetUrl =
+        finalUrlOverride && isSafeHttpUrl(finalUrlOverride) ? finalUrlOverride : candidate.url;
       const { normalizedUrl, urlHash } = hashNormalizedUrl(targetUrl);
       if (extractedSeenHashes.has(urlHash)) {
         articlesDeduplicated += 1;
@@ -517,6 +588,32 @@ async function executeLockedScrapePipeline(
         async (candidate) => {
           if (!hasRemainingBudget(20)) return;
 
+          // Jalur cepat RSS WordPress (sudah membawa teks bersih >= 30 kata)
+          if (candidate.prefetchedSnippetText && (candidate.prefetchedWordCount ?? 0) >= 30) {
+            if (extractedSeenHashes.has(candidate.urlHash)) {
+              articlesDeduplicated += 1;
+              return;
+            }
+            const publishedAt = candidate.publishedHint ?? now;
+            if (!isWithinLookbackWindow(publishedAt, cutoffDate)) {
+              articlesDeduplicated += 1;
+              return;
+            }
+            extractedSeenHashes.add(candidate.urlHash);
+            extractedReady.push({
+              candidate,
+              finalUrl: candidate.url,
+              normalizedUrl: candidate.normalizedUrl,
+              urlHash: candidate.urlHash,
+              sourcePortal: candidate.sourcePortal,
+              title: candidate.title,
+              snippetText: candidate.prefetchedSnippetText,
+              wordCount: candidate.prefetchedWordCount ?? 0,
+              publishedAt,
+            });
+            return;
+          }
+
           try {
             let fetched = await fetchFn(candidate.url, {
               timeoutMs: fetchTimeoutMs,
@@ -526,10 +623,28 @@ async function executeLockedScrapePipeline(
               signal: pipelineController.signal,
             });
 
-            // Jika mendarat di wrapper HTML Google News, ikuti tautan penerbit target jika tersedia;
-            // jika Google News memakai JS-redirect (CBMi...), gunakan fallback metadata RSS agar artikel tetap terklasifikasi
             if (isGoogleWrapperHost(fetched.finalUrl)) {
-              const externalTarget = extractRedirectTargetFromGoogleHtml(fetched.body);
+              let externalTarget = extractRedirectTargetFromGoogleHtml(fetched.body);
+
+              if (
+                !externalTarget &&
+                extractGoogleNewsDecodeParams(fetched.body) &&
+                googleDecodeAttempts < DEFAULT_GOOGLE_NEWS_DECODE_CAP_PER_RUN &&
+                hasRemainingBudget(600)
+              ) {
+                const attemptIdx = googleDecodeAttempts;
+                googleDecodeAttempts += 1;
+                if (attemptIdx > 0) {
+                  await new Promise((r) => setTimeout(r, DEFAULT_GOOGLE_NEWS_DECODE_DELAY_MS));
+                }
+                if (hasRemainingBudget(300)) {
+                  externalTarget = await decodeGoogleNewsUrlFromHtml(fetched.body, {
+                    timeoutMs: fetchTimeoutMs,
+                    signal: pipelineController.signal,
+                  });
+                }
+              }
+
               if (externalTarget && hasRemainingBudget(20)) {
                 try {
                   fetched = await fetchFn(externalTarget, {
@@ -560,7 +675,6 @@ async function executeLockedScrapePipeline(
             const extracted = extractArticleContent(fetched.body, candidate.publishedHint);
             const publishedAt = extracted.publishedAt ?? candidate.publishedHint ?? now;
 
-            // Jika halaman artikel memiliki tanggal lebih tua dari jendela lookback WITA, abaikan sebelum LLM
             if (extracted.publishedAt && !isWithinLookbackWindow(extracted.publishedAt, cutoffDate)) {
               articlesDeduplicated += 1;
               return;
@@ -622,23 +736,98 @@ async function executeLockedScrapePipeline(
       );
     }
 
-    // Cek ulang hash URL final hasil redirect di DB sebelum memanggil LLM
-    const existingFinalHashes = await queryExistingHashes(extractedReady.map((item) => item.urlHash));
-    const readyForLlm: ExtractedReadyArticle[] = [];
+    // Cek ulang hash URL final hasil redirect/dekode Google News terhadap DB
+    const existingFinalHashes = await queryExistingHashes(
+      extractedReady.map((item) => item.urlHash),
+    );
+    const dedupedExtracted: ExtractedReadyArticle[] = [];
     for (const item of extractedReady) {
       if (existingFinalHashes.has(item.urlHash)) {
         articlesDeduplicated += 1;
         continue;
       }
-      readyForLlm.push(item);
+      dedupedExtracted.push(item);
+    }
+
+    // -------------------------------------------------------------------------
+    // Phase C.5: Gerbang Geografis Deterministik KTT & Prioritas Antrean LLM
+    // -------------------------------------------------------------------------
+    const llmEligible: ExtractedReadyArticle[] = [];
+    for (const item of dedupedExtracted) {
+      const geo = evaluateGeographicRelevance({
+        title: item.title,
+        snippetText: item.snippetText,
+        url: item.normalizedUrl,
+        sourceType: item.candidate.sourceType,
+        matchedKeyword: item.candidate.matchedKeyword,
+      });
+
+      if (geo.decision === 'DROP_OTHER_REGENCY_LOCAL' || geo.decision === 'DROP_STATIC_NOISE') {
+        const defaultPeriod = getQuarterFromDateWita(item.publishedAt);
+        const [ignoredInserted] = await db
+          .insert(articles)
+          .values({
+            url: item.normalizedUrl,
+            urlHash: item.urlHash,
+            sourceType: item.candidate.sourceType,
+            sourcePortal: item.sourcePortal,
+            title: item.title,
+            snippetText: item.snippetText,
+            wordCount: item.wordCount,
+            publishedAt: item.publishedAt,
+            quarter: defaultPeriod.quarter,
+            year: defaultPeriod.year,
+            isEconomicPhenomenon: false,
+            summary: null,
+            kbliCategory: null,
+            kbliImpact: null,
+            expenditureComponent: null,
+            expenditureImpact: null,
+            llmModel: geo.decision === 'DROP_STATIC_NOISE' ? 'title-geo-filter' : 'geo-filter',
+            llmStatus: LlmStatusEnum.SUCCESS,
+            llmError: geo.reason,
+            llmConfidence: 1,
+            verificationStatus: VerificationStatusEnum.IGNORED,
+            keywordId: item.candidate.keywordId,
+            scraperLogId: logId,
+          })
+          .onConflictDoNothing({ target: articles.urlHash })
+          .returning({ id: articles.id });
+
+        if (ignoredInserted) {
+          articlesInserted += 1;
+          nonEconomicCount += 1;
+        } else {
+          articlesDeduplicated += 1;
+        }
+        continue;
+      }
+
+      llmEligible.push(item);
+    }
+
+    // Urutkan kandidat lolos: REGIONAL -> NATIONAL langsung -> NATIONAL fallback, lalu tanggal terbaru
+    llmEligible.sort((a, b) => {
+      const prioDiff =
+        getCandidateSourcePriority(b.candidate) - getCandidateSourcePriority(a.candidate);
+      if (prioDiff !== 0) return prioDiff;
+      return b.publishedAt.getTime() - a.publishedAt.getTime();
+    });
+
+    const readyForLlm = llmEligible.slice(0, maxArticlesPerRun);
+    if (llmEligible.length > maxArticlesPerRun) {
+      errors.push({
+        source: 'pipeline',
+        stage: 'SYSTEM',
+        message: `Antrean dibatasi ke ${maxArticlesPerRun} artikel prioritas per sesi (${llmEligible.length - maxArticlesPerRun} artikel sisanya ditangguhkan ke sesi berikutnya).`,
+      });
     }
 
     await persistLogSnapshot(ScraperRunStatusEnum.RUNNING, false).catch(() => {});
 
     // -------------------------------------------------------------------------
-    // Phase D: Gemini Classification Worker (Fast Daily-Quota Failover + Deadline Guard)
+    // Phase D: Multi-Provider LLM Classification Worker (0ms Failover & Deadline Guard)
     // -------------------------------------------------------------------------
-    const worker = new GeminiClassificationWorker(params.workerOptions);
     let consecutiveRateLimitErrors = 0;
     let circuitBreakerOpen = false;
     let deadlineWarningRecorded = false;
@@ -695,24 +884,28 @@ async function executeLockedScrapePipeline(
           verificationStatus: VerificationStatusEnum.PENDING,
         };
       } else {
-        const aiResult = await worker.classifyArticle(
-          {
-            title: item.title,
-            sourcePortal: item.sourcePortal,
-            sourceType: item.candidate.sourceType,
-            matchedKeyword: item.candidate.matchedKeyword,
-            defaultKbliHint: item.candidate.defaultKbliCategory,
-            defaultExpenditureHint: item.candidate.defaultExpenditureComponent,
-            publishedAtWita,
-            defaultQuarter: defaultPeriod.quarter,
-            defaultYear: defaultPeriod.year,
-            snippetText: item.snippetText,
-          },
-          {
-            signal: pipelineController.signal,
-            deadlineAtMs,
-          },
-        );
+        const classificationInput = {
+          title: item.title,
+          sourcePortal: item.sourcePortal,
+          sourceType: item.candidate.sourceType,
+          matchedKeyword: item.candidate.matchedKeyword,
+          defaultKbliHint: item.candidate.defaultKbliCategory,
+          defaultExpenditureHint: item.candidate.defaultExpenditureComponent,
+          publishedAtWita,
+          defaultQuarter: defaultPeriod.quarter,
+          defaultYear: defaultPeriod.year,
+          snippetText: item.snippetText,
+        };
+
+        const aiResult = legacyWorker
+          ? await legacyWorker.classifyArticle(classificationInput, {
+              signal: pipelineController.signal,
+              deadlineAtMs,
+            })
+          : await llmRouter!.classifyArticle(classificationInput, {
+              signal: pipelineController.signal,
+              deadlineAtMs,
+            });
 
         totalInputTokens += aiResult.usage.inputTokens;
         totalOutputTokens += aiResult.usage.outputTokens;
@@ -724,7 +917,10 @@ async function executeLockedScrapePipeline(
 
         if (aiResult.ok) {
           consecutiveRateLimitErrors = 0;
-          const mapped = mapClassificationToPersistence(aiResult.classification, aiResult.modelUsed);
+          const mapped = mapClassificationToPersistence(
+            aiResult.classification,
+            aiResult.modelUsed,
+          );
           persistenceFields = { ...mapped };
           if (mapped.isEconomicPhenomenon) {
             economicCount += 1;
@@ -749,9 +945,9 @@ async function executeLockedScrapePipeline(
             if (consecutiveRateLimitErrors >= CIRCUIT_BREAKER_CONSECUTIVE_429_THRESHOLD) {
               circuitBreakerOpen = true;
               errors.push({
-                source: 'gemini-worker',
+                source: 'llm-router',
                 stage: 'LLM',
-                message: `Circuit breaker aktif setelah ${CIRCUIT_BREAKER_CONSECUTIVE_429_THRESHOLD}x kegagalan 429 beruntun; sisa antrean disimpan untuk retry.`,
+                message: `Circuit breaker aktif setelah ${CIRCUIT_BREAKER_CONSECUTIVE_429_THRESHOLD}x kegagalan 429 beruntun di seluruh slot; sisa antrean disimpan untuk retry.`,
               });
             }
           } else {
@@ -873,6 +1069,7 @@ async function executeLockedScrapePipeline(
       totalTokens,
       avgResponseTimeMs,
       durationMs,
+      providerStats: getCurrentProviderStats(),
       errors,
     };
   } catch (fatalErr) {
@@ -905,7 +1102,6 @@ async function executeLockedScrapePipeline(
 
 /**
  * Menjalankan pipeline scraper secara penuh (blocking/awaitable) dengan PostgreSQL Advisory Lock.
- * Cocok untuk Nitro Scheduled Tasks & endpoint `/api/cron/trigger`.
  */
 export async function runScrapePipeline(
   params: RunScrapePipelineParams,
@@ -924,7 +1120,6 @@ export async function runScrapePipeline(
 
 /**
  * Mengambil lock terlebih dahulu lalu melepaskan proses pipeline ke background secara aman.
- * Langsung mengembalikan `{ logId, status: 'RUNNING' }` untuk HTTP `202 Accepted` atau melempar `409`.
  */
 export async function startScrapeJobInBackground(
   params: RunScrapePipelineParams,
@@ -954,6 +1149,7 @@ async function executeLockedRetryLlmBatch(
     limit?: number;
     maxDurationMs?: number;
     workerOptions?: GeminiWorkerOptions;
+    routerOptions?: MultiLlmRouterOptions;
   } = {},
 ): Promise<RetryLlmSummary> {
   const startedAtMs = Date.now();
@@ -970,7 +1166,15 @@ async function executeLockedRetryLlmBatch(
     );
   }, maxDurationMs);
 
-  const worker = new GeminiClassificationWorker(params.workerOptions);
+  const legacyWorker = params.workerOptions?.invokeFn
+    ? new GeminiClassificationWorker(params.workerOptions)
+    : null;
+  const llmRouter = legacyWorker
+    ? null
+    : new MultiLlmRouter({
+        task: 'classify',
+        ...(params.routerOptions ?? {}),
+      });
 
   let fetchedTotal = 0;
   let processedCount = 0;
@@ -987,6 +1191,9 @@ async function executeLockedRetryLlmBatch(
   let circuitBreakerOpen = false;
   let finalized = false;
   const errors: ScraperPortalErrorEntry[] = [];
+
+  const getCurrentProviderStats = (): Record<string, ScraperProviderStatEntry> =>
+    llmRouter ? llmRouter.getProviderStats() : {};
 
   const persistRetrySnapshot = async (status: ScraperRunStatusEnum, isFinal: boolean) => {
     const durationMs = Date.now() - startedAtMs;
@@ -1005,6 +1212,7 @@ async function executeLockedRetryLlmBatch(
         totalTokens,
         avgResponseTimeMs,
         durationMs,
+        providerStats: getCurrentProviderStats(),
         errorSummary: errors.slice(0, 100),
         finishedAt: isFinal ? new Date() : null,
       })
@@ -1016,7 +1224,6 @@ async function executeLockedRetryLlmBatch(
   };
 
   try {
-    // Hanya mengulang artikel yang masih menunggu review (jangan menimpa artikel yang sudah diverifikasi manual)
     const pendingFailedArticles = await db
       .select()
       .from(articles)
@@ -1053,22 +1260,57 @@ async function executeLockedRetryLlmBatch(
       }
 
       processedCount += 1;
+
+      // Saring artikel non-KTT/noise statis sebelum menghabiskan token retry
+      const geo = evaluateGeographicRelevance({
+        title: article.title,
+        snippetText: article.snippetText,
+        url: article.url,
+        sourceType: article.sourceType,
+      });
+
+      if (geo.decision === 'DROP_OTHER_REGENCY_LOCAL' || geo.decision === 'DROP_STATIC_NOISE') {
+        succeededCount += 1;
+        nonEconomicCount += 1;
+        await db
+          .update(articles)
+          .set({
+            isEconomicPhenomenon: false,
+            summary: null,
+            kbliCategory: null,
+            kbliImpact: null,
+            expenditureComponent: null,
+            expenditureImpact: null,
+            llmModel: geo.decision === 'DROP_STATIC_NOISE' ? 'title-geo-filter' : 'geo-filter',
+            llmStatus: LlmStatusEnum.SUCCESS,
+            llmError: geo.reason,
+            llmConfidence: 1,
+            verificationStatus: VerificationStatusEnum.IGNORED,
+          })
+          .where(eq(articles.id, article.id));
+        continue;
+      }
+
       const defaultPeriod = getQuarterFromDateWita(article.publishedAt);
-      const result = await worker.classifyArticle(
-        {
-          title: article.title,
-          sourcePortal: article.sourcePortal,
-          sourceType: article.sourceType,
-          publishedAtWita: formatDateTimeWita(article.publishedAt),
-          defaultQuarter: defaultPeriod.quarter,
-          defaultYear: defaultPeriod.year,
-          snippetText: article.snippetText,
-        },
-        {
-          signal: pipelineController.signal,
-          deadlineAtMs,
-        },
-      );
+      const classificationInput = {
+        title: article.title,
+        sourcePortal: article.sourcePortal,
+        sourceType: article.sourceType,
+        publishedAtWita: formatDateTimeWita(article.publishedAt),
+        defaultQuarter: defaultPeriod.quarter,
+        defaultYear: defaultPeriod.year,
+        snippetText: article.snippetText,
+      };
+
+      const result = legacyWorker
+        ? await legacyWorker.classifyArticle(classificationInput, {
+            signal: pipelineController.signal,
+            deadlineAtMs,
+          })
+        : await llmRouter!.classifyArticle(classificationInput, {
+            signal: pipelineController.signal,
+            deadlineAtMs,
+          });
 
       totalInputTokens += result.usage.inputTokens;
       totalOutputTokens += result.usage.outputTokens;
@@ -1136,7 +1378,7 @@ async function executeLockedRetryLlmBatch(
           if (consecutiveRateLimitErrors >= CIRCUIT_BREAKER_CONSECUTIVE_429_THRESHOLD) {
             circuitBreakerOpen = true;
             errors.push({
-              source: 'gemini-worker',
+              source: 'llm-router',
               stage: 'LLM',
               message: `Circuit breaker aktif saat retry setelah ${CIRCUIT_BREAKER_CONSECUTIVE_429_THRESHOLD}x error 429 beruntun.`,
             });
@@ -1178,6 +1420,7 @@ async function executeLockedRetryLlmBatch(
       totalOutputTokens,
       totalTokens,
       durationMs,
+      providerStats: getCurrentProviderStats(),
       errors,
     };
   } catch (fatalErr) {
@@ -1208,6 +1451,7 @@ export async function runRetryFailedLlmBatch(params: {
   limit?: number;
   maxDurationMs?: number;
   workerOptions?: GeminiWorkerOptions;
+  routerOptions?: MultiLlmRouterOptions;
 } = {}): Promise<RetryLlmSummary> {
   const { logId, releaseLock } = await acquireScrapeExecutionLock(
     ScraperRunTypeEnum.RETRY_LLM,
@@ -1226,6 +1470,7 @@ export async function startRetryFailedLlmInBackground(params: {
   limit?: number;
   maxDurationMs?: number;
   workerOptions?: GeminiWorkerOptions;
+  routerOptions?: MultiLlmRouterOptions;
 } = {}): Promise<{ logId: string; status: ScraperRunStatusEnum.RUNNING }> {
   const { logId, releaseLock } = await acquireScrapeExecutionLock(
     ScraperRunTypeEnum.RETRY_LLM,

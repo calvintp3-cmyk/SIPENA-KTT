@@ -275,7 +275,7 @@ export type SynthesisStyle = 'BRS_FORMAL' | 'EXECUTIVE_BRIEF' | 'BULLET_POINTS';
 
 export interface SynthesisGenerateResponse {
   narrativeMarkdown: string;
-  mode: 'gemini' | 'template';
+  mode: 'llm' | 'gemini' | 'template';
   modelUsed: string | null;
   notice: string | null;
   citations: SynthesisCitationItem[];
@@ -293,7 +293,7 @@ export interface SynthesisDraftItem {
   style: SynthesisStyle;
   title: string;
   narrativeMarkdown: string;
-  generationMode: 'gemini' | 'template';
+  generationMode: 'llm' | 'gemini' | 'template';
   modelUsed: string | null;
   notice: string | null;
   citations: SynthesisCitationItem[];
@@ -395,6 +395,32 @@ export interface ScraperErrorEntry {
   url?: string;
 }
 
+export interface ScraperProviderStatEntry {
+  slotId: string;
+  provider: 'gemini' | 'groq' | 'openrouter';
+  model: string;
+  calls: number;
+  successes: number;
+  rateLimits: number;
+  failures: number;
+  inputTokens: number;
+  outputTokens: number;
+  totalTokens: number;
+  totalLatencyMs: number;
+}
+
+export interface LlmProviderSlotStatus {
+  slotId: string;
+  provider: 'gemini' | 'groq' | 'openrouter';
+  model: string;
+  configured: boolean;
+  keyCount: number;
+  priority: number;
+  rpmLimit: number;
+  tpmLimit: number;
+  dailyQuotaNote: string;
+}
+
 export interface ScraperLogItem {
   id: string;
   runType: ScraperRunTypeEnum;
@@ -413,6 +439,7 @@ export interface ScraperLogItem {
   avgResponseTimeMs: number | null;
   durationMs: number | null;
   errorSummary: ScraperErrorEntry[];
+  providerStats?: Record<string, ScraperProviderStatEntry>;
   triggeredBy: string | null;
   triggeredByName?: string | null;
   startedAt: string;
@@ -434,6 +461,8 @@ export interface ScraperObservability {
     articlesInserted: number;
     deduplicationRatePercent: number;
   };
+  providerStats30d?: Record<string, ScraperProviderStatEntry>;
+  providerHealth?: LlmProviderSlotStatus[];
 }
 
 export interface ScraperLogsResponse {

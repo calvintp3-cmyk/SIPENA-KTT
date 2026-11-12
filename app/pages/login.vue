@@ -427,6 +427,7 @@ async function handleSubmit(event: FormSubmitEvent<LoginRequestInput>) {
 
             <UForm
               v-if="showLocalLogin"
+              method="post"
               :schema="LoginRequestSchema"
               :state="formState"
               class="space-y-4 pt-3 border-t border-slate-200/80"

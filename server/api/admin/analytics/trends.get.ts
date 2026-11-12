@@ -15,8 +15,10 @@ import {
   computeTrendAnalytics,
 } from '../../../services/analytics/pdrb-analytics';
 import { parseQueryWithSchema } from '../../../utils/request';
+import { requireAdminSession } from '../../../utils/session';
 
 export default defineEventHandler(async (event) => {
+  await requireAdminSession(event);
   const query = parseQueryWithSchema(event, AdminTrendsQuerySchema);
   const currentPeriod = getCurrentQuarterYearWita();
 

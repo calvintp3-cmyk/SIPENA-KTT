@@ -138,7 +138,7 @@ function openPreviewModal(article: PublicArticleItem) {
 const taxonomyPillars = [
   {
     metric: '17 Kategori KBLI',
-    caption: 'Memetakan seluruh 21 huruf KBLI (A–U) Lapangan Usaha resmi BPS',
+    caption: 'Memetakan seluruh 22 huruf KBLI 2025 (A–V) Lapangan Usaha resmi BPS',
     icon: 'i-solar-buildings-2-bold-duotone',
     badgeClass: 'bg-blue-50 text-blue-700 border-blue-200/80',
   },
@@ -338,7 +338,7 @@ const capabilityBento = [
                   >
                     <div class="flex items-center justify-between gap-2 text-xs">
                       <span class="text-slate-200 font-medium truncate">
-                        <span class="font-bold text-white mr-1">[{{ sector.code }}]</span>
+                        <span class="font-bold text-white mr-1">{{ sector.code }} -</span>
                         {{ sector.name }}
                       </span>
                       <span class="text-slate-300 font-semibold tabular-nums shrink-0">

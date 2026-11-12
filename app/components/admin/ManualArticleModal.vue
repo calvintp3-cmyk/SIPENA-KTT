@@ -243,7 +243,7 @@ async function handleSubmit(event: FormSubmitEvent<CreateManualArticleInput>) {
         </UFormField>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <UFormField label="Kategori KBLI (A–U)" name="kbliCategory" required>
+          <UFormField label="Kategori KBLI (A–V)" name="kbliCategory" required>
             <USelectMenu
               v-model="formState.kbliCategory"
               :items="kbliOptions"

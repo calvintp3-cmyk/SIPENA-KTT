@@ -12,8 +12,10 @@ import { db } from '../../../db';
 import { articles } from '../../../db/schema';
 import { computeDashboardAnalytics } from '../../../services/analytics/pdrb-analytics';
 import { parseQueryWithSchema } from '../../../utils/request';
+import { requireAdminSession } from '../../../utils/session';
 
 export default defineEventHandler(async (event) => {
+  await requireAdminSession(event);
   const query = parseQueryWithSchema(event, AdminDashboardQuerySchema);
   const currentPeriod = getCurrentQuarterYearWita();
 

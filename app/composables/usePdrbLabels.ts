@@ -14,6 +14,7 @@ import {
   ScraperRunTypeEnum,
   VERIFICATION_STATUS_LABELS,
   VerificationStatusEnum,
+  formatLapusLabel,
 } from '#shared/enums/pdrb';
 import {
   getExpenditureColorTheme,
@@ -26,6 +27,15 @@ export interface BadgeVisualMeta {
   label: string;
   shortLabel: string;
   color: UiSemanticColor;
+  icon: string;
+}
+
+export interface LlmProviderBadgeMeta {
+  label: string;
+  shortLabel: string;
+  provider: 'gemini' | 'groq' | 'openrouter' | 'filter' | 'template';
+  pillClass: string;
+  dotClass: string;
   icon: string;
 }
 
@@ -158,7 +168,7 @@ export function usePdrbLabels() {
   ).map((code) => ({
     value: code,
     label: KBLI_CATEGORY_META[code].fullLabel,
-    shortLabel: `[${code}] ${KBLI_CATEGORY_META[code].name}`,
+    shortLabel: formatLapusLabel(code, KBLI_CATEGORY_META[code].name),
   }));
 
   const kbliImpactOptions: SelectOptionItem<KbliImpactEnum>[] = (
@@ -208,7 +218,82 @@ export function usePdrbLabels() {
     if (!code || !(code in KBLI_CATEGORY_META)) return 'Belum Dipetakan';
     const name = KBLI_CATEGORY_META[code].name;
     const truncated = name.length > 34 ? `${name.slice(0, 32)}…` : name;
-    return `[${code}] ${truncated}`;
+    return formatLapusLabel(code, truncated);
+  }
+
+  function formatLlmProviderBadge(
+    llmModel: string | null | undefined,
+  ): LlmProviderBadgeMeta {
+    const raw = (llmModel ?? '').trim();
+    const lower = raw.toLowerCase();
+
+    if (!raw || lower === 'template' || lower.startsWith('template:')) {
+      return {
+        label: 'Kerangka Template Terkurasi',
+        shortLabel: 'Template',
+        provider: 'template',
+        pillClass: 'bg-slate-100 text-slate-700 border-slate-200',
+        dotClass: 'bg-slate-400',
+        icon: 'i-lucide-file-text',
+      };
+    }
+
+    if (lower === 'geo-filter' || lower === 'title-geo-filter') {
+      return {
+        label: lower === 'title-geo-filter' ? 'Filter Judul Noise' : 'Filter Geografis KTT',
+        shortLabel: lower === 'title-geo-filter' ? 'Noise Filter' : 'Geo Filter',
+        provider: 'filter',
+        pillClass: 'bg-slate-100 text-slate-700 border-slate-200',
+        dotClass: 'bg-slate-500',
+        icon: 'i-lucide-shield-ban',
+      };
+    }
+
+    const strippedModel = raw.replace(/^(gemini|groq|openrouter):/i, '').replace(/:free$/i, '');
+
+    if (lower.startsWith('gemini:') || lower.startsWith('gemini-')) {
+      return {
+        label: `Gemini (${strippedModel})`,
+        shortLabel: `Gemini • ${strippedModel}`,
+        provider: 'gemini',
+        pillClass: 'bg-blue-50 text-blue-800 border-blue-200',
+        dotClass: 'bg-blue-600',
+        icon: 'i-lucide-sparkles',
+      };
+    }
+
+    if (lower.startsWith('groq:') || lower.includes('llama-')) {
+      const compactModel = strippedModel.replace(/^llama-/, 'Llama ').replace(/-versatile$/, '');
+      return {
+        label: `Groq (${strippedModel})`,
+        shortLabel: `Groq • ${compactModel}`,
+        provider: 'groq',
+        pillClass: 'bg-amber-50 text-amber-800 border-amber-200',
+        dotClass: 'bg-amber-500',
+        icon: 'i-lucide-zap',
+      };
+    }
+
+    if (lower.startsWith('openrouter:') || lower.includes(':free') || lower.includes('/')) {
+      const shortModel = strippedModel.split('/').pop() ?? strippedModel;
+      return {
+        label: `OpenRouter (${strippedModel})`,
+        shortLabel: `OpenRouter • ${shortModel}`,
+        provider: 'openrouter',
+        pillClass: 'bg-emerald-50 text-emerald-800 border-emerald-200',
+        dotClass: 'bg-emerald-600',
+        icon: 'i-lucide-network',
+      };
+    }
+
+    return {
+      label: raw,
+      shortLabel: raw,
+      provider: 'gemini',
+      pillClass: 'bg-indigo-50 text-indigo-800 border-indigo-200',
+      dotClass: 'bg-indigo-600',
+      icon: 'i-lucide-cpu',
+    };
   }
 
   function getKbliImpactBadge(impact: KbliImpactEnum | null | undefined): BadgeVisualMeta {
@@ -323,6 +408,7 @@ export function usePdrbLabels() {
     verificationStatusOptions,
     getKbliLabel,
     getKbliShortCodeName,
+    formatLlmProviderBadge,
     getKbliImpactBadge,
     getExpenditureLabel,
     getExpenditureImpactBadge,

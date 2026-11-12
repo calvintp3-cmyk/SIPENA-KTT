@@ -7,6 +7,7 @@ import {
   ScrapeConflictError,
   type ScrapeRunSummary,
 } from '../../services/scraper/pipeline';
+import { buildScraperPipelineRuntimeOptions } from '../../utils/llm-config';
 
 export type DailyCrawlerTaskResult =
   | { skipped: true; reason: string }
@@ -16,7 +17,7 @@ export default defineTask<DailyCrawlerTaskResult>({
   meta: {
     name: 'crawler:daily',
     description:
-      'Menjalankan crawler berita harian SIPENA KTT (4 portal regional + keyword nasional) & klasifikasi Gemini Flash pada 04:00 WITA.',
+      'Menjalankan crawler berita harian SIPENA KTT (4 portal regional + Bing/Google News nasional + geo filter) & klasifikasi Multi-LLM (Gemini, Groq, OpenRouter) pada 04:00 WITA.',
   },
   async run() {
     const config = useRuntimeConfig();
@@ -33,6 +34,7 @@ export default defineTask<DailyCrawlerTaskResult>({
       const summary = await runScrapePipeline({
         runType: ScraperRunTypeEnum.SCHEDULED,
         mode: 'ALL',
+        ...buildScraperPipelineRuntimeOptions(config),
       });
       return {
         result: {

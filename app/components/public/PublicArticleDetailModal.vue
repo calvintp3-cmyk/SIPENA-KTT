@@ -205,7 +205,7 @@ async function handleCopyCitation() {
               </span>
             </div>
             <div class="font-bold text-sm text-[#0F172A] leading-snug">
-              {{ getKbliLabel(article.kbliCategory, true).replace(' - ', ' • ') }}
+              {{ getKbliLabel(article.kbliCategory, true) }}
             </div>
             <div class="flex items-center gap-2 mt-0.5 flex-wrap">
               <span class="text-xs text-slate-500">Arah Dampak:</span>
@@ -222,7 +222,7 @@ async function handleCopyCitation() {
               v-if="kbliGroupMeta"
               class="text-[11px] text-slate-500 mt-1 pt-2 border-t border-slate-100 leading-relaxed"
             >
-              Grup PDRB [{{ kbliGroupMeta.groupCode }}]: {{ kbliGroupMeta.description }}
+              Grup PDRB {{ kbliGroupMeta.groupCode }} - {{ kbliGroupMeta.shortName }}: {{ kbliGroupMeta.description }}
             </div>
           </div>
 

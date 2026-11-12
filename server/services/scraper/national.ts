@@ -112,9 +112,9 @@ export function isGoogleOwnedUrl(rawUrl: string): boolean {
 }
 
 /**
- * Membangun teks cuplikan terstruktur minimal >= 35 kata untuk kandidat berita nasional
+ * Membangun teks cuplikan netral berbasis metadata RSS untuk kandidat berita nasional
  * ketika URL pembungkus Google News (`CBMi...`) atau firewall portal menghalangi ekstraksi HTML penuh,
- * sehingga Gemini tetap memiliki konteks faktual yang memadai untuk mengklasifikasikan berita.
+ * tanpa menyisipkan klaim lokasi palsu Kabupaten Tana Tidung agar LLM tetap mengevaluasi lokus secara objektif.
  */
 export function buildNationalFallbackSnippet(candidate: DiscoveredArticleCandidate): {
   snippetText: string;
@@ -123,20 +123,14 @@ export function buildNationalFallbackSnippet(candidate: DiscoveredArticleCandida
   const cleanedDesc = (candidate.fallbackDescription ?? '')
     .replace(/\s+/g, ' ')
     .trim();
-  const keywordLabel = candidate.matchedKeyword ?? 'ekonomi daerah Kalimantan Utara dan Kabupaten Tana Tidung';
-  const kbliLabel = candidate.defaultKbliCategory
-    ? `Indikasi awal kategori lapangan usaha terkait KBLI ${candidate.defaultKbliCategory}`
-    : 'Indikasi fenomena ekonomi regional dan sektoral';
-  const expLabel = candidate.defaultExpenditureComponent
-    ? `serta komponen pengeluaran ${candidate.defaultExpenditureComponent}`
-    : 'pada komponen PDRB terkait';
+  const keywordLabel = candidate.matchedKeyword ?? 'indikator ekonomi';
 
   const parts = [
-    `Berita ekonomi dari portal ${candidate.sourcePortal} berjudul "${candidate.title}".`,
+    `Berita dari portal ${candidate.sourcePortal} berjudul "${candidate.title}".`,
     cleanedDesc && cleanedDesc.toLowerCase() !== candidate.title.toLowerCase()
-      ? `Ringkasan laporan menyebutkan: ${cleanedDesc}.`
+      ? `Ringkasan redaksi: ${cleanedDesc}.`
       : '',
-    `Artikel ini teridentifikasi melalui pemantauan kata kunci nasional "${keywordLabel}" untuk penyusunan fenomena ekonomi PDRB Kabupaten Tana Tidung dan Provinsi Kalimantan Utara (${kbliLabel} ${expLabel}).`,
+    `Artikel ini terjaring oleh pemantauan kata kunci "${keywordLabel}" tanpa isi artikel penuh; tentukan cakupan wilayah serta dampak ekonominya murni berdasarkan fakta yang tertera pada judul dan ringkasan di atas.`,
   ].filter(Boolean);
 
   const snippetText = parts.join(' ').replace(/\s+/g, ' ').trim();

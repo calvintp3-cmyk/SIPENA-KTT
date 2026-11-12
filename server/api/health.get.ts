@@ -19,13 +19,11 @@ export default defineEventHandler(async () => {
       },
     };
   } catch (err) {
+    console.error('[Health] PostgreSQL connection check failed:', err);
     throw createError({
       statusCode: 503,
       statusMessage: 'Service Unavailable',
       message: 'Koneksi ke database PostgreSQL tidak tersedia.',
-      data: {
-        error: err instanceof Error ? err.message : String(err),
-      },
     });
   }
 });
