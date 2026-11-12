@@ -47,12 +47,12 @@ Confirm what to scan. Default to the app/site source (skip `node_modules`,
 project mixes several apps.
 
 ### 2. Scan
-Run the bundled scanner, which greps the codebase for the code-level signals of
-each tell and prints grouped `file:line` hits:
+Run the bundled scanner from the project root (or relative to this skill directory), which greps the codebase for the code-level signals of each tell and prints grouped `file:line` hits:
 
-```
-node scripts/scan.mjs <root>          # human-readable report
-node scripts/scan.mjs <root> --json   # machine-readable, for triage
+```bash
+node .agents/skills/kill-ai-slop/scripts/scan.mjs <root>          # human-readable report
+node .agents/skills/kill-ai-slop/scripts/scan.mjs <root> --json   # machine-readable, for triage
+node .agents/skills/kill-ai-slop/scripts/scan.test.mjs            # scanner self-tests
 ```
 
 It is pure Node (no dependencies) and never edits files. Use its output as a
@@ -115,7 +115,8 @@ function. Use `references/fixes.md` for the before→after pattern per tell.
 
 ## References
 
-- `references/taxonomy.md` — the 35 tells: what each is, why it's slop, the fix.
-- `references/detection.md` — concrete ripgrep/regex patterns + false positives.
-- `references/fixes.md` — before→after remediation patterns.
-- `scripts/scan.mjs` — the dependency-free scanner.
+- [`README.md`](README.md) — Package overview and CLI install notes.
+- [`references/taxonomy.md`](references/taxonomy.md) — the 35 tells: what each is, why it's slop, the fix.
+- [`references/detection.md`](references/detection.md) — concrete ripgrep/regex patterns + false positives.
+- [`references/fixes.md`](references/fixes.md) — before→after remediation patterns.
+- [`scripts/scan.mjs`](scripts/scan.mjs) & [`scripts/scan.test.mjs`](scripts/scan.test.mjs) — the dependency-free scanner and its regression suite.

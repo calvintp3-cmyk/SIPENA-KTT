@@ -305,7 +305,8 @@ function useToggleTask() {
 
 ## See Also
 
-For detailed accessibility requirements and testing tools, see `../../references/accessibility-checklist.md`.
+- Accessibility patterns, contrast verification & WCAG 2.2 checks: [`antislop-human`](../antislop-human/SKILL.md), [`A11Y-PATTERNS.md`](../antislop-human/references/A11Y-PATTERNS.md), [`wcag-audit-patterns`](../wcag-audit-patterns/SKILL.md), [`fixing-accessibility`](../fixing-accessibility/SKILL.md)
+- Nuxt UI v3 / Vue 3 / Tailwind v4 / ECharts stack idioms: [`nuxt-ui-vue-echarts`](../nuxt-ui-vue-echarts/SKILL.md)
 
 ## Common Rationalizations
 

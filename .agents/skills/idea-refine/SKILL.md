@@ -15,7 +15,7 @@ Refines raw ideas into sharp, actionable concepts worth building through structu
 - Use when you need to stress-test assumptions before committing to a direction
 - Use when you want to expand options before converging on one
 - Trigger phrases: "Help me refine this idea", "Ideate on [concept]", "Stress-test my plan"
-- Not for: a user who is unsure what they want at all (use `interview-me`), or a direction already chosen that needs a spec (use `spec-driven-development`)
+- Not for: a user who is unsure what they want at all (consider optional bank skill `interview-me` in `000 - SKILLS_cleaned/`), or a direction already chosen that needs a spec (use [`spec-driven-development`](../spec-driven-development/SKILL.md))
 
 ## How It Works
 

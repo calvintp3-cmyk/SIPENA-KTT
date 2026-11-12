@@ -12,21 +12,15 @@ plugin:
 ---
 
 **IMPORTANT - Path Resolution:**
-This skill can be installed in different locations (plugin system, manual installation, global, or project-specific). Before executing any commands, determine the skill directory based on where you loaded this SKILL.md file, and use that path in all commands below. Replace `$SKILL_DIR` with the actual discovered path.
-
-Common installation paths:
-
-- Plugin system: `<plugin-root>/skills/playwright-skill`
-- Manual global: `<agent-home>/skills/playwright-skill`
-- Project-specific: `<project>/.agent/skills/playwright-skill`
+Before executing commands from this skill, resolve `$SKILL_DIR` to this folder (`.agents/skills/playwright-skill`, or global/plugin skill root). Bundled files: [`package.json`](package.json) (setup dependencies), [`run.js`](run.js), [`lib/helpers.js`](lib/helpers.js), and [`API_REFERENCE.md`](API_REFERENCE.md).
 
 # Playwright Browser Automation
 
-General-purpose browser automation skill. I'll write custom Playwright code for any automation task you request and execute it via the universal executor.
+General-purpose browser automation skill. Write custom Playwright scripts and execute them via [`run.js`](run.js). *(Note: inside Antigravity when visually inspecting live web pages, prefer the built-in `browser` subagent first when appropriate; use this skill for repeatable standalone Playwright automation scripts.)*
 
 **CRITICAL WORKFLOW - Follow these steps in order:**
 
-1. **Auto-detect dev servers** - For localhost testing, ALWAYS run server detection FIRST:
+1. **Auto-detect dev servers** - For localhost testing, run server detection first:
 
    ```bash
    cd "$SKILL_DIR" && node -e "require('./lib/helpers').detectDevServers().then(servers => console.log(JSON.stringify(servers)))"
@@ -36,7 +30,7 @@ General-purpose browser automation skill. I'll write custom Playwright code for 
    - If **multiple servers found**: Ask user which one to test
    - If **no servers found**: Ask for URL or offer to help start dev server
 
-2. **Write scripts to /tmp** - NEVER write test files to skill directory; always use `/tmp/playwright-test-*.js`
+2. **Write scripts to the OS temp directory** - Never write test files into the skill directory; use `/tmp/playwright-test-*.js` on Linux/macOS or `$env:TEMP\playwright-test-*.js` (Node `os.tmpdir()`) on Windows.
 
 3. **Use visible browser by default** - Always use `headless: false` unless user specifically requests headless mode
 

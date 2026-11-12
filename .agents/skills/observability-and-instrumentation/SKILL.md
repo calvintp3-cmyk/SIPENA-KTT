@@ -19,8 +19,8 @@ Code you can't observe is code you can't operate. Observability is the ability t
 
 **NOT for:**
 - Diagnosing a failure happening right now — use the `debugging-and-error-recovery` skill (observability is what makes that skill fast next time)
-- Profiling and optimizing measured slowness — use the `performance-optimization` skill
-- Launch-day monitoring checklists and rollback triggers — see the `shipping-and-launch` skill; this skill covers the instrumentation that feeds them
+- Profiling frontend CWV latency/rendering — use the `core-web-vitals` skill (or `sql-optimization-patterns` for slow SQL)
+- Launch-day monitoring checklists and rollback triggers (optional bank skill `shipping-and-launch`); this skill covers the instrumentation that feeds them
 
 ## Process
 
@@ -235,4 +235,4 @@ After instrumenting a feature, confirm:
 - [ ] Every new alert is symptom-based, has a runbook link, and was test-fired once
 - [ ] An induced failure in staging was located via telemetry alone, without reading the source
 
-For the at-a-glance version of this list, including the pre-launch instrumentation gate, see `../../references/observability-checklist.md`.
+This checklist serves as the complete pre-launch instrumentation gate — confirm every item passes before calling production observability done (pair with `verification-before-completion`).

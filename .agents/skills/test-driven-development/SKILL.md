@@ -360,7 +360,7 @@ This separation ensures the test is written without knowledge of the fix, making
 
 ## See Also
 
-For JavaScript/TypeScript testing patterns illustrating these principles — Jest, React Testing Library, Supertest, Playwright — see `../../references/testing-patterns.md`. The principles transfer to any ecosystem; the syntax and tools there are JS/TS-specific.
+For JavaScript/TypeScript unit, DOM/Component, and E2E testing workflows illustrating these principles, pair this skill with [`vitest-skill`](../vitest-skill/SKILL.md), [`playwright-skill`](../playwright-skill/SKILL.md), and [`browser-testing-with-devtools`](../browser-testing-with-devtools/SKILL.md). The principles transfer to any ecosystem.
 
 ## Common Rationalizations
 

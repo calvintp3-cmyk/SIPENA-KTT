@@ -7,11 +7,11 @@ allowed-tools: Read Write Edit Glob Grep
 
 > Anti Slop: Rules for AI Coding Agents. UI & Visual skill
 
-> Part of the antislop system. Read together with `antislop.md` (the core). This skill deep-dives the UI/visual concern: color, layout, components, decoration, structural flow, and motion. It references core rules by number and never duplicates or renumbers them. Load it when the task builds or edits a website, web app, or any interface.
+> Part of the antislop system. Read together with [references/core-rules.md](references/core-rules.md) (the core). This skill deep-dives the UI/visual concern: color, layout, components, decoration, structural flow, and motion. It references core rules by number and never duplicates or renumbers them. Load it when the task builds or edits a website, web app, or any interface.
 
 ## How to use this skill
 
-- Load together with `antislop.md` whenever the task is UI or visual work. The core holds the mechanism (the purpose test, the three tiers, the Delivery Gate); this skill holds UI-specific depth.
+- Load together with [references/core-rules.md](references/core-rules.md) whenever the task is UI or visual work. The core holds the mechanism (the purpose test, the three dials, `C-1..C-5`, `R-01..R-40`, the Delivery Gate); this skill holds UI-specific depth.
 - Every entry has the same shape: **Tell** (the pattern), **Why** (why it reads as slop), **Fix** (what to do instead), with the governing core rule cited as R-XX.
 - The Delivery Gate in the core remains the gate. The "UI Skill Checklist" at the end of this file is the UI-specific supplement to run alongside it.
 
@@ -52,7 +52,7 @@ allowed-tools: Read Write Edit Glob Grep
 
 - **Tell:** grid squares, blueprint lines, graph paper, dot grids, or thin repeating lines behind content.
 - **Why:** it is a default way to make a flat page feel "technical" without doing any real work. It reads as texture without intent.
-- **Fix:** use texture or pattern only when it genuinely supports the product's identity, with the reason written down (R-07). A real identity motif (core Part 3) beats a stock grid every time.
+- **Fix:** use texture or pattern only when it genuinely supports the product's identity, with the reason written down (R-07). A real identity motif ([core rules §1](references/core-rules.md#1-design-read--three-dials-pre-build-calibration)) beats a stock grid every time.
 
 ### Dark Mode Default for No Reason
 
@@ -70,13 +70,13 @@ allowed-tools: Read Write Edit Glob Grep
 
 - **Tell:** one accent color on buttons, icons, badges, links, lines, backgrounds, and glows at once.
 - **Why:** the accent stops being an accent the moment it is everywhere. It becomes just another color, and the design loses its focal point.
-- **Fix:** the accent belongs at the key moment only (one deliberate accent, core Part 3). Zero accents is sterile; an accent everywhere is slop. Choose the one or two places it matters.
+- **Fix:** the accent belongs at the key moment only (one deliberate accent per [core rules §1](references/core-rules.md#1-design-read--three-dials-pre-build-calibration)). Zero accents is sterile; an accent everywhere is slop. Choose the one or two places it matters.
 
 ### Sterile Default
 
 - **Tell:** flat white or near-white, thin grey borders, small radius, no texture, generic font, no identity.
 - **Why:** this is the "safe" result of over-filtering without direction. It is not slop, but it is not design either: it is a void where a design should be.
-- **Fix:** this is a direction problem, not a filter problem. Add `DESIGN.md` or resolve the Design Read (core Part 3), then raise the liveliness dials. The fix is never more bans; it is state the purpose and add energy.
+- **Fix:** this is a direction problem, not a filter problem. Add `DESIGN.md` or resolve the Design Read ([core rules §1](references/core-rules.md#1-design-read--three-dials-pre-build-calibration)), then raise the liveliness dials. The fix is never more bans; it is state the purpose and add energy.
 
 ## Layout & Components
 
@@ -102,7 +102,7 @@ allowed-tools: Read Write Edit Glob Grep
 
 - **Tell:** padding, margin, and gaps are identical across every section.
 - **Why:** rhythm is a tool, and a single spacing value removes it. Sections stop relating to each other; the page reads as one flat strip.
-- **Fix:** use whitespace as structure (core Part 3) and vary it with the RHYTHM dial. Establish a spacing scale, then use different levels to separate and connect. Uniform rhythm is a deliberate choice only when the dial says so (R-05).
+- **Fix:** use whitespace as structure ([core rules §1](references/core-rules.md#1-design-read--three-dials-pre-build-calibration)) and vary it with the RHYTHM dial. Establish a spacing scale, then use different levels to separate and connect. Uniform rhythm is a deliberate choice only when the dial says so (R-05).
 
 ### "How It Works" Always 3 Steps
 
@@ -327,7 +327,7 @@ Optional page-level checks. Not a gate.
 Run these alongside the core Delivery Gate when the task is UI work. All answers must be **yes**:
 
 - [ ] Is the palette derived from `DESIGN.md` or a written brand identity, not the default gradient set? (R-01, R-29)
-- [ ] Is the accent used at the key moment only, not spread across every element? (core Part 3, one deliberate accent)
+- [ ] Is the accent used at the key moment only, not spread across every element? ([core rules §1](references/core-rules.md#1-design-read--three-dials-pre-build-calibration), one deliberate accent)
 - [ ] Is the copy free of decorative emoji scattered through headings, bullets, and buttons? (R-04)
 - [ ] Do section compositions vary according to the declared RHYTHM dial instead of repeating one template? (R-05)
 - [ ] Is the layout free of the default AI shapes: bento-grid mosaic, fake terminal window, three pricing columns, and left-edge color stripes with no meaning? (R-05, R-01)

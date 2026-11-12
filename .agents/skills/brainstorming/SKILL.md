@@ -105,7 +105,7 @@ digraph brainstorming {
 
 - Write the validated design (spec) to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md`
   - (User preferences for spec location override this default)
-- Use elements-of-style:writing-clearly-and-concisely skill if available
+- Keep prose crisp, specific, and jargon-free (see also `antislop-ui` or optional bank prose skills in `000 - SKILLS_cleaned/`)
 - Commit the design document to git
 
 **Spec Self-Review:**
@@ -155,5 +155,10 @@ A browser-based companion for showing mockups, diagrams, and visual options duri
 
 A question about a UI topic is not automatically a visual question. "What does personality mean in this context?" is a conceptual question — use the terminal. "Which wizard layout works better?" is a visual question — use the browser.
 
-If they agree to the companion, read the detailed guide before proceeding:
-`skills/brainstorming/visual-companion.md`
+If they agree to the companion, read [`visual-companion.md`](visual-companion.md) before proceeding.
+
+## Companion Files & Scripts
+
+- [`visual-companion.md`](visual-companion.md) — Usage protocol for visual browser brainstorming
+- [`spec-document-reviewer-prompt.md`](spec-document-reviewer-prompt.md) — Subagent review prompt for completed spec docs
+- Companion server helpers (`scripts/`): `start-server.sh`, `stop-server.sh`, `server.js`, `server.cjs`, `index.js`, `helper.js`, `frame-template.html`, `package.json`, `package-lock.json`

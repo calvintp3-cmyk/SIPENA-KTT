@@ -76,7 +76,7 @@ For detailed security guidance, see `security-and-hardening`. Does the change in
 
 ### 5. Performance
 
-For detailed profiling and optimization, see `performance-optimization`. Does the change introduce performance problems?
+For Core Web Vitals & frontend runtime optimization, see [`core-web-vitals`](../core-web-vitals/SKILL.md) (and [`fixing-motion-performance`](../fixing-motion-performance/SKILL.md)). Does the change introduce performance problems?
 
 - Any N+1 query patterns?
 - Any unbounded loops or unconstrained data fetching?
@@ -161,7 +161,7 @@ Tests reveal intent and coverage:
 - Would the tests catch a regression if the code changed?
 ```
 
-Answer the last question by experiment, not by reading. Invert one condition the change adds (drop a negation, swap `&&` for `||`), run the suite, then restore the file from a copy. A mutation that stays green is a finding: name the test case that is missing. For a project-wide mutation score, see `constraint-driven-development`.
+Answer the last question by experiment, not by reading. Invert one condition the change adds (drop a negation, swap `&&` for `||`), run the suite, then restore the file from a copy. A mutation that stays green is a finding: name the test case that is missing. For a project-wide mutation score, see optional bank skill `constraint-driven-development` (`000 - SKILLS_cleaned/`).
 
 ### Step 3: Review the Implementation
 
@@ -352,8 +352,8 @@ For triaging `npm audit` findings and supply-chain risk (typosquatting, compromi
 ```
 ## See Also
 
-- For detailed security review guidance, see `../../references/security-checklist.md`
-- For performance review checks, see `../../references/performance-checklist.md`
+- For detailed security review guidance, see [`../security-and-hardening/references/security-checklist.md`](../security-and-hardening/references/security-checklist.md) and [`security-and-hardening`](../security-and-hardening/SKILL.md)
+- For frontend Web Vitals & rendering checks, see [`core-web-vitals`](../core-web-vitals/SKILL.md) and [`fixing-motion-performance`](../fixing-motion-performance/SKILL.md)
 
 ## Common Rationalizations
 

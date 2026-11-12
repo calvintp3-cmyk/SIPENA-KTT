@@ -180,12 +180,10 @@ When performing an audit, structure findings as:
 - [ ] Accessibility audit with real users
 - [ ] SEO keyword review
 
-## References
+## References & Helper Script
 
-For detailed guidelines on specific areas:
-
-- [Performance Optimization](../performance/SKILL.md)
-- [Core Web Vitals](../core-web-vitals/SKILL.md)
-- [Accessibility](../accessibility/SKILL.md)
-- [SEO](../seo/SKILL.md)
-- [Best Practices](../best-practices/SKILL.md)
+- **Bundled audit script:** [`scripts/analyze.sh`](scripts/analyze.sh) (lightweight local inspection helper)
+- **Performance & Core Web Vitals:** [`core-web-vitals`](../core-web-vitals/SKILL.md), [`fixing-motion-performance`](../fixing-motion-performance/SKILL.md)
+- **Accessibility:** [`wcag-audit-patterns`](../wcag-audit-patterns/SKILL.md), [`fixing-accessibility`](../fixing-accessibility/SKILL.md), [`antislop-human`](../antislop-human/SKILL.md)
+- **SEO & Metadata:** [`fixing-metadata`](../fixing-metadata/SKILL.md)
+- **UI & Design Best Practices:** [`web-design-guidelines`](../web-design-guidelines/SKILL.md), [`antislop-ui`](../antislop-ui/SKILL.md), [`design-judge-qa`](../design-judge-qa/SKILL.md)

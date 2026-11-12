@@ -143,9 +143,9 @@ export default defineConfig({
 });
 ```
 
-## Upstream deep-pattern topics (not bundled)
+## Deep-pattern topics & Vue/Nuxt notes
 
-The referenced upstream `reference/playbook.md` is not present in this AAS tree; do not claim to have loaded it. Use the installed version’s official documentation for detailed patterns. In-source tests require production replacement of `import.meta.vitest` so test-only code does not ship. Install/configure matching jsdom, coverage and UI peers only when used; restore fake timers/spies after tests.
+An external upstream playbook document is not bundled in this folder; rely on the installed Vitest version's official docs (`vitest.dev`) for advanced runner flags. For Nuxt/Nitro/Vue projects, keep unit/API parser tests runnable directly via `npm test` (`npx vitest run`) cleanly alongside `vue-tsc` / `nuxt typecheck`. In-source tests require production replacement of `import.meta.vitest` so test-only code does not ship; always restore fake timers and spies (`vi.restoreAllMocks()`) after each test.
 
 | § | Section | Lines |
 |---|---------|-------|

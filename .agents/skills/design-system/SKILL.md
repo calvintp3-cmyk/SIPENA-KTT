@@ -50,31 +50,31 @@ Component (component-specific)
 
 ## Script Paths
 
-Script paths in this skill and its `references/` are relative to the directory that contains this SKILL.md, not to the project: `scripts/<file>` is this skill's own `scripts/` folder, and `../<skill>/scripts/<file>` is a sibling sub-skill installed alongside it. Build the full path from that directory (Claude Code reports it as the skill's base directory when the skill loads) and keep the working directory at the project root — the scripts read and write project files such as `docs/brand-guidelines.md`, `assets/design-tokens.json` or `src/` relative to it.
+Script and template paths below live inside this skill directory (`.agents/skills/design-system/scripts/...`, `.agents/skills/design-system/templates/...`, `.agents/skills/design-system/data/...`). Keep the working directory at the project root (or set `DESIGN_SYSTEM_PROJECT_ROOT` to your app root) so generated files write into your target project rather than polluting the skill folder.
 
 ## Quick Start
 
-**Generate tokens:**
+**Generate CSS/token outputs into your project:**
 ```bash
-node scripts/generate-tokens.cjs --config tokens.json -o tokens.css
+node .agents/skills/design-system/scripts/generate-tokens.cjs --config tokens.json -o app/assets/css/design-tokens.css
 ```
 
-**Validate usage:**
+**Validate token usage against project source:**
 ```bash
-node scripts/validate-tokens.cjs --dir src/
+node .agents/skills/design-system/scripts/validate-tokens.cjs --dir app/
 ```
 
 ## References
 
 | Topic | File |
 |-------|------|
-| Token Architecture | `references/token-architecture.md` |
-| Primitive Tokens | `references/primitive-tokens.md` |
-| Semantic Tokens | `references/semantic-tokens.md` |
-| Component Tokens | `references/component-tokens.md` |
-| Component Specs | `references/component-specs.md` |
-| States & Variants | `references/states-and-variants.md` |
-| Tailwind Integration | `references/tailwind-integration.md` |
+| Token Architecture | [`references/token-architecture.md`](references/token-architecture.md) |
+| Primitive Tokens | [`references/primitive-tokens.md`](references/primitive-tokens.md) |
+| Semantic Tokens | [`references/semantic-tokens.md`](references/semantic-tokens.md) |
+| Component Tokens | [`references/component-tokens.md`](references/component-tokens.md) |
+| Component Specs | [`references/component-specs.md`](references/component-specs.md) |
+| States & Variants | [`references/states-and-variants.md`](references/states-and-variants.md) |
+| Tailwind Integration | [`references/tailwind-integration.md`](references/tailwind-integration.md) |
 
 ## Component Spec Pattern
 
@@ -85,108 +85,105 @@ node scripts/validate-tokens.cjs --dir src/
 | Border | none | none | none | muted-border |
 | Shadow | sm | md | none | none |
 
-## Scripts
+## Scripts & Tests
 
 | Script | Purpose |
 |--------|---------|
-| `generate-tokens.cjs` | Generate CSS from JSON token config |
-| `validate-tokens.cjs` | Check for hardcoded values in code |
-| `search-slides.py` | BM25 search + contextual recommendations |
-| `slide-token-validator.py` | Validate slide HTML for token compliance |
-| `fetch-background.py` | Fetch images from Pexels/Unsplash |
+| [`scripts/generate-tokens.cjs`](scripts/generate-tokens.cjs) | Generate CSS variables from JSON token config |
+| [`scripts/validate-tokens.cjs`](scripts/validate-tokens.cjs) | Check source directories for raw hardcoded visual values |
+| [`scripts/embed-tokens.cjs`](scripts/embed-tokens.cjs) | Embed resolved CSS tokens into HTML artifacts |
+| [`scripts/search-slides.py`](scripts/search-slides.py) | BM25 search + contextual slide deck recommendations |
+| [`scripts/slide_search_core.py`](scripts/slide_search_core.py) | Core BM25 ranking & CSV index utilities used by `search-slides.py` |
+| [`scripts/generate-slide.py`](scripts/generate-slide.py) | Render HTML slide decks using tokens + templates |
+| [`scripts/slide-token-validator.py`](scripts/slide-token-validator.py) | Validate slide HTML token compliance |
+| [`scripts/html-token-validator.py`](scripts/html-token-validator.py) | General HTML token compliance checker |
+| [`scripts/fetch-background.py`](scripts/fetch-background.py) | Fetch background images from Pexels/Unsplash |
+| `scripts/tests/` | Automated unit tests (`test_utf8_io.py`, `test_validate_tokens.py`) |
 
 ## Templates
 
 | Template | Purpose |
 |----------|---------|
-| `design-tokens-starter.json` | Starter JSON with three-layer structure |
+| [`templates/design-tokens-starter.json`](templates/design-tokens-starter.json) | Starter JSON with three-layer primitive/semantic/component structure |
 
 ## Integration
 
-**With brand:** Extract primitives from brand colors/typography
-**With ui-styling:** Component tokens → Tailwind config
-
-**Skill Dependencies:** brand, ui-styling
-**Primary Agents:** ui-ux-designer, frontend-developer
+- **Token sourcing:** Extract primitive/brand tokens from [`ui-ux-pro-max`](../ui-ux-pro-max/SKILL.md) (or optional bank skill `brand-identity` / `ui-styling`).
+- **Tailwind v4 / Nuxt UI v3:** Map semantic/component tokens directly into `@theme` / `:root` CSS variables via [`tailwind-patterns`](../tailwind-patterns/SKILL.md) and [`nuxt-ui-vue-echarts`](../nuxt-ui-vue-echarts/SKILL.md).
 
 ## Slide System
 
-Brand-compliant presentations using design tokens + Chart.js + contextual decision system.
+Optional HTML deck generation system pairing design tokens + Chart.js + contextual CSV decision tables.
 
-### Source of Truth
+### Expected Project Artifacts (Created When Generating Slides)
 
-| File | Purpose |
-|------|---------|
-| `docs/brand-guidelines.md` | Brand identity, voice, colors |
-| `assets/design-tokens.json` | Token definitions (primitive→semantic→component) |
-| `assets/design-tokens.css` | CSS variables (import in slides) |
-| `assets/css/slide-animations.css` | CSS animation library |
+When generating slide decks inside a target project, place outputs under the project's configured design/output paths (none of these project-output files are pre-bundled in the skill folder):
+- **Brand doc (optional input):** project brand guidelines markdown (e.g., `DESIGN.md`)
+- **Generated token artifacts:** project token JSON & stylesheet passed via `--config` / `-o`
+- **CSS animations (project-defined):** animation utility sheet referenced by generated slides
 
 ### Slide Search (BM25)
 
 ```bash
 # Basic search (auto-detect domain)
-python scripts/search-slides.py "investor pitch"
+python .agents/skills/design-system/scripts/search-slides.py "executive briefing"
 
 # Domain-specific search
-python scripts/search-slides.py "problem agitation" -d copy
-python scripts/search-slides.py "revenue growth" -d chart
+python .agents/skills/design-system/scripts/search-slides.py "data trend" -d copy
+python .agents/skills/design-system/scripts/search-slides.py "regional comparison" -d chart
 
-# Contextual search (Premium System)
-python scripts/search-slides.py "problem slide" --context --position 2 --total 9
-python scripts/search-slides.py "cta" --context --position 9 --prev-emotion frustration
+# Contextual search
+python .agents/skills/design-system/scripts/search-slides.py "summary slide" --context --position 2 --total 9
+python .agents/skills/design-system/scripts/search-slides.py "cta" --context --position 9 --prev-emotion frustration
 ```
 
 ### Decision System CSVs
 
 | File | Purpose |
 |------|---------|
-| `data/slide-strategies.csv` | 15 deck structures + emotion arcs + sparkline beats |
-| `data/slide-layouts.csv` | 25 layouts + component variants + animations |
-| `data/slide-layout-logic.csv` | Goal → Layout + break_pattern flag |
-| `data/slide-typography.csv` | Content type → Typography scale |
-| `data/slide-color-logic.csv` | Emotion → Color treatment |
-| `data/slide-backgrounds.csv` | Slide type → Image category (Pexels/Unsplash) |
-| `data/slide-copy.csv` | 25 copywriting formulas (PAS, AIDA, FAB) |
-| `data/slide-charts.csv` | 25 chart types with Chart.js config |
+| [`data/slide-strategies.csv`](data/slide-strategies.csv) | 15 deck structures + emotion arcs + sparkline beats |
+| [`data/slide-layouts.csv`](data/slide-layouts.csv) | 25 layouts + component variants + animations |
+| [`data/slide-layout-logic.csv`](data/slide-layout-logic.csv) | Goal → Layout + break_pattern flag |
+| [`data/slide-typography.csv`](data/slide-typography.csv) | Content type → Typography scale |
+| [`data/slide-color-logic.csv`](data/slide-color-logic.csv) | Emotion → Color treatment |
+| [`data/slide-backgrounds.csv`](data/slide-backgrounds.csv) | Slide type → Image category (Pexels/Unsplash) |
+| [`data/slide-copy.csv`](data/slide-copy.csv) | 25 copywriting formulas (PAS, AIDA, FAB) |
+| [`data/slide-charts.csv`](data/slide-charts.csv) | 25 chart types with Chart.js config |
 
 ### Contextual Decision Flow
 
 ```
 1. Parse goal/context
         ↓
-2. Search slide-strategies.csv → Get strategy + emotion beats
+2. Query data/slide-strategies.csv → Strategy + emotion beats
         ↓
 3. For each slide:
-   a. Query slide-layout-logic.csv → layout + break_pattern
-   b. Query slide-typography.csv → type scale
-   c. Query slide-color-logic.csv → color treatment
-   d. Query slide-backgrounds.csv → image if needed
-   e. Apply animation class from slide-animations.css
+   a. Query data/slide-layout-logic.csv → layout + break_pattern
+   b. Query data/slide-typography.csv → type scale
+   c. Query data/slide-color-logic.csv → color treatment
+   d. Query data/slide-backgrounds.csv → image if needed
+   e. Apply animation utility classes defined by your theme
         ↓
-4. Generate HTML with design tokens
+4. Generate HTML with design tokens (generate-slide.py / embed-tokens.cjs)
         ↓
-5. Validate with slide-token-validator.py
+5. Validate with slide-token-validator.py / html-token-validator.py
 ```
 
 ### Pattern Breaking (Duarte Sparkline)
 
-Premium decks alternate between emotions for engagement:
+Decks alternate tension and resolution for engagement:
 ```
 "What Is" (frustration) ↔ "What Could Be" (hope)
 ```
 
-System calculates pattern breaks at 1/3 and 2/3 positions.
-
 ### Slide Requirements
 
 **ALL slides MUST:**
-1. Import `assets/design-tokens.css` - single source of truth
+1. Import your generated token stylesheet as the single source of truth
 2. Use CSS variables: `var(--color-primary)`, `var(--slide-bg)`, etc.
-3. Use Chart.js for charts (NOT CSS-only bars)
-4. Include navigation (keyboard arrows, click, progress bar)
-5. Center align content
-6. Focus on persuasion/conversion
+3. Use Chart.js for HTML slide charts (or ECharts in Nuxt app views)
+4. Include keyboard/click navigation + progress indicator
+5. Maintain clean visual alignment and avoid unverified metrics
 
 ### Chart.js Integration
 
@@ -225,18 +222,11 @@ color: #FF6B6B;
 font-family: 'Space Grotesk';
 ```
 
-### Reference Implementation
+### Token & Slide Verification Summary
 
-Working example with all features:
-```
-assets/designs/slides/claudekit-pitch-251223.html
-```
-
-### Command
-
-```bash
-/slides:create "10-slide investor pitch for ClaudeKit Marketing"
-```
+1. Author tokens in `tokens.json` (three-layer primitive → semantic → component hierarchy) and generate CSS via [`scripts/generate-tokens.cjs`](scripts/generate-tokens.cjs).
+2. Audit component styles with [`scripts/validate-tokens.cjs`](scripts/validate-tokens.cjs) to catch raw hex values or spacing drift before delivery.
+3. For standalone HTML briefings generated with [`scripts/generate-slide.py`](scripts/generate-slide.py), verify token compliance using [`scripts/slide-token-validator.py`](scripts/slide-token-validator.py) and [`scripts/html-token-validator.py`](scripts/html-token-validator.py). In live Nuxt UI views, map generated CSS variables into `@theme` and render charts via [`nuxt-ui-vue-echarts`](../nuxt-ui-vue-echarts/SKILL.md).
 
 ## Best Practices
 

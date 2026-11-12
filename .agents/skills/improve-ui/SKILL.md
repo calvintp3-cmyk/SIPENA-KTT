@@ -114,3 +114,8 @@ Before writing, re-open every cited source, record the current commit when avail
 Do not invent values when the repository provides a token or component contract. Introduce a primitive only after proving why the existing system cannot express the decision and which consumers should share it.
 
 If asked to reconcile, recheck existing plans against current source and documented decisions; update stale evidence, affected surfaces, and status.
+
+## Companion Files
+
+- Plan output template: [`references/plan-template.md`](references/plan-template.md)
+- Agent UI metadata: [`agents/openai.yaml`](agents/openai.yaml)

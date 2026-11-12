@@ -20,7 +20,12 @@ Master modern responsive design techniques to create interfaces that adapt seaml
 
 ## Detailed patterns and worked examples
 
-Detailed pattern documentation lives in `references/details.md`. Read that file when the navigation tier above is insufficient.
+Load focused guides on demand:
+- [`references/details.md`](references/details.md) — End-to-end CSS layout, Grid, and adaptive pattern synthesis
+- [`references/breakpoint-strategies.md`](references/breakpoint-strategies.md) — Content-driven mobile-first breakpoints and scale tokens
+- [`references/container-queries.md`](references/container-queries.md) — `@container` rules and component-level adaptation
+- [`references/fluid-layouts.md`](references/fluid-layouts.md) — `clamp()`, fluid spacing, and intrinsically responsive grids
+- Pair with [`antislop-layoutmobile`](../antislop-layoutmobile/SKILL.md) and [`nuxt-ui-vue-echarts`](../nuxt-ui-vue-echarts/SKILL.md) when reviewing mobile/tablet views in SIPENA KTT.
 
 ## Best Practices
 

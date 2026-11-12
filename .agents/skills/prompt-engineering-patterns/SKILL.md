@@ -84,8 +84,8 @@ class SQLQuery(BaseModel):
     explanation: str = Field(description="Brief explanation of what the query does")
     tables_used: list[str] = Field(description="List of tables referenced")
 
-# Initialize model with structured output
-llm = ChatAnthropic(model="claude-sonnet-5")
+# Initialize model with structured output (swap with your configured model ID)
+llm = ChatAnthropic(model="your-model-id")
 structured_llm = llm.with_structured_output(SQLQuery)
 
 # Create prompt template
@@ -107,9 +107,15 @@ print(result.query)
 print(result.explanation)
 ```
 
-## Detailed patterns and worked examples
+## Detailed Patterns, Templates & Bundled Resources
 
-Detailed pattern documentation lives in `references/details.md`. Read that file when the navigation tier above is insufficient.
+Read these companion files on demand instead of bloating the prompt upfront:
+
+- **Worked examples:** [`references/details.md`](references/details.md)
+- **Topic guides:** [`references/chain-of-thought.md`](references/chain-of-thought.md), [`references/few-shot-learning.md`](references/few-shot-learning.md), [`references/prompt-optimization.md`](references/prompt-optimization.md), [`references/prompt-templates.md`](references/prompt-templates.md), [`references/system-prompts.md`](references/system-prompts.md)
+- **Templates & fixtures:** [`assets/prompt-template-library.md`](assets/prompt-template-library.md), [`assets/few-shot-examples.json`](assets/few-shot-examples.json)
+- **Optimization helper:** [`scripts/optimize-prompt.py`](scripts/optimize-prompt.py)
+- **Project TS/Gemini integration:** Pair with [`gemini-api-integration`](../gemini-api-integration/SKILL.md) (`@google/genai` `responseJsonSchema` + `propertyOrdering`) and [`llm-routing-and-scraping`](../llm-routing-and-scraping/SKILL.md) for JSON repair/tier routing.
 
 ## Best Practices
 

@@ -20,7 +20,7 @@ Comprehensive guidance for building scalable, maintainable, and production-ready
 
 ## Detailed patterns and worked examples
 
-Detailed pattern documentation lives in `references/details.md`. Read that file when the navigation tier above is insufficient.
+Detailed pattern documentation lives in [`references/details.md`](references/details.md) (foundations: controllers, services, Zod validation, transactions) and [`references/advanced-patterns.md`](references/advanced-patterns.md) (structured logging, distributed rate limiting, graceful shutdown, health probes, timeouts). For Nuxt/Nitro H3 server routes, PM2 runtime env aliasing, and Drizzle `pg.Pool` singletons, pair with [`nuxt-ui-vue-echarts`](../nuxt-ui-vue-echarts/SKILL.md) and [`drizzle-orm-expert`](../drizzle-orm-expert/SKILL.md).
 
 ## Best Practices
 
@@ -42,4 +42,4 @@ Detailed pattern documentation lives in `references/details.md`. Read that file 
 
 ## Testing Patterns
 
-See `javascript-testing-patterns` skill for comprehensive testing guidance.
+See [`vitest-skill`](../vitest-skill/SKILL.md) and [`test-driven-development`](../test-driven-development/SKILL.md) (or optional bank skill `javascript-testing-patterns` in `000 - SKILLS_cleaned/`) for unit, H3 handler, and integration testing guidance.

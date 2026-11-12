@@ -460,7 +460,9 @@ startTransition(() => setExpensiveState(newValue))
 
 ## References
 
+- [LCP deep-dive guide](references/LCP.md)
+- [Web Quality Audit](../web-quality-audit/SKILL.md)
+- [Nuxt UI, Vue & ECharts Guide](../nuxt-ui-vue-echarts/SKILL.md)
 - [web.dev LCP](https://web.dev/articles/lcp)
 - [web.dev INP](https://web.dev/articles/inp)
 - [web.dev CLS](https://web.dev/articles/cls)
-- [Performance skill](../performance/SKILL.md)

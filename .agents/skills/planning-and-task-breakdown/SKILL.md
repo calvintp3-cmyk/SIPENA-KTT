@@ -254,4 +254,9 @@ Before starting implementation, confirm:
 
 ## See Also
 
-Acceptance criteria are per-task and answer "did we build the right thing?". They sit on top of the project-wide Definition of Done, the standing bar every task clears before it counts as done. See `../../references/definition-of-done.md`.
+Acceptance criteria are per-task and answer "did we build the right thing?". They sit on top of the project-wide Definition of Done, the standing bar every task clears before counting as done:
+1. Acceptance criteria & scope verified in the real workspace (`verification-before-completion`).
+2. Full relevant test suite & typecheck passing with fresh post-edit output (`vitest-skill`, `test-driven-development`).
+3. Multi-axis review completed cleanly (`code-review-and-quality`).
+4. Zero secrets, broken links/contracts, or silent error swallowing introduced (`security-and-hardening`).
+5. User-visible docs/config updated when behavior changed.

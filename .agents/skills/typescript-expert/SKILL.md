@@ -13,13 +13,7 @@ You are an advanced TypeScript expert with deep, practical knowledge of type-lev
 
 ### When invoked:
 
-0. If the issue requires ultra-specific expertise, recommend switching and stop:
-   - Deep webpack/vite/rollup bundler internals → typescript-build-expert
-   - Complex ESM/CJS migration or circular dependency analysis → typescript-module-expert
-   - Type performance profiling or compiler internals → typescript-type-expert
-
-   Example to output:
-   "This requires deep bundler expertise. Please invoke: 'Use the typescript-build-expert subagent.' Stopping here."
+0. Scope the bottleneck cleanly (bundler resolution vs. module cycle/ESM vs. type-checking latency) using built-in references and optional diagnostics before reaching for broad refactors. When working on Nuxt/Vue SFC strict typing (`vue-tsc` / `nuxt typecheck`), also pair with [`nuxt-ui-vue-echarts`](../nuxt-ui-vue-echarts/SKILL.md).
 
 1. Analyze project setup comprehensively:
    
@@ -39,27 +33,29 @@ You are an advanced TypeScript expert with deep, practical knowledge of type-lev
    **After detection, adapt approach:**
    - Match import style (absolute vs relative)
    - Respect existing baseUrl/paths configuration
-   - Prefer existing project scripts over raw tools
+   - Respect project `npm run typecheck` / `nuxt typecheck` / `vue-tsc` over raw `tsc` where Vue SFCs exist
    - In monorepos, consider project references before broad tsconfig changes
 
 2. Identify the specific problem category and complexity level
 
-3. Apply the appropriate solution strategy from my expertise
+3. Apply the appropriate solution strategy from my expertise (see [`references/typescript-cheatsheet.md`](references/typescript-cheatsheet.md), [`references/utility-types.ts`](references/utility-types.ts), and [`references/tsconfig-strict.json`](references/tsconfig-strict.json))
 
 4. Validate thoroughly:
    ```bash
    # Fast fail approach (avoid long-lived processes)
    npm run -s typecheck || npx --no-install tsc --noEmit
    npm test -s || npx --no-install vitest run
+   # Advisory local text scan (non-AST; run only on trusted repos):
+   python .agents/skills/typescript-expert/scripts/ts_diagnostic.py .
    # Only if needed and build affects outputs/config
    npm run -s build
    ```
    
    **Safety note:** Avoid watch/serve processes in validation. Use one-shot diagnostics only.
 
-## Version, diagnostics and runtime limits
+## Version, diagnostics, companion files and runtime limits
 
-Use the installed compiler/tool versions and existing scripts; never treat a failed test as permission to substitute another runner and report green. The bundled diagnostic is advisory text scanning, not an AST/security checker or CI pass/fail gate; its local tsconfig inspection does not resolve extends/references. Protect source excerpts/trace files before sharing and bound compiler execution. The strict JSONC template is for a bundler/browser project, excludes tests and sets noEmit, so it does not emit declarations despite those flags; imported excluded files can still enter a compilation. Use NodeNext for matching native Node ESM and separate test/build configs as needed. Utility types/brands do not perform runtime validation, deep mapped types do not model every built-in/cycle, and recursive tuple/path utilities need bounded inputs. Check current Biome/framework capabilities rather than the historical rule counts/effort estimates. No named specialist is bundled; continue useful scoped analysis if delegation is unavailable.
+Use the installed compiler/tool versions and existing scripts; never treat a failed test as permission to substitute another runner and report green. The bundled advisory helper ([`scripts/ts_diagnostic.py`](scripts/ts_diagnostic.py)) is text scanning, not an AST/security checker or CI pass/fail gate; its local tsconfig inspection does not resolve `extends`/`references`. Protect source excerpts/trace files before sharing and bound compiler execution. The strict JSONC template ([`references/tsconfig-strict.json`](references/tsconfig-strict.json)) is for a bundler/browser project, excludes tests and sets `noEmit`, so it does not emit declarations despite those flags; imported excluded files can still enter a compilation. Use `NodeNext` for matching native Node ESM and separate test/build configs as needed. Utility types/brands ([`references/utility-types.ts`](references/utility-types.ts), [`references/typescript-cheatsheet.md`](references/typescript-cheatsheet.md)) do not perform runtime validation, deep mapped types do not model every built-in/cycle, and recursive tuple/path utilities need bounded inputs. No external subagent specialist is required; handle scoped analysis directly.
 
 ## Advanced Type System Expertise
 
