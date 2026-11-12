@@ -3,7 +3,9 @@ import { describe, expect, it } from 'vitest';
 import { ArticleSourceTypeEnum } from '#shared/enums/pdrb';
 import {
   computeTitleSimilarity,
+  cosineSimilarity,
   deduplicateCandidatesByTitle,
+  deduplicateCandidatesWithSemantics,
 } from '#server/services/scraper/dedup';
 import { evaluateGeographicRelevance } from '#server/services/scraper/geo-filter';
 import {
@@ -13,8 +15,11 @@ import {
   parseGarturlFromBatchexecuteBody,
 } from '#server/services/scraper/google-news-decoder';
 import {
+  buildGdeltDocApiUrl,
   buildNationalFallbackSnippet,
+  fetchGdeltMacroCandidates,
   parseBingNewsRss,
+  parseGdeltDocArticlesJson,
 } from '#server/services/scraper/national';
 import {
   parseRegionalPortalIndex,
@@ -306,6 +311,128 @@ describe('Smart Scraper Filters, Dedup, Google News Decoder & Geo-Gate', () => {
     });
     expect(indexItems).toHaveLength(1);
     expect(indexItems[0]?.url).toContain('investasi-pks-sesayap-hilir-ktt');
+  });
+
+  it('kanonisasi sinonim/akronim dedup, cosineSimilarity, dan Stage-2 Semantic Embedding Tie-Breaker tanpa melanggar numeric guard', async () => {
+    const simAcronym = computeTitleSimilarity(
+      'Harga TBS Kelapa Sawit Pemkab KTT Naik Awal Oktober',
+      'Harga Tandan Buah Segar Kelapa Sawit Pemerintah Kabupaten Tana Tidung Menguat Awal Oktober',
+    );
+    expect(simAcronym).toBeGreaterThanOrEqual(0.72);
+
+    expect(cosineSimilarity([1, 0, 0], [1, 0, 0])).toBeCloseTo(1, 5);
+    expect(cosineSimilarity([1, 0], [0, 1])).toBeCloseTo(0, 5);
+
+    const regCand = makeCandidate({
+      url: 'https://korankaltara.com/jembatan-sesayap-dibangun-oktober',
+      urlHash: 'h-reg-sem',
+      sourceType: ArticleSourceTypeEnum.REGIONAL,
+      title: 'Pemerintah Kabupaten Tana Tidung Bangun Infrastruktur Jembatan Sesayap Tahun 2026',
+    });
+    const natParaphrase = makeCandidate({
+      url: 'https://ekonomi.bisnis.com/read/2026/jembatan-sesayap-ktt',
+      urlHash: 'h-nat-sem',
+      sourceType: ArticleSourceTypeEnum.NATIONAL,
+      title: 'Konektivitas Sesayap KTT Ditingkatkan Melalui Pembangunan Jembatan Baru 2026',
+    });
+    const numericConflict = makeCandidate({
+      url: 'https://antaranews.com/jembatan-sesayap-rp-90-miliar',
+      urlHash: 'h-num-sem',
+      sourceType: ArticleSourceTypeEnum.NATIONAL,
+      title: 'Konektivitas Sesayap KTT Ditingkatkan Rp 90 Miliar Tahun 2026',
+    });
+    const regWithAmount = makeCandidate({
+      url: 'https://benuanta.co.id/jembatan-sesayap-rp-45-miliar',
+      urlHash: 'h-reg-45',
+      sourceType: ArticleSourceTypeEnum.REGIONAL,
+      title: 'Pemerintah KTT Tingkatkan Konektivitas Jembatan Sesayap Rp 45 Miliar Tahun 2026',
+    });
+
+    const embeddedQueries: string[] = [];
+    const semResult = await deduplicateCandidatesWithSemantics(
+      [natParaphrase, regCand, regWithAmount, numericConflict],
+      {
+        historicalItems: [],
+        embedFn: async (texts) => {
+          embeddedQueries.push(...texts);
+          return texts.map((t) => {
+            // regCand & natParaphrase membahas jembatan Sesayap yang sama -> vektor identik
+            if (t.toLowerCase().includes('jembatan') && !t.includes('45') && !t.includes('90')) {
+              return [0.92, 0.39, 0];
+            }
+            if (t.includes('45') || t.includes('90')) {
+              return [0.92, 0.39, 0]; // walau embedding mirip, numeric guard wajib menolak penggabungan!
+            }
+            return [0, 1, 0];
+          });
+        },
+      },
+    );
+
+    expect(embeddedQueries.length).toBeGreaterThan(0);
+    // natParaphrase digabungkan ke regCand (REGIONAL), sedangkan 45 vs 90 miliar tetap dipertahankan terpisah
+    expect(semResult.uniqueCandidates.map((c) => c.urlHash)).toContain('h-reg-sem');
+    expect(semResult.uniqueCandidates.map((c) => c.urlHash)).not.toContain('h-nat-sem');
+    expect(semResult.uniqueCandidates.map((c) => c.urlHash)).toContain('h-reg-45');
+    expect(semResult.uniqueCandidates.map((c) => c.urlHash)).toContain('h-num-sem');
+    expect(semResult.semanticDeduplicatedCount).toBe(1);
+  });
+
+  it('GDELT 2.0 Doc API membangun query URL yang benar dan mem-parsing artikel makro Indonesia', async () => {
+    const gdeltUrl = buildGdeltDocApiUrl({
+      query: '("harga batubara" OR "kelapa sawit") sourcecountry:ID',
+      timespan: '48h',
+      maxRecords: 20,
+    });
+    expect(gdeltUrl).toContain('api.gdeltproject.org/api/v2/doc/doc');
+    expect(gdeltUrl).toContain('mode=artlist');
+    expect(gdeltUrl).toContain('format=json');
+
+    const now = new Date('2026-10-14T12:00:00Z');
+    const parsed = parseGdeltDocArticlesJson(
+      {
+        articles: [
+          {
+            url: 'https://ekonomi.bisnis.com/read/20261014/harga-cpo-naik?utm_source=gdelt',
+            title: 'Harga CPO Kalimantan Utara Menguat di Pasar Ekspor Oktober 2026',
+            seendate: '20261014T063000Z',
+            domain: 'ekonomi.bisnis.com',
+            language: 'Indonesian',
+            sourcecountry: 'Indonesia',
+          },
+          {
+            url: 'https://ekonomi.bisnis.com/read/20240101/berita-kadaluarsa',
+            title: 'Harga CPO Kalimantan Utara Tahun Lalu 2024',
+            seendate: '20240101T063000Z',
+            domain: 'ekonomi.bisnis.com',
+          },
+        ],
+      },
+      { now, lookbackDays: 3, maxItems: 10 },
+    );
+
+    expect(parsed).toHaveLength(1);
+    expect(parsed[0]?.url).toBe('https://ekonomi.bisnis.com/read/20261014/harga-cpo-naik');
+    expect(parsed[0]?.sourceType).toBe(ArticleSourceTypeEnum.NATIONAL);
+
+    const gdeltHarvest = await fetchGdeltMacroCandidates({
+      now,
+      fetchFn: async () => ({
+        finalUrl: gdeltUrl,
+        body: JSON.stringify({
+          articles: [
+            {
+              url: 'https://www.antaranews.com/berita/440123/hba-batubara-oktober',
+              title: 'Kementerian ESDM Tetapkan HBA Batubara Periode Oktober 2026',
+              seendate: '20261014T070000Z',
+              domain: 'antaranews.com',
+            },
+          ],
+        }),
+      }),
+    });
+    expect(gdeltHarvest).toHaveLength(1);
+    expect(gdeltHarvest[0]?.sourcePortal).toBe('antaranews.com');
   });
 });
 

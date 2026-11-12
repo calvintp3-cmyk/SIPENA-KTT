@@ -111,7 +111,12 @@ const recentQuery = computed(() => ({
   limit: 3,
 }));
 
-const { data: recentArticlesData, pending: recentPending } = await useFetch<PublicArticlesResponse>(
+const {
+  data: recentArticlesData,
+  pending: recentPending,
+  error: recentError,
+  refresh: refreshRecentArticles,
+} = await useFetch<PublicArticlesResponse>(
   '/api/public/articles',
   {
     query: recentQuery,
@@ -237,14 +242,12 @@ const capabilityBento = [
                 class="text-3xl sm:text-4xl lg:text-[46px] font-extrabold tracking-tight text-white leading-[1.12]"
               >
                 Satu Portal Intelijen
-                <span
-                  class="block text-transparent bg-clip-text bg-gradient-to-r from-sky-300 via-indigo-200 to-emerald-300"
-                >
+                <span class="block text-emerald-300">
                   Dinamika Ekonomi Tana Tidung
                 </span>
               </h1>
 
-              <p class="text-sm sm:text-base text-slate-300 leading-relaxed max-w-2xl">
+              <p class="text-sm sm:text-base text-slate-200 leading-relaxed max-w-2xl">
                 Rekam jejak dinamika sektor usaha, pergerakan harga, dan aktivitas ekonomi
                 Kabupaten Tana Tidung secara terkurasi dan transparan.
               </p>
@@ -347,7 +350,7 @@ const capabilityBento = [
                     </div>
                     <div class="h-2 w-full rounded-full bg-white/10 overflow-hidden">
                       <div
-                        class="h-full rounded-full transition-all duration-500"
+                        class="h-full rounded-full transition-[width] duration-500"
                         :style="{
                           width: `${Math.max(8, Math.round((sector.count / maxTopSectorCount) * 100))}%`,
                           backgroundColor: getKbliClusterTheme(sector.code).hex,
@@ -399,10 +402,10 @@ const capabilityBento = [
             <UIcon :name="item.icon" class="w-5 h-5" />
           </div>
           <div class="min-w-0">
-            <div class="text-sm font-extrabold text-[#0F172A] tracking-tight">
+            <div class="text-sm font-extrabold text-slate-900 tracking-tight">
               {{ item.metric }}
             </div>
-            <p class="text-xs text-slate-500 leading-relaxed mt-0.5">
+            <p class="text-xs text-slate-600 leading-relaxed mt-0.5">
               {{ item.caption }}
             </p>
           </div>
@@ -423,7 +426,7 @@ const capabilityBento = [
           <UIcon name="i-solar-layers-minimalistic-bold-duotone" class="w-3.5 h-3.5" />
           <span>Arsitektur &amp; Metodologi Kerja</span>
         </div>
-        <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#0F172A]">
+        <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
           Dari Pemberitaan Daerah Hingga Rekonsiliasi PDRB Resmi
         </h2>
         <p class="text-sm text-slate-600 leading-relaxed">
@@ -453,7 +456,7 @@ const capabilityBento = [
             </div>
 
             <div class="space-y-2">
-              <h3 class="text-lg sm:text-xl font-bold tracking-tight text-[#0F172A]">
+              <h3 class="text-lg sm:text-xl font-bold tracking-tight text-slate-900">
                 {{ card.title }}
               </h3>
               <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
@@ -466,7 +469,7 @@ const capabilityBento = [
             <span
               v-for="tag in card.tags"
               :key="tag"
-              class="px-2.5 py-1 rounded-lg bg-white/85 border border-slate-200/80 text-[11px] font-semibold text-slate-700"
+              class="px-2.5 py-1 rounded-lg bg-white/90 border border-slate-200/80 text-xs font-semibold text-slate-700"
             >
               {{ tag }}
             </span>
@@ -488,11 +491,11 @@ const capabilityBento = [
             <UIcon name="i-solar-document-text-bold-duotone" class="w-3.5 h-3.5" />
             <span>Cuplikan Arsip Terverifikasi • {{ snapshotPeriodLabel }}</span>
           </div>
-          <h2 class="text-2xl font-extrabold tracking-tight text-[#0F172A]">
+          <h2 class="text-2xl font-extrabold tracking-tight text-slate-900">
             Fenomena Ekonomi Terbaru
           </h2>
           <p class="text-xs sm:text-sm text-slate-600">
-            Klik kartu untuk membaca intisari pemetaan PDRB lengkap atau telusuri seluruh arsip per sektor.
+            Pilih fenomena untuk membaca intisari pemetaan PDRB lengkap atau telusuri seluruh arsip per sektor.
           </p>
         </div>
 
@@ -505,7 +508,27 @@ const capabilityBento = [
         </NuxtLink>
       </div>
 
-      <div v-if="recentPending && !recentArticlesData" class="grid grid-cols-1 md:grid-cols-3 gap-5">
+      <UAlert
+        v-if="recentError"
+        color="error"
+        variant="subtle"
+        icon="i-lucide-alert-circle"
+        title="Gagal memuat cuplikan fenomena terkini"
+        description="Koneksi ke arsip fenomena terganggu sementara. Muat ulang untuk mencoba lagi."
+      >
+        <template #actions>
+          <UButton
+            color="error"
+            variant="soft"
+            size="sm"
+            label="Muat Ulang"
+            icon="i-lucide-refresh-cw"
+            @click="() => { refreshRecentArticles(); }"
+          />
+        </template>
+      </UAlert>
+
+      <div v-else-if="recentPending && !recentArticlesData" class="grid grid-cols-1 md:grid-cols-3 gap-5">
         <div v-for="i in 3" :key="i" class="saas-card rounded-2xl p-6 space-y-3">
           <div class="h-3 w-28 rounded bg-slate-200" />
           <div class="h-5 w-4/5 rounded bg-slate-200" />
@@ -520,55 +543,54 @@ const capabilityBento = [
         <article
           v-for="art in recentArticlesData.items"
           :key="art.id"
-          class="saas-card saas-card-interactive rounded-2xl overflow-hidden flex flex-col cursor-pointer relative pl-1.5"
-          @click="openPreviewModal(art)"
+          class="group saas-card saas-card-interactive hover:-translate-y-0.5 rounded-2xl border-t-2 p-5 flex flex-col justify-between gap-4 relative"
+          :style="{ borderTopColor: getKbliClusterTheme(art.kbliCategory).hex }"
         >
-          <div
-            class="absolute inset-y-0 left-0 w-1.5"
-            :class="getKbliClusterTheme(art.kbliCategory).accentBarClass"
-          />
-
-          <div class="p-5 flex-1 flex flex-col justify-between gap-4">
-            <div class="space-y-3">
-              <div class="flex items-center justify-between gap-2 text-[11px]">
-                <span
-                  class="px-2.5 py-0.5 rounded-full font-semibold border truncate max-w-[170px]"
-                  :class="getKbliClusterTheme(art.kbliCategory).pillClass"
-                >
-                  {{ getKbliClusterTheme(art.kbliCategory).label }}
-                </span>
-                <span class="text-slate-500 font-medium tabular-nums shrink-0">
-                  {{ formatDateId(art.publishedAt) }}
-                </span>
-              </div>
-
-              <h3 class="text-base font-bold text-[#0F172A] leading-snug line-clamp-2">
-                {{ art.title }}
-              </h3>
-
-              <p class="text-xs text-slate-600 leading-relaxed line-clamp-3">
-                {{ art.summary || 'Ringkasan terverifikasi tersedia di tampilan detail.' }}
-              </p>
-            </div>
-
-            <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2 text-[11px]">
-              <span class="font-semibold text-slate-700 truncate">
-                {{ art.sourcePortal }}
-                <template v-if="art.expenditureComponent">
-                  • {{ getExpenditureLabel(art.expenditureComponent, false) }}
-                </template>
-              </span>
-
-              <UBadge
-                v-if="art.kbliImpact"
-                :color="getKbliImpactBadge(art.kbliImpact).color"
-                variant="subtle"
-                size="xs"
-                class="shrink-0"
+          <div class="space-y-3">
+            <div class="flex items-center justify-between gap-2 text-xs">
+              <span
+                class="px-2.5 py-0.5 rounded-full font-semibold border truncate max-w-[175px]"
+                :class="getKbliClusterTheme(art.kbliCategory).pillClass"
               >
-                {{ getKbliImpactBadge(art.kbliImpact).shortLabel }}
-              </UBadge>
+                {{ getKbliClusterTheme(art.kbliCategory).label }}
+              </span>
+              <span class="text-slate-600 font-medium tabular-nums shrink-0">
+                {{ formatDateId(art.publishedAt) }}
+              </span>
             </div>
+
+            <h3 class="text-base font-bold text-slate-900 leading-snug line-clamp-2">
+              <button
+                type="button"
+                class="text-left group-hover:text-indigo-700 transition-colors cursor-pointer after:content-[''] after:absolute after:inset-0 after:rounded-2xl focus-visible:outline-none focus-visible:after:ring-2 focus-visible:after:ring-indigo-600 focus-visible:after:ring-offset-2"
+                @click="openPreviewModal(art)"
+              >
+                {{ art.title }}
+              </button>
+            </h3>
+
+            <p class="text-xs text-slate-600 leading-relaxed line-clamp-3">
+              {{ art.summary || 'Ringkasan terverifikasi tersedia di tampilan detail.' }}
+            </p>
+          </div>
+
+          <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2 text-xs">
+            <span class="font-semibold text-slate-700 truncate">
+              {{ art.sourcePortal }}
+              <template v-if="art.expenditureComponent">
+                • {{ getExpenditureLabel(art.expenditureComponent, false) }}
+              </template>
+            </span>
+
+            <UBadge
+              v-if="art.kbliImpact"
+              :color="getKbliImpactBadge(art.kbliImpact).color"
+              variant="subtle"
+              size="xs"
+              class="shrink-0"
+            >
+              {{ getKbliImpactBadge(art.kbliImpact).shortLabel }}
+            </UBadge>
           </div>
         </article>
       </div>
@@ -578,11 +600,11 @@ const capabilityBento = [
         class="saas-card rounded-2xl p-8 text-center space-y-3"
       >
         <div
-          class="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-200/80 text-indigo-600 flex items-center justify-center mx-auto"
+          class="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-200/80 text-indigo-700 flex items-center justify-center mx-auto"
         >
           <UIcon name="i-solar-archive-minimalistic-bold-duotone" class="w-6 h-6" />
         </div>
-        <h3 class="text-base font-bold text-[#0F172A]">
+        <h3 class="text-base font-bold text-slate-900">
           Arsip Publik Menunggu Kurasi Awal
         </h3>
         <p class="text-xs sm:text-sm text-slate-600 max-w-md mx-auto leading-relaxed">

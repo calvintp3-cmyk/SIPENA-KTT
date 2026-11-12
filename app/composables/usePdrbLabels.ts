@@ -21,7 +21,7 @@ import {
   getKbliClusterKey,
   getKbliClusterTheme,
 } from '#shared/utils/pdrb-colors';
-import type { SelectOptionItem, UiSemanticColor } from '~/types/sipena';
+import type { GeographicScopeType, SelectOptionItem, UiSemanticColor } from '~/types/sipena';
 
 export interface BadgeVisualMeta {
   label: string;
@@ -33,10 +33,17 @@ export interface BadgeVisualMeta {
 export interface LlmProviderBadgeMeta {
   label: string;
   shortLabel: string;
-  provider: 'gemini' | 'groq' | 'openrouter' | 'filter' | 'template';
+  provider: 'gemini' | 'groq' | 'cerebras' | 'mistral' | 'nvidia' | 'openrouter' | 'filter' | 'template';
   pillClass: string;
   dotClass: string;
   icon: string;
+}
+
+export interface GeographicScopeBadgeMeta {
+  label: string;
+  shortLabel: string;
+  pillClass: string;
+  dotClass: string;
 }
 
 const KBLI_IMPACT_VISUAL: Record<KbliImpactEnum, BadgeVisualMeta> = {
@@ -249,7 +256,9 @@ export function usePdrbLabels() {
       };
     }
 
-    const strippedModel = raw.replace(/^(gemini|groq|openrouter):/i, '').replace(/:free$/i, '');
+    const strippedModel = raw
+      .replace(/^(gemini|groq|cerebras|mistral|nvidia|openrouter):/i, '')
+      .replace(/:free$/i, '');
 
     if (lower.startsWith('gemini:') || lower.startsWith('gemini-')) {
       return {
@@ -262,6 +271,39 @@ export function usePdrbLabels() {
       };
     }
 
+    if (lower.startsWith('cerebras:')) {
+      return {
+        label: `Cerebras (${strippedModel})`,
+        shortLabel: `Cerebras • ${strippedModel}`,
+        provider: 'cerebras',
+        pillClass: 'bg-indigo-50 text-indigo-800 border-indigo-200',
+        dotClass: 'bg-indigo-600',
+        icon: 'i-lucide-cpu',
+      };
+    }
+
+    if (lower.startsWith('mistral:')) {
+      return {
+        label: `Mistral (${strippedModel})`,
+        shortLabel: `Mistral • ${strippedModel}`,
+        provider: 'mistral',
+        pillClass: 'bg-sky-50 text-sky-800 border-sky-200',
+        dotClass: 'bg-sky-600',
+        icon: 'i-lucide-wind',
+      };
+    }
+
+    if (lower.startsWith('nvidia:')) {
+      return {
+        label: `NVIDIA NIM (${strippedModel})`,
+        shortLabel: `NVIDIA • ${strippedModel}`,
+        provider: 'nvidia',
+        pillClass: 'bg-teal-50 text-teal-800 border-teal-200',
+        dotClass: 'bg-teal-700',
+        icon: 'i-lucide-microchip',
+      };
+    }
+
     if (lower.startsWith('groq:') || lower.includes('llama-')) {
       const compactModel = strippedModel.replace(/^llama-/, 'Llama ').replace(/-versatile$/, '');
       return {
@@ -269,7 +311,7 @@ export function usePdrbLabels() {
         shortLabel: `Groq • ${compactModel}`,
         provider: 'groq',
         pillClass: 'bg-amber-50 text-amber-800 border-amber-200',
-        dotClass: 'bg-amber-500',
+        dotClass: 'bg-amber-600',
         icon: 'i-lucide-zap',
       };
     }
@@ -281,7 +323,7 @@ export function usePdrbLabels() {
         shortLabel: `OpenRouter • ${shortModel}`,
         provider: 'openrouter',
         pillClass: 'bg-emerald-50 text-emerald-800 border-emerald-200',
-        dotClass: 'bg-emerald-600',
+        dotClass: 'bg-emerald-700',
         icon: 'i-lucide-network',
       };
     }
@@ -293,6 +335,50 @@ export function usePdrbLabels() {
       pillClass: 'bg-indigo-50 text-indigo-800 border-indigo-200',
       dotClass: 'bg-indigo-600',
       icon: 'i-lucide-cpu',
+    };
+  }
+
+  function getGeographicScopeBadge(
+    scope: GeographicScopeType | null | undefined,
+    fallbackSourceType?: ArticleSourceTypeEnum,
+  ): GeographicScopeBadgeMeta {
+    if (scope === 'KTT_LOCAL') {
+      return {
+        label: 'Lokal Tana Tidung',
+        shortLabel: 'Lokal KTT',
+        pillClass: 'bg-emerald-50 text-emerald-800 border-emerald-200/80',
+        dotClass: 'bg-emerald-700',
+      };
+    }
+    if (scope === 'KALTARA_PROVINCIAL') {
+      return {
+        label: 'Regional Kalimantan Utara',
+        shortLabel: 'Kaltara',
+        pillClass: 'bg-blue-50 text-blue-800 border-blue-200/80',
+        dotClass: 'bg-blue-600',
+      };
+    }
+    if (scope === 'NATIONAL_MACRO_IMPACT') {
+      return {
+        label: 'Dampak Makro Nasional',
+        shortLabel: 'Makro Nasional',
+        pillClass: 'bg-amber-50 text-amber-800 border-amber-200/80',
+        dotClass: 'bg-amber-700',
+      };
+    }
+    if (fallbackSourceType === ArticleSourceTypeEnum.REGIONAL) {
+      return {
+        label: 'Portal Regional KTT/Kaltara',
+        shortLabel: 'Lokal / Kaltara',
+        pillClass: 'bg-emerald-50 text-emerald-800 border-emerald-200/80',
+        dotClass: 'bg-emerald-700',
+      };
+    }
+    return {
+      label: 'Nasional / Referensi',
+      shortLabel: 'Nasional',
+      pillClass: 'bg-slate-100 text-slate-700 border-slate-200',
+      dotClass: 'bg-slate-600',
     };
   }
 
@@ -409,6 +495,7 @@ export function usePdrbLabels() {
     getKbliLabel,
     getKbliShortCodeName,
     formatLlmProviderBadge,
+    getGeographicScopeBadge,
     getKbliImpactBadge,
     getExpenditureLabel,
     getExpenditureImpactBadge,

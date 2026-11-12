@@ -243,6 +243,7 @@ export function mapClassificationToPersistence(
     classification.geographic_scope === 'OTHER_REGION_IRRELEVANT'
   ) {
     return {
+      geographicScope: classification.geographic_scope,
       isEconomicPhenomenon: false,
       summary: classification.summary,
       kbliCategory: null,
@@ -264,6 +265,7 @@ export function mapClassificationToPersistence(
   }
 
   return {
+    geographicScope: classification.geographic_scope,
     isEconomicPhenomenon: true,
     summary: classification.summary,
     kbliCategory: classification.kbli_category,

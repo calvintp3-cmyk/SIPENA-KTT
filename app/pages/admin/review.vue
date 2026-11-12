@@ -664,10 +664,10 @@ const statusTabs = computed(() => {
             <UIcon name="i-solar-inbox-in-bold-duotone" class="w-3.5 h-3.5" />
             <span>Kurasi &amp; Validasi Harian Nerwilis</span>
           </div>
-          <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-[#0F172A] mt-2">
+          <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 text-balance mt-2">
             Review Harian Fenomena Ekonomi
           </h1>
-          <p class="text-xs sm:text-sm text-slate-600 mt-0.5">
+          <p class="text-xs sm:text-sm text-slate-600 mt-0.5 text-pretty">
             Audit hasil klasifikasi AI dan lengkapi pemetaan dua sisi PDRB sebelum ditayangkan ke publik.
           </p>
         </div>
@@ -682,7 +682,7 @@ const statusTabs = computed(() => {
             <button
               type="button"
               :aria-pressed="periodScope === 'all'"
-              class="px-3 py-1.5 rounded-lg text-xs transition-all cursor-pointer"
+              class="min-h-8 px-3 py-1 rounded-lg text-xs transition-colors cursor-pointer"
               :class="
                 periodScope === 'all'
                   ? 'bg-white font-bold text-indigo-700 shadow-2xs border border-indigo-200/70'
@@ -695,7 +695,7 @@ const statusTabs = computed(() => {
             <button
               type="button"
               :aria-pressed="periodScope === 'period'"
-              class="px-3 py-1.5 rounded-lg text-xs tabular-nums transition-all cursor-pointer"
+              class="min-h-8 px-3 py-1 rounded-lg text-xs tabular-nums transition-colors cursor-pointer"
               :class="
                 periodScope === 'period'
                   ? 'bg-white font-bold text-indigo-700 shadow-2xs border border-indigo-200/70'
@@ -707,19 +707,52 @@ const statusTabs = computed(() => {
             </button>
           </div>
 
-          <label
-            class="inline-flex items-center gap-2 rounded-xl bg-white border border-slate-200 px-3 py-1.5 cursor-pointer shadow-2xs"
-          >
-            <USwitch v-model="onlyLlmFailed" size="sm" />
-            <span class="text-xs font-semibold text-[#0F172A]">AI Gagal</span>
+          <div class="inline-flex items-center gap-2 rounded-xl bg-white border border-slate-200 px-3 min-h-9 py-1 shadow-2xs">
+            <USwitch
+              id="review-only-llm-failed"
+              v-model="onlyLlmFailed"
+              size="sm"
+              aria-label="Filter hanya artikel AI gagal"
+            />
+            <label for="review-only-llm-failed" class="text-xs font-semibold text-slate-900 cursor-pointer">
+              AI Gagal
+            </label>
             <span
               v-if="(reviewData?.summaryCounts.llmFailedCount ?? 0) > 0"
               class="px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200 text-[11px] font-bold tabular-nums"
             >
               {{ reviewData?.summaryCounts.llmFailedCount }}
             </span>
-          </label>
+          </div>
         </div>
+      </div>
+
+      <!-- Scope clarity strip -->
+      <div class="rounded-xl border border-slate-200/80 bg-slate-50/70 px-3.5 py-2 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600">
+        <span>
+          <strong class="text-slate-900">Cakupan aktif:</strong>
+          {{
+            periodScope === 'period'
+              ? `Menampilkan antrean khusus periode ${shortPeriodLabel}.`
+              : `Menampilkan seluruh periode (penghitung tab mencerminkan total antrean lintas triwulan).`
+          }}
+        </span>
+        <button
+          v-if="periodScope === 'all'"
+          type="button"
+          class="text-indigo-700 hover:text-indigo-900 font-semibold hover:underline cursor-pointer"
+          @click="() => { periodScope = 'period'; }"
+        >
+          Fokus ke {{ shortPeriodLabel }}
+        </button>
+        <button
+          v-else
+          type="button"
+          class="text-indigo-700 hover:text-indigo-900 font-semibold hover:underline cursor-pointer"
+          @click="() => { periodScope = 'all'; }"
+        >
+          Lihat Semua Periode
+        </button>
       </div>
 
       <!-- Status Tabs & Search -->
@@ -734,10 +767,10 @@ const statusTabs = computed(() => {
             :key="tab.value"
             type="button"
             :aria-pressed="activeStatus === tab.value"
-            class="px-3 py-1.5 rounded-lg text-xs inline-flex items-center gap-2 whitespace-nowrap transition-all cursor-pointer"
+            class="min-h-8 px-3 py-1 rounded-lg text-xs inline-flex items-center gap-2 whitespace-nowrap transition-colors cursor-pointer"
             :class="
               activeStatus === tab.value
-                ? 'bg-white font-bold text-[#0F172A] shadow-2xs border border-slate-200/90'
+                ? 'bg-white font-bold text-slate-900 shadow-2xs border border-slate-200/90'
                 : 'text-slate-600 hover:text-slate-950 font-medium'
             "
             @click="() => { activeStatus = tab.value; }"
@@ -755,7 +788,7 @@ const statusTabs = computed(() => {
         <div class="relative w-full sm:w-64">
           <UIcon
             name="i-solar-magnifer-line-duotone"
-            class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
+            class="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
           />
           <label for="review-queue-search" class="sr-only">Cari artikel pada antrean</label>
           <input
@@ -763,7 +796,7 @@ const statusTabs = computed(() => {
             v-model="searchInput"
             type="search"
             placeholder="Cari judul atau portal..."
-            class="w-full h-9 pl-9 pr-3 bg-white border border-slate-200 focus:border-indigo-500 rounded-xl text-xs text-[#0F172A]"
+            class="w-full h-9 pl-9 pr-3 bg-white border border-slate-200 focus:border-indigo-500 rounded-xl text-xs text-slate-900"
           >
         </div>
       </div>
@@ -790,21 +823,18 @@ const statusTabs = computed(() => {
       <div class="lg:col-span-7 space-y-3">
         <!-- Bulk Selection Header -->
         <div class="flex items-center justify-between px-1 text-xs text-slate-600">
-          <button
-            type="button"
-            class="inline-flex items-center gap-2 font-semibold hover:text-[#0F172A] cursor-pointer"
-            @click="() => { toggleSelectAllVisible(); }"
-          >
+          <label class="inline-flex items-center gap-2 min-h-8 font-semibold hover:text-slate-900 cursor-pointer">
             <input
               type="checkbox"
               :checked="allVisibleChecked"
               aria-label="Pilih semua artikel pada halaman ini"
-              class="rounded border-slate-300 text-indigo-600 pointer-events-none"
+              class="w-4 h-4 rounded border-slate-300 text-indigo-600 cursor-pointer"
+              @change="() => { toggleSelectAllVisible(); }"
             >
             <span>Pilih semua di halaman ({{ currentRows.length }})</span>
-          </button>
+          </label>
 
-          <span v-if="reviewData" class="text-xs font-medium text-slate-500 tabular-nums">
+          <span v-if="reviewData" class="text-xs font-medium text-slate-600 tabular-nums">
             Hal {{ reviewData.pagination.page }}/{{ reviewData.pagination.totalPages }} •
             {{ reviewData.pagination.total }} artikel
           </span>
@@ -821,39 +851,31 @@ const statusTabs = computed(() => {
 
         <!-- Empty Queue -->
         <div v-else-if="!currentRows.length" class="saas-card rounded-2xl py-12 px-6 text-center space-y-2.5">
-          <div class="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
+          <div class="w-12 h-12 rounded-2xl bg-slate-100 text-slate-500 flex items-center justify-center mx-auto">
             <UIcon name="i-solar-inbox-in-bold-duotone" class="w-6 h-6" />
           </div>
-          <div class="text-sm font-bold text-[#0F172A]">
+          <div class="text-sm font-bold text-slate-900">
             Tidak ada artikel pada tab {{ activeStatus }}
           </div>
-          <p class="text-xs text-slate-600">
+          <p class="text-xs text-slate-600 text-pretty">
             Coba ubah cakupan ke <strong>Semua Antrean</strong> atau bersihkan kata pencarian.
           </p>
         </div>
 
         <!-- Queue Card List -->
         <div v-else class="space-y-3">
-          <div
+          <article
             v-for="art in currentRows"
             :key="art.id"
-            class="saas-card rounded-2xl p-4 transition-all cursor-pointer relative overflow-hidden"
+            class="saas-card rounded-2xl p-4 transition-colors relative"
             :class="
               inspectedArticle?.id === art.id
                 ? 'ring-2 ring-indigo-500 border-indigo-400 shadow-[0_8px_24px_-10px_rgba(37,99,235,0.28)]'
                 : 'saas-card-interactive'
             "
-            @click="() => { selectArticleForInspection(art); }"
           >
-            <span
-              v-if="art.kbliCategory"
-              aria-hidden="true"
-              class="absolute inset-y-0 left-0 w-1"
-              :class="getKbliClusterTheme(art.kbliCategory).accentBarClass"
-            />
-
             <div class="flex items-start gap-3">
-              <div class="pt-0.5 shrink-0" @click.stop>
+              <div class="pt-0.5 shrink-0 relative z-10">
                 <input
                   type="checkbox"
                   :checked="Boolean(selectedMap[art.id])"
@@ -866,11 +888,11 @@ const statusTabs = computed(() => {
               <div class="min-w-0 flex-1 space-y-2">
                 <!-- Metadata Row -->
                 <div class="flex flex-wrap items-center justify-between gap-2">
-                  <div class="flex flex-wrap items-center gap-1.5 text-xs text-slate-500 tabular-nums">
-                    <span class="font-bold text-[#0F172A]">{{ formatDateId(art.publishedAt) }}</span>
-                    <span>•</span>
+                  <div class="flex flex-wrap items-center gap-1.5 text-xs text-slate-600 tabular-nums">
+                    <span class="font-bold text-slate-900">{{ formatDateId(art.publishedAt) }}</span>
+                    <span aria-hidden="true">•</span>
                     <span class="truncate max-w-[150px] font-medium">{{ art.sourcePortal }}</span>
-                    <span>•</span>
+                    <span aria-hidden="true">•</span>
                     <span class="px-2 py-0.5 rounded-full bg-indigo-50/70 border border-indigo-200/70 text-indigo-800 text-[11px] font-semibold">
                       TW {{ toRomanQuarter(art.quarter) }} {{ art.year }}
                     </span>
@@ -906,17 +928,17 @@ const statusTabs = computed(() => {
                   </div>
                 </div>
 
-                <!-- Title & Summary -->
-                <h2 class="text-sm font-bold text-[#0F172A] leading-snug">
+                <!-- Title (stretched card button for accessible selection) -->
+                <h2 class="text-sm font-bold text-slate-900 leading-snug">
                   <button
                     type="button"
-                    class="w-full text-left line-clamp-2 hover:text-indigo-700 transition-colors rounded cursor-pointer"
-                    @click.stop="() => { selectArticleForInspection(art); }"
+                    class="w-full text-left line-clamp-2 hover:text-indigo-700 transition-colors rounded cursor-pointer after:content-[''] after:absolute after:inset-0 after:z-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600"
+                    @click="() => { selectArticleForInspection(art); }"
                   >
                     {{ art.title }}
                   </button>
                 </h2>
-                <p class="text-xs text-slate-600 line-clamp-2 leading-relaxed">
+                <p class="text-xs text-slate-600 line-clamp-2 leading-relaxed text-pretty">
                   {{ art.summary || art.snippetText }}
                 </p>
 
@@ -945,12 +967,12 @@ const statusTabs = computed(() => {
                     </span>
                   </div>
 
-                  <div class="flex items-center gap-1.5" @click.stop>
+                  <div class="flex items-center gap-1.5 relative z-10">
                     <button
                       v-if="activeStatus !== VerificationStatusEnum.VERIFIED"
                       type="button"
                       :disabled="rowBusyId === art.id"
-                      class="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-[11px] font-semibold inline-flex items-center gap-1 cursor-pointer transition-colors"
+                      class="min-h-8 px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-[11px] font-semibold inline-flex items-center gap-1 cursor-pointer transition-colors"
                       @click="() => { void quickApprove(art); }"
                     >
                       <UIcon name="i-lucide-check" class="w-3 h-3" />
@@ -959,7 +981,7 @@ const statusTabs = computed(() => {
 
                     <button
                       type="button"
-                      class="lg:hidden px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-[#0F172A] text-[11px] font-semibold inline-flex items-center gap-1 cursor-pointer"
+                      class="lg:hidden min-h-8 px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-900 text-[11px] font-semibold inline-flex items-center gap-1 cursor-pointer"
                       @click="() => { openMobileSlideover(art); }"
                     >
                       <UIcon name="i-lucide-pencil" class="w-3 h-3" />
@@ -970,7 +992,7 @@ const statusTabs = computed(() => {
                       v-if="activeStatus !== VerificationStatusEnum.IGNORED"
                       type="button"
                       :disabled="rowBusyId === art.id"
-                      class="px-2.5 py-1 rounded-lg hover:bg-slate-100 text-slate-600 text-[11px] font-semibold cursor-pointer transition-colors"
+                      class="min-h-8 px-2.5 py-1 rounded-lg hover:bg-slate-100 text-slate-600 text-[11px] font-semibold cursor-pointer transition-colors"
                       @click="() => { void quickIgnore(art); }"
                     >
                       Abaikan
@@ -979,7 +1001,7 @@ const statusTabs = computed(() => {
                 </div>
               </div>
             </div>
-          </div>
+          </article>
 
           <!-- Pagination -->
           <div
@@ -1012,7 +1034,7 @@ const statusTabs = computed(() => {
           class="saas-card rounded-2xl overflow-hidden flex flex-col max-h-[calc(100vh-104px)]"
         >
           <!-- Inspector Header -->
-          <div class="px-4 py-3 border-b border-slate-200/80 bg-[#FAFBFD] flex items-center justify-between gap-2">
+          <div class="px-4 py-3 border-b border-slate-200/80 bg-slate-50/70 flex items-center justify-between gap-2">
             <div class="flex flex-wrap items-center gap-1.5">
               <UBadge
                 :color="getVerificationStatusBadge(inspectedArticle.verificationStatus).color"
@@ -1047,7 +1069,7 @@ const statusTabs = computed(() => {
               >
                 {{ formatLlmProviderBadge(inspectedArticle.llmModel).shortLabel }}
               </span>
-              <span class="text-[11px] font-medium text-slate-500">
+              <span class="text-[11px] font-medium text-slate-600">
                 {{ getSourceTypeLabel(inspectedArticle.sourceType) }}
               </span>
             </div>
@@ -1057,7 +1079,7 @@ const statusTabs = computed(() => {
               :href="inspectedArticle.url"
               target="_blank"
               rel="noopener noreferrer"
-              class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-slate-200 bg-white hover:border-indigo-300 hover:bg-indigo-50/40 text-xs font-semibold text-indigo-700 shrink-0"
+              class="inline-flex items-center gap-1 min-h-8 px-2.5 py-1 rounded-lg border border-slate-200 bg-white hover:border-indigo-300 hover:bg-indigo-50/40 text-xs font-semibold text-indigo-700 shrink-0 transition-colors"
             >
               <span>Sumber</span>
               <UIcon name="i-lucide-external-link" class="w-3 h-3" />
@@ -1066,7 +1088,7 @@ const statusTabs = computed(() => {
 
           <!-- Scrollable Inspector Body -->
           <div class="flex-1 overflow-y-auto saas-scroll p-4 space-y-4">
-            <div class="text-xs font-medium text-slate-500 flex items-center justify-between tabular-nums">
+            <div class="text-xs font-medium text-slate-600 flex items-center justify-between tabular-nums">
               <span class="font-semibold text-slate-700">{{ inspectedArticle.sourcePortal }}</span>
               <span>{{ formatDateTimeWita(inspectedArticle.publishedAt) }}</span>
             </div>
@@ -1101,7 +1123,7 @@ const statusTabs = computed(() => {
                 <button
                   type="button"
                   :aria-pressed="inspectorForm.isEconomicPhenomenon === true"
-                  class="py-1.5 px-2 rounded-lg text-xs transition-all cursor-pointer"
+                  class="min-h-8 py-1.5 px-2 rounded-lg text-xs transition-colors cursor-pointer"
                   :class="
                     inspectorForm.isEconomicPhenomenon === true
                       ? 'bg-white font-bold text-emerald-800 shadow-2xs border border-emerald-200'
@@ -1114,7 +1136,7 @@ const statusTabs = computed(() => {
                 <button
                   type="button"
                   :aria-pressed="inspectorForm.isEconomicPhenomenon === false"
-                  class="py-1.5 px-2 rounded-lg text-xs transition-all cursor-pointer"
+                  class="min-h-8 py-1.5 px-2 rounded-lg text-xs transition-colors cursor-pointer"
                   :class="
                     inspectorForm.isEconomicPhenomenon === false
                       ? 'bg-white font-bold text-rose-700 shadow-2xs border border-rose-200'
@@ -1144,7 +1166,7 @@ const statusTabs = computed(() => {
                 <button
                   v-if="canRestoreAiSummary"
                   type="button"
-                  class="inline-flex items-center gap-1 text-xs font-semibold text-indigo-700 hover:underline cursor-pointer"
+                  class="inline-flex items-center gap-1 min-h-7 px-1.5 text-xs font-semibold text-indigo-700 hover:underline cursor-pointer"
                   @click="() => { restoreAiSummary(); }"
                 >
                   <UIcon name="i-lucide-rotate-ccw" class="w-3 h-3" />
@@ -1168,15 +1190,17 @@ const statusTabs = computed(() => {
 
             <!-- Sisi Lapangan Usaha (KBLI + Concise 2x2 Grid) -->
             <div class="rounded-xl border border-indigo-200/70 bg-indigo-50/35 p-3.5 space-y-2.5">
-              <span class="block text-xs font-bold text-indigo-900">
+              <label for="insp-kbli-select" class="block text-xs font-bold text-indigo-900">
                 1. Lapangan Usaha (KBLI A–V)
-              </span>
+              </label>
               <USelectMenu
+                id="insp-kbli-select"
                 v-model="kbliSelectModel"
                 :items="kbliOptions"
                 value-key="value"
                 label-key="label"
                 placeholder="Pilih kategori KBLI..."
+                aria-label="Kategori Lapangan Usaha KBLI"
                 size="sm"
                 class="w-full"
               />
@@ -1186,7 +1210,7 @@ const statusTabs = computed(() => {
                   :key="opt.value"
                   type="button"
                   :aria-pressed="inspectorForm.kbliImpact === opt.value"
-                  class="px-2.5 py-1.5 rounded-lg border text-xs font-semibold text-left transition-all cursor-pointer"
+                  class="min-h-8 px-2.5 py-1.5 rounded-lg border text-xs font-semibold text-left transition-colors cursor-pointer"
                   :class="
                     inspectorForm.kbliImpact === opt.value
                       ? 'bg-indigo-600 text-white border-indigo-600 shadow-2xs'
@@ -1201,15 +1225,17 @@ const statusTabs = computed(() => {
 
             <!-- Sisi Pengeluaran (Component + Concise 2x2 Grid) -->
             <div class="rounded-xl border border-emerald-200/70 bg-emerald-50/35 p-3.5 space-y-2.5">
-              <span class="block text-xs font-bold text-emerald-900">
+              <label for="insp-exp-select" class="block text-xs font-bold text-emerald-900">
                 2. Komponen Pengeluaran PDRB
-              </span>
+              </label>
               <USelect
+                id="insp-exp-select"
                 v-model="expSelectModel"
                 :items="expenditureOptions"
                 value-key="value"
                 label-key="label"
                 placeholder="Pilih komponen pengeluaran..."
+                aria-label="Komponen Pengeluaran PDRB"
                 size="sm"
                 class="w-full"
               />
@@ -1219,10 +1245,10 @@ const statusTabs = computed(() => {
                   :key="opt.value"
                   type="button"
                   :aria-pressed="inspectorForm.expenditureImpact === opt.value"
-                  class="px-2.5 py-1.5 rounded-lg border text-xs font-semibold text-left transition-all cursor-pointer"
+                  class="min-h-8 px-2.5 py-1.5 rounded-lg border text-xs font-semibold text-left transition-colors cursor-pointer"
                   :class="
                     inspectorForm.expenditureImpact === opt.value
-                      ? 'bg-emerald-600 text-white border-emerald-600 shadow-2xs'
+                      ? 'bg-emerald-700 text-white border-emerald-700 shadow-2xs'
                       : 'bg-white text-slate-700 border-slate-200 hover:border-emerald-300'
                   "
                   @click="() => { inspectorForm.expenditureImpact = opt.value; }"
@@ -1234,18 +1260,27 @@ const statusTabs = computed(() => {
 
             <!-- Periode -->
             <div class="grid grid-cols-2 gap-2.5">
-              <UFormField label="Triwulan PDRB">
+              <div class="space-y-1">
+                <label for="insp-quarter-select" class="block text-xs font-semibold text-slate-600">
+                  Triwulan PDRB
+                </label>
                 <USelect
+                  id="insp-quarter-select"
                   v-model="inspectorForm.quarter"
                   :items="quarterOptions"
                   value-key="value"
                   label-key="label"
+                  aria-label="Triwulan PDRB"
                   size="sm"
                   class="w-full"
                 />
-              </UFormField>
-              <UFormField label="Tahun">
+              </div>
+              <div class="space-y-1">
+                <label for="insp-year-input" class="block text-xs font-semibold text-slate-600">
+                  Tahun
+                </label>
                 <UInput
+                  id="insp-year-input"
                   v-model.number="inspectorForm.year"
                   type="number"
                   size="sm"
@@ -1253,7 +1288,7 @@ const statusTabs = computed(() => {
                   :max="2100"
                   class="w-full"
                 />
-              </UFormField>
+              </div>
             </div>
 
             <!-- Cuplikan Sumber Asli -->
@@ -1270,20 +1305,27 @@ const statusTabs = computed(() => {
           </div>
 
           <!-- Sticky Inspector Footer -->
-          <div class="px-4 py-3 border-t border-slate-200/80 bg-[#FAFBFD] space-y-2.5">
+          <div class="px-4 py-3 border-t border-slate-200/80 bg-slate-50/70 space-y-2.5">
             <div
               v-if="activeStatus === VerificationStatusEnum.PENDING"
-              class="flex items-center justify-between text-xs text-slate-600"
+              class="flex items-center justify-between text-xs text-slate-700"
             >
-              <span>Otomatis buka antrean berikutnya</span>
-              <USwitch v-model="autoAdvanceNext" size="xs" />
+              <label for="insp-auto-advance" class="cursor-pointer font-medium">
+                Otomatis buka antrean berikutnya
+              </label>
+              <USwitch
+                id="insp-auto-advance"
+                v-model="autoAdvanceNext"
+                size="xs"
+                aria-label="Otomatis buka antrean berikutnya"
+              />
             </div>
 
             <div class="flex items-center justify-between gap-2">
               <button
                 type="button"
                 :disabled="inspectorSubmitting !== null"
-                class="h-8 px-3 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 disabled:opacity-50 cursor-pointer"
+                class="min-h-9 px-3 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 disabled:opacity-50 transition-colors cursor-pointer"
                 @click="() => { void submitInspectorAction('IGNORED'); }"
               >
                 Abaikan
@@ -1293,7 +1335,7 @@ const statusTabs = computed(() => {
                 <button
                   type="button"
                   :disabled="inspectorSubmitting !== null"
-                  class="h-8 px-3 rounded-lg border border-slate-200 bg-white hover:border-indigo-300 text-xs font-semibold text-[#0F172A] disabled:opacity-50 cursor-pointer"
+                  class="min-h-9 px-3 rounded-lg border border-slate-200 bg-white hover:border-indigo-300 text-xs font-semibold text-slate-900 disabled:opacity-50 transition-colors cursor-pointer"
                   @click="() => { void submitInspectorAction('DRAFT'); }"
                 >
                   Simpan Draft
@@ -1301,7 +1343,7 @@ const statusTabs = computed(() => {
                 <button
                   type="button"
                   :disabled="inspectorSubmitting !== null"
-                  class="btn-primary-gradient h-8 px-3.5 rounded-lg text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer"
+                  class="btn-primary-gradient min-h-9 px-3.5 rounded-lg text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer"
                   @click="() => { void submitInspectorAction('VERIFIED'); }"
                 >
                   <UIcon name="i-solar-check-circle-bold-duotone" class="w-4 h-4 text-emerald-200" />
@@ -1317,7 +1359,7 @@ const statusTabs = computed(() => {
     <!-- Floating Batch Action Bar (Synced with Collapsible Sidebar Width) -->
     <div
       v-if="selectedIds.length > 0"
-      class="fixed bottom-5 left-1/2 -translate-x-1/2 z-30 bg-[#0F172A] text-white rounded-2xl shadow-[0_20px_50px_rgba(15,23,42,0.38)] border border-indigo-400/25 px-4 py-2.5 flex flex-wrap items-center gap-3 transition-[left] duration-200"
+      class="fixed bottom-5 left-1/2 -translate-x-1/2 z-30 bg-slate-900 text-white rounded-2xl shadow-[0_20px_50px_rgba(15,23,42,0.38)] border border-indigo-400/25 px-4 py-2.5 flex flex-wrap items-center gap-3 transition-[left] duration-200"
       :class="isSidebarCollapsed ? 'lg:left-[calc(50%+2.5rem)]' : 'lg:left-[calc(50%+8rem)]'"
     >
       <span class="text-xs font-bold tabular-nums">
@@ -1329,7 +1371,7 @@ const statusTabs = computed(() => {
           v-if="activeStatus !== VerificationStatusEnum.VERIFIED"
           type="button"
           :disabled="batchLoading"
-          class="btn-primary-gradient px-3.5 py-1.5 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
+          class="btn-primary-gradient min-h-8 px-3.5 py-1.5 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
           @click="() => { void runBatchAction('VERIFY'); }"
         >
           <UIcon name="i-lucide-check" class="w-3.5 h-3.5" />
@@ -1340,7 +1382,7 @@ const statusTabs = computed(() => {
           v-if="activeStatus !== VerificationStatusEnum.IGNORED"
           type="button"
           :disabled="batchLoading"
-          class="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold disabled:opacity-50 cursor-pointer"
+          class="min-h-8 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold disabled:opacity-50 transition-colors cursor-pointer"
           @click="() => { void runBatchAction('IGNORE'); }"
         >
           Abaikan
@@ -1349,7 +1391,7 @@ const statusTabs = computed(() => {
         <button
           type="button"
           :disabled="batchLoading"
-          class="px-2.5 py-1.5 rounded-xl text-slate-300 hover:text-white text-xs cursor-pointer"
+          class="min-h-8 px-2.5 py-1.5 rounded-xl text-slate-200 hover:text-white text-xs transition-colors cursor-pointer"
           @click="() => { clearSelection(); }"
         >
           Batal

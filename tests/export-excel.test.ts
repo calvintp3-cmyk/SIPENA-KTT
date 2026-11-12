@@ -32,6 +32,8 @@ function makeSampleArticle(overrides: Partial<ArticleRecord> = {}): ArticleRecor
     publishedAt: now,
     quarter: 4,
     year: 2026,
+    geographicScope: null,
+    titleEmbedding: null,
     isEconomicPhenomenon: true,
     summary:
       'Harga pembelian TBS kelapa sawit di Kabupaten Tana Tidung naik menjadi Rp 2.980/kg pada awal Oktober 2026.',

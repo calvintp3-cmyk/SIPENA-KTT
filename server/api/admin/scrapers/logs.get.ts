@@ -138,6 +138,7 @@ export default defineEventHandler(async (event) => {
 
   const providerHealth = getConfiguredProviderHealthSummary(
     buildRouterEnvFromRuntimeConfig(runtimeCfg),
+    { includeAllOptionalProviders: true },
   );
 
   const total = Number(totalRow?.total ?? 0);

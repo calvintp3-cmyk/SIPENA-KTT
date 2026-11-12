@@ -1,5 +1,6 @@
 <!-- app/pages/admin/synthesis.vue -->
 <script setup lang="ts">
+import { onBeforeRouteLeave } from 'vue-router';
 import {
   PDRB_17_SECTORS,
   PDRB_6_EXPENDITURE_LIST,
@@ -7,6 +8,8 @@ import {
   type ExpenditureComponentMeta,
   type Pdrb17SectorMeta,
 } from '#shared/enums/pdrb';
+import { buildSynthesisDocxBytes } from '#shared/utils/docx-export';
+import { parseBrsMarkdown, type BrsMarkdownBlock } from '#shared/utils/markdown-brs';
 import { formatDateId, formatDateTimeWita, toRomanQuarter } from '#shared/utils/period';
 import type {
   AdminArticleItem,
@@ -211,9 +214,150 @@ const hasUnsavedChanges = computed<boolean>(() => {
   return editableMarkdown.value !== savedMarkdownSnapshot.value;
 });
 
+const confirmDiscardOpen = ref(false);
+const confirmDiscardTitle = ref('Buang Perubahan Draf yang Belum Disimpan?');
+const confirmDiscardDescription = ref(
+  'Anda memiliki suntingan narasi BRS yang belum disimpan ke database. Perubahan yang belum disimpan akan hilang jika Anda melanjutkan.',
+);
+let pendingDiscardAction: (() => Promise<void> | void) | null = null;
+let bypassRouteGuardOnce = false;
+
+function promptDiscardIfDirty(
+  action: () => Promise<void> | void,
+  options?: { title?: string; description?: string },
+) {
+  if (!hasUnsavedChanges.value) {
+    void action();
+    return;
+  }
+  confirmDiscardTitle.value = options?.title ?? 'Buang Perubahan Draf yang Belum Disimpan?';
+  confirmDiscardDescription.value =
+    options?.description ??
+    'Anda memiliki suntingan narasi BRS yang belum disimpan ke database. Perubahan yang belum disimpan akan hilang jika Anda melanjutkan.';
+  pendingDiscardAction = action;
+  confirmDiscardOpen.value = true;
+}
+
+function cancelDiscardModal() {
+  pendingDiscardAction = null;
+  confirmDiscardOpen.value = false;
+}
+
+async function confirmDiscardAndProceed() {
+  const action = pendingDiscardAction;
+  pendingDiscardAction = null;
+  confirmDiscardOpen.value = false;
+  if (action) {
+    await action();
+  }
+}
+
+function resetDirtyWorkspaceToSavedOrEmpty() {
+  if (activeDraftId.value && savedMarkdownSnapshot.value) {
+    editableMarkdown.value = savedMarkdownSnapshot.value;
+    if (result.value) {
+      result.value = {
+        ...result.value,
+        narrativeMarkdown: savedMarkdownSnapshot.value,
+      };
+    }
+  } else {
+    activeDraftId.value = null;
+    savedMarkdownSnapshot.value = '';
+    editableMarkdown.value = '';
+    result.value = null;
+  }
+  isEditingInline.value = false;
+}
+
+function handleBeforeUnload(event: BeforeUnloadEvent) {
+  if (!hasUnsavedChanges.value) return;
+  event.preventDefault();
+  event.returnValue = '';
+}
+
+onMounted(() => {
+  if (import.meta.client) {
+    window.addEventListener('beforeunload', handleBeforeUnload);
+  }
+});
+
 onBeforeUnmount(() => {
   if (highlightTimer) clearTimeout(highlightTimer);
+  if (import.meta.client) {
+    window.removeEventListener('beforeunload', handleBeforeUnload);
+  }
 });
+
+onBeforeRouteLeave((to) => {
+  if (bypassRouteGuardOnce || !hasUnsavedChanges.value) {
+    bypassRouteGuardOnce = false;
+    return true;
+  }
+  const nextPath = to.fullPath;
+  promptDiscardIfDirty(
+    async () => {
+      bypassRouteGuardOnce = true;
+      await navigateTo(nextPath);
+    },
+    {
+      title: 'Tinggalkan Studio Penulisan BRS?',
+      description:
+        'Masih ada perubahan draf yang belum disimpan. Jika Anda berpindah halaman sekarang, suntingan terakhir tidak akan tersimpan.',
+    },
+  );
+  return false;
+});
+
+function requestDimensionChange(nextDim: 'kbli' | 'expenditure') {
+  if (dimension.value === nextDim) return;
+  promptDiscardIfDirty(
+    () => {
+      if (hasUnsavedChanges.value) {
+        resetDirtyWorkspaceToSavedOrEmpty();
+      }
+      dimension.value = nextDim;
+    },
+    {
+      title: 'Ganti Dimensi Target PDRB?',
+      description:
+        'Perubahan pada draf saat ini belum disimpan. Mengganti dimensi akan membersihkan editor dari perubahan yang belum disimpan.',
+    },
+  );
+}
+
+function requestTargetCodeChange(nextCode: string | undefined) {
+  if (!nextCode || targetCode.value === nextCode) return;
+  promptDiscardIfDirty(
+    () => {
+      if (hasUnsavedChanges.value) {
+        resetDirtyWorkspaceToSavedOrEmpty();
+      }
+      targetCode.value = nextCode;
+    },
+    {
+      title: 'Ganti Sektor/Komponen Target?',
+      description:
+        'Perubahan pada draf saat ini belum disimpan. Mengganti target analisis akan membersihkan suntingan yang belum disimpan.',
+    },
+  );
+}
+
+function restoreSavedMarkdown() {
+  if (!savedMarkdownSnapshot.value) return;
+  editableMarkdown.value = savedMarkdownSnapshot.value;
+  if (result.value) {
+    result.value = {
+      ...result.value,
+      narrativeMarkdown: savedMarkdownSnapshot.value,
+    };
+  }
+  toast.add({
+    title: 'Teks Dipulihkan ke Versi Tersimpan',
+    color: 'neutral',
+    icon: 'i-lucide-rotate-ccw',
+  });
+}
 
 async function persistNewDraftToDatabase(res: SynthesisGenerateResponse): Promise<boolean> {
   try {
@@ -415,43 +559,192 @@ async function deleteDraftFromHistory(draft: SynthesisDraftItem) {
   }
 }
 
+function requestLoadDraftFromHistory(draft: SynthesisDraftItem) {
+  promptDiscardIfDirty(
+    () => loadDraftFromHistory(draft),
+    {
+      title: 'Buka Draf Lain dari Riwayat?',
+      description: `Membuka "${draft.targetLabel}" akan menggantikan perubahan draf di editor yang belum disimpan.`,
+    },
+  );
+}
+
+function requestGenerateNarrative() {
+  if (isGenerating.value || checkedIds.value.length === 0) return;
+  promptDiscardIfDirty(
+    () => generateNarrative(),
+    {
+      title: 'Susun Ulang Narasi BRS?',
+      description:
+        'Editor masih memiliki perubahan yang belum disimpan. Menyusun narasi baru akan menggantikan teks di editor saat ini.',
+    },
+  );
+}
+
 async function generateNarrative() {
   if (isGenerating.value || checkedIds.value.length === 0) return;
   isGenerating.value = true;
+  isEditingInline.value = false;
+  activeDraftId.value = null;
+  savedMarkdownSnapshot.value = '';
+  editableMarkdown.value = '';
+  result.value = {
+    narrativeMarkdown: '',
+    mode: 'llm',
+    modelUsed: null,
+    notice: 'Menghubungkan ke mesin sintesis Multi-LLM secara real-time...',
+    citations: [],
+    generatedAt: new Date().toISOString(),
+    articleCount: checkedIds.value.length,
+  };
 
   try {
-    const res = await $fetch<SynthesisGenerateResponse>('/api/admin/synthesis/generate', {
+    const response = await fetch('/api/admin/synthesis/generate', {
       method: 'POST',
-      body: {
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'text/event-stream, application/json',
+      },
+      body: JSON.stringify({
         year: selectedYear.value,
         quarter: selectedQuarter.value,
         dimension: dimension.value,
         targetCode: targetCode.value,
         style: style.value,
         articleIds: checkedIds.value,
-      },
-      credentials: 'include',
+        stream: true,
+      }),
     });
 
-    result.value = res;
-    editableMarkdown.value = res.narrativeMarkdown;
-    savedMarkdownSnapshot.value = res.narrativeMarkdown;
+    const contentType = response.headers.get('content-type') ?? '';
+
+    if (!response.ok) {
+      let errMsg = 'Periksa kembali daftar artikel terpilih.';
+      if (contentType.includes('application/json')) {
+        const errBody = (await response.json().catch(() => null)) as { message?: string } | null;
+        if (errBody?.message) errMsg = errBody.message;
+      } else {
+        const text = await response.text().catch(() => '');
+        if (text.trim()) errMsg = text.slice(0, 240);
+      }
+      throw new Error(errMsg);
+    }
+
+    let finalRes: SynthesisGenerateResponse | null = null;
+
+    if (contentType.includes('text/event-stream') && response.body) {
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder('utf-8');
+      let buffer = '';
+
+      const processEventBlock = (rawBlock: string) => {
+        const lines = rawBlock.split('\n');
+        let eventName = 'message';
+        const dataParts: string[] = [];
+
+        for (const line of lines) {
+          if (line.startsWith('event:')) {
+            eventName = line.slice(6).trim();
+          } else if (line.startsWith('data:')) {
+            dataParts.push(line.slice(5).trim());
+          }
+        }
+
+        if (dataParts.length === 0) return;
+        const payloadRaw = dataParts.join('\n');
+        let parsed: Record<string, unknown> | null = null;
+        try {
+          parsed = JSON.parse(payloadRaw) as Record<string, unknown>;
+        } catch {
+          return;
+        }
+
+        if (eventName === 'meta') {
+          const citations = Array.isArray(parsed.citations)
+            ? (parsed.citations as SynthesisCitationItem[])
+            : [];
+          const articleCount =
+            typeof parsed.articleCount === 'number' ? parsed.articleCount : citations.length;
+          if (result.value) {
+            result.value = {
+              ...result.value,
+              citations,
+              articleCount,
+              notice: 'Menulis draf narasi BRS terhubung ke sumber bukti...',
+            };
+          }
+        } else if (eventName === 'chunk') {
+          const chunkText = typeof parsed.text === 'string' ? parsed.text : '';
+          if (chunkText) {
+            editableMarkdown.value += chunkText;
+            if (result.value) {
+              result.value = {
+                ...result.value,
+                narrativeMarkdown: editableMarkdown.value,
+              };
+            }
+          }
+        } else if (eventName === 'done') {
+          finalRes = parsed as unknown as SynthesisGenerateResponse;
+        } else if (eventName === 'error') {
+          const msg =
+            typeof parsed.message === 'string'
+              ? parsed.message
+              : 'Gagal menyusun sintesis BRS.';
+          throw new Error(msg);
+        }
+      };
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true }).replace(/\r\n/g, '\n');
+
+        let sepIndex = buffer.indexOf('\n\n');
+        while (sepIndex !== -1) {
+          const block = buffer.slice(0, sepIndex).trim();
+          buffer = buffer.slice(sepIndex + 2);
+          if (block) processEventBlock(block);
+          sepIndex = buffer.indexOf('\n\n');
+        }
+      }
+
+      buffer += decoder.decode().replace(/\r\n/g, '\n');
+      if (buffer.trim()) {
+        for (const rem of buffer.split('\n\n')) {
+          if (rem.trim()) processEventBlock(rem.trim());
+        }
+      }
+    } else {
+      finalRes = (await response.json()) as SynthesisGenerateResponse;
+    }
+
+    if (!finalRes) {
+      throw new Error('Aliran respons sintesis berhenti sebelum draf selesai disusun.');
+    }
+
+    result.value = finalRes;
+    editableMarkdown.value = finalRes.narrativeMarkdown;
+    savedMarkdownSnapshot.value = finalRes.narrativeMarkdown;
     isEditingInline.value = false;
-    const persisted = await persistNewDraftToDatabase(res);
+    const persisted = await persistNewDraftToDatabase(finalRes);
 
     if (persisted) {
       toast.add({
         title: 'Draf Narasi BRS Siap & Tersimpan',
-        description: `${res.articleCount} bukti terverifikasi berhasil disintesis.`,
+        description: `${finalRes.articleCount} bukti terverifikasi berhasil disintesis.`,
         color: 'success',
         icon: 'i-lucide-sparkles',
       });
     }
   } catch (err: unknown) {
-    const fetchErr = err as { data?: { message?: string } };
+    result.value = null;
+    const message =
+      err instanceof Error ? err.message : 'Periksa kembali daftar artikel terpilih.';
     toast.add({
       title: 'Gagal Menyusun Narasi',
-      description: fetchErr.data?.message || 'Periksa kembali daftar artikel terpilih.',
+      description: message,
       color: 'error',
       icon: 'i-lucide-alert-circle',
     });
@@ -487,62 +780,9 @@ function jumpToCitation(citationIndex: number) {
   }, 2400);
 }
 
-// Safe Inline Markdown + Citation Tokenizer (Zero v-html XSS)
-interface InlineSpan {
-  type: 'text' | 'bold' | 'cite';
-  text: string;
-  citeNum?: number;
-}
-
-interface MarkdownBlock {
-  type: 'heading' | 'bullet' | 'paragraph';
-  spans: InlineSpan[];
-}
-
-function tokenizeInline(line: string): InlineSpan[] {
-  const spans: InlineSpan[] = [];
-  const regex = /(\*\*[^*]+\*\*|\[\d+\])/g;
-  let lastIndex = 0;
-  let match: RegExpExecArray | null;
-
-  while ((match = regex.exec(line)) !== null) {
-    if (match.index > lastIndex) {
-      spans.push({ type: 'text', text: line.slice(lastIndex, match.index) });
-    }
-    const token = match[0];
-    if (token.startsWith('**') && token.endsWith('**')) {
-      spans.push({ type: 'bold', text: token.slice(2, -2) });
-    } else if (token.startsWith('[') && token.endsWith(']')) {
-      const num = Number(token.slice(1, -1));
-      spans.push({ type: 'cite', text: token, citeNum: num });
-    }
-    lastIndex = match.index + token.length;
-  }
-
-  if (lastIndex < line.length) {
-    spans.push({ type: 'text', text: line.slice(lastIndex) });
-  }
-  return spans;
-}
-
-const parsedNarrativeBlocks = computed<MarkdownBlock[]>(() => {
-  const raw = editableMarkdown.value.trim();
-  if (!raw) return [];
-  const blocks: MarkdownBlock[] = [];
-  for (const rawLine of raw.split('\n')) {
-    const line = rawLine.trim();
-    if (!line) continue;
-    if (line.startsWith('#')) {
-      const clean = line.replace(/^#+\s*/, '');
-      blocks.push({ type: 'heading', spans: tokenizeInline(clean) });
-    } else if (line.startsWith('- ') || line.startsWith('* ')) {
-      blocks.push({ type: 'bullet', spans: tokenizeInline(line.slice(2).trim()) });
-    } else {
-      blocks.push({ type: 'paragraph', spans: tokenizeInline(line) });
-    }
-  }
-  return blocks;
-});
+const parsedNarrativeBlocks = computed<BrsMarkdownBlock[]>(() =>
+  parseBrsMarkdown(editableMarkdown.value),
+);
 
 async function copyNarrativeText() {
   if (!editableMarkdown.value.trim()) return;
@@ -562,45 +802,30 @@ async function copyNarrativeText() {
   }
 }
 
-function escapeHtml(raw: string): string {
-  return raw
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
+function downloadDocxFile() {
+  if (!editableMarkdown.value.trim() || !import.meta.client) return;
 
-function downloadDocFile() {
-  if (!editableMarkdown.value.trim()) return;
-  const paragraphsHtml = parsedNarrativeBlocks.value
-    .map((b: MarkdownBlock) => {
-      const inner = b.spans
-        .map((s: InlineSpan) =>
-          s.type === 'bold'
-            ? `<strong>${escapeHtml(s.text)}</strong>`
-            : escapeHtml(s.text),
-        )
-        .join('');
-      if (b.type === 'heading') return `<h2 style="font-size:13pt;margin-top:14pt;">${inner}</h2>`;
-      if (b.type === 'bullet') return `<li style="margin-bottom:4pt;">${inner}</li>`;
-      return `<p style="line-height:1.6;margin-bottom:8pt;">${inner}</p>`;
-    })
-    .join('\n');
+  const bytes = buildSynthesisDocxBytes({
+    title: `Sintesis Narasi PDRB — ${currentTargetLabel.value}`,
+    periodLabel: periodLabel.value,
+    subtitle: 'BPS Kabupaten Tana Tidung • Fungsi Nerwilis',
+    markdown: editableMarkdown.value,
+    citations: (result.value?.citations ?? []).map((c: SynthesisCitationItem) => ({
+      index: c.index,
+      title: c.title,
+      sourcePortal: c.sourcePortal,
+      publishedAtText: formatDateId(c.publishedAt),
+      url: c.url,
+    })),
+  });
 
-  const citationsHtml = (result.value?.citations ?? [])
-    .map(
-      (c: SynthesisCitationItem) =>
-        `<li>[${c.index}] ${escapeHtml(c.title)} — <em>${escapeHtml(c.sourcePortal)}</em> (${escapeHtml(formatDateId(c.publishedAt))})</li>`,
-    )
-    .join('\n');
-
-  const docHtml = `<!DOCTYPE html><html lang="id"><head><meta charset="utf-8"><title>Sintesis Narasi PDRB ${escapeHtml(periodLabel.value)}</title></head><body style="font-family:Calibri,Arial,sans-serif;font-size:11pt;color:#0B1220;"><h1>Sintesis Narasi PDRB — ${escapeHtml(currentTargetLabel.value)}</h1><p><strong>Periode:</strong> ${escapeHtml(periodLabel.value)} • <strong>BPS Kabupaten Tana Tidung (Fungsi Nerwilis)</strong></p><hr>${paragraphsHtml}<hr><h3>Daftar Sumber Berita Terverifikasi</h3><ol>${citationsHtml}</ol></body></html>`;
-
-  const blob = new Blob([docHtml], { type: 'application/msword;charset=utf-8' });
+  const blob = new Blob([new Uint8Array(bytes)], {
+    type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `SIPENA-Narasi-BRS-${selectedYear.value}-TW${selectedQuarter.value}.doc`;
+  a.download = `SIPENA-Narasi-BRS-${selectedYear.value}-TW${selectedQuarter.value}.docx`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -627,10 +852,10 @@ const manualModalOpen = ref(false);
             <UIcon name="i-solar-magic-stick-3-bold-duotone" class="w-3.5 h-3.5" />
             <span>Studio Penulisan Berita Resmi Statistik (BRS)</span>
           </div>
-          <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-[#0F172A] mt-2">
+          <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 text-balance mt-2">
             Sintesis Narasi PDRB — {{ periodLabel }}
           </h1>
-          <p class="text-xs sm:text-sm text-slate-600 mt-0.5">
+          <p class="text-xs sm:text-sm text-slate-600 mt-0.5 text-pretty">
             Susun draf narasi faktual berakar 100% pada bukti berita terverifikasi lengkap dengan sitasi silang.
           </p>
         </div>
@@ -638,7 +863,7 @@ const manualModalOpen = ref(false);
         <div class="flex flex-wrap items-center gap-2.5">
           <button
             type="button"
-            class="h-9 px-3.5 rounded-xl border border-slate-200 bg-white hover:border-indigo-300 hover:bg-slate-50 text-xs font-semibold text-[#0F172A] inline-flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
+            class="min-h-9 px-3.5 rounded-xl border border-slate-200 bg-white hover:border-indigo-300 hover:bg-slate-50 text-xs font-semibold text-slate-900 inline-flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
             @click="() => { draftsDrawerOpen = true; }"
           >
             <UIcon name="i-solar-history-2-bold-duotone" class="w-4 h-4 text-indigo-600" />
@@ -648,8 +873,8 @@ const manualModalOpen = ref(false);
           <button
             type="button"
             :disabled="isGenerating || checkedIds.length === 0"
-            class="btn-primary-gradient h-9 px-4 rounded-xl text-xs font-semibold inline-flex items-center gap-2 cursor-pointer"
-            @click="() => { void generateNarrative(); }"
+            class="btn-primary-gradient min-h-9 px-4 rounded-xl text-xs font-semibold inline-flex items-center gap-2 cursor-pointer"
+            @click="() => { requestGenerateNarrative(); }"
           >
             <UIcon
               :name="isGenerating ? 'i-lucide-loader-circle' : 'i-solar-magic-stick-3-bold-duotone'"
@@ -675,26 +900,26 @@ const manualModalOpen = ref(false);
             <button
               type="button"
               :aria-pressed="dimension === 'kbli'"
-              class="py-1.5 px-2 rounded-lg text-xs transition-all cursor-pointer"
+              class="min-h-8 py-1.5 px-2 rounded-lg text-xs transition-colors cursor-pointer"
               :class="
                 dimension === 'kbli'
                   ? 'bg-white font-bold text-indigo-700 shadow-2xs border border-indigo-200/70'
                   : 'text-slate-600 hover:text-slate-950 font-medium'
               "
-              @click="() => { dimension = 'kbli'; }"
+              @click="() => { requestDimensionChange('kbli'); }"
             >
               17 KBLI
             </button>
             <button
               type="button"
               :aria-pressed="dimension === 'expenditure'"
-              class="py-1.5 px-2 rounded-lg text-xs transition-all cursor-pointer"
+              class="min-h-8 py-1.5 px-2 rounded-lg text-xs transition-colors cursor-pointer"
               :class="
                 dimension === 'expenditure'
                   ? 'bg-white font-bold text-emerald-700 shadow-2xs border border-emerald-200/70'
                   : 'text-slate-600 hover:text-slate-950 font-medium'
               "
-              @click="() => { dimension = 'expenditure'; }"
+              @click="() => { requestDimensionChange('expenditure'); }"
             >
               6 Pengeluaran
             </button>
@@ -722,12 +947,13 @@ const manualModalOpen = ref(false);
           </div>
           <USelectMenu
             id="synth-target-select"
-            v-model="targetCode"
+            :model-value="targetCode"
             :items="targetOptions"
             value-key="value"
             label-key="label"
             aria-label="Pilih target sektor atau komponen PDRB"
             class="w-full"
+            @update:model-value="requestTargetCodeChange"
           />
         </div>
 
@@ -758,10 +984,10 @@ const manualModalOpen = ref(false);
         aria-label="Daftar Sumber Bukti Terverifikasi"
         class="no-print lg:col-span-5 saas-card rounded-2xl overflow-hidden flex flex-col max-h-[760px]"
       >
-        <div class="p-4 border-b border-slate-200/80 bg-[#FAFBFD] space-y-3">
+        <div class="p-4 border-b border-slate-200/80 bg-slate-50/70 space-y-3">
           <div class="flex items-center justify-between gap-2">
             <div>
-              <h2 class="text-sm font-bold text-[#0F172A]">Bukti Terverifikasi</h2>
+              <h2 class="text-sm font-bold text-slate-900">Bukti Terverifikasi</h2>
               <p class="text-[11px] text-slate-600 tabular-nums">
                 {{ checkedIds.length }} dipilih dari {{ poolData?.items.length ?? 0 }} artikel (maks. 30)
               </p>
@@ -769,15 +995,15 @@ const manualModalOpen = ref(false);
             <div class="flex items-center gap-2 text-xs">
               <button
                 type="button"
-                class="text-indigo-700 hover:text-indigo-900 hover:underline font-semibold cursor-pointer"
+                class="min-h-8 px-1.5 inline-flex items-center text-indigo-700 hover:text-indigo-900 hover:underline font-semibold cursor-pointer"
                 @click="() => { selectAllPool(); }"
               >
                 Pilih Semua
               </button>
-              <span class="text-slate-300">|</span>
+              <span class="text-slate-300" aria-hidden="true">|</span>
               <button
                 type="button"
-                class="text-slate-500 hover:text-slate-800 cursor-pointer"
+                class="min-h-8 px-1.5 inline-flex items-center text-slate-600 hover:text-slate-900 cursor-pointer"
                 @click="() => { clearPoolSelection(); }"
               >
                 Kosongkan
@@ -820,18 +1046,18 @@ const manualModalOpen = ref(false);
           </div>
 
           <div v-else-if="!filteredPool.length" class="py-10 px-4 text-center space-y-3">
-            <UIcon name="i-solar-document-text-bold-duotone" class="w-9 h-9 text-slate-300 mx-auto" />
+            <UIcon name="i-solar-document-text-bold-duotone" class="w-9 h-9 text-slate-400 mx-auto" aria-hidden="true" />
             <div class="text-xs font-bold text-slate-700">
               Belum ada fenomena terverifikasi untuk target ini di {{ shortPeriodLabel }}.
             </div>
-            <p class="text-[11px] text-slate-500">
+            <p class="text-[11px] text-slate-600">
               Anda dapat melengkapi bukti secara manual atau mengurasi antrean pending terlebih dahulu.
             </p>
             <div class="flex justify-center gap-2">
-              <UButton size="xs" color="primary" variant="outline" @click="() => { manualModalOpen = true; }">
+              <UButton size="sm" color="primary" variant="outline" @click="() => { manualModalOpen = true; }">
                 + Input Manual
               </UButton>
-              <UButton size="xs" color="neutral" variant="ghost" to="/admin/review">
+              <UButton size="sm" color="neutral" variant="ghost" to="/admin/review">
                 Buka Review
               </UButton>
             </div>
@@ -842,14 +1068,14 @@ const manualModalOpen = ref(false);
               v-for="(art, idx) in filteredPool"
               :id="`synth-cite-card-${art.id}`"
               :key="art.id"
-              class="rounded-xl border p-3 transition-all"
+              class="rounded-xl border p-3 transition-colors"
               :class="
                 citationIndexByArticleId.get(art.id) !== undefined &&
                 highlightedCitationIndex === citationIndexByArticleId.get(art.id)
                   ? 'bg-indigo-50/80 border-indigo-500 ring-2 ring-indigo-500/25 shadow-sm'
                   : checkedMap[art.id]
                     ? 'bg-white border-indigo-300/80 shadow-2xs'
-                    : 'bg-slate-50/80 border-slate-200/80 opacity-75 hover:opacity-100'
+                    : 'bg-slate-50/80 border-slate-200/80 opacity-80 hover:opacity-100'
               "
             >
               <div class="flex items-start gap-2.5">
@@ -857,7 +1083,7 @@ const manualModalOpen = ref(false);
                   :id="`synth-pool-chk-${art.id}`"
                   type="checkbox"
                   :checked="Boolean(checkedMap[art.id])"
-                  class="mt-0.5 rounded border-slate-300 accent-indigo-600 text-indigo-600 focus:ring-indigo-600 cursor-pointer"
+                  class="mt-0.5 w-4 h-4 rounded border-slate-300 accent-indigo-600 text-indigo-600 focus:ring-indigo-600 cursor-pointer"
                   @change="(e: Event) => { togglePoolItem(art.id, e); }"
                 >
                 <label
@@ -875,12 +1101,12 @@ const manualModalOpen = ref(false);
                     >
                       [{{ citationIndexByArticleId.get(art.id) ?? idx + 1 }}]
                     </span>
-                    <span class="text-[11px] font-medium text-slate-500 tabular-nums truncate">
+                    <span class="text-[11px] font-medium text-slate-600 tabular-nums truncate">
                       {{ art.sourcePortal }} • {{ formatDateId(art.publishedAt) }}
                     </span>
                   </span>
 
-                  <span class="block text-xs font-bold text-[#0F172A] leading-snug line-clamp-2">
+                  <span class="block text-xs font-bold text-slate-900 leading-snug line-clamp-2">
                     {{ art.title }}
                   </span>
                   <span class="block text-[11px] text-slate-600 line-clamp-2 leading-relaxed">
@@ -922,7 +1148,7 @@ const manualModalOpen = ref(false);
       <section aria-label="Editor dan Pratinjau Narasi BRS" class="lg:col-span-7 space-y-4">
         <div class="saas-card synthesis-print-sheet rounded-2xl overflow-hidden flex flex-col">
           <!-- Toolbar (Hidden in Print) -->
-          <div class="no-print px-5 py-3.5 border-b border-slate-200/80 bg-[#FAFBFD] flex flex-wrap items-center justify-between gap-2.5">
+          <div class="no-print px-5 py-3.5 border-b border-slate-200/80 bg-slate-50/70 flex flex-wrap items-center justify-between gap-2.5">
             <div class="flex items-center gap-2">
               <span
                 v-if="result"
@@ -946,14 +1172,24 @@ const manualModalOpen = ref(false);
 
             <div class="flex flex-wrap items-center gap-1.5">
               <button
+                v-if="hasUnsavedChanges && savedMarkdownSnapshot && !isGenerating"
+                type="button"
+                class="min-h-9 px-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-medium text-slate-700 inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+                @click="() => { restoreSavedMarkdown(); }"
+              >
+                <UIcon name="i-lucide-rotate-ccw" class="w-3.5 h-3.5" />
+                <span>Pulihkan</span>
+              </button>
+
+              <button
                 v-if="editableMarkdown"
                 type="button"
-                :disabled="!hasUnsavedChanges || isSavingDraft"
-                class="h-8 px-2.5 rounded-xl border text-xs font-semibold inline-flex items-center gap-1.5 transition-colors disabled:opacity-45 cursor-pointer"
+                :disabled="!hasUnsavedChanges || isSavingDraft || isGenerating"
+                class="min-h-9 px-2.5 rounded-xl border text-xs font-semibold inline-flex items-center gap-1.5 transition-colors disabled:opacity-45 cursor-pointer"
                 :class="
                   hasUnsavedChanges
                     ? 'border-emerald-500 bg-emerald-50 hover:bg-emerald-100 text-emerald-800'
-                    : 'border-slate-200 bg-white text-slate-500'
+                    : 'border-slate-200 bg-white text-slate-600'
                 "
                 @click="() => { void saveCurrentDraftChanges(); }"
               >
@@ -975,8 +1211,8 @@ const manualModalOpen = ref(false);
 
               <button
                 type="button"
-                :disabled="!editableMarkdown"
-                class="h-8 px-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-medium text-[#0F172A] inline-flex items-center gap-1.5 disabled:opacity-40 cursor-pointer"
+                :disabled="!editableMarkdown || isGenerating"
+                class="min-h-9 px-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-medium text-slate-900 inline-flex items-center gap-1.5 disabled:opacity-40 transition-colors cursor-pointer"
                 @click="() => { isEditingInline = !isEditingInline; }"
               >
                 <UIcon :name="isEditingInline ? 'i-lucide-eye' : 'i-lucide-pencil'" class="w-3.5 h-3.5" />
@@ -985,8 +1221,8 @@ const manualModalOpen = ref(false);
 
               <button
                 type="button"
-                :disabled="!editableMarkdown"
-                class="h-8 px-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-medium text-[#0F172A] inline-flex items-center gap-1.5 disabled:opacity-40 cursor-pointer"
+                :disabled="!editableMarkdown || isGenerating"
+                class="min-h-9 px-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-medium text-slate-900 inline-flex items-center gap-1.5 disabled:opacity-40 transition-colors cursor-pointer"
                 @click="() => { void copyNarrativeText(); }"
               >
                 <UIcon name="i-lucide-copy" class="w-3.5 h-3.5" />
@@ -995,21 +1231,21 @@ const manualModalOpen = ref(false);
 
               <button
                 type="button"
-                :disabled="!editableMarkdown"
-                class="h-8 px-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-medium text-[#0F172A] inline-flex items-center gap-1.5 disabled:opacity-40 cursor-pointer"
-                @click="() => { downloadDocFile(); }"
+                :disabled="!editableMarkdown || isGenerating"
+                class="min-h-9 px-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-medium text-slate-900 inline-flex items-center gap-1.5 disabled:opacity-40 transition-colors cursor-pointer"
+                @click="() => { downloadDocxFile(); }"
               >
                 <UIcon name="i-lucide-file-text" class="w-3.5 h-3.5 text-indigo-600" />
-                <span>.DOC</span>
+                <span>.DOCX</span>
               </button>
 
               <button
                 type="button"
-                :disabled="!editableMarkdown"
-                class="h-8 px-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-medium text-[#0F172A] inline-flex items-center gap-1.5 disabled:opacity-40 cursor-pointer"
+                :disabled="!editableMarkdown || isGenerating"
+                class="min-h-9 px-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-medium text-slate-900 inline-flex items-center gap-1.5 disabled:opacity-40 transition-colors cursor-pointer"
                 @click="() => { printNarrativeSheet(); }"
               >
-                <UIcon name="i-lucide-printer" class="w-3.5 h-3.5 text-emerald-600" />
+                <UIcon name="i-lucide-printer" class="w-3.5 h-3.5 text-emerald-700" />
                 <span>Cetak / PDF</span>
               </button>
             </div>
@@ -1033,17 +1269,17 @@ const manualModalOpen = ref(false);
               <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-50 to-emerald-50 border border-indigo-200/80 text-indigo-600 flex items-center justify-center mx-auto shadow-2xs">
                 <UIcon name="i-solar-magic-stick-3-bold-duotone" class="w-6 h-6" />
               </div>
-              <h2 class="text-base font-extrabold text-[#0F172A]">
+              <h2 class="text-base font-extrabold text-slate-900 text-balance">
                 Siap Menyusun Narasi {{ currentTargetLabel }}
               </h2>
-              <p class="text-xs text-slate-600 leading-relaxed">
+              <p class="text-xs text-slate-600 leading-relaxed text-pretty">
                 Centang bukti berita relevan di panel kiri, pilih gaya penulisan BRS atau kajian,
                 lalu klik <strong>Generate Narasi BRS</strong> di kanan atas.
               </p>
             </div>
 
-            <!-- Generating Skeleton -->
-            <div v-else-if="isGenerating" class="space-y-4 py-6">
+            <!-- Generating Skeleton before first streamed token arrives -->
+            <div v-else-if="isGenerating && !editableMarkdown.trim()" class="space-y-4 py-6">
               <div class="h-5 w-1/2 rounded-lg bg-slate-200" />
               <div class="h-24 w-full rounded-xl bg-slate-100" />
               <div class="h-5 w-2/5 rounded-lg bg-slate-200" />
@@ -1054,25 +1290,35 @@ const manualModalOpen = ref(false);
             <div v-else-if="isEditingInline" class="space-y-2">
               <label
                 for="synth-inline-editor"
-                class="block text-xs font-bold uppercase tracking-wider text-slate-500"
+                class="block text-xs font-bold uppercase tracking-wider text-slate-600"
               >
-                Editor Teks Narasi (Markdown Sederhana)
+                Editor Teks Narasi (Markdown BRS)
               </label>
               <textarea
                 id="synth-inline-editor"
                 v-model="editableMarkdown"
                 rows="16"
-                class="w-full rounded-xl border border-slate-200 p-4 text-sm text-[#0F172A] leading-relaxed focus:border-indigo-500 focus:outline-none"
+                class="w-full rounded-xl border border-slate-200 p-4 text-sm text-slate-900 leading-relaxed focus:border-indigo-500 focus:outline-none"
               />
             </div>
 
             <!-- Interactive Document View with Cross-Link Citation Chips -->
             <article v-else class="space-y-5">
               <header class="pb-4 border-b border-slate-200/80 space-y-1">
-                <div class="text-xs font-bold uppercase tracking-wider text-indigo-700">
-                  SIPENA KTT • Draf Sintesis Narasi PDRB
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                  <div class="text-xs font-bold uppercase tracking-wider text-indigo-700">
+                    SIPENA KTT • Draf Sintesis Narasi PDRB
+                  </div>
+                  <span
+                    v-if="isGenerating"
+                    role="status"
+                    class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-800 border border-indigo-200 text-[11px] font-semibold"
+                  >
+                    <UIcon name="i-lucide-loader-circle" class="w-3 h-3 animate-spin" />
+                    <span>Menulis live...</span>
+                  </span>
                 </div>
-                <h2 class="text-lg sm:text-xl font-extrabold text-[#0F172A]">
+                <h2 class="text-lg sm:text-xl font-extrabold text-slate-900 text-balance">
                   {{ currentTargetLabel }} — {{ periodLabel }}
                 </h2>
                 <p class="text-xs text-slate-600">
@@ -1080,62 +1326,93 @@ const manualModalOpen = ref(false);
                 </p>
               </header>
 
-              <div class="space-y-3.5 text-sm leading-relaxed text-[#1E293B]">
+              <div class="space-y-3.5 text-sm leading-relaxed text-slate-800">
                 <template v-for="(block, bIdx) in parsedNarrativeBlocks" :key="bIdx">
                   <h3
-                    v-if="block.type === 'heading'"
-                    class="text-base font-bold text-[#0F172A] pt-2 tracking-tight"
+                    v-if="block.type === 'heading' && block.level <= 2"
+                    class="text-base font-bold text-slate-900 pt-2 tracking-tight text-balance"
                   >
-                    <template v-for="(span, sIdx) in block.spans" :key="sIdx">
-                      <strong v-if="span.type === 'bold'">{{ span.text }}</strong>
-                      <template v-else>{{ span.text }}</template>
-                    </template>
+                    <AdminSynthesisSpans :spans="block.spans" @cite="jumpToCitation" />
                   </h3>
 
-                  <div v-else-if="block.type === 'bullet'" class="flex items-start gap-2.5 pl-2">
-                    <span class="mt-2 w-1.5 h-1.5 rounded-full bg-indigo-600 shrink-0" />
-                    <p class="flex-1">
-                      <template v-for="(span, sIdx) in block.spans" :key="sIdx">
-                        <strong v-if="span.type === 'bold'" class="font-semibold text-[#0F172A]">
-                          {{ span.text }}
-                        </strong>
-                        <button
-                          v-else-if="span.type === 'cite' && span.citeNum"
-                          type="button"
-                          title="Sorot kartu sumber bukti"
-                          class="inline-flex items-center px-1.5 py-0.5 mx-0.5 rounded-md bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-[11px] font-bold tabular-nums align-baseline transition-colors cursor-pointer"
-                          @click="() => { jumpToCitation(span.citeNum!); }"
-                        >
-                          {{ span.text }}
-                        </button>
-                        <template v-else>{{ span.text }}</template>
-                      </template>
+                  <h4
+                    v-else-if="block.type === 'heading'"
+                    class="text-sm font-bold text-slate-900 pt-1.5 tracking-tight text-balance"
+                  >
+                    <AdminSynthesisSpans :spans="block.spans" @cite="jumpToCitation" />
+                  </h4>
+
+                  <ul
+                    v-else-if="block.type === 'bullet_list'"
+                    class="list-disc pl-5 space-y-1.5 text-pretty"
+                  >
+                    <li v-for="(itemSpans, itemIdx) in block.items" :key="itemIdx">
+                      <AdminSynthesisSpans :spans="itemSpans" @cite="jumpToCitation" />
+                    </li>
+                  </ul>
+
+                  <ol
+                    v-else-if="block.type === 'ordered_list'"
+                    :start="block.items[0]?.order ?? 1"
+                    class="list-decimal pl-5 space-y-1.5 text-pretty"
+                  >
+                    <li v-for="(item, itemIdx) in block.items" :key="itemIdx">
+                      <AdminSynthesisSpans :spans="item.spans" @cite="jumpToCitation" />
+                    </li>
+                  </ol>
+
+                  <blockquote
+                    v-else-if="block.type === 'blockquote'"
+                    class="border-l-2 border-indigo-400 bg-indigo-50/40 pl-3.5 pr-3 py-2 rounded-r-lg space-y-1.5 italic text-slate-700"
+                  >
+                    <p v-for="(qPara, qIdx) in block.paragraphs" :key="qIdx" class="text-pretty">
+                      <AdminSynthesisSpans :spans="qPara" @cite="jumpToCitation" />
                     </p>
+                  </blockquote>
+
+                  <div
+                    v-else-if="block.type === 'table'"
+                    tabindex="0"
+                    role="region"
+                    aria-label="Tabel Ringkasan Narasi BRS"
+                    class="saas-table-scroller my-2 rounded-xl border border-slate-200 bg-white"
+                  >
+                    <table class="w-full text-xs text-left border-collapse">
+                      <thead>
+                        <tr class="bg-slate-50 border-b border-slate-200">
+                          <th
+                            v-for="(hSpans, hIdx) in block.headers"
+                            :key="hIdx"
+                            scope="col"
+                            class="px-3 py-2 font-bold text-slate-900 whitespace-nowrap"
+                          >
+                            <AdminSynthesisSpans :spans="hSpans" @cite="jumpToCitation" />
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody class="divide-y divide-slate-100">
+                        <tr v-for="(rowCells, rIdx) in block.rows" :key="rIdx">
+                          <td
+                            v-for="(cSpans, cIdx) in rowCells"
+                            :key="cIdx"
+                            class="px-3 py-2 text-slate-700 align-top"
+                          >
+                            <AdminSynthesisSpans :spans="cSpans" @cite="jumpToCitation" />
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
                   </div>
 
-                  <p v-else>
-                    <template v-for="(span, sIdx) in block.spans" :key="sIdx">
-                      <strong v-if="span.type === 'bold'" class="font-semibold text-[#0F172A]">
-                        {{ span.text }}
-                      </strong>
-                      <button
-                        v-else-if="span.type === 'cite' && span.citeNum"
-                        type="button"
-                        title="Sorot kartu sumber bukti"
-                        class="inline-flex items-center px-1.5 py-0.5 mx-0.5 rounded-md bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-[11px] font-bold tabular-nums align-baseline transition-colors cursor-pointer"
-                        @click="() => { jumpToCitation(span.citeNum!); }"
-                      >
-                        {{ span.text }}
-                      </button>
-                      <template v-else>{{ span.text }}</template>
-                    </template>
+                  <p v-else class="text-pretty">
+                    <AdminSynthesisSpans :spans="block.spans" @cite="jumpToCitation" />
                   </p>
                 </template>
               </div>
 
               <!-- Footnote Reference List -->
               <footer v-if="result?.citations.length" class="pt-4 border-t border-slate-200/80 space-y-2">
-                <div class="text-xs font-bold uppercase tracking-wider text-slate-500">
+                <div class="text-xs font-bold uppercase tracking-wider text-slate-600">
                   Referensi Sumber Berita Terverifikasi
                 </div>
                 <ol class="space-y-1 text-xs text-slate-700">
@@ -1181,7 +1458,7 @@ const manualModalOpen = ref(false);
             <div v-for="i in 3" :key="i" class="h-24 rounded-xl bg-slate-100" />
           </div>
 
-          <div v-else-if="!savedDrafts.length" class="py-12 text-center text-xs text-slate-500">
+          <div v-else-if="!savedDrafts.length" class="py-12 text-center text-xs text-slate-600">
             Belum ada riwayat draf sintesis yang tersimpan di database.
           </div>
 
@@ -1199,17 +1476,17 @@ const manualModalOpen = ref(false);
               <div class="flex items-center justify-between gap-2 text-[11px] tabular-nums">
                 <span class="font-bold text-indigo-700">
                   TW {{ toRomanQuarter(d.quarter) }} {{ d.year }}
-                  <span class="text-slate-400 font-normal">• {{ d.articleCount }} bukti</span>
+                  <span class="text-slate-600 font-normal">• {{ d.articleCount }} bukti</span>
                 </span>
-                <span class="text-slate-400">{{ formatDateTimeWita(d.updatedAt) }}</span>
+                <span class="text-slate-600">{{ formatDateTimeWita(d.updatedAt) }}</span>
               </div>
 
               <button
                 type="button"
                 class="w-full text-left space-y-1 group cursor-pointer"
-                @click="() => { void loadDraftFromHistory(d); }"
+                @click="() => { requestLoadDraftFromHistory(d); }"
               >
-                <span class="block text-xs font-bold text-[#0F172A] group-hover:text-indigo-700 transition-colors">
+                <span class="block text-xs font-bold text-slate-900 group-hover:text-indigo-700 transition-colors">
                   {{ d.targetLabel }}
                 </span>
                 <span class="block text-[11px] text-slate-600 line-clamp-2">
@@ -1218,7 +1495,7 @@ const manualModalOpen = ref(false);
               </button>
 
               <div class="pt-1.5 border-t border-slate-100 flex items-center justify-between gap-2 text-[11px]">
-                <span class="text-slate-500 truncate">
+                <span class="text-slate-600 truncate">
                   {{ d.updatedByName || d.createdByName || 'Staf Nerwilis' }}
                   •
                   {{
@@ -1233,8 +1510,8 @@ const manualModalOpen = ref(false);
                 <div class="flex items-center gap-1.5 shrink-0">
                   <button
                     type="button"
-                    class="px-2.5 py-0.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 font-semibold cursor-pointer"
-                    @click="() => { void loadDraftFromHistory(d); }"
+                    class="min-h-8 px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 font-semibold transition-colors cursor-pointer"
+                    @click="() => { requestLoadDraftFromHistory(d); }"
                   >
                     Buka
                   </button>
@@ -1242,7 +1519,7 @@ const manualModalOpen = ref(false);
                     type="button"
                     :disabled="deletingDraftId === d.id"
                     aria-label="Hapus draf"
-                    class="px-1.5 py-0.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 disabled:opacity-50 cursor-pointer"
+                    class="min-w-8 min-h-8 inline-flex items-center justify-center rounded-lg text-slate-600 hover:text-rose-700 hover:bg-rose-50 disabled:opacity-50 transition-colors cursor-pointer"
                     @click="() => { void deleteDraftFromHistory(d); }"
                   >
                     <UIcon
@@ -1258,6 +1535,38 @@ const manualModalOpen = ref(false);
         </div>
       </template>
     </USlideover>
+
+    <!-- Dirty-Draft Discard Confirmation Modal -->
+    <UModal
+      v-model:open="confirmDiscardOpen"
+      :title="confirmDiscardTitle"
+      :description="confirmDiscardDescription"
+    >
+      <template #body>
+        <p class="text-sm text-slate-700 leading-relaxed text-pretty">
+          {{ confirmDiscardDescription }}
+        </p>
+      </template>
+
+      <template #footer>
+        <div class="w-full flex justify-end gap-2">
+          <UButton
+            autofocus
+            color="neutral"
+            variant="subtle"
+            @click="() => { cancelDiscardModal(); }"
+          >
+            Tetap di Editor
+          </UButton>
+          <UButton
+            color="warning"
+            @click="() => { void confirmDiscardAndProceed(); }"
+          >
+            Buang Perubahan &amp; Lanjutkan
+          </UButton>
+        </div>
+      </template>
+    </UModal>
 
     <AdminManualArticleModal
       v-model:open="manualModalOpen"

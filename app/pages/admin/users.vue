@@ -198,7 +198,7 @@ const columns: TableColumn<AdminUserItem>[] = [
             <UIcon name="i-solar-shield-user-bold-duotone" class="w-3.5 h-3.5" />
             <span>Tata Kelola Akses &amp; RBAC</span>
           </div>
-          <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-[#0F172A] mt-2">
+          <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 mt-2">
             Kelola Akses Admin &amp; Whitelist Google
           </h1>
           <p class="text-xs sm:text-sm text-slate-600 mt-0.5">
@@ -212,20 +212,20 @@ const columns: TableColumn<AdminUserItem>[] = [
             <label for="users-search-input" class="sr-only">Cari nama atau Gmail staf</label>
             <UIcon
               name="i-solar-magnifer-line-duotone"
-              class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
+              class="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
             />
             <input
               id="users-search-input"
               v-model="searchText"
               type="search"
               placeholder="Cari nama / Gmail..."
-              class="h-9 w-full sm:w-56 pl-9 pr-7 rounded-xl border border-slate-200 bg-white text-xs text-[#0F172A] placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none"
+              class="min-h-9 w-full sm:w-56 pl-9 pr-10 rounded-xl border border-slate-200 bg-white text-xs text-slate-900 placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none"
             >
             <button
               v-if="searchText"
               type="button"
               aria-label="Hapus pencarian staf"
-              class="absolute right-1.5 top-1/2 -translate-y-1/2 min-w-6 min-h-6 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 cursor-pointer"
+              class="absolute right-1 top-1/2 -translate-y-1/2 min-w-8 min-h-8 rounded-lg flex items-center justify-center text-slate-600 hover:text-slate-900 hover:bg-slate-100 cursor-pointer"
               @click="() => { searchText = ''; }"
             >
               <UIcon name="i-lucide-x" class="w-3.5 h-3.5" />
@@ -234,7 +234,7 @@ const columns: TableColumn<AdminUserItem>[] = [
 
           <button
             type="button"
-            class="btn-primary-gradient h-9 px-4 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer"
+            class="btn-primary-gradient min-h-9 px-4 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer"
             @click="() => { openCreateModal(); }"
           >
             <UIcon name="i-solar-user-plus-bold-duotone" class="w-4 h-4 text-emerald-200" />
@@ -244,7 +244,7 @@ const columns: TableColumn<AdminUserItem>[] = [
       </div>
 
       <!-- Whitelist Security Notice Card -->
-      <div class="saas-card rounded-2xl p-5 flex items-start gap-3.5 border-l-4 border-l-indigo-600">
+      <div class="saas-card rounded-2xl p-5 flex items-start gap-3.5 border-indigo-200/80 bg-indigo-50/30">
         <div
           class="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-600 flex items-center justify-center shrink-0"
         >
@@ -252,7 +252,7 @@ const columns: TableColumn<AdminUserItem>[] = [
         </div>
         <div class="space-y-1">
           <div class="flex flex-wrap items-center gap-2">
-            <h2 class="text-sm font-bold text-[#0F172A]">
+            <h2 class="text-sm font-bold text-slate-900">
               Mekanisme Whitelist Aktif
             </h2>
             <span
@@ -304,7 +304,7 @@ const columns: TableColumn<AdminUserItem>[] = [
                 </div>
                 <div class="space-y-0.5">
                   <div class="flex items-center gap-2">
-                    <span class="font-semibold text-sm text-[#0F172A]">{{ row.original.name }}</span>
+                    <span class="font-semibold text-sm text-slate-900">{{ row.original.name }}</span>
                     <UBadge
                       v-if="row.original.id === user?.id"
                       color="primary"
@@ -352,7 +352,7 @@ const columns: TableColumn<AdminUserItem>[] = [
               >
                 {{ formatDateTimeWita(row.original.lastLoginAt) }}
               </span>
-              <span v-else class="text-xs text-slate-400">Belum pernah login</span>
+              <span v-else class="text-xs text-slate-600">Belum pernah login</span>
             </template>
 
             <template #isActive-cell="{ row }">
@@ -376,7 +376,7 @@ const columns: TableColumn<AdminUserItem>[] = [
                 </UTooltip>
                 <span
                   class="text-xs font-semibold"
-                  :class="row.original.isActive ? 'text-emerald-700' : 'text-slate-400'"
+                  :class="row.original.isActive ? 'text-emerald-700' : 'text-slate-600'"
                 >
                   {{ row.original.isActive ? 'Aktif' : 'Nonaktif' }}
                 </span>
@@ -387,11 +387,12 @@ const columns: TableColumn<AdminUserItem>[] = [
               <div class="flex items-center gap-1">
                 <UTooltip text="Edit Akses Staf">
                   <UButton
-                    size="xs"
+                    size="sm"
                     color="primary"
                     variant="subtle"
                     icon="i-lucide-pencil"
                     aria-label="Edit akses staf"
+                    class="min-w-8 min-h-8"
                     @click="() => { openEditModal(row.original); }"
                   />
                 </UTooltip>
@@ -403,11 +404,12 @@ const columns: TableColumn<AdminUserItem>[] = [
                   "
                 >
                   <UButton
-                    size="xs"
+                    size="sm"
                     color="error"
                     variant="ghost"
                     icon="i-lucide-trash-2"
                     aria-label="Hapus akses staf"
+                    class="min-w-8 min-h-8"
                     :disabled="row.original.id === user?.id"
                     @click="() => { askDelete(row.original); }"
                   />
@@ -434,14 +436,14 @@ const columns: TableColumn<AdminUserItem>[] = [
           <p class="text-sm text-slate-700 leading-relaxed">
             Anda yakin ingin menghapus akun
             <strong>{{ deleteTarget?.name }}</strong>
-            (<span class="font-medium text-[#0F172A]">{{ deleteTarget?.email }}</span>)
+            (<span class="font-medium text-slate-900">{{ deleteTarget?.email }}</span>)
             dari daftar akses admin SIPENA KTT?
           </p>
         </template>
 
         <template #footer>
           <div class="w-full flex justify-end gap-2">
-            <UButton color="neutral" variant="ghost" @click="() => { deleteModalOpen = false; }">
+            <UButton color="neutral" variant="ghost" autofocus @click="() => { deleteModalOpen = false; }">
               Batal
             </UButton>
             <UButton color="error" :loading="isDeleting" @click="() => { void confirmDelete(); }">

@@ -251,14 +251,15 @@ async function handleSubmit() {
                 type="button"
                 color="neutral"
                 variant="ghost"
-                size="xs"
+                size="sm"
+                class="min-w-8 min-h-8"
                 :icon="showPassword ? 'i-lucide-eye-off' : 'i-lucide-eye'"
                 :aria-label="showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'"
                 @click="() => { showPassword = !showPassword; }"
               />
             </template>
           </UInput>
-          <p class="text-[11px] text-slate-500 mt-1 leading-relaxed">
+          <p class="text-[11px] text-slate-600 mt-1 leading-relaxed">
             <template v-if="editingUser">
               Biarkan kosong jika tidak ingin mengubah pengaturan kata sandi saat ini.
             </template>
@@ -273,24 +274,26 @@ async function handleSubmit() {
           class="rounded-xl border border-amber-200/80 bg-amber-50/60 px-3.5 py-2.5 flex items-center justify-between gap-3"
         >
           <div>
-            <div class="text-xs font-semibold text-amber-900">
+            <label for="user-clear-password-switch" class="text-xs font-semibold text-amber-900 cursor-pointer block">
               Nonaktifkan login kata sandi lokal
-            </div>
+            </label>
             <div class="text-[11px] text-amber-800/90">
               Ubah akun ini menjadi khusus <strong>Google OAuth Only</strong>.
             </div>
           </div>
-          <USwitch v-model="formState.clearPassword" />
+          <USwitch id="user-clear-password-switch" v-model="formState.clearPassword" />
         </div>
 
         <div class="flex items-center justify-between rounded-xl border border-indigo-200/70 bg-indigo-50/40 px-3.5 py-2.5">
           <div>
-            <div class="text-xs sm:text-sm font-semibold text-[#0F172A]">Status Akses Aktif (Whitelist)</div>
+            <label for="user-active-switch" class="text-xs sm:text-sm font-semibold text-slate-900 cursor-pointer block">
+              Status Akses Aktif (Whitelist)
+            </label>
             <div class="text-[11px] text-slate-600">
               Jika dimatikan, akun otomatis ditolak saat mencoba login Google maupun sesi aktifnya dicabut.
             </div>
           </div>
-          <USwitch v-model="formState.isActive" :disabled="isEditingSelf" />
+          <USwitch id="user-active-switch" v-model="formState.isActive" :disabled="isEditingSelf" />
         </div>
 
         <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">

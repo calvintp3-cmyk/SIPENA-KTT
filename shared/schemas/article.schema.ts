@@ -29,7 +29,7 @@ const optionalQuarter = z.preprocess(
 const optionalEnum = <T extends Record<string, string>>(enumObj: T) =>
   z.preprocess(
     (val) => (val === '' || val === null || val === undefined ? undefined : val),
-    z.nativeEnum(enumObj).optional(),
+    z.enum(enumObj).optional(),
   );
 
 const optionalDateStr = z.preprocess(
@@ -73,7 +73,7 @@ export const PublicArticlesQuerySchema = z.object({
   expenditure: optionalEnum(ExpenditureComponentEnum),
   sourceType: z.preprocess(
     (v) => (v === '' || v === 'ALL' || v === null || v === undefined ? undefined : v),
-    z.nativeEnum(ArticleSourceTypeEnum).optional(),
+    z.enum(ArticleSourceTypeEnum).optional(),
   ),
   impactMacro: z.preprocess(
     (v) => (v === '' || v === 'ALL' || v === null || v === undefined ? undefined : v),
@@ -111,19 +111,20 @@ export const SynthesisGenerateSchema = z.object({
   targetCode: z.string().trim().min(1).max(40),
   style: z.enum(['BRS_FORMAL', 'EXECUTIVE_BRIEF', 'BULLET_POINTS']).default('BRS_FORMAL'),
   articleIds: z
-    .array(z.string().uuid('ID artikel harus UUID valid'))
+    .array(z.uuid('ID artikel harus UUID valid'))
     .min(1, 'Pilih minimal 1 artikel terverifikasi sebagai bahan sintesis')
     .max(30),
+  stream: z.boolean().optional().default(false),
 });
 
 export const AdminArticlesQuerySchema = z.object({
   status: z.preprocess(
     (v) => (v === '' || v === 'ALL' ? undefined : v),
-    z.nativeEnum(VerificationStatusEnum).optional(),
+    z.enum(VerificationStatusEnum).optional(),
   ),
   llmStatus: z.preprocess(
     (v) => (v === '' || v === 'ALL' ? undefined : v),
-    z.nativeEnum(LlmStatusEnum).optional(),
+    z.enum(LlmStatusEnum).optional(),
   ),
   isEconomic: z.preprocess(
     (v) => (v === '' || v === 'ALL' ? undefined : v),
@@ -159,11 +160,11 @@ export const ExportArticlesQuerySchema = z.object({
   format: z.enum(['xlsx', 'csv']).default('xlsx'),
   status: z.preprocess(
     (v) => (v === '' || v === 'ALL' ? undefined : v),
-    z.nativeEnum(VerificationStatusEnum).optional(),
+    z.enum(VerificationStatusEnum).optional(),
   ),
   llmStatus: z.preprocess(
     (v) => (v === '' || v === 'ALL' ? undefined : v),
-    z.nativeEnum(LlmStatusEnum).optional(),
+    z.enum(LlmStatusEnum).optional(),
   ),
   isEconomic: z.preprocess(
     (v) => (v === '' || v === 'ALL' ? undefined : v),
@@ -235,10 +236,10 @@ export const CreateManualArticleSchema = z.object({
     }, 'Tanggal rilis berita tidak valid'),
   snippetText: z.string().trim().min(15, 'Cuplikan atau uraian sumber minimal 15 karakter').max(5000),
   summary: z.string().trim().min(15, 'Ringkasan berita minimal 15 karakter').max(1200),
-  kbliCategory: z.nativeEnum(KbliCategoryEnum),
-  kbliImpact: z.nativeEnum(KbliImpactEnum),
-  expenditureComponent: z.nativeEnum(ExpenditureComponentEnum),
-  expenditureImpact: z.nativeEnum(ExpenditureImpactEnum),
+  kbliCategory: z.enum(KbliCategoryEnum),
+  kbliImpact: z.enum(KbliImpactEnum),
+  expenditureComponent: z.enum(ExpenditureComponentEnum),
+  expenditureImpact: z.enum(ExpenditureImpactEnum),
   quarter: optionalQuarter,
   year: optionalPositiveInt(2000, 2100),
   verifyImmediately: z.boolean().optional().default(true),
@@ -249,13 +250,13 @@ export const UpdateArticleReviewSchema = z
     title: z.string().trim().min(5, 'Judul minimal 5 karakter').max(500).optional(),
     summary: z.string().trim().min(10, 'Ringkasan minimal 10 karakter').max(1200).nullable().optional(),
     isEconomicPhenomenon: z.boolean().nullable().optional(),
-    kbliCategory: z.nativeEnum(KbliCategoryEnum).nullable().optional(),
-    kbliImpact: z.nativeEnum(KbliImpactEnum).nullable().optional(),
-    expenditureComponent: z.nativeEnum(ExpenditureComponentEnum).nullable().optional(),
-    expenditureImpact: z.nativeEnum(ExpenditureImpactEnum).nullable().optional(),
+    kbliCategory: z.enum(KbliCategoryEnum).nullable().optional(),
+    kbliImpact: z.enum(KbliImpactEnum).nullable().optional(),
+    expenditureComponent: z.enum(ExpenditureComponentEnum).nullable().optional(),
+    expenditureImpact: z.enum(ExpenditureImpactEnum).nullable().optional(),
     quarter: optionalQuarter,
     year: optionalPositiveInt(2000, 2100),
-    verificationStatus: z.nativeEnum(VerificationStatusEnum).optional(),
+    verificationStatus: z.enum(VerificationStatusEnum).optional(),
   })
   .refine(
     (data) => Object.values(data).some((v) => v !== undefined),
@@ -263,7 +264,7 @@ export const UpdateArticleReviewSchema = z
   );
 
 export const BatchArticleActionSchema = z.object({
-  ids: z.array(z.string().uuid('ID artikel harus berupa UUID valid')).min(1).max(100),
+  ids: z.array(z.uuid('ID artikel harus berupa UUID valid')).min(1).max(100),
   action: z.enum(['VERIFY', 'IGNORE']),
 });
 

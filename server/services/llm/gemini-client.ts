@@ -163,6 +163,10 @@ class EmptyOutputError extends Error {
   }
 }
 
+/**
+ * Worker klasifikasi Gemini tunggal legacy (dipertahankan untuk kompatibilitas backward unit test).
+ * @deprecated Untuk eksekusi produksi & orkestrasi multi-provider gunakan `MultiLlmRouter` di `./router`.
+ */
 export class GeminiClassificationWorker {
   private readonly apiKey?: string;
   private readonly minIntervalMs: number;

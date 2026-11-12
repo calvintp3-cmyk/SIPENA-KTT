@@ -1,18 +1,29 @@
 <!-- app/components/public/SectorDistributionCharts.vue -->
 <script setup lang="ts">
-import type { ExpenditureComponentEnum, KbliCategoryEnum } from '#shared/enums/pdrb';
+import {
+  PDRB_17_SECTORS,
+  type ExpenditureComponentEnum,
+  type KbliCategoryEnum,
+} from '#shared/enums/pdrb';
 import type {
   ExpenditureDistributionItem,
   KbliDistributionItem,
   PublicOverviewResponse,
 } from '~/types/sipena';
+import { SIPENA_CHART_TOKENS, SIPENA_CHART_TOOLTIP_STYLE } from '~/utils/chart-theme';
 
-const props = defineProps<{
-  overview: PublicOverviewResponse | null;
-  selectedKbli: string;
-  selectedExpenditure: string;
-  pending: boolean;
-}>();
+const props = withDefaults(
+  defineProps<{
+    overview: PublicOverviewResponse | null;
+    selectedKbli: string;
+    selectedPdrbGroup?: string;
+    selectedExpenditure: string;
+    pending: boolean;
+  }>(),
+  {
+    selectedPdrbGroup: 'ALL',
+  },
+);
 
 const emit = defineEmits<{
   'update:kbli': [value: string];
@@ -24,17 +35,30 @@ const { getKbliClusterTheme, getExpenditureColorTheme } = usePdrbLabels();
 const kbliItems = computed<KbliDistributionItem[]>(() => (props.overview?.kbliDistribution ?? []).slice(0, 10));
 const expItems = computed<ExpenditureDistributionItem[]>(() => props.overview?.expenditureDistribution ?? []);
 
+const activeGroupCodes = computed<Set<string> | null>(() => {
+  const g = props.selectedPdrbGroup;
+  if (!g || g === 'ALL') return null;
+  const found = PDRB_17_SECTORS.find((s) => s.groupCode === g);
+  return found ? new Set<string>(found.kbliCodes) : null;
+});
+
+function isKbliCodeActive(code: string): boolean {
+  if (props.selectedKbli && props.selectedKbli !== 'ALL') {
+    return props.selectedKbli === code;
+  }
+  return Boolean(activeGroupCodes.value?.has(code));
+}
+
 const kbliChartOption = computed<ECOption | null>(() => {
   const list = [...kbliItems.value].reverse();
   if (list.length === 0) return null;
+  const hasSelection = props.selectedKbli !== 'ALL' || activeGroupCodes.value !== null;
 
   return {
     tooltip: {
+      ...SIPENA_CHART_TOOLTIP_STYLE,
       trigger: 'axis',
       axisPointer: { type: 'shadow' },
-      backgroundColor: '#0F172A',
-      borderWidth: 0,
-      textStyle: { color: '#F8FAFC', fontFamily: 'Inter, sans-serif', fontSize: 12 },
       formatter: (raw: unknown) => {
         const first = Array.isArray(raw) ? raw[0] : raw;
         const idx = typeof (first as { dataIndex?: number })?.dataIndex === 'number'
@@ -55,17 +79,17 @@ const kbliChartOption = computed<ECOption | null>(() => {
     xAxis: {
       type: 'value',
       minInterval: 1,
-      splitLine: { lineStyle: { color: '#F1F5F9' } },
-      axisLabel: { color: '#64748B', fontFamily: 'Inter, sans-serif', fontSize: 11 },
+      splitLine: { lineStyle: { color: SIPENA_CHART_TOKENS.surfaceMuted } },
+      axisLabel: { color: SIPENA_CHART_TOKENS.inkAxis, fontFamily: 'Inter, system-ui, sans-serif', fontSize: 11 },
     },
     yAxis: {
       type: 'category',
       data: list.map((i) => `${i.code} - ${i.name.length > 22 ? `${i.name.slice(0, 21)}…` : i.name}`),
-      axisLine: { lineStyle: { color: '#E2E8F0' } },
+      axisLine: { lineStyle: { color: SIPENA_CHART_TOKENS.borderHairline } },
       axisTick: { show: false },
       axisLabel: {
-        color: '#334155',
-        fontFamily: 'Inter, sans-serif',
+        color: SIPENA_CHART_TOKENS.inkSecondary,
+        fontFamily: 'Inter, system-ui, sans-serif',
         fontSize: 11,
         fontWeight: 500,
       },
@@ -75,8 +99,8 @@ const kbliChartOption = computed<ECOption | null>(() => {
         type: 'bar',
         barMaxWidth: 18,
         data: list.map((item) => {
-          const isSelected = props.selectedKbli === item.code;
-          const dimmed = props.selectedKbli !== 'ALL' && !isSelected;
+          const isSelected = isKbliCodeActive(item.code);
+          const dimmed = hasSelection && !isSelected;
           return {
             value: item.count,
             code: item.code,
@@ -90,8 +114,8 @@ const kbliChartOption = computed<ECOption | null>(() => {
         label: {
           show: true,
           position: 'right',
-          color: '#334155',
-          fontFamily: 'Inter, sans-serif',
+          color: SIPENA_CHART_TOKENS.inkSecondary,
+          fontFamily: 'Inter, system-ui, sans-serif',
           fontSize: 11,
           fontWeight: 600,
         },
@@ -107,10 +131,8 @@ const expenditureChartOption = computed<ECOption | null>(() => {
 
   return {
     tooltip: {
+      ...SIPENA_CHART_TOOLTIP_STYLE,
       trigger: 'item',
-      backgroundColor: '#0F172A',
-      borderWidth: 0,
-      textStyle: { color: '#F8FAFC', fontFamily: 'Inter, sans-serif', fontSize: 12 },
       formatter: (raw: unknown) => {
         const p = raw as { name?: string; value?: number; percent?: number };
         return `<strong>${p.name ?? ''}</strong><br/>Jumlah: ${p.value ?? 0} berita (${p.percent ?? 0}%)`;
@@ -124,13 +146,13 @@ const expenditureChartOption = computed<ECOption | null>(() => {
       textStyle: {
         fontSize: 22,
         fontWeight: 800,
-        color: '#0F172A',
-        fontFamily: 'Inter, sans-serif',
+        color: SIPENA_CHART_TOKENS.inkObsidian,
+        fontFamily: 'Inter, system-ui, sans-serif',
       },
       subtextStyle: {
         fontSize: 11,
-        color: '#64748B',
-        fontFamily: 'Inter, sans-serif',
+        color: SIPENA_CHART_TOKENS.inkMuted,
+        fontFamily: 'Inter, system-ui, sans-serif',
       },
     },
     series: [
@@ -141,7 +163,7 @@ const expenditureChartOption = computed<ECOption | null>(() => {
         avoidLabelOverlap: true,
         itemStyle: {
           borderRadius: 6,
-          borderColor: '#FFFFFF',
+          borderColor: SIPENA_CHART_TOKENS.surfaceWhite,
           borderWidth: 2,
         },
         label: {
@@ -205,10 +227,10 @@ function handleExpenditureChartClick(params: unknown) {
             <UIcon name="i-solar-chart-square-bold-duotone" class="w-4 h-4" />
           </div>
           <div>
-            <h2 class="text-sm font-bold text-[#0F172A]">
+            <h2 class="text-sm font-bold text-slate-900">
               Sebaran Lapangan Usaha (KBLI A–V)
             </h2>
-            <p class="text-[11px] text-slate-500">
+            <p class="text-[11px] text-slate-600">
               Klik batang grafik atau badge sektor untuk menyaring linimasa
             </p>
           </div>
@@ -216,7 +238,7 @@ function handleExpenditureChartClick(params: unknown) {
         <button
           v-if="selectedKbli && selectedKbli !== 'ALL'"
           type="button"
-          class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-800 border border-indigo-200 hover:bg-indigo-100"
+          class="min-h-8 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-800 border border-indigo-200 hover:bg-indigo-100 cursor-pointer"
           @click="() => { emit('update:kbli', 'ALL'); }"
         >
           <UIcon name="i-lucide-x" class="w-3 h-3" />
@@ -241,10 +263,10 @@ function handleExpenditureChartClick(params: unknown) {
             v-for="item in kbliItems"
             :key="item.code"
             type="button"
-            :aria-pressed="selectedKbli === item.code"
-            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border transition-all tabular-nums"
+            :aria-pressed="isKbliCodeActive(item.code)"
+            class="min-h-8 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border transition-colors tabular-nums cursor-pointer"
             :class="
-              selectedKbli === item.code
+              isKbliCodeActive(item.code)
                 ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
                 : 'bg-white text-slate-700 border-slate-200 hover:border-indigo-300'
             "
@@ -253,7 +275,7 @@ function handleExpenditureChartClick(params: unknown) {
             <span
               class="w-2 h-2 rounded-full shrink-0"
               :style="{
-                backgroundColor: selectedKbli === item.code ? '#FFFFFF' : getKbliClusterTheme(item.code).hex,
+                backgroundColor: isKbliCodeActive(item.code) ? SIPENA_CHART_TOKENS.surfaceWhite : getKbliClusterTheme(item.code).hex,
               }"
             />
             <span>{{ item.code }} ({{ item.count }})</span>
@@ -266,14 +288,14 @@ function handleExpenditureChartClick(params: unknown) {
     <div class="saas-card rounded-2xl overflow-hidden flex flex-col">
       <div class="px-5 py-3.5 border-b border-slate-200/80 flex items-center justify-between gap-2 bg-slate-50/75">
         <div class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-200/80 flex items-center justify-center shrink-0">
+          <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200/80 flex items-center justify-center shrink-0">
             <UIcon name="i-solar-pie-chart-2-bold-duotone" class="w-4 h-4" />
           </div>
           <div>
-            <h2 class="text-sm font-bold text-[#0F172A]">
+            <h2 class="text-sm font-bold text-slate-900">
               Sebaran Komponen PDRB Pengeluaran
             </h2>
-            <p class="text-[11px] text-slate-500">
+            <p class="text-[11px] text-slate-600">
               Klik segmen donat atau komponen untuk menyaring sisi pengeluaran
             </p>
           </div>
@@ -281,7 +303,7 @@ function handleExpenditureChartClick(params: unknown) {
         <button
           v-if="selectedExpenditure && selectedExpenditure !== 'ALL'"
           type="button"
-          class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100"
+          class="min-h-8 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100 cursor-pointer"
           @click="() => { emit('update:expenditure', 'ALL'); }"
         >
           <UIcon name="i-lucide-x" class="w-3 h-3" />
@@ -309,7 +331,7 @@ function handleExpenditureChartClick(params: unknown) {
               :key="item.code"
               type="button"
               :aria-pressed="selectedExpenditure === item.code"
-              class="w-full flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-xl text-xs border transition-all text-left"
+              class="w-full min-h-9 flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-xl text-xs border transition-colors text-left cursor-pointer"
               :class="
                 selectedExpenditure === item.code
                   ? 'bg-indigo-50/90 border-indigo-300 text-indigo-950 font-semibold'

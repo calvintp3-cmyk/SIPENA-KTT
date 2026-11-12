@@ -178,111 +178,16 @@ async function handleSubmit(event: FormSubmitEvent<LoginRequestInput>) {
 
 <template>
   <div
-    class="min-h-screen canvas-aurora-light relative flex flex-col justify-center px-4 py-8 sm:px-6 lg:px-10 text-[#0F172A] selection:bg-indigo-100 selection:text-indigo-900"
+    class="min-h-screen canvas-aurora-light relative flex flex-col justify-center px-4 py-8 sm:px-6 lg:px-10 text-slate-900 selection:bg-indigo-100 selection:text-indigo-900"
   >
     <main id="main-content" tabindex="-1" class="relative z-10 w-full max-w-5xl mx-auto">
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-stretch">
-        <!-- Showcase Column (Desktop Left, Secondary Below Auth Card on Mobile) -->
-        <aside
-          aria-label="Informasi Workstation SIPENA KTT"
-          class="order-2 lg:order-1 lg:col-span-6 hero-mesh-dark rounded-3xl p-7 sm:p-9 text-white relative overflow-hidden flex flex-col justify-between gap-7 border border-white/10 shadow-[0_24px_60px_-20px_rgba(15,23,42,0.45)]"
-        >
-          <div
-            aria-hidden="true"
-            class="absolute -top-20 -right-16 w-64 h-64 rounded-full bg-emerald-400/15 blur-3xl pointer-events-none"
-          />
-
-          <div class="relative z-10 space-y-5">
-            <div class="flex flex-wrap items-center gap-2">
-              <span
-                class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-xs font-semibold text-blue-100"
-              >
-                <UIcon name="i-solar-buildings-2-bold-duotone" class="w-4 h-4 text-emerald-300" />
-                <span>BPS Kabupaten Tana Tidung • Nerwilis</span>
-              </span>
-            </div>
-
-            <div class="space-y-2.5">
-              <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight leading-tight">
-                Workstation Intelijen
-                <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 via-cyan-200 to-emerald-300">
-                  Ekonomi Daerah
-                </span>
-              </h2>
-              <p class="text-sm text-slate-300 leading-relaxed">
-                Platform terpadu kurasi harian fenomena 17 sektor KBLI, pemetaan 6 komponen
-                pengeluaran PDRB, dan sintesis narasi resmi triwulanan.
-              </p>
-            </div>
-
-            <div class="grid grid-cols-1 gap-3 pt-1">
-              <div
-                class="rounded-2xl bg-white/[0.06] border border-white/10 px-4 py-3 flex items-start gap-3"
-              >
-                <div
-                  class="w-9 h-9 rounded-xl bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 flex items-center justify-center shrink-0"
-                >
-                  <UIcon name="i-solar-radar-2-bold-duotone" class="w-5 h-5" />
-                </div>
-                <div class="min-w-0">
-                  <div class="text-xs font-bold text-white">Radar Gap Sektoral 17 × 6</div>
-                  <p class="text-xs text-slate-300/90 mt-0.5 leading-relaxed">
-                    Identifikasi sektor minus berita terverifikasi secara real-time sebelum tutup triwulan.
-                  </p>
-                </div>
-              </div>
-
-              <div
-                class="rounded-2xl bg-white/[0.06] border border-white/10 px-4 py-3 flex items-start gap-3"
-              >
-                <div
-                  class="w-9 h-9 rounded-xl bg-blue-500/20 border border-blue-400/30 text-blue-300 flex items-center justify-center shrink-0"
-                >
-                  <UIcon name="i-solar-checklist-bold-duotone" class="w-5 h-5" />
-                </div>
-                <div class="min-w-0">
-                  <div class="text-xs font-bold text-white">Kurasi Berbasis Bukti Berita</div>
-                  <p class="text-xs text-slate-300/90 mt-0.5 leading-relaxed">
-                    Validasi draf klasifikasi AI serta pencatatan langsung fenomena lapangan oleh analis.
-                  </p>
-                </div>
-              </div>
-
-              <div
-                class="rounded-2xl bg-white/[0.06] border border-white/10 px-4 py-3 flex items-start gap-3"
-              >
-                <div
-                  class="w-9 h-9 rounded-xl bg-violet-500/20 border border-violet-400/30 text-violet-300 flex items-center justify-center shrink-0"
-                >
-                  <UIcon name="i-solar-magic-stick-3-bold-duotone" class="w-5 h-5" />
-                </div>
-                <div class="min-w-0">
-                  <div class="text-xs font-bold text-white">Sintesis Narasi BRS Terstruktur</div>
-                  <p class="text-xs text-slate-300/90 mt-0.5 leading-relaxed">
-                    Susun ringkasan eksekutif triwulanan lengkap dengan rujukan sitasi terkurasi &amp; siap cetak A4.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div
-            class="relative z-10 pt-4 border-t border-white/10 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-300"
-          >
-            <span class="inline-flex items-center gap-2 font-semibold text-emerald-200">
-              <UIcon name="i-solar-shield-check-bold-duotone" class="w-4 h-4 text-emerald-300" />
-              <span>Akses Whitelist OAuth-First</span>
-            </span>
-            <span class="text-slate-400 tabular-nums">WITA (UTC+8)</span>
-          </div>
-        </aside>
-
-        <!-- Auth Form Column (Mobile First Above-the-Fold, Desktop Right) -->
+        <!-- Auth Form Column FIRST in DOM so h1 precedes aside h2 (Desktop Right via lg:order-2) -->
         <div class="order-1 lg:order-2 lg:col-span-6 flex flex-col justify-center">
           <!-- Compact Header Above Fold for Mobile -->
           <div class="lg:hidden text-center space-y-2 mb-5">
             <div
-              class="mx-auto h-11 w-11 rounded-2xl bg-gradient-to-br from-blue-600 via-indigo-600 to-emerald-600 text-white flex items-center justify-center shadow-[0_6px_18px_-4px_rgba(37,99,235,0.45)]"
+              class="mx-auto h-11 w-11 rounded-2xl bg-gradient-to-br from-blue-600 via-indigo-600 to-teal-700 text-white flex items-center justify-center shadow-[0_6px_18px_-4px_rgba(37,99,235,0.45)]"
             >
               <UIcon name="i-solar-chart-2-bold-duotone" class="w-5 h-5" />
             </div>
@@ -290,11 +195,9 @@ async function handleSubmit(event: FormSubmitEvent<LoginRequestInput>) {
               <span class="text-xs font-semibold text-indigo-700">
                 BPS Kab. Tana Tidung • Nerwilis
               </span>
-              <p class="text-2xl font-extrabold tracking-tight text-[#0F172A] mt-0.5">
+              <p class="text-2xl font-extrabold tracking-tight text-slate-900 mt-0.5">
                 Workstation SIPENA
-                <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-emerald-600">
-                  KTT
-                </span>
+                <span class="text-indigo-700">KTT</span>
               </p>
             </div>
           </div>
@@ -303,20 +206,20 @@ async function handleSubmit(event: FormSubmitEvent<LoginRequestInput>) {
             v-if="user"
             class="saas-card rounded-3xl p-7 text-center space-y-5"
           >
-            <div class="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center mx-auto">
+            <div class="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-700 flex items-center justify-center mx-auto">
               <UIcon name="i-solar-check-circle-bold-duotone" class="w-6 h-6" />
             </div>
             <div class="space-y-1">
-              <h1 class="text-lg font-bold text-[#0F172A]">Sesi Aktif Ditemukan</h1>
+              <h1 class="text-lg font-bold text-slate-900">Sesi Aktif Ditemukan</h1>
               <p class="text-sm text-slate-600">
-                Anda sudah masuk sebagai <strong class="text-[#0F172A]">{{ user.name }}</strong>.
+                Anda sudah masuk sebagai <strong class="text-slate-900">{{ user.name }}</strong>.
               </p>
             </div>
             <NuxtLink
               to="/admin"
               class="btn-primary-gradient w-full h-11 px-4 rounded-xl text-xs font-semibold inline-flex items-center justify-center gap-2"
             >
-              <UIcon name="i-solar-widget-5-bold-duotone" class="w-4 h-4 text-emerald-200" />
+              <UIcon name="i-solar-widget-5-bold-duotone" class="w-4 h-4 text-emerald-100" />
               <span>Lanjutkan ke Dashboard Admin</span>
               <UIcon name="i-solar-alt-arrow-right-bold-duotone" class="w-4 h-4" />
             </NuxtLink>
@@ -327,7 +230,7 @@ async function handleSubmit(event: FormSubmitEvent<LoginRequestInput>) {
               <div class="flex items-center justify-between gap-2">
                 <div class="hidden lg:flex items-center gap-2.5">
                   <div
-                    class="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600 via-indigo-600 to-emerald-600 text-white flex items-center justify-center shadow-[0_4px_12px_-2px_rgba(37,99,235,0.35)]"
+                    class="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600 via-indigo-600 to-teal-700 text-white flex items-center justify-center shadow-[0_4px_12px_-2px_rgba(37,99,235,0.35)]"
                   >
                     <UIcon name="i-solar-chart-2-bold-duotone" class="w-5 h-5" />
                   </div>
@@ -336,12 +239,12 @@ async function handleSubmit(event: FormSubmitEvent<LoginRequestInput>) {
                   </span>
                 </div>
                 <span class="hidden lg:inline-flex items-center gap-1.5 text-xs font-medium text-emerald-700">
-                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-600" />
                   Terproteksi
                 </span>
               </div>
 
-              <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-[#0F172A] pt-1">
+              <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 pt-1">
                 Masuk ke Workstation Nerwilis
               </h1>
               <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
@@ -370,7 +273,7 @@ async function handleSubmit(event: FormSubmitEvent<LoginRequestInput>) {
               <button
                 type="button"
                 :disabled="!googleLoginEnabled || isRedirectingGoogle"
-                class="w-full h-11 px-4 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 hover:border-indigo-300 text-[#0F172A] text-xs font-semibold shadow-[0_1px_3px_rgba(15,23,42,0.06)] hover:shadow-[0_4px_12px_-4px_rgba(37,99,235,0.18)] transition-all flex items-center justify-center gap-2.5 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                class="w-full h-11 px-4 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 hover:border-indigo-300 text-slate-900 text-xs font-semibold shadow-[0_1px_3px_rgba(15,23,42,0.06)] hover:shadow-[0_4px_12px_-4px_rgba(37,99,235,0.18)] transition-[color,background-color,border-color,box-shadow] flex items-center justify-center gap-2.5 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 @click="handleGoogleLogin"
               >
                 <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" aria-hidden="true">
@@ -404,7 +307,7 @@ async function handleSubmit(event: FormSubmitEvent<LoginRequestInput>) {
                 <span class="font-semibold bg-amber-100/80 px-1.5 py-0.5 rounded">GOOGLE_CLIENT_SECRET</span>
                 pada file <span class="font-semibold bg-amber-100/80 px-1.5 py-0.5 rounded">.env</span> server.
               </p>
-              <p v-else class="text-xs text-slate-500 text-center leading-relaxed">
+              <p v-else class="text-xs text-slate-600 text-center leading-relaxed">
                 Autentikasi OAuth-First khusus Super Admin dan akun staf aktif pada daftar whitelist.
               </p>
             </div>
@@ -412,7 +315,8 @@ async function handleSubmit(event: FormSubmitEvent<LoginRequestInput>) {
             <div class="pt-4 border-t border-slate-200/80 text-center">
               <button
                 type="button"
-                class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-indigo-700 transition-colors cursor-pointer"
+                :aria-expanded="showLocalLogin"
+                class="inline-flex items-center gap-1.5 min-h-9 px-3 rounded-lg text-xs font-semibold text-slate-600 hover:text-indigo-700 hover:bg-indigo-50/50 transition-colors cursor-pointer"
                 @click="() => { showLocalLogin = !showLocalLogin; }"
               >
                 <UIcon
@@ -475,7 +379,7 @@ async function handleSubmit(event: FormSubmitEvent<LoginRequestInput>) {
                 class="btn-primary-gradient w-full h-11 rounded-xl text-xs font-semibold inline-flex items-center justify-center gap-2 cursor-pointer"
               >
                 <UIcon v-if="isSubmitting" name="i-lucide-loader-circle" class="w-4 h-4 animate-spin" />
-                <UIcon v-else name="i-solar-shield-keyhole-bold-duotone" class="w-4 h-4 text-emerald-200" />
+                <UIcon v-else name="i-solar-shield-keyhole-bold-duotone" class="w-4 h-4 text-emerald-100" />
                 <span>{{ isSubmitting ? 'Memverifikasi...' : 'Masuk ke Workstation Admin' }}</span>
               </button>
             </UForm>
@@ -484,21 +388,111 @@ async function handleSubmit(event: FormSubmitEvent<LoginRequestInput>) {
           <div class="flex flex-wrap items-center justify-center gap-4 pt-5 text-xs font-semibold">
             <NuxtLink
               to="/"
-              class="inline-flex items-center gap-1.5 text-slate-600 hover:text-indigo-700 transition-colors"
+              class="inline-flex items-center gap-1.5 min-h-9 px-2 text-slate-600 hover:text-indigo-700 transition-colors"
             >
               <UIcon name="i-solar-home-smile-bold-duotone" class="w-4 h-4 text-indigo-600" />
               <span>Kembali ke Beranda</span>
             </NuxtLink>
-            <span class="text-slate-300" aria-hidden="true">•</span>
+            <span class="hidden sm:inline text-slate-500" aria-hidden="true">•</span>
             <NuxtLink
               to="/linimasa"
-              class="inline-flex items-center gap-1.5 text-indigo-700 hover:text-indigo-900 hover:underline"
+              class="inline-flex items-center gap-1.5 min-h-9 px-2 text-indigo-700 hover:text-indigo-900 hover:underline"
             >
-              <UIcon name="i-solar-calendar-search-bold-duotone" class="w-4 h-4 text-emerald-600" />
+              <UIcon name="i-solar-calendar-search-bold-duotone" class="w-4 h-4 text-emerald-700" />
               <span>Jelajahi Linimasa Publik</span>
             </NuxtLink>
           </div>
         </div>
+
+        <!-- Showcase Column (Desktop Left via lg:order-1, Secondary Below Auth Card on Mobile & DOM) -->
+        <aside
+          aria-label="Informasi Workstation SIPENA KTT"
+          class="order-2 lg:order-1 lg:col-span-6 hero-mesh-dark rounded-3xl p-7 sm:p-9 text-white relative overflow-hidden flex flex-col justify-between gap-7 border border-white/10 shadow-[0_24px_60px_-20px_rgba(15,23,42,0.45)]"
+        >
+          <div class="relative z-10 space-y-5">
+            <div class="flex flex-wrap items-center gap-2">
+              <span
+                class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-xs font-semibold text-blue-100"
+              >
+                <UIcon name="i-solar-buildings-2-bold-duotone" class="w-4 h-4 text-emerald-300" />
+                <span>BPS Kabupaten Tana Tidung • Nerwilis</span>
+              </span>
+            </div>
+
+            <div class="space-y-2.5">
+              <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight leading-tight">
+                Workstation Intelijen
+                <span class="text-emerald-300">
+                  Ekonomi Daerah
+                </span>
+              </h2>
+              <p class="text-sm text-slate-200 leading-relaxed">
+                Platform terpadu kurasi harian fenomena 17 sektor KBLI, pemetaan 6 komponen
+                pengeluaran PDRB, dan sintesis narasi resmi triwulanan.
+              </p>
+            </div>
+
+            <div class="grid grid-cols-1 gap-3 pt-1">
+              <div
+                class="rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3 flex items-start gap-3"
+              >
+                <div
+                  class="w-9 h-9 rounded-lg bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 flex items-center justify-center shrink-0"
+                >
+                  <UIcon name="i-solar-radar-2-bold-duotone" class="w-5 h-5" />
+                </div>
+                <div class="min-w-0">
+                  <div class="text-xs font-bold text-white">Radar Gap Sektoral 17 × 6</div>
+                  <p class="text-xs text-slate-200/90 mt-0.5 leading-relaxed">
+                    Identifikasi sektor minus berita terverifikasi secara real-time sebelum tutup triwulan.
+                  </p>
+                </div>
+              </div>
+
+              <div
+                class="rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3 flex items-start gap-3"
+              >
+                <div
+                  class="w-9 h-9 rounded-lg bg-blue-500/20 border border-blue-400/30 text-blue-300 flex items-center justify-center shrink-0"
+                >
+                  <UIcon name="i-solar-checklist-bold-duotone" class="w-5 h-5" />
+                </div>
+                <div class="min-w-0">
+                  <div class="text-xs font-bold text-white">Kurasi Berbasis Bukti Berita</div>
+                  <p class="text-xs text-slate-200/90 mt-0.5 leading-relaxed">
+                    Validasi draf klasifikasi AI serta pencatatan langsung fenomena lapangan oleh analis.
+                  </p>
+                </div>
+              </div>
+
+              <div
+                class="rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3 flex items-start gap-3"
+              >
+                <div
+                  class="w-9 h-9 rounded-lg bg-violet-500/20 border border-violet-400/30 text-violet-300 flex items-center justify-center shrink-0"
+                >
+                  <UIcon name="i-solar-magic-stick-3-bold-duotone" class="w-5 h-5" />
+                </div>
+                <div class="min-w-0">
+                  <div class="text-xs font-bold text-white">Sintesis Narasi BRS Terstruktur</div>
+                  <p class="text-xs text-slate-200/90 mt-0.5 leading-relaxed">
+                    Susun ringkasan eksekutif triwulanan lengkap dengan rujukan sitasi terkurasi &amp; siap cetak A4.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="relative z-10 pt-4 border-t border-white/10 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-300"
+          >
+            <span class="inline-flex items-center gap-2 font-semibold text-emerald-200">
+              <UIcon name="i-solar-shield-check-bold-duotone" class="w-4 h-4 text-emerald-300" />
+              <span>Akses Whitelist OAuth-First</span>
+            </span>
+            <span class="text-slate-300 tabular-nums">WITA (UTC+8)</span>
+          </div>
+        </aside>
       </div>
     </main>
   </div>

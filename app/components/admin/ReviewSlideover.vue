@@ -269,7 +269,8 @@ async function submitUpdate(action: 'VERIFIED' | 'IGNORED' | 'DRAFT') {
             rel="noopener noreferrer"
             color="primary"
             variant="outline"
-            size="xs"
+            size="sm"
+            class="min-h-8"
             trailing-icon="i-lucide-external-link"
           >
             Buka URL
@@ -281,10 +282,10 @@ async function submitUpdate(action: 'VERIFIED' | 'IGNORED' | 'DRAFT') {
           v-if="showAutoNextToggle"
           class="flex items-center justify-between gap-3 rounded-lg bg-slate-50 border border-slate-200/80 px-3 py-2"
         >
-          <span class="text-xs text-slate-700">
+          <label for="slideover-auto-next" class="text-xs text-slate-700 cursor-pointer">
             Otomatis buka antrean <strong>Pending</strong> berikutnya setelah simpan
-          </span>
-          <USwitch v-model="autoNextModel" size="sm" />
+          </label>
+          <USwitch id="slideover-auto-next" v-model="autoNextModel" size="sm" />
         </div>
 
         <!-- Peringatan Error LLM atau Validasi -->
@@ -316,14 +317,16 @@ async function submitUpdate(action: 'VERIFIED' | 'IGNORED' | 'DRAFT') {
         <!-- Cuplikan Teks Asli (Word Threshold Buffer) -->
         <div class="space-y-1.5">
           <div class="flex items-center justify-between">
-            <label class="text-xs font-semibold text-slate-600">
+            <span id="slideover-snippet-label" class="text-xs font-semibold text-slate-600">
               Cuplikan Teks Asli (Verifikasi Konten)
-            </label>
-            <span class="text-xs font-semibold tabular-nums text-slate-500">
+            </span>
+            <span class="text-xs font-semibold tabular-nums text-slate-600">
               {{ snippetWordCount }} kata
             </span>
           </div>
           <div
+            role="region"
+            aria-labelledby="slideover-snippet-label"
             class="max-h-48 overflow-y-auto saas-scroll rounded-xl bg-slate-50 border border-slate-200/90 p-3 text-sm leading-relaxed text-slate-800 whitespace-pre-line"
           >
             {{ article.snippetText }}
@@ -333,13 +336,13 @@ async function submitUpdate(action: 'VERIFIED' | 'IGNORED' | 'DRAFT') {
         <!-- Ringkasan Berita -->
         <div class="space-y-1.5">
           <div class="flex items-center justify-between gap-2">
-            <label class="text-xs font-semibold text-slate-700">
+            <label for="slideover-summary-textarea" class="text-xs font-semibold text-slate-700">
               Ringkasan Berita (2–3 Kalimat untuk Publik &amp; Excel) <span class="text-rose-600">*</span>
             </label>
             <button
               v-if="canRestoreInitialSummary"
               type="button"
-              class="inline-flex items-center gap-1 text-xs font-semibold text-indigo-700 hover:text-indigo-900 hover:underline cursor-pointer"
+              class="inline-flex items-center gap-1 min-h-8 px-1.5 rounded-lg text-xs font-semibold text-indigo-700 hover:text-indigo-900 hover:bg-indigo-50 cursor-pointer"
               @click="() => { restoreInitialSummary(); }"
             >
               <UIcon name="i-lucide-rotate-ccw" class="w-3 h-3" />
@@ -354,6 +357,7 @@ async function submitUpdate(action: 'VERIFIED' | 'IGNORED' | 'DRAFT') {
             "
           >
             <UTextarea
+              id="slideover-summary-textarea"
               v-model="form.summary"
               :rows="3"
               placeholder="Tuliskan ringkasan 2–3 kalimat padat mengenai fenomena ekonomi daerah..."
@@ -458,8 +462,10 @@ async function submitUpdate(action: 'VERIFIED' | 'IGNORED' | 'DRAFT') {
           <div
             class="flex items-center justify-between gap-2 rounded-xl border border-slate-200 px-3 py-2 bg-white"
           >
-            <span class="text-xs font-semibold text-slate-700">Fenomena Ekonomi Sah</span>
-            <USwitch v-model="form.isEconomicPhenomenon" size="sm" />
+            <label for="slideover-is-economic" class="text-xs font-semibold text-slate-700 cursor-pointer">
+              Fenomena Ekonomi Sah
+            </label>
+            <USwitch id="slideover-is-economic" v-model="form.isEconomicPhenomenon" size="sm" />
           </div>
         </div>
       </div>
@@ -471,6 +477,7 @@ async function submitUpdate(action: 'VERIFIED' | 'IGNORED' | 'DRAFT') {
           color="neutral"
           variant="outline"
           icon="i-lucide-archive-x"
+          class="min-h-9"
           :loading="submittingAction === 'IGNORED'"
           :disabled="submittingAction !== null"
           @click="() => { void submitUpdate('IGNORED'); }"
@@ -483,6 +490,7 @@ async function submitUpdate(action: 'VERIFIED' | 'IGNORED' | 'DRAFT') {
             color="neutral"
             variant="subtle"
             icon="i-lucide-save"
+            class="min-h-9"
             :loading="submittingAction === 'DRAFT'"
             :disabled="submittingAction !== null"
             @click="() => { void submitUpdate('DRAFT'); }"
@@ -494,6 +502,7 @@ async function submitUpdate(action: 'VERIFIED' | 'IGNORED' | 'DRAFT') {
             color="primary"
             variant="solid"
             icon="i-solar-check-circle-bold-duotone"
+            class="min-h-9"
             :loading="submittingAction === 'VERIFIED'"
             :disabled="submittingAction !== null"
             @click="() => { void submitUpdate('VERIFIED'); }"

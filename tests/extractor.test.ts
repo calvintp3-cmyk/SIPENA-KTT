@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   accumulateParagraphsToThreshold,
   countWords,
+  detectSoftBlockPage,
   EXTRACTOR_MAX_CHARS,
   EXTRACTOR_MAX_WORDS,
   EXTRACTOR_MIN_WORDS,
@@ -327,6 +328,53 @@ describe('Scraper Extractor & Portal/RSS Parsers', () => {
     `;
     const benuantaItems = parseRegionalPortalIndex(benuantaOldHtml, benuanta!, { now, lookbackDays: 3 });
     expect(benuantaItems).toHaveLength(0);
+  });
+
+  it('memprioritaskan JSON-LD articleBody, mendeteksi halaman soft-block HTTP 200, dan mengekstrak URL ?page=all', () => {
+    const jsonLdProse = generateWords(65, 'tanaTidung');
+    const htmlWithJsonLdBody = `
+      <!doctype html>
+      <html>
+        <head>
+          <title>Investasi Pabrik Kelapa Sawit di Sesayap Hilir</title>
+          <script type="application/ld+json">
+            {
+              "@context": "https://schema.org",
+              "@type": "NewsArticle",
+              "datePublished": "2026-10-14T08:00:00+08:00",
+              "articleBody": "${jsonLdProse}."
+            }
+          </script>
+        </head>
+        <body>
+          <article><div class="entry-content"><p>Cuplikan pendek.</p></div></article>
+          <a href="/investasi-pks-sesayap?page=all">Tampilkan Semua</a>
+        </body>
+      </html>
+    `;
+
+    const extracted = extractArticleContent(htmlWithJsonLdBody, null, 'https://korankaltara.com/investasi-pks-sesayap');
+    expect(extracted.isValidContent).toBe(true);
+    expect(extracted.isSoftBlocked).toBe(false);
+    expect(extracted.snippetText).toContain('tanaTidung1');
+    expect(extracted.nextFullPageUrl).toBe('https://korankaltara.com/investasi-pks-sesayap?page=all');
+
+    const cloudflareHtml = `
+      <!doctype html>
+      <html>
+        <head><title>Just a moment...</title></head>
+        <body>
+          <div id="cf-browser-verification">Checking if the site connection is secure. Enable JavaScript and cookies to continue.</div>
+        </body>
+      </html>
+    `;
+    const blockedCheck = detectSoftBlockPage(cloudflareHtml);
+    expect(blockedCheck.isSoftBlocked).toBe(true);
+    expect(blockedCheck.reason).toBeTruthy();
+
+    const extractedBlocked = extractArticleContent(cloudflareHtml);
+    expect(extractedBlocked.isSoftBlocked).toBe(true);
+    expect(extractedBlocked.isValidContent).toBe(false);
   });
 });
 

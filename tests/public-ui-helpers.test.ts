@@ -1,8 +1,11 @@
 // tests/public-ui-helpers.test.ts
 import { describe, expect, it } from 'vitest';
 import {
+  applyKbliSelection,
+  applyPdrbGroupSelection,
   hasLegacyTimelineQuery,
   pickLandingSnapshotPeriod,
+  resolvePdrbGroupForKbli,
 } from '#shared/utils/public-helpers';
 
 describe('public UI landing & routing helpers', () => {
@@ -40,6 +43,26 @@ describe('public UI landing & routing helpers', () => {
       { year: 2026, quarter: 3, label: 'TW III 2026', count: 0 },
     ];
     expect(pickLandingSnapshotPeriod(allZero)?.label).toBe('TW IV 2026');
+  });
+
+  it('keeps KBLI chart clicks synchronized with 17-sector PDRB dropdown groups', () => {
+    expect(resolvePdrbGroupForKbli('ALL')).toBe('ALL');
+    expect(resolvePdrbGroupForKbli('')).toBe('ALL');
+    expect(resolvePdrbGroupForKbli(null)).toBe('ALL');
+    expect(resolvePdrbGroupForKbli('A')).toBe('A');
+    expect(resolvePdrbGroupForKbli('J')).toBe('J,K');
+    expect(resolvePdrbGroupForKbli('k')).toBe('J,K');
+    expect(resolvePdrbGroupForKbli('N')).toBe('N,O');
+    expect(resolvePdrbGroupForKbli('U')).toBe('S,T,U,V');
+    expect(resolvePdrbGroupForKbli('ZZ')).toBe('ALL');
+
+    expect(applyKbliSelection('J')).toEqual({ kbli: 'J', pdrbGroup: 'J,K' });
+    expect(applyKbliSelection('A')).toEqual({ kbli: 'A', pdrbGroup: 'A' });
+    expect(applyKbliSelection('ALL')).toEqual({ kbli: 'ALL', pdrbGroup: 'ALL' });
+
+    expect(applyPdrbGroupSelection('J,K')).toEqual({ kbli: 'ALL', pdrbGroup: 'J,K' });
+    expect(applyPdrbGroupSelection('A')).toEqual({ kbli: 'ALL', pdrbGroup: 'A' });
+    expect(applyPdrbGroupSelection('ALL')).toEqual({ kbli: 'ALL', pdrbGroup: 'ALL' });
   });
 });
 

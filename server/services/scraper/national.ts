@@ -1,6 +1,7 @@
 // server/services/scraper/national.ts
 import { load } from 'cheerio';
 import { eq } from 'drizzle-orm';
+import { z } from 'zod';
 import {
   ArticleSourceTypeEnum,
   type ExpenditureComponentEnum,
@@ -27,6 +28,22 @@ import {
 } from './portals';
 
 export const DEFAULT_NATIONAL_MAX_ITEMS_PER_KEYWORD = 6;
+export const GDELT_DOC_API_BASE = 'https://api.gdeltproject.org/api/v2/doc/doc';
+export const DEFAULT_GDELT_MACRO_QUERY =
+  '("ekonomi" OR "harga batubara" OR "kelapa sawit" OR "kalimantan utara" OR "tana tidung" OR "inflasi") sourcecountry:ID';
+
+const GdeltArticleItemSchema = z.object({
+  url: z.string(),
+  title: z.string().optional(),
+  seendate: z.string().optional(),
+  domain: z.string().optional(),
+  language: z.string().optional(),
+  sourcecountry: z.string().optional(),
+});
+
+const GdeltDocResponseSchema = z.object({
+  articles: z.array(GdeltArticleItemSchema).optional().default([]),
+});
 
 export interface ActiveKeywordTarget {
   id: string;
@@ -317,12 +334,151 @@ export interface NationalHarvestOptions {
   timeoutMs?: number;
   concurrency?: number;
   signal?: AbortSignal;
+  enableGdeltMacro?: boolean;
+}
+
+export function buildGdeltDocApiUrl(options: {
+  query: string;
+  timespan?: string;
+  maxRecords?: number;
+}): string {
+  const cleanedQuery = options.query.trim().replace(/\s+/g, ' ');
+  const maxRecords = Math.min(100, Math.max(1, Math.floor(options.maxRecords ?? 25)));
+  const params = new URLSearchParams({
+    query: cleanedQuery,
+    mode: 'artlist',
+    format: 'json',
+    sort: 'DateDesc',
+    timespan: options.timespan ?? '72h',
+    maxrecords: String(maxRecords),
+  });
+  return `${GDELT_DOC_API_BASE}?${params.toString()}`;
+}
+
+function parseGdeltSeendate(rawSeendate: string | undefined): Date | null {
+  if (!rawSeendate) return null;
+  const trimmed = rawSeendate.trim();
+  const compactMatch = /^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})Z$/i.exec(trimmed);
+  if (compactMatch) {
+    const [, y, m, d, hh, mm, ss] = compactMatch;
+    const iso = `${y}-${m}-${d}T${hh}:${mm}:${ss}Z`;
+    const parsed = new Date(iso);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  }
+  return parseIndonesianDateTime(trimmed);
+}
+
+/**
+ * Mem-parsing payload JSON GDELT 2.0 Doc API (`mode=artlist&format=json`) yang tervalidasi Zod.
+ */
+export function parseGdeltDocArticlesJson(
+  jsonPayload: unknown,
+  options?: {
+    now?: Date;
+    lookbackDays?: number;
+    maxItems?: number;
+    keywordTarget?: ActiveKeywordTarget;
+  },
+): DiscoveredArticleCandidate[] {
+  const parsed = GdeltDocResponseSchema.safeParse(jsonPayload);
+  if (!parsed.success) {
+    return [];
+  }
+
+  const now = options?.now ?? new Date();
+  const cutoff = getWitaLookbackCutoff(now, options?.lookbackDays ?? DEFAULT_LOOKBACK_DAYS);
+  const maxItems = options?.maxItems ?? 25;
+  const keywordTarget = options?.keywordTarget;
+
+  const candidates: DiscoveredArticleCandidate[] = [];
+  const seenHashes = new Set<string>();
+
+  for (const row of parsed.data.articles) {
+    if (candidates.length >= maxItems) break;
+    if (!isSafeHttpUrl(row.url)) continue;
+
+    if (row.language && !/indonesian|malay|english/i.test(row.language)) {
+      continue;
+    }
+
+    const title = cleanNewsHeadline(row.title ?? '');
+    if (title.length < 15) continue;
+
+    const publishedHint = parseGdeltSeendate(row.seendate);
+    if (!isWithinLookbackWindow(publishedHint, cutoff)) continue;
+
+    const { normalizedUrl, urlHash } = hashNormalizedUrl(row.url);
+    if (seenHashes.has(urlHash)) continue;
+    seenHashes.add(urlHash);
+
+    const sourcePortal = row.domain
+      ? row.domain.toLowerCase().replace(/^www\./, '')
+      : extractHostnameLabel(normalizedUrl);
+
+    candidates.push({
+      url: normalizedUrl,
+      normalizedUrl,
+      urlHash,
+      title,
+      sourcePortal,
+      sourceType: ArticleSourceTypeEnum.NATIONAL,
+      publishedHint,
+      keywordId: keywordTarget?.id ?? null,
+      matchedKeyword: keywordTarget?.keyword ?? 'gdelt-macro',
+      defaultKbliCategory: keywordTarget?.defaultKbliCategory ?? null,
+      defaultExpenditureComponent: keywordTarget?.defaultExpenditureComponent ?? null,
+      fallbackDescription: null,
+    });
+  }
+
+  return candidates;
+}
+
+/**
+ * Mengambil kandidat berita makro ekonomi Indonesia secara opsional dari GDELT 2.0 Doc API (tanpa API key).
+ */
+export async function fetchGdeltMacroCandidates(options: {
+  query?: string;
+  timespan?: string;
+  maxRecords?: number;
+  now?: Date;
+  lookbackDays?: number;
+  keywordTarget?: ActiveKeywordTarget;
+  fetchFn?: (url: string, opts?: SafeFetchOptions) => Promise<{ finalUrl: string; body: string }>;
+  timeoutMs?: number;
+  signal?: AbortSignal;
+} = {}): Promise<DiscoveredArticleCandidate[]> {
+  const fetchFn = options.fetchFn ?? safeFetchText;
+  const gdeltUrl = buildGdeltDocApiUrl({
+    query: options.query ?? DEFAULT_GDELT_MACRO_QUERY,
+    timespan: options.timespan ?? '72h',
+    maxRecords: options.maxRecords ?? 25,
+  });
+
+  const resp = await fetchFn(gdeltUrl, {
+    timeoutMs: options.timeoutMs ?? DEFAULT_FETCH_TIMEOUT_MS,
+    maxBytes: 1024 * 1024,
+    accept: 'application/json, text/plain;q=0.8',
+    userAgent: DEFAULT_BROWSER_USER_AGENT,
+    headers: DEFAULT_BROWSER_HEADERS,
+    signal: options.signal,
+    politeHostPacing: !options.fetchFn,
+  });
+
+  const payload = JSON.parse(resp.body) as unknown;
+  return parseGdeltDocArticlesJson(payload, {
+    now: options.now,
+    lookbackDays: options.lookbackDays,
+    maxItems: options.maxRecords ?? 25,
+    keywordTarget: options.keywordTarget,
+  });
 }
 
 /**
  * Mengambil kandidat berita nasional secara paralel dengan workflow Hybrid:
  * 1) Bing News RSS Indonesia (membuka URL penerbit langsung dari parameter `url=` & snippet deskripsi),
- * 2) Google News RSS Indonesia (cakupan luas portal nasional & lokal dengan fallback metadata RSS).
+ * 2) Google News RSS Indonesia (cakupan luas portal nasional & lokal dengan fallback metadata RSS),
+ * 3) GDELT 2.0 Doc API makro Indonesia (opsional / non-blocking via `enableGdeltMacro`).
  * Keduanya dideduplikasi berdasarkan `urlHash` dan kesamaan judul dengan memprioritaskan URL penerbit langsung.
  */
 export async function harvestNationalKeywords(
@@ -336,6 +492,7 @@ export async function harvestNationalKeywords(
   const timeoutMs = options.timeoutMs ?? DEFAULT_FETCH_TIMEOUT_MS;
   const concurrency = options.concurrency ?? DEFAULT_SCRAPER_CONCURRENCY;
   const signal = options.signal;
+  const enableGdeltMacro = options.enableGdeltMacro ?? false;
 
   const keywords: ReadonlyArray<ActiveKeywordTarget> =
     options.keywords ??
@@ -394,6 +551,7 @@ export async function harvestNationalKeywords(
         userAgent: DEFAULT_BROWSER_USER_AGENT,
         headers: DEFAULT_BROWSER_HEADERS,
         signal,
+        politeHostPacing: !options.fetchFn,
       };
 
       const [bingOutcome, googleOutcome] = await Promise.allSettled([
@@ -438,6 +596,25 @@ export async function harvestNationalKeywords(
     },
     signal,
   );
+
+  // 3. Jalur Opsional Makro GDELT 2.0 Doc API (tanpa API key, gagal-aman)
+  if (enableGdeltMacro && !signal?.aborted) {
+    try {
+      const gdeltItems = await fetchGdeltMacroCandidates({
+        now,
+        lookbackDays,
+        maxRecords: 15,
+        fetchFn,
+        timeoutMs,
+        signal,
+      });
+      for (const item of gdeltItems) {
+        upsertCandidate(item);
+      }
+    } catch {
+      // Abaikan gangguan GDELT agar panen RSS utama tetap berjalan mulus
+    }
+  }
 
   return {
     candidates,

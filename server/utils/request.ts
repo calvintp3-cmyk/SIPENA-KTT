@@ -6,9 +6,9 @@ import {
   readBody,
   type H3Event,
 } from 'h3';
-import { z, type ZodSchema } from 'zod';
+import { z, type ZodType } from 'zod';
 
-const UUID_SCHEMA = z.string().uuid('ID parameter harus berupa UUID yang valid.');
+const UUID_SCHEMA = z.uuid('ID parameter harus berupa UUID yang valid.');
 
 export function getValidatedUuidParam(event: H3Event, paramName = 'id'): string {
   const raw = getRouterParam(event, paramName);
@@ -23,7 +23,7 @@ export function getValidatedUuidParam(event: H3Event, paramName = 'id'): string 
   return parsed.data;
 }
 
-export function parseQueryWithSchema<T>(event: H3Event, schema: ZodSchema<T>): T {
+export function parseQueryWithSchema<T>(event: H3Event, schema: ZodType<T>): T {
   const rawQuery = getQuery(event);
   const parsed = schema.safeParse(rawQuery);
   if (!parsed.success) {
@@ -39,7 +39,7 @@ export function parseQueryWithSchema<T>(event: H3Event, schema: ZodSchema<T>): T
   return parsed.data;
 }
 
-export async function parseBodyWithSchema<T>(event: H3Event, schema: ZodSchema<T>): Promise<T> {
+export async function parseBodyWithSchema<T>(event: H3Event, schema: ZodType<T>): Promise<T> {
   const rawBody = await readBody(event).catch(() => undefined);
   const parsed = schema.safeParse(rawBody);
   if (!parsed.success) {

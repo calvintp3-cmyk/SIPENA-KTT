@@ -24,12 +24,15 @@ import {
 import {
   DEFAULT_GROQ_FALLBACK_MODEL,
   DEFAULT_GROQ_PRIMARY_MODEL,
+  embedTextsWithGemini,
   generateSynthesisWithRouter,
   getConfiguredProviderHealthSummary,
   MultiLlmRouter,
   OPENROUTER_DEFAULT_FREE_MODELS,
   parseCsvValues,
+  resetRouterCooldownStore,
   resolveConfiguredProviderKeys,
+  sanitizeSynthesisCitations,
   type RouterSlotInvokeRequest,
 } from '#server/services/llm/router';
 import {
@@ -42,7 +45,14 @@ const ENV_KEYS = [
   'GEMINI_API_KEYS',
   'GROQ_API_KEY',
   'GROQ_API_KEYS',
+  'CEREBRAS_API_KEY',
+  'CEREBRAS_API_KEYS',
+  'MISTRAL_API_KEY',
+  'MISTRAL_API_KEYS',
+  'NVIDIA_API_KEY',
+  'NVIDIA_API_KEYS',
   'OPENROUTER_API_KEY',
+  'OPENROUTER_API_KEYS',
   'OPENROUTER_FREE_MODEL',
   'LLM_CLASSIFY_CHAIN',
   'LLM_SYNTHESIS_CHAIN',
@@ -79,6 +89,7 @@ describe('MultiLlmRouter & Provider Key Configuration', () => {
   const savedEnv: Record<string, string | undefined> = {};
 
   beforeEach(() => {
+    resetRouterCooldownStore();
     for (const k of ENV_KEYS) {
       savedEnv[k] = process.env[k];
       delete process.env[k];
@@ -86,6 +97,7 @@ describe('MultiLlmRouter & Provider Key Configuration', () => {
   });
 
   afterEach(() => {
+    resetRouterCooldownStore();
     for (const k of ENV_KEYS) {
       if (savedEnv[k] === undefined) {
         delete process.env[k];
@@ -582,5 +594,203 @@ describe('MultiLlmRouter & Provider Key Configuration', () => {
     });
     expect(invalidLimitOpts.maxArticlesPerRun).toBeUndefined();
     expect(invalidLimitOpts.routerOptions.maxCallsPerRun).toBeUndefined();
+  });
+
+  it('OPENROUTER_DEFAULT_FREE_MODELS hanya berisi model teks murni dan mendukung Cerebras/Mistral/NVIDIA serta multi-key OpenRouter', async () => {
+    expect(OPENROUTER_DEFAULT_FREE_MODELS.some((m) => /-vl[:/]/i.test(m))).toBe(false);
+    expect(OPENROUTER_DEFAULT_FREE_MODELS).toContain('meta-llama/llama-3.3-70b-instruct:free');
+
+    const keys = resolveConfiguredProviderKeys({
+      cerebrasApiKey: 'csk_Cerebras001',
+      cerebrasApiKeys: 'csk_Cerebras002, csk_Cerebras001',
+      mistralApiKey: 'msk_Mistral001',
+      nvidiaApiKey: 'nvapi-Nvidia001',
+      openrouterApiKey: 'sk-or-v1-Key1',
+      openrouterApiKeys: 'sk-or-v1-Key2, sk-or-v1-Key1',
+    });
+
+    expect(keys.cerebras).toEqual(['csk_Cerebras001', 'csk_Cerebras002']);
+    expect(keys.mistral).toEqual(['msk_Mistral001']);
+    expect(keys.nvidia).toEqual(['nvapi-Nvidia001']);
+    expect(keys.openrouter).toEqual(['sk-or-v1-Key1', 'sk-or-v1-Key2']);
+
+    const summaryAllOptional = getConfiguredProviderHealthSummary(
+      {
+        cerebrasApiKey: 'csk_Cerebras001',
+        mistralApiKey: 'msk_Mistral001',
+        nvidiaApiKey: 'nvapi-Nvidia001',
+      },
+      { includeAllOptionalProviders: true },
+    );
+    expect(summaryAllOptional.some((s) => s.provider === 'cerebras' && s.configured)).toBe(true);
+    expect(summaryAllOptional.some((s) => s.provider === 'mistral' && s.configured)).toBe(true);
+    expect(summaryAllOptional.some((s) => s.provider === 'nvidia' && s.configured)).toBe(true);
+
+    // Uji endpoint Cerebras + fallback 2 tahap json_schema -> json_object -> plain text di invokeOpenAiCompatChat
+    const urlsCalled: string[] = [];
+    const fetchSpy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockImplementationOnce(async (input) => {
+        urlsCalled.push(String(input));
+        return new Response(
+          JSON.stringify({ error: { message: 'json_schema response_format unsupported' } }),
+          { status: 400 },
+        );
+      })
+      .mockImplementationOnce(async (input) => {
+        urlsCalled.push(String(input));
+        return new Response(
+          JSON.stringify({ error: { message: 'response_format json_object unsupported' } }),
+          { status: 422 },
+        );
+      })
+      .mockImplementationOnce(async (input) => {
+        urlsCalled.push(String(input));
+        return new Response(
+          JSON.stringify({
+            choices: [{ message: { content: VALID_KTT_CLASSIFICATION_JSON } }],
+            usage: { prompt_tokens: 100, completion_tokens: 50, total_tokens: 150 },
+          }),
+          { status: 200 },
+        );
+      });
+
+    const compatRes = await invokeOpenAiCompatChat({
+      provider: 'cerebras',
+      apiKey: 'csk_Test001',
+      model: 'llama-3.3-70b',
+      systemInstruction: 'System',
+      userInput: 'User',
+      jsonMode: true,
+      jsonSchema: { name: 'sipena_classification', schema: { type: 'object' }, strict: true },
+    });
+
+    expect(fetchSpy).toHaveBeenCalledTimes(3);
+    expect(urlsCalled[0]).toBe('https://api.cerebras.ai/v1/chat/completions');
+    expect(compatRes.usage.totalTokens).toBe(150);
+  });
+
+  it('mempertahankan cooldown kuota harian antar instance MultiLlmRouter dan mendukung resetRouterCooldownStore', async () => {
+    const slotsCalledRouter1: string[] = [];
+    const router1 = new MultiLlmRouter({
+      env: {
+        geminiApiKey: 'AIzaPersistCooldownKey01',
+        groqApiKey: 'gsk_PersistBackupKey01',
+        llmClassifyChain: `gemini:gemini-3.8-flash, groq:${DEFAULT_GROQ_PRIMARY_MODEL}`,
+      },
+      geminiMinIntervalMs: 0,
+      groqMinIntervalMs: 0,
+      invokeSlotFn: async (req) => {
+        slotsCalledRouter1.push(req.slotId);
+        if (req.provider === 'gemini') {
+          const err = new Error('429 GenerateRequestsPerDay quota exhausted') as Error & { status: number };
+          err.status = 429;
+          throw err;
+        }
+        return {
+          outputText: VALID_KTT_CLASSIFICATION_JSON,
+          usage: { inputTokens: 120, outputTokens: 60, totalTokens: 180 },
+        };
+      },
+    });
+
+    await router1.classifyArticle(SAMPLE_ARTICLE);
+    expect(slotsCalledRouter1).toEqual([
+      'gemini:gemini-3.8-flash',
+      `groq:${DEFAULT_GROQ_PRIMARY_MODEL}`,
+    ]);
+
+    // Instance baru memakai API key yang sama harus langsung melewati Gemini yg sudah habis RPD hari ini!
+    const slotsCalledRouter2: string[] = [];
+    const router2 = new MultiLlmRouter({
+      env: {
+        geminiApiKey: 'AIzaPersistCooldownKey01',
+        groqApiKey: 'gsk_PersistBackupKey01',
+        llmClassifyChain: `gemini:gemini-3.8-flash, groq:${DEFAULT_GROQ_PRIMARY_MODEL}`,
+      },
+      geminiMinIntervalMs: 0,
+      groqMinIntervalMs: 0,
+      invokeSlotFn: async (req) => {
+        slotsCalledRouter2.push(req.slotId);
+        return {
+          outputText: VALID_KTT_CLASSIFICATION_JSON,
+          usage: { inputTokens: 120, outputTokens: 60, totalTokens: 180 },
+        };
+      },
+    });
+
+    await router2.classifyArticle(SAMPLE_ARTICLE);
+    expect(slotsCalledRouter2).toEqual([`groq:${DEFAULT_GROQ_PRIMARY_MODEL}`]);
+
+    resetRouterCooldownStore();
+    const slotsAfterReset: string[] = [];
+    const router3 = new MultiLlmRouter({
+      env: {
+        geminiApiKey: 'AIzaPersistCooldownKey01',
+        groqApiKey: 'gsk_PersistBackupKey01',
+        llmClassifyChain: `gemini:gemini-3.8-flash, groq:${DEFAULT_GROQ_PRIMARY_MODEL}`,
+      },
+      geminiMinIntervalMs: 0,
+      groqMinIntervalMs: 0,
+      invokeSlotFn: async (req) => {
+        slotsAfterReset.push(req.slotId);
+        return {
+          outputText: VALID_KTT_CLASSIFICATION_JSON,
+          usage: { inputTokens: 120, outputTokens: 60, totalTokens: 180 },
+        };
+      },
+    });
+    await router3.classifyArticle(SAMPLE_ARTICLE);
+    expect(slotsAfterReset).toEqual(['gemini:gemini-3.8-flash']);
+  });
+
+  it('menggunakan ThinkingLevel MEDIUM untuk sintesis BRS, memvalidasi batas nomor sitasi [1..N], dan menyediakan embedTextsWithGemini', async () => {
+    const capturedThinkingLevels: Array<string | undefined> = [];
+    const synthRes = await generateSynthesisWithRouter(
+      {
+        systemInstruction: 'Statistisi BPS KTT',
+        userPrompt: 'Susun analisis dari sumber [1] dan [2].',
+        maxCitationIndex: 2,
+      },
+      {
+        env: {
+          geminiApiKey: 'AIzaSynthThinkingKey01',
+          llmSynthesisChain: 'gemini:gemini-3.8-flash',
+        },
+        geminiMinIntervalMs: 0,
+        invokeSlotFn: async (req) => {
+          capturedThinkingLevels.push(req.thinkingLevel);
+          return {
+            outputText:
+              '## Kinerja Sektor Pertanian\nHarga TBS KTT naik [1], didukung pengapalan pelabuhan [2] dan klaim fiktif [0] serta [99].',
+            usage: { inputTokens: 300, outputTokens: 90, totalTokens: 390 },
+          };
+        },
+      },
+    );
+
+    expect(synthRes.ok).toBe(true);
+    expect(capturedThinkingLevels).toEqual(['MEDIUM']);
+    if (synthRes.ok) {
+      expect(synthRes.narrativeMarkdown).toContain('[1]');
+      expect(synthRes.narrativeMarkdown).toContain('[2]');
+      expect(synthRes.narrativeMarkdown).not.toContain('[0]');
+      expect(synthRes.narrativeMarkdown).not.toContain('[99]');
+      expect(synthRes.notice).toContain('halusinasi');
+    }
+
+    const sanitized = sanitizeSynthesisCitations(
+      'Fakta valid [1] dan [2, 3], tetapi abaikan [0], [4], serta [12-15].',
+      3,
+    );
+    expect(sanitized.sanitizedMarkdown).not.toContain('[0]');
+    expect(sanitized.sanitizedMarkdown).not.toContain('[4]');
+    expect(sanitized.sanitizedMarkdown).not.toContain('[12-15]');
+    expect(sanitized.sanitizedMarkdown).toContain('[1]');
+    expect(sanitized.strippedCitations).toEqual([0, 4, 12]);
+
+    // Tanpa key, embedTextsWithGemini harus gagal aman (mengembalikan array null) tanpa throw
+    const noKeyEmb = await embedTextsWithGemini(['Harga TBS sawit KTT menguat'], { apiKey: '' });
+    expect(noKeyEmb).toEqual([null]);
   });
 });

@@ -1,9 +1,9 @@
 # Spesifikasi Skema Database PostgreSQL & Drizzle ORM — SIPENA KTT
 
-**Versi Dokumen:** 2.0.0 (Single Source of Truth — KBLI 2025 `A–V` & Multi-LLM Telemetry)  
+**Versi Dokumen:** 2.1.0 (Single Source of Truth — KBLI 2025 `A–V`, 6-Provider Telemetry, & Semantic Dedup)  
 **Database Engine:** PostgreSQL 16 (Lokal VPS Ubuntu 24.04)  
 **ORM & Migrasi:** Drizzle ORM (`drizzle-orm/pg-core`) + Drizzle Kit (`drizzle-kit generate` & `drizzle-kit migrate`)  
-**Konvensi Skema:** `UUID` primary key, semua stempel waktu bertipe `TIMESTAMPTZ`, string panjang bebas bertipe `TEXT`, indeks eksplisit pada seluruh *Foreign Key* dan kolom filter utama, `CHECK` constraint integritas PDRB, serta enumerasi **KBLI 2025 (`A–V`)** dan tabel **`synthesis_drafts`**.
+**Konvensi Skema:** `UUID` primary key, semua stempel waktu bertipe `TIMESTAMPTZ`, string panjang bebas bertipe `TEXT`, indeks eksplisit pada seluruh *Foreign Key* dan kolom filter utama, `CHECK` constraint integritas PDRB, enumerasi **KBLI 2025 (`A–V`)**, tabel **`synthesis_drafts`**, serta kolom **`geographic_scope`** & **`title_embedding`** (`0003_wakeful_guardian.sql`).
 
 ---
 
@@ -79,12 +79,14 @@ erDiagram
         timestamptz published_at
         smallint quarter
         smallint year
+        text geographic_scope
         boolean is_economic_phenomenon
         text summary
         kbli_category kbli_category
         kbli_impact kbli_impact
         expenditure_component expenditure_component
         expenditure_impact expenditure_impact
+        double_precision_array title_embedding
         text llm_model
         llm_status llm_status
         text llm_error
@@ -586,7 +588,7 @@ export interface ScraperPortalErrorEntry {
 
 export interface ScraperProviderStatEntry {
   slotId: string;
-  provider: 'gemini' | 'groq' | 'openrouter';
+  provider: 'gemini' | 'groq' | 'openrouter' | 'cerebras' | 'mistral' | 'nvidia';
   model: string;
   calls: number;
   successes: number;
@@ -663,15 +665,17 @@ export const articles = pgTable(
     year: smallint('year').notNull(),       // mis. 2026
 
     // Hasil Klasifikasi AI / Kurasi Admin
+    geographicScope: text('geographic_scope'), // mis. 'TANA_TIDUNG' | 'KALTARA_PROVINCE' | 'NATIONAL_TRANSMISSION'
     isEconomicPhenomenon: boolean('is_economic_phenomenon'), // null bila LLM gagal & belum ditinjau manual
     summary: text('summary'), // Ringkasan berita 2-3 kalimat baku bahasa Indonesia
     kbliCategory: kbliCategoryPgEnum('kbli_category'),
     kbliImpact: kbliImpactPgEnum('kbli_impact'),
     expenditureComponent: expenditureComponentPgEnum('expenditure_component'),
     expenditureImpact: expenditureImpactPgEnum('expenditure_impact'),
+    titleEmbedding: doublePrecision('title_embedding').array(), // Vektor semantik 768-dim opsional (gemini-embedding-2)
 
     // Telemetry & Multi-LLM Router
-    llmModel: text('llm_model'), // mis. 'gemini:gemini-3.8-flash' | 'groq:llama-3.3-70b-versatile' | 'openrouter:...' | 'geo-filter'
+    llmModel: text('llm_model'), // mis. 'gemini:gemini-3.8-flash' | 'cerebras:llama-3.3-70b' | 'groq:llama-3.3-70b-versatile' | 'openrouter:...' | 'geo-filter'
     llmStatus: llmStatusPgEnum('llm_status').notNull().default(LlmStatusEnum.SUCCESS),
     llmError: text('llm_error'),
     llmConfidence: doublePrecision('llm_confidence'), // 0.0 - 1.0 opsional untuk prioritas review
@@ -905,7 +909,7 @@ CREATE INDEX IF NOT EXISTS articles_summary_trgm_idx
 ```
 
 ### Catatan Keamanan Migrasi Produksi
-1. Selalu gunakan `npx drizzle-kit generate` saat pengembangan lokal lalu eksekusi `npx drizzle-kit migrate` saat deployment di VPS Ubuntu 24.04. Dilarang menggunakan `drizzle-kit push` di lingkungan produksi.
+1. Selalu buat *backup* PostgreSQL (`pg_dump`) sebelum menerapkan migrasi produksi. Gunakan `npx drizzle-kit generate` saat pengembangan lokal lalu eksekusi `npm run db:migrate` (`npx drizzle-kit migrate` hingga `0003_wakeful_guardian.sql`) saat deployment di VPS Ubuntu 24.04. Dilarang menggunakan `drizzle-kit push` di lingkungan produksi.
 2. Untuk penambahan nilai `pgEnum` di masa mendatang (jika ada revisi kode KBLI), selalu lakukan melalui skrip migrasi `ALTER TYPE ... ADD VALUE IF NOT EXISTS ...`.
 3. Karena kolom `articles.verified_by`, `articles.keyword_id`, `articles.scraper_log_id`, dan `articles.created_by` menggunakan `ON DELETE SET NULL`, penghapusan akun staf non-aktif, kata kunci lama, atau log *scraper* tua **tidak akan pernah menghapus** arsip berita ekonomi PDRB yang sudah terkumpul.
 

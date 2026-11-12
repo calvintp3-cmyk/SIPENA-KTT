@@ -169,7 +169,7 @@ const columns: TableColumn<KeywordItem>[] = [
           <UIcon name="i-solar-tag-price-bold-duotone" class="w-3.5 h-3.5" />
           <span>Penjaringan Transmisi Ekonomi Nasional</span>
         </div>
-        <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-[#0F172A] mt-2">
+        <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 mt-2">
           Master Keyword Berita Nasional
         </h1>
         <p class="text-xs sm:text-sm text-slate-600 mt-0.5">
@@ -183,20 +183,20 @@ const columns: TableColumn<KeywordItem>[] = [
           <label for="keyword-search-input" class="sr-only">Cari kata kunci nasional</label>
           <UIcon
             name="i-solar-magnifer-line-duotone"
-            class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
+            class="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
           />
           <input
             id="keyword-search-input"
             v-model="searchText"
             type="search"
             placeholder="Cari kata kunci..."
-            class="h-9 w-full sm:w-56 pl-9 pr-7 rounded-xl border border-slate-200 bg-white text-xs text-[#0F172A] placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none"
+            class="min-h-9 w-full sm:w-60 pl-9 pr-10 rounded-xl border border-slate-200 bg-white text-xs text-slate-900 placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none"
           >
           <button
             v-if="searchText"
             type="button"
             aria-label="Hapus pencarian kata kunci"
-            class="absolute right-1.5 top-1/2 -translate-y-1/2 min-w-6 min-h-6 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 cursor-pointer"
+            class="absolute right-1 top-1/2 -translate-y-1/2 min-w-8 min-h-8 rounded-lg flex items-center justify-center text-slate-600 hover:text-slate-900 hover:bg-slate-100 cursor-pointer"
             @click="() => { searchText = ''; }"
           >
             <UIcon name="i-lucide-x" class="w-3.5 h-3.5" />
@@ -205,7 +205,7 @@ const columns: TableColumn<KeywordItem>[] = [
 
         <button
           type="button"
-          class="btn-primary-gradient h-9 px-4 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer"
+          class="btn-primary-gradient min-h-9 px-4 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer"
           @click="() => { openCreateModal(); }"
         >
           <UIcon name="i-solar-add-circle-bold-duotone" class="w-4 h-4 text-emerald-200" />
@@ -223,14 +223,29 @@ const columns: TableColumn<KeywordItem>[] = [
       description="Pastikan koneksi database aktif lalu muat ulang."
     >
       <template #actions>
-        <UButton size="xs" color="error" variant="solid" @click="() => { void refresh(); }">
+        <UButton size="sm" color="error" variant="solid" @click="() => { void refresh(); }">
           Muat Ulang
         </UButton>
       </template>
     </UAlert>
 
-    <!-- 3 Compact Summary Cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <!-- 3 Compact Summary Cards (Skeleton saat initial fetch) -->
+    <div v-if="pending && !keywordsData" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div
+        v-for="n in 3"
+        :key="`kw-skeleton-${n}`"
+        class="saas-card rounded-2xl p-5 space-y-3"
+      >
+        <div class="flex items-center justify-between gap-2">
+          <USkeleton class="h-3.5 w-32 rounded" />
+          <USkeleton class="h-8 w-8 rounded-xl" />
+        </div>
+        <USkeleton class="h-8 w-16 rounded-lg" />
+        <USkeleton class="h-3 w-40 rounded" />
+      </div>
+    </div>
+
+    <div v-else class="grid grid-cols-1 sm:grid-cols-3 gap-4">
       <div class="saas-card rounded-2xl p-5 space-y-2">
         <div class="flex items-center justify-between gap-2">
           <span class="text-xs font-semibold text-slate-600">
@@ -240,7 +255,7 @@ const columns: TableColumn<KeywordItem>[] = [
             <UIcon name="i-solar-tag-price-bold-duotone" class="w-4 h-4" />
           </div>
         </div>
-        <div class="text-3xl font-extrabold tabular-nums text-[#0F172A]">
+        <div class="text-3xl font-extrabold tabular-nums text-slate-900">
           {{ formatNumberId(keywordMetrics.total) }}
         </div>
         <div class="text-xs text-slate-600 tabular-nums">
@@ -274,7 +289,7 @@ const columns: TableColumn<KeywordItem>[] = [
             <UIcon name="i-solar-documents-bold-duotone" class="w-4 h-4" />
           </div>
         </div>
-        <div class="text-3xl font-extrabold tabular-nums text-[#0F172A]">
+        <div class="text-3xl font-extrabold tabular-nums text-slate-900">
           {{ formatNumberId(keywordMetrics.capturedArticles) }}
         </div>
         <div class="text-xs text-slate-600">Akumulasi di Bank Data SIPENA</div>
@@ -297,8 +312,8 @@ const columns: TableColumn<KeywordItem>[] = [
         >
           <template #keyword-cell="{ row }">
             <div class="space-y-0.5 max-w-sm">
-              <div class="font-semibold text-sm text-[#0F172A]">{{ row.original.keyword }}</div>
-              <p v-if="row.original.description" class="text-xs text-slate-500 leading-snug">
+              <div class="font-semibold text-sm text-slate-900">{{ row.original.keyword }}</div>
+              <p v-if="row.original.description" class="text-xs text-slate-600 leading-snug">
                 {{ row.original.description }}
               </p>
             </div>
@@ -312,7 +327,7 @@ const columns: TableColumn<KeywordItem>[] = [
             >
               {{ getKbliShortCodeName(row.original.defaultKbliCategory) }}
             </span>
-            <span v-else class="text-xs text-slate-400">Otomatis via AI</span>
+            <span v-else class="text-xs text-slate-600">Otomatis via AI</span>
           </template>
 
           <template #defaultExpenditure-cell="{ row }">
@@ -327,7 +342,7 @@ const columns: TableColumn<KeywordItem>[] = [
               />
               <span>{{ getExpenditureLabel(row.original.defaultExpenditureComponent, false) }}</span>
             </span>
-            <span v-else class="text-xs text-slate-400">Otomatis via AI</span>
+            <span v-else class="text-xs text-slate-600">Otomatis via AI</span>
           </template>
 
           <template #articleCount-cell="{ row }">
@@ -349,21 +364,23 @@ const columns: TableColumn<KeywordItem>[] = [
             <div class="flex items-center gap-1">
               <UTooltip text="Edit Kata Kunci">
                 <UButton
-                  size="xs"
+                  size="sm"
                   color="primary"
                   variant="subtle"
                   icon="i-lucide-pencil"
                   aria-label="Edit kata kunci"
+                  class="min-w-8 min-h-8"
                   @click="() => { openEditModal(row.original); }"
                 />
               </UTooltip>
               <UTooltip text="Hapus Kata Kunci">
                 <UButton
-                  size="xs"
+                  size="sm"
                   color="error"
                   variant="ghost"
                   icon="i-lucide-trash-2"
                   aria-label="Hapus kata kunci"
+                  class="min-w-8 min-h-8"
                   @click="() => { askDelete(row.original); }"
                 />
               </UTooltip>
@@ -393,7 +410,7 @@ const columns: TableColumn<KeywordItem>[] = [
 
       <template #footer>
         <div class="w-full flex justify-end gap-2">
-          <UButton color="neutral" variant="ghost" @click="() => { deleteModalOpen = false; }">
+          <UButton color="neutral" variant="ghost" autofocus @click="() => { deleteModalOpen = false; }">
             Batal
           </UButton>
           <UButton color="error" :loading="isDeleting" @click="() => { void confirmDelete(); }">

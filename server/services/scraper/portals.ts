@@ -16,7 +16,11 @@ import {
   type SafeFetchOptions,
 } from '../../utils/ssrf';
 import { hashNormalizedUrl, isSafeHttpUrl } from '../../utils/url-hash';
-import { accumulateParagraphsToThreshold, parseIndonesianDateTime } from './extractor';
+import {
+  accumulateParagraphsToThreshold,
+  detectSoftBlockPage,
+  parseIndonesianDateTime,
+} from './extractor';
 import { KTT_ANCHOR_RE } from './geo-filter';
 
 export const DEFAULT_REGIONAL_MAX_ITEMS = 15;
@@ -615,6 +619,7 @@ export async function harvestRegionalPortals(
             userAgent: DEFAULT_BROWSER_USER_AGENT,
             headers: DEFAULT_BROWSER_HEADERS,
             signal,
+            politeHostPacing: !options.fetchFn,
           });
 
           const feedCandidates = parseRegionalRssFeed(response.body, portal, {
@@ -641,11 +646,11 @@ export async function harvestRegionalPortals(
         }
       }
 
-      // 2. HTML index & additionalIndexUrls (utama untuk portal non-RSS atau pelengkap bila RSS < 5 kandidat)
+      // 2. HTML index & additionalIndexUrls (utama untuk portal non-RSS atau pelengkap bila kuota portal belum penuh)
       const htmlUrlsToCheck = [portal.indexUrl, ...(portal.additionalIndexUrls ?? [])];
       for (const targetIndexUrl of htmlUrlsToCheck) {
         if (signal?.aborted) break;
-        if (portalFoundCount >= 5) break;
+        if (portalFoundCount >= maxItemsPerPortal) break;
 
         try {
           const response = await fetchFn(targetIndexUrl, {
@@ -654,12 +659,24 @@ export async function harvestRegionalPortals(
             userAgent: DEFAULT_BROWSER_USER_AGENT,
             headers: DEFAULT_BROWSER_HEADERS,
             signal,
+            politeHostPacing: !options.fetchFn,
           });
+
+          const softBlock = detectSoftBlockPage(response.body);
+          if (softBlock.isSoftBlocked) {
+            portalErrors.push({
+              source: portal.sourcePortal,
+              stage: 'HARVEST',
+              message: softBlock.reason ?? 'Halaman indeks terblokir soft-block anti-bot.',
+              url: targetIndexUrl,
+            });
+            continue;
+          }
 
           const portalCandidates = parseRegionalPortalIndex(response.body, portal, {
             now,
             lookbackDays,
-            maxItems: maxItemsPerPortal,
+            maxItems: maxItemsPerPortal - portalFoundCount,
             baseUrl: targetIndexUrl,
           });
 

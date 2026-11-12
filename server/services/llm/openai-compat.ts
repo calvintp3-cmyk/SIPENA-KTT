@@ -1,8 +1,11 @@
 // server/services/llm/openai-compat.ts
 
-export type OpenAiCompatProvider = 'groq' | 'openrouter';
+export type OpenAiCompatProvider = 'groq' | 'cerebras' | 'mistral' | 'nvidia' | 'openrouter';
 
 export const GROQ_CHAT_COMPLETIONS_URL = 'https://api.groq.com/openai/v1/chat/completions';
+export const CEREBRAS_CHAT_COMPLETIONS_URL = 'https://api.cerebras.ai/v1/chat/completions';
+export const MISTRAL_CHAT_COMPLETIONS_URL = 'https://api.mistral.ai/v1/chat/completions';
+export const NVIDIA_CHAT_COMPLETIONS_URL = 'https://integrate.api.nvidia.com/v1/chat/completions';
 export const OPENROUTER_CHAT_COMPLETIONS_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
 export const DEFAULT_OPENAI_COMPAT_TIMEOUT_MS = 15_000;
@@ -13,6 +16,12 @@ export interface OpenAiCompatTokenUsage {
   totalTokens: number;
 }
 
+export interface OpenAiCompatJsonSchemaSpec {
+  name: string;
+  schema: Record<string, unknown>;
+  strict?: boolean;
+}
+
 export interface OpenAiCompatCallRequest {
   provider: OpenAiCompatProvider;
   apiKey: string;
@@ -20,6 +29,7 @@ export interface OpenAiCompatCallRequest {
   systemInstruction: string;
   userInput: string;
   jsonMode?: boolean;
+  jsonSchema?: OpenAiCompatJsonSchemaSpec;
   temperature?: number;
   maxTokens?: number;
   timeoutMs?: number;
@@ -75,7 +85,7 @@ export function sanitizeSecretFromText(rawMessage: string, secret?: string): str
   if (secret && secret.length >= 6) {
     clean = clean.split(secret).join('[REDACTED_KEY]');
   }
-  return clean.replace(/(?:gsk|sk-or-v1|AIza)[A-Za-z0-9_-]{8,}/g, '[REDACTED_KEY]');
+  return clean.replace(/(?:gsk|sk-or-v1|AIza|csk|nvapi-)[A-Za-z0-9_-]{8,}/g, '[REDACTED_KEY]');
 }
 
 function parseDurationHeaderToMs(raw: string | null): number | undefined {
@@ -167,18 +177,36 @@ function extractErrorDetailFromJson(rawBody: string): string {
 
 function isUnsupportedResponseFormatError(status: number, errorDetail: string): boolean {
   if (status !== 400 && status !== 422) return false;
-  return /response_format|json_object|json mode|structured output|unsupported/i.test(errorDetail);
+  return /response_format|json_schema|json_object|json mode|structured output|unsupported/i.test(
+    errorDetail,
+  );
 }
+
+function resolveOpenAiCompatUrl(provider: OpenAiCompatProvider): string {
+  switch (provider) {
+    case 'groq':
+      return GROQ_CHAT_COMPLETIONS_URL;
+    case 'cerebras':
+      return CEREBRAS_CHAT_COMPLETIONS_URL;
+    case 'mistral':
+      return MISTRAL_CHAT_COMPLETIONS_URL;
+    case 'nvidia':
+      return NVIDIA_CHAT_COMPLETIONS_URL;
+    case 'openrouter':
+    default:
+      return OPENROUTER_CHAT_COMPLETIONS_URL;
+  }
+}
+
+type ResponseFormatTier = 'json_schema' | 'json_object' | 'none';
 
 export async function invokeOpenAiCompatChat(
   req: OpenAiCompatCallRequest,
 ): Promise<OpenAiCompatCallResponse> {
-  const baseUrl =
-    req.baseUrl ??
-    (req.provider === 'groq' ? GROQ_CHAT_COMPLETIONS_URL : OPENROUTER_CHAT_COMPLETIONS_URL);
+  const baseUrl = req.baseUrl ?? resolveOpenAiCompatUrl(req.provider);
   const timeoutMs = req.timeoutMs ?? DEFAULT_OPENAI_COMPAT_TIMEOUT_MS;
 
-  const sendOnce = async (useResponseFormat: boolean): Promise<OpenAiCompatCallResponse> => {
+  const sendOnce = async (formatTier: ResponseFormatTier): Promise<OpenAiCompatCallResponse> => {
     const controller = new AbortController();
     let timedOut = false;
     const timeoutHandle = setTimeout(() => {
@@ -210,7 +238,7 @@ export async function invokeOpenAiCompatChat(
       }
 
       const userContent =
-        req.jsonMode && !useResponseFormat
+        req.jsonMode && formatTier === 'none'
           ? `${req.userInput}\n\nPENTING: Keluarkan HANYA 1 objek JSON valid sesuai skema tanpa teks pembuka atau penutup.`
           : req.userInput;
 
@@ -223,7 +251,16 @@ export async function invokeOpenAiCompatChat(
         temperature: req.temperature ?? 0.1,
         max_tokens: req.maxTokens ?? 3072,
       };
-      if (useResponseFormat) {
+      if (formatTier === 'json_schema' && req.jsonSchema) {
+        bodyPayload.response_format = {
+          type: 'json_schema',
+          json_schema: {
+            name: req.jsonSchema.name,
+            strict: req.jsonSchema.strict ?? true,
+            schema: req.jsonSchema.schema,
+          },
+        };
+      } else if (formatTier === 'json_object') {
         bodyPayload.response_format = { type: 'json_object' };
       }
 
@@ -238,8 +275,11 @@ export async function invokeOpenAiCompatChat(
 
       if (!response.ok) {
         const detail = sanitizeSecretFromText(extractErrorDetailFromJson(rawText), req.apiKey);
-        if (useResponseFormat && isUnsupportedResponseFormatError(response.status, detail)) {
-          return sendOnce(false);
+        if (formatTier === 'json_schema' && isUnsupportedResponseFormatError(response.status, detail)) {
+          return sendOnce('json_object');
+        }
+        if (formatTier === 'json_object' && isUnsupportedResponseFormatError(response.status, detail)) {
+          return sendOnce('none');
         }
 
         const retryAfterMs =
@@ -335,6 +375,11 @@ export async function invokeOpenAiCompatChat(
     }
   };
 
-  return sendOnce(Boolean(req.jsonMode));
+  const initialTier: ResponseFormatTier = req.jsonMode
+    ? req.jsonSchema
+      ? 'json_schema'
+      : 'json_object'
+    : 'none';
+  return sendOnce(initialTier);
 }
 

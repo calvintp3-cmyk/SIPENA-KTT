@@ -6,8 +6,7 @@ export const LoginRequestSchema = z.object({
     .string()
     .trim()
     .toLowerCase()
-    .email('Format email tidak valid')
-    .max(254, 'Email maksimal 254 karakter'),
+    .pipe(z.email('Format email tidak valid').max(254, 'Email maksimal 254 karakter')),
   password: z
     .string()
     .min(1, 'Kata sandi wajib diisi')

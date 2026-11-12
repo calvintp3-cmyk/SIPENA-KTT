@@ -22,6 +22,14 @@ import {
   PRIMARY_GEMINI_MODEL,
   type GeminiInvokeFn,
 } from '#server/services/llm/gemini-client';
+import {
+  LLM_CLASSIFICATION_JSON_SCHEMA,
+  LlmClassificationRawSchema,
+  buildOpenAiJsonSchemaResponseFormat,
+} from '#shared/schemas/llm-output.schema';
+import { SynthesisGenerateSchema } from '#shared/schemas/article.schema';
+import { LoginRequestSchema } from '#shared/schemas/auth.schema';
+import { CreateAdminUserSchema } from '#shared/schemas/user.schema';
 
 const SAMPLE_INPUT = {
   title: 'Harga TBS Sawit Tana Tidung Menguat ke Rp 2.980 per Kilogram',
@@ -253,6 +261,59 @@ describe('LLM Classifier Schema & Gemini Worker Resilience', () => {
     if (!second.ok) {
       expect(second.errorCode).toBe('RATE_LIMIT_EXCEEDED');
     }
+  });
+
+  it('menghasilkan LLM_CLASSIFICATION_JSON_SCHEMA langsung via Zod v4 toJSONSchema tanpa drift dan mewajibkan geographic_scope', () => {
+    const schemaObj = LLM_CLASSIFICATION_JSON_SCHEMA as Record<string, unknown>;
+    expect(schemaObj.$schema).toBeUndefined();
+    expect(schemaObj.additionalProperties).toBe(false);
+    expect(schemaObj.propertyOrdering).toEqual([
+      'geographic_scope',
+      'is_economic_phenomenon',
+      'rejection_reason',
+      'summary',
+      'kbli_category',
+      'kbli_impact',
+      'expenditure_component',
+      'expenditure_impact',
+      'quarter',
+      'year',
+      'confidence',
+    ]);
+    expect(schemaObj.required).toEqual(schemaObj.propertyOrdering);
+
+    const props = schemaObj.properties as Record<string, { description?: string }>;
+    for (const key of schemaObj.propertyOrdering as string[]) {
+      expect(typeof props[key]?.description).toBe('string');
+      expect((props[key]?.description ?? '').length).toBeGreaterThan(10);
+    }
+
+    // OpenAI json_schema format tidak mengandung propertyOrdering & strict: true
+    const openAiFormat = buildOpenAiJsonSchemaResponseFormat();
+    expect(openAiFormat.type).toBe('json_schema');
+    expect(openAiFormat.json_schema.strict).toBe(true);
+    expect('propertyOrdering' in openAiFormat.json_schema.schema).toBe(false);
+
+    // Schema drift tertutup: kehilangan geographic_scope wajib gagal di LlmClassificationRawSchema!
+    const withoutScope = { ...JSON.parse(VALID_ECONOMIC_JSON) } as Record<string, unknown>;
+    delete withoutScope.geographic_scope;
+    expect(() => LlmClassificationRawSchema.parse(withoutScope)).toThrow();
+    expect(() => parseAndValidateLlmJson(JSON.stringify(withoutScope))).toThrow();
+
+    // Validasi skema Zod v4 top-level formats
+    expect(LoginRequestSchema.safeParse({ email: 'bukan-email', password: 'abc' }).success).toBe(false);
+    expect(
+      CreateAdminUserSchema.safeParse({ email: 'admin@bps.go.id', name: 'Staf KTT', role: 'ADMIN' }).success,
+    ).toBe(true);
+    expect(
+      SynthesisGenerateSchema.safeParse({
+        year: 2026,
+        quarter: 4,
+        dimension: 'kbli',
+        targetCode: 'A',
+        articleIds: ['bukan-uuid'],
+      }).success,
+    ).toBe(false);
   });
 });
 

@@ -6,10 +6,18 @@ export interface RuntimeLlmAndScraperConfigLike {
   geminiApiKeys?: string;
   groqApiKey?: string;
   groqApiKeys?: string;
+  cerebrasApiKey?: string;
+  cerebrasApiKeys?: string;
+  mistralApiKey?: string;
+  mistralApiKeys?: string;
+  nvidiaApiKey?: string;
+  nvidiaApiKeys?: string;
   openrouterApiKey?: string;
+  openrouterApiKeys?: string;
   openrouterFreeModel?: string;
   llmClassifyChain?: string;
   llmSynthesisChain?: string;
+  enableGdeltMacro?: boolean | string;
   scraperMaxLlmCallsPerRun?: number | string;
   scraperMaxArticlesPerRun?: number | string;
 }
@@ -39,7 +47,14 @@ export function buildRouterEnvFromRuntimeConfig(
     geminiApiKeys: nonEmptyOrUndefined(cfg.geminiApiKeys),
     groqApiKey: nonEmptyOrUndefined(cfg.groqApiKey),
     groqApiKeys: nonEmptyOrUndefined(cfg.groqApiKeys),
+    cerebrasApiKey: nonEmptyOrUndefined(cfg.cerebrasApiKey),
+    cerebrasApiKeys: nonEmptyOrUndefined(cfg.cerebrasApiKeys),
+    mistralApiKey: nonEmptyOrUndefined(cfg.mistralApiKey),
+    mistralApiKeys: nonEmptyOrUndefined(cfg.mistralApiKeys),
+    nvidiaApiKey: nonEmptyOrUndefined(cfg.nvidiaApiKey),
+    nvidiaApiKeys: nonEmptyOrUndefined(cfg.nvidiaApiKeys),
     openrouterApiKey: nonEmptyOrUndefined(cfg.openrouterApiKey),
+    openrouterApiKeys: nonEmptyOrUndefined(cfg.openrouterApiKeys),
     openrouterFreeModel: nonEmptyOrUndefined(cfg.openrouterFreeModel),
     llmClassifyChain: nonEmptyOrUndefined(cfg.llmClassifyChain),
     llmSynthesisChain: nonEmptyOrUndefined(cfg.llmSynthesisChain),
@@ -51,13 +66,23 @@ export function buildRouterEnvFromRuntimeConfig(
  */
 export function buildScraperPipelineRuntimeOptions(cfg: RuntimeLlmAndScraperConfigLike): {
   maxArticlesPerRun?: number;
+  enableGdeltMacro?: boolean;
   routerOptions: MultiLlmRouterOptions;
 } {
   const maxArticlesPerRun = toPositiveIntOrUndefined(cfg.scraperMaxArticlesPerRun);
   const maxCallsPerRun = toPositiveIntOrUndefined(cfg.scraperMaxLlmCallsPerRun);
+  const enableGdeltMacro =
+    typeof cfg.enableGdeltMacro === 'boolean'
+      ? cfg.enableGdeltMacro
+      : cfg.enableGdeltMacro === 'false'
+        ? false
+        : cfg.enableGdeltMacro === 'true'
+          ? true
+          : undefined;
 
   return {
     ...(maxArticlesPerRun !== undefined ? { maxArticlesPerRun } : {}),
+    ...(enableGdeltMacro !== undefined ? { enableGdeltMacro } : {}),
     routerOptions: {
       env: buildRouterEnvFromRuntimeConfig(cfg),
       ...(maxCallsPerRun !== undefined ? { maxCallsPerRun } : {}),

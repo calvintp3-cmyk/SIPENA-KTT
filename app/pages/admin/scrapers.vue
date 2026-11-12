@@ -109,7 +109,8 @@ async function triggerManualRun() {
 
     toast.add({
       title: 'Scraping Dimulai',
-      description: 'Worker sedang mengambil artikel dan memetakan via pipeline Multi-LLM (Gemini, Groq & OpenRouter).',
+      description:
+        'Worker sedang mengambil artikel dan memetakan via pipeline 6 penyedia Multi-LLM (Gemini, Cerebras, Mistral, Groq, NVIDIA NIM & OpenRouter).',
       color: 'info',
       icon: 'i-lucide-play-circle',
     });
@@ -189,17 +190,18 @@ function getSlotSuccessRate(stat: ScraperProviderStatEntry): number {
           <UIcon name="i-solar-cpu-bolt-bold-duotone" class="w-3.5 h-3.5" />
           <span>Observabilitas Crawler &amp; Pipeline Multi-LLM</span>
         </div>
-        <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-[#0F172A] mt-2">
+        <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 mt-2">
           Monitor Crawler &amp; Rute Multi-LLM
         </h1>
         <p class="text-xs sm:text-sm text-slate-600 mt-0.5">
-          Pemantauan eksekusi harian otomatis (04:00 WITA), pemulihan antrean AI gagal, serta
-          efisiensi deduplikasi kuota Free Tier (Gemini, Groq &amp; OpenRouter).
+          Pemantauan eksekusi harian otomatis (04:00 WITA), feed GDELT opsional, pemulihan antrean AI gagal, serta
+          efisiensi deduplikasi kuota 6 penyedia Multi-LLM (Gemini, Cerebras, Mistral, Groq, NVIDIA NIM &amp; OpenRouter).
         </p>
       </div>
 
       <div class="flex items-center gap-2 shrink-0">
         <span
+          role="status"
           class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold border shadow-2xs"
           :class="
             isRunning
@@ -207,9 +209,10 @@ function getSlotSuccessRate(stat: ScraperProviderStatEntry): number {
               : 'bg-emerald-50 text-emerald-800 border-emerald-200'
           "
         >
-          <span
-            class="w-2 h-2 rounded-full shrink-0"
-            :class="isRunning ? 'bg-sky-600 animate-pulse' : 'bg-emerald-600'"
+          <UIcon
+            :name="isRunning ? 'i-lucide-loader-circle' : 'i-lucide-check-circle-2'"
+            class="w-3.5 h-3.5 shrink-0"
+            :class="{ 'animate-spin': isRunning }"
           />
           <span>{{ isRunning ? 'Worker Aktif Berjalan' : 'Scheduler 04:00 WITA Siap' }}</span>
         </span>
@@ -225,7 +228,7 @@ function getSlotSuccessRate(stat: ScraperProviderStatEntry): number {
       description="Pastikan koneksi database aktif lalu muat ulang."
     >
       <template #actions>
-        <UButton size="xs" color="error" variant="solid" @click="() => { void refresh(); }">
+        <UButton size="sm" color="error" variant="solid" @click="() => { void refresh(); }">
           Muat Ulang
         </UButton>
       </template>
@@ -261,7 +264,7 @@ function getSlotSuccessRate(stat: ScraperProviderStatEntry): number {
           </div>
         </template>
         <template v-else>
-          <div class="text-sm font-semibold text-slate-400">Belum pernah berjalan</div>
+          <div class="text-sm font-semibold text-slate-600">Belum pernah berjalan</div>
         </template>
       </div>
 
@@ -274,7 +277,7 @@ function getSlotSuccessRate(stat: ScraperProviderStatEntry): number {
             <UIcon name="i-solar-cpu-bolt-bold-duotone" class="w-4 h-4" />
           </div>
         </div>
-        <div class="text-3xl font-extrabold text-[#0F172A] tabular-nums">
+        <div class="text-3xl font-extrabold text-slate-900 tabular-nums">
           {{ formatNumberId(observability?.tokenStats30d.totalTokens) }}
         </div>
         <div class="text-xs tabular-nums text-slate-600">
@@ -302,14 +305,15 @@ function getSlotSuccessRate(stat: ScraperProviderStatEntry): number {
             "
           >
             {{ formatNumberId(observability?.pendingLlmFailedCount) }}
-            <span class="text-xs font-semibold text-slate-500">Artikel</span>
+            <span class="text-xs font-semibold text-slate-600">Artikel</span>
           </span>
 
           <UButton
-            size="xs"
+            size="sm"
             color="warning"
             variant="subtle"
             icon="i-solar-restart-bold-duotone"
+            class="min-h-8"
             :disabled="isRunning || (observability?.totalLlmFailedCount ?? 0) === 0"
             :loading="isTriggeringRetry"
             @click="() => { void triggerRetryFailedLlm(); }"
@@ -355,7 +359,7 @@ function getSlotSuccessRate(stat: ScraperProviderStatEntry): number {
             <UIcon name="i-solar-routing-2-bold-duotone" class="w-4 h-4" />
           </div>
           <div>
-            <h2 class="text-sm font-bold text-[#0F172A]">
+            <h2 class="text-sm font-bold text-slate-900">
               Status &amp; Kapasitas Penyedia LLM
             </h2>
             <p class="text-xs text-slate-600">
@@ -372,9 +376,9 @@ function getSlotSuccessRate(stat: ScraperProviderStatEntry): number {
               : 'bg-amber-50 text-amber-800 border-amber-200'
           "
         >
-          <span
-            class="w-1.5 h-1.5 rounded-full"
-            :class="configuredProviderSlotsCount > 0 ? 'bg-emerald-600' : 'bg-amber-500'"
+          <UIcon
+            :name="configuredProviderSlotsCount > 0 ? 'i-lucide-check-circle-2' : 'i-lucide-alert-triangle'"
+            class="w-3.5 h-3.5 shrink-0"
           />
           <span>{{ configuredProviderSlotsCount }} / {{ providerSlots.length }} Slot Aktif</span>
         </span>
@@ -418,7 +422,7 @@ function getSlotSuccessRate(stat: ScraperProviderStatEntry): number {
               :class="
                 slot.configured
                   ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-                  : 'bg-slate-100 text-slate-500 border-slate-200'
+                  : 'bg-slate-100 text-slate-600 border-slate-200'
               "
             >
               {{ slot.configured ? `Siap • ${slot.keyCount} Key` : 'Belum Diisi' }}
@@ -426,13 +430,13 @@ function getSlotSuccessRate(stat: ScraperProviderStatEntry): number {
           </div>
 
           <div class="space-y-1 text-xs">
-            <div class="font-semibold text-[#0F172A] truncate" :title="slot.model">
+            <div class="font-semibold text-slate-900 truncate" :title="slot.model">
               {{ slot.model }}
             </div>
             <div class="text-[11px] text-slate-600 tabular-nums">
               Batas: {{ slot.rpmLimit }} RPM • {{ formatNumberId(slot.tpmLimit) }} TPM
             </div>
-            <div class="text-[11px] text-slate-500">
+            <div class="text-[11px] text-slate-600">
               Kuota Harian: {{ slot.dailyQuotaNote }}
             </div>
           </div>
@@ -442,19 +446,19 @@ function getSlotSuccessRate(stat: ScraperProviderStatEntry): number {
             class="pt-2.5 border-t border-slate-100 grid grid-cols-4 gap-2 text-[11px] tabular-nums"
           >
             <div>
-              <div class="text-slate-500">Calls</div>
-              <div class="font-bold text-[#0F172A]">
+              <div class="text-slate-600">Calls</div>
+              <div class="font-bold text-slate-900">
                 {{ formatNumberId(getSlotStat30d(slot.slotId)!.calls) }}
               </div>
             </div>
             <div>
-              <div class="text-slate-500">Sukses</div>
+              <div class="text-slate-600">Sukses</div>
               <div class="font-bold text-emerald-700">
                 {{ getSlotSuccessRate(getSlotStat30d(slot.slotId)!) }}%
               </div>
             </div>
             <div>
-              <div class="text-slate-500">HTTP 429</div>
+              <div class="text-slate-600">HTTP 429</div>
               <div
                 class="font-bold"
                 :class="getSlotStat30d(slot.slotId)!.rateLimits > 0 ? 'text-amber-700' : 'text-slate-600'"
@@ -463,13 +467,13 @@ function getSlotSuccessRate(stat: ScraperProviderStatEntry): number {
               </div>
             </div>
             <div>
-              <div class="text-slate-500">Token</div>
+              <div class="text-slate-600">Token</div>
               <div class="font-bold text-indigo-700">
                 {{ formatNumberId(getSlotStat30d(slot.slotId)!.totalTokens) }}
               </div>
             </div>
           </div>
-          <div v-else class="pt-2.5 border-t border-slate-100 text-[11px] text-slate-400">
+          <div v-else class="pt-2.5 border-t border-slate-100 text-[11px] text-slate-600">
             Belum ada panggilan 30 hari terakhir
           </div>
         </div>
@@ -481,6 +485,7 @@ function getSlotSuccessRate(stat: ScraperProviderStatEntry): number {
       <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-3.5">
         <UFormField label="Cakupan Eksekusi Manual" class="flex-1 max-w-xl">
           <USelect
+            id="scraper-mode-select"
             v-model="selectedMode"
             :items="modeOptions"
             value-key="value"
@@ -494,7 +499,7 @@ function getSlotSuccessRate(stat: ScraperProviderStatEntry): number {
           <button
             type="button"
             :disabled="isRunning || isTriggeringRun"
-            class="btn-primary-gradient h-9 px-4 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer"
+            class="btn-primary-gradient min-h-9 px-4 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer"
             @click="() => { void triggerManualRun(); }"
           >
             <UIcon
@@ -508,7 +513,7 @@ function getSlotSuccessRate(stat: ScraperProviderStatEntry): number {
           <button
             type="button"
             :disabled="isRunning || isTriggeringRetry || (observability?.totalLlmFailedCount ?? 0) === 0"
-            class="h-9 px-3.5 rounded-xl border border-amber-300 bg-amber-50 hover:bg-amber-100 text-xs font-semibold text-amber-900 inline-flex items-center gap-1.5 transition-colors disabled:opacity-50 cursor-pointer"
+            class="min-h-9 px-3.5 rounded-xl border border-amber-300 bg-amber-50 hover:bg-amber-100 text-xs font-semibold text-amber-900 inline-flex items-center gap-1.5 transition-colors disabled:opacity-50 cursor-pointer"
             @click="() => { void triggerRetryFailedLlm(); }"
           >
             <UIcon
@@ -534,13 +539,13 @@ function getSlotSuccessRate(stat: ScraperProviderStatEntry): number {
 
     <!-- Riwayat Log Eksekusi -->
     <div class="saas-card rounded-2xl overflow-hidden">
-      <div class="px-5 py-4 border-b border-slate-200/80 bg-[#FAFBFD] flex items-center justify-between gap-2">
+      <div class="px-5 py-4 border-b border-slate-200/80 bg-slate-50/70 flex items-center justify-between gap-2">
         <div class="flex items-center gap-2.5">
           <div class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-200/80 flex items-center justify-center shrink-0">
             <UIcon name="i-solar-history-2-bold-duotone" class="w-4 h-4" />
           </div>
           <div>
-            <h2 class="text-sm font-bold text-[#0F172A]">
+            <h2 class="text-sm font-bold text-slate-900">
               Riwayat Log Eksekusi Crawler
             </h2>
             <p class="text-xs text-slate-600">
@@ -552,7 +557,7 @@ function getSlotSuccessRate(stat: ScraperProviderStatEntry): number {
         <button
           type="button"
           :disabled="pending"
-          class="h-8 px-3 rounded-xl border border-slate-200 bg-white hover:border-indigo-300 hover:bg-slate-50 text-xs font-semibold text-[#0F172A] inline-flex items-center gap-1.5 transition-colors disabled:opacity-50 cursor-pointer"
+          class="min-h-8 px-3 rounded-xl border border-slate-200 bg-white hover:border-indigo-300 hover:bg-slate-50 text-xs font-semibold text-slate-900 inline-flex items-center gap-1.5 transition-colors disabled:opacity-50 cursor-pointer"
           @click="() => { void refresh(); }"
         >
           <UIcon

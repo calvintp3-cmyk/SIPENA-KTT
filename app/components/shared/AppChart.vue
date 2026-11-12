@@ -48,11 +48,11 @@ function handleChartClick(params: unknown) {
       v-else-if="empty || !option"
       class="w-full h-full rounded-xl bg-slate-50/80 border border-dashed border-slate-200 flex flex-col items-center justify-center text-center px-6"
     >
-      <div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center mb-2.5">
-        <UIcon name="i-solar-chart-2-bold-duotone" class="w-5 h-5" />
+      <div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center mb-2.5">
+        <UIcon name="i-solar-chart-2-bold-duotone" class="w-5 h-5" aria-hidden="true" />
       </div>
       <div class="text-xs font-semibold text-slate-700">{{ emptyTitle }}</div>
-      <div class="text-[11px] text-slate-500 mt-0.5 max-w-xs">{{ emptyDescription }}</div>
+      <div class="text-[11px] text-slate-600 mt-0.5 max-w-xs">{{ emptyDescription }}</div>
     </div>
 
     <ClientOnly v-else>
@@ -64,7 +64,7 @@ function handleChartClick(params: unknown) {
       />
       <template #fallback>
         <div
-          class="w-full h-full rounded-xl bg-slate-100/70 border border-slate-200/60 flex items-center justify-center text-xs text-slate-400"
+          class="w-full h-full rounded-xl bg-slate-100/70 border border-slate-200/60 flex items-center justify-center text-xs text-slate-600"
         >
           Memuat visualisasi interaktif...
         </div>

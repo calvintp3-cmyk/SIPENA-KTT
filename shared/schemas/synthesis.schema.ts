@@ -51,15 +51,15 @@ export const SynthesisGenerationModeSchema = z.enum(['gemini', 'llm', 'template'
 
 export const SynthesisCitationSchema = z.object({
   index: z.coerce.number().int().min(1).max(30),
-  id: z.string().uuid('ID artikel sitasi harus UUID valid'),
+  id: z.uuid('ID artikel sitasi harus UUID valid'),
   title: z.string().trim().min(1).max(500),
   sourcePortal: z.string().trim().min(1).max(160),
   publishedAt: z.string().trim().min(1).max(80),
   url: safeCitationUrlSchema,
-  kbliCategory: z.nativeEnum(KbliCategoryEnum).nullable().optional().default(null),
-  kbliImpact: z.nativeEnum(KbliImpactEnum).nullable().optional().default(null),
-  expenditureComponent: z.nativeEnum(ExpenditureComponentEnum).nullable().optional().default(null),
-  expenditureImpact: z.nativeEnum(ExpenditureImpactEnum).nullable().optional().default(null),
+  kbliCategory: z.enum(KbliCategoryEnum).nullable().optional().default(null),
+  kbliImpact: z.enum(KbliImpactEnum).nullable().optional().default(null),
+  expenditureComponent: z.enum(ExpenditureComponentEnum).nullable().optional().default(null),
+  expenditureImpact: z.enum(ExpenditureImpactEnum).nullable().optional().default(null),
 });
 
 export const ListSynthesisDraftsQuerySchema = z.object({
@@ -94,7 +94,7 @@ export const CreateSynthesisDraftSchema = z.object({
   modelUsed: z.string().trim().max(120).nullable().optional().default(null),
   notice: z.string().trim().max(500).nullable().optional().default(null),
   citations: z.array(SynthesisCitationSchema).max(30).default([]),
-  articleIds: z.array(z.string().uuid('ID artikel harus UUID valid')).max(30).default([]),
+  articleIds: z.array(z.uuid('ID artikel harus UUID valid')).max(30).default([]),
 });
 
 export const UpdateSynthesisDraftSchema = z

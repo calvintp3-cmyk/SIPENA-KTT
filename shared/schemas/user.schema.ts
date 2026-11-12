@@ -17,14 +17,13 @@ export const CreateAdminUserSchema = z.object({
     .string()
     .trim()
     .toLowerCase()
-    .email('Format alamat email / Gmail tidak valid')
-    .max(254, 'Email maksimal 254 karakter'),
+    .pipe(z.email('Format alamat email / Gmail tidak valid').max(254, 'Email maksimal 254 karakter')),
   name: z
     .string()
     .trim()
     .min(2, 'Nama lengkap minimal 2 karakter')
     .max(120, 'Nama maksimal 120 karakter'),
-  role: z.nativeEnum(UserRoleEnum).default(UserRoleEnum.OPERATOR),
+  role: z.enum(UserRoleEnum).default(UserRoleEnum.OPERATOR),
   isActive: z.boolean().optional().default(true),
   password: OptionalLocalPasswordSchema,
 });
@@ -35,8 +34,7 @@ export const UpdateAdminUserSchema = z
       .string()
       .trim()
       .toLowerCase()
-      .email('Format alamat email / Gmail tidak valid')
-      .max(254, 'Email maksimal 254 karakter')
+      .pipe(z.email('Format alamat email / Gmail tidak valid').max(254, 'Email maksimal 254 karakter'))
       .optional(),
     name: z
       .string()
@@ -44,7 +42,7 @@ export const UpdateAdminUserSchema = z
       .min(2, 'Nama lengkap minimal 2 karakter')
       .max(120, 'Nama maksimal 120 karakter')
       .optional(),
-    role: z.nativeEnum(UserRoleEnum).optional(),
+    role: z.enum(UserRoleEnum).optional(),
     isActive: z.boolean().optional(),
     password: OptionalLocalPasswordSchema,
     clearPassword: z.boolean().optional(),

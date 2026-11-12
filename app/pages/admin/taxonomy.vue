@@ -199,7 +199,7 @@ const expenditureImpactRows: Array<{
           <UIcon name="i-solar-book-bookmark-bold-duotone" class="w-3.5 h-3.5" />
           <span>Standar Klasifikasi Neraca Wilayah BPS RI</span>
         </div>
-        <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-[#0F172A] mt-2">
+        <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 mt-2">
           Kamus &amp; Taksonomi PDRB Dua Sisi
         </h1>
         <p class="text-xs sm:text-sm text-slate-600 mt-0.5">
@@ -210,7 +210,7 @@ const expenditureImpactRows: Array<{
 
       <NuxtLink
         :to="`/admin/articles?year=${selectedYear}&quarter=${selectedQuarter}&status=${VerificationStatusEnum.VERIFIED}`"
-        class="btn-primary-gradient h-9 px-4 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 self-start lg:self-auto shrink-0"
+        class="btn-primary-gradient min-h-9 px-4 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 self-start lg:self-auto shrink-0"
       >
         <UIcon name="i-solar-database-bold-duotone" class="w-4 h-4 text-emerald-200" />
         <span>Buka Bank Data ({{ shortPeriodLabel }})</span>
@@ -226,7 +226,7 @@ const expenditureImpactRows: Array<{
       description="Referensi taksonomi tetap dapat digunakan; muat ulang untuk menyinkronkan jumlah bukti per sektor."
     >
       <template #actions>
-        <UButton size="xs" color="warning" variant="solid" @click="() => { void refreshTelemetry(); }">
+        <UButton size="sm" color="warning" variant="solid" @click="() => { void refreshTelemetry(); }">
           Muat Ulang
         </UButton>
       </template>
@@ -241,7 +241,7 @@ const expenditureImpactRows: Array<{
           17
         </div>
         <div>
-          <div class="text-xs sm:text-sm font-bold text-[#0F172A]">17 Kategori PDRB Lapangan Usaha</div>
+          <div class="text-xs sm:text-sm font-bold text-slate-900">17 Kategori PDRB Lapangan Usaha</div>
           <p class="text-xs text-slate-600 mt-0.5 leading-relaxed">
             Memetakan 22 huruf KBLI 2025 (A–V, PerBPS No. 7/2025): <strong>J &amp; K</strong> masuk
             Informasi &amp; Komunikasi; <strong>N &amp; O</strong> masuk Jasa Perusahaan;
@@ -257,7 +257,7 @@ const expenditureImpactRows: Array<{
           06
         </div>
         <div>
-          <div class="text-xs sm:text-sm font-bold text-[#0F172A]">6 Komponen PDRB Pengeluaran</div>
+          <div class="text-xs sm:text-sm font-bold text-slate-900">6 Komponen PDRB Pengeluaran</div>
           <p class="text-xs text-slate-600 mt-0.5 leading-relaxed">
             PK-RT, PK-LNPRT, PK-P, PMTB, Perubahan Inventori, dan Ekspor Bersih Antar Daerah/Luar
             Negeri.
@@ -272,7 +272,7 @@ const expenditureImpactRows: Array<{
           2×2
         </div>
         <div>
-          <div class="text-xs sm:text-sm font-bold text-[#0F172A]">Matriks Arah Dampak Dual-Axis</div>
+          <div class="text-xs sm:text-sm font-bold text-slate-900">Matriks Arah Dampak Dual-Axis</div>
           <p class="text-xs text-slate-600 mt-0.5 leading-relaxed">
             Membedakan pengaruh terhadap <strong>output riil (ADHK)</strong> dan tekanan
             <strong>harga/deflator (ADHB)</strong> di kedua sisi.
@@ -289,20 +289,20 @@ const expenditureImpactRows: Array<{
         </label>
         <UIcon
           name="i-solar-magnifer-line-duotone"
-          class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
+          class="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
         />
         <input
           id="taxonomy-search"
           v-model="searchQuery"
           type="search"
           placeholder="Cari kode KBLI (mis. J, N, T, PMTB), sektor, atau sinyal..."
-          class="w-full h-9 pl-9 pr-8 rounded-xl border border-slate-200 bg-slate-50/70 focus:bg-white text-xs text-[#0F172A] placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none transition-colors"
+          class="w-full min-h-9 pl-9 pr-10 rounded-xl border border-slate-200 bg-slate-50/70 focus:bg-white text-xs text-slate-900 placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none transition-colors"
         >
         <button
           v-if="searchQuery"
           type="button"
           aria-label="Hapus pencarian taksonomi"
-          class="absolute right-1.5 top-1/2 -translate-y-1/2 min-w-6 min-h-6 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 cursor-pointer"
+          class="absolute right-1 top-1/2 -translate-y-1/2 min-w-8 min-h-8 rounded-lg flex items-center justify-center text-slate-600 hover:text-slate-900 hover:bg-slate-200/70 cursor-pointer"
           @click="() => { searchQuery = ''; }"
         >
           <UIcon name="i-lucide-x" class="w-3.5 h-3.5" />
@@ -324,11 +324,11 @@ const expenditureImpactRows: Array<{
           :key="tab.id"
           type="button"
           :aria-pressed="activeTab === tab.id"
-          class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer"
+          class="min-h-8 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
           :class="
             activeTab === tab.id
               ? 'bg-white text-indigo-700 shadow-2xs border border-indigo-200/70'
-              : 'text-slate-600 hover:text-[#0F172A]'
+              : 'text-slate-600 hover:text-slate-900'
           "
           @click="() => { activeTab = tab.id; }"
         >
@@ -340,7 +340,7 @@ const expenditureImpactRows: Array<{
     <!-- Section 1: 17 Kategori Lapangan Usaha (22 KBLI 2025) -->
     <section v-if="activeTab === 'all' || activeTab === 'kbli'" class="space-y-3">
       <div class="flex flex-wrap items-center justify-between gap-2">
-        <h2 class="text-base font-extrabold text-[#0F172A]">
+        <h2 class="text-base font-extrabold text-slate-900">
           A. 17 Kategori PDRB Lapangan Usaha (KBLI 2025 • 22 Huruf A–V)
         </h2>
         <div class="flex items-center gap-2 text-xs tabular-nums text-slate-600">
@@ -365,15 +365,9 @@ const expenditureImpactRows: Array<{
         <article
           v-for="sector in filteredSectors"
           :key="sector.groupCode"
-          class="saas-card saas-card-interactive rounded-2xl p-5 flex flex-col justify-between gap-3.5 relative overflow-hidden"
+          class="saas-card saas-card-interactive rounded-2xl p-5 flex flex-col justify-between gap-3.5"
         >
-          <span
-            aria-hidden="true"
-            class="absolute inset-x-0 top-0 h-1"
-            :class="getKbliClusterTheme(sector.groupCode).accentBarClass"
-          />
-
-          <div class="space-y-2.5 pt-0.5">
+          <div class="space-y-2.5">
             <div class="flex items-start justify-between gap-3">
               <div class="flex items-start gap-2.5 min-w-0">
                 <span
@@ -383,10 +377,10 @@ const expenditureImpactRows: Array<{
                   {{ sector.groupCode }}
                 </span>
                 <div class="min-w-0">
-                  <h3 class="text-sm font-bold text-[#0F172A] leading-snug">
+                  <h3 class="text-sm font-bold text-slate-900 leading-snug">
                     {{ sector.officialName }}
                   </h3>
-                  <div v-if="sector.shortName !== sector.officialName" class="text-[11px] text-slate-500">
+                  <div v-if="sector.shortName !== sector.officialName" class="text-[11px] text-slate-600">
                     Label ringkas: {{ sector.shortName }}
                   </div>
                 </div>
@@ -426,8 +420,8 @@ const expenditureImpactRows: Array<{
             </p>
 
             <!-- Detailed KBLI letter breakdown for multi-letter categories -->
-            <div v-if="sector.kbliCodes.length > 1" class="space-y-1 rounded-xl bg-[#FAFBFD] border border-slate-200/80 p-3">
-              <div class="text-[11px] font-bold text-slate-500">
+            <div v-if="sector.kbliCodes.length > 1" class="space-y-1 rounded-xl bg-slate-50/70 border border-slate-200/80 p-3">
+              <div class="text-[11px] font-bold text-slate-600">
                 Rincian Huruf KBLI yang Digabung:
               </div>
               <div
@@ -444,19 +438,19 @@ const expenditureImpactRows: Array<{
               class="rounded-xl border px-3 py-2 text-xs text-slate-800 leading-relaxed"
               :class="getKbliClusterTheme(sector.groupCode).softStripClass"
             >
-              <span class="font-bold text-[#0F172A]">Sinyal Khas KTT: </span>
+              <span class="font-bold text-slate-900">Sinyal Khas KTT: </span>
               {{ sector.typicalSignals }}
             </div>
           </div>
 
           <div class="flex items-center justify-between gap-2 pt-2.5 border-t border-slate-100">
-            <span class="text-[11px] font-medium text-slate-500">
+            <span class="text-[11px] font-medium text-slate-600">
               Kode KBLI: {{ sector.kbliCodes.join(', ') }}
             </span>
 
             <NuxtLink
               :to="`/admin/articles?pdrbGroup=${encodeURIComponent(sector.groupCode)}&year=${selectedYear}&quarter=${selectedQuarter}&status=${VerificationStatusEnum.VERIFIED}`"
-              class="inline-flex items-center gap-1 text-xs font-semibold text-indigo-700 hover:text-indigo-900 hover:underline"
+              class="inline-flex items-center gap-1 min-h-8 px-1 text-xs font-semibold text-indigo-700 hover:text-indigo-900 hover:underline"
             >
               <span>Arsip Sektor {{ sector.groupCode }}</span>
               <UIcon name="i-lucide-arrow-right" class="w-3.5 h-3.5" />
@@ -469,7 +463,7 @@ const expenditureImpactRows: Array<{
     <!-- Section 2: 6 Komponen Pengeluaran -->
     <section v-if="activeTab === 'all' || activeTab === 'expenditure'" class="space-y-3">
       <div class="flex items-center justify-between gap-2">
-        <h2 class="text-base font-extrabold text-[#0F172A]">
+        <h2 class="text-base font-extrabold text-slate-900">
           B. 6 Komponen PDRB Menurut Pengeluaran
         </h2>
         <span class="text-xs font-medium tabular-nums text-slate-600">
@@ -518,10 +512,10 @@ const expenditureImpactRows: Array<{
                       : `${expenditureCountMap.get(comp.code)} Bukti`
                   }}
                 </span>
-                <span class="text-[11px] font-semibold text-slate-500">{{ comp.short }}</span>
+                <span class="text-[11px] font-semibold text-slate-600">{{ comp.short }}</span>
               </div>
             </div>
-            <h3 class="text-sm font-bold text-[#0F172A] leading-snug">
+            <h3 class="text-sm font-bold text-slate-900 leading-snug">
               {{ comp.official }}
             </h3>
             <p class="text-xs text-slate-600 leading-relaxed">
@@ -532,7 +526,7 @@ const expenditureImpactRows: Array<{
           <div class="pt-2.5 border-t border-slate-100 flex justify-end">
             <NuxtLink
               :to="`/admin/articles?expenditure=${encodeURIComponent(comp.code)}&year=${selectedYear}&quarter=${selectedQuarter}&status=${VerificationStatusEnum.VERIFIED}`"
-              class="inline-flex items-center gap-1 text-xs font-semibold text-indigo-700 hover:text-indigo-900 hover:underline"
+              class="inline-flex items-center gap-1 min-h-8 px-1 text-xs font-semibold text-indigo-700 hover:text-indigo-900 hover:underline"
             >
               <span>Arsip {{ comp.short }}</span>
               <UIcon name="i-lucide-arrow-right" class="w-3.5 h-3.5" />
@@ -545,20 +539,20 @@ const expenditureImpactRows: Array<{
     <!-- Section 3: Matriks Arah Dampak Dual-Axis -->
     <section v-if="activeTab === 'all' || activeTab === 'impact'" class="space-y-3">
       <div>
-        <h2 class="text-base font-extrabold text-[#0F172A]">
+        <h2 class="text-base font-extrabold text-slate-900">
           C. Matriks Klasifikasi Arah Dampak Ekonomi (ADHK vs ADHB)
         </h2>
         <p class="text-xs text-slate-600 mt-0.5">
-          Acuan pengisian kolom Dampak KBLI dan Dampak Pengeluaran pada Review Harian serta verifikasi pipeline Multi-LLM (Gemini, Groq &amp; OpenRouter).
+          Acuan pengisian kolom Dampak KBLI dan Dampak Pengeluaran pada Review Harian serta verifikasi pipeline 6 penyedia Multi-LLM (Gemini, Cerebras, Mistral, Groq, NVIDIA NIM &amp; OpenRouter).
         </p>
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <!-- Dampak KBLI -->
         <div class="saas-card rounded-2xl overflow-hidden">
-          <div class="px-5 py-3.5 border-b border-slate-200/80 bg-[#FAFBFD] flex items-center gap-2">
+          <div class="px-5 py-3.5 border-b border-slate-200/80 bg-slate-50/70 flex items-center gap-2">
             <span class="w-2 h-2 rounded-full bg-indigo-600 shrink-0" />
-            <h3 class="text-xs font-bold uppercase tracking-wider text-[#0F172A]">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-900">
               1. Dampak Sisi Lapangan Usaha (KBLI)
             </h3>
           </div>
@@ -575,7 +569,7 @@ const expenditureImpactRows: Array<{
                 >
                   {{ item.label }}
                 </span>
-                <span class="text-[11px] font-semibold text-slate-500">
+                <span class="text-[11px] font-semibold text-slate-600">
                   {{ item.axis }}
                 </span>
               </div>
@@ -586,9 +580,9 @@ const expenditureImpactRows: Array<{
 
         <!-- Dampak Pengeluaran -->
         <div class="saas-card rounded-2xl overflow-hidden">
-          <div class="px-5 py-3.5 border-b border-slate-200/80 bg-[#FAFBFD] flex items-center gap-2">
+          <div class="px-5 py-3.5 border-b border-slate-200/80 bg-slate-50/70 flex items-center gap-2">
             <span class="w-2 h-2 rounded-full bg-emerald-600 shrink-0" />
-            <h3 class="text-xs font-bold uppercase tracking-wider text-[#0F172A]">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-900">
               2. Dampak Sisi Pengeluaran &amp; Deflator
             </h3>
           </div>
@@ -605,7 +599,7 @@ const expenditureImpactRows: Array<{
                 >
                   {{ item.label }}
                 </span>
-                <span class="text-[11px] font-semibold text-slate-500">
+                <span class="text-[11px] font-semibold text-slate-600">
                   {{ item.axis }}
                 </span>
               </div>

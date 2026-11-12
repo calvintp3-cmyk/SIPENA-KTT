@@ -1,6 +1,6 @@
 // server/api/admin/synthesis/generate.post.ts
 import { and, desc, eq, inArray } from 'drizzle-orm';
-import { createError, defineEventHandler } from 'h3';
+import { createError, defineEventHandler, getHeader, sendStream, setResponseHeader } from 'h3';
 import { VerificationStatusEnum } from '../../../../shared/enums/pdrb';
 import { SynthesisGenerateSchema } from '../../../../shared/schemas/article.schema';
 import { formatPeriodLabel } from '../../../../shared/utils/period';
@@ -78,42 +78,144 @@ export default defineEventHandler(async (event) => {
   });
 
   const runtimeCfg = useRuntimeConfig(event);
-  const routerResult = await generateSynthesisWithRouter(
-    { systemInstruction, userPrompt },
-    {
-      env: buildRouterEnvFromRuntimeConfig(runtimeCfg),
-    },
-  );
+  const controller = new AbortController();
+  const abortOnClose = () => controller.abort(new Error('Client closed synthesis request'));
+  event.node.req.on('close', abortOnClose);
 
-  let narrativeMarkdown: string;
-  let modelUsed: string | null = null;
-  let notice: string | null = null;
-  let mode: 'llm' | 'template' = 'template';
+  const deadlineAtMs = Date.now() + 26_000;
+  const acceptHeader = getHeader(event, 'accept') ?? '';
+  const wantsStream = Boolean(body.stream) || acceptHeader.includes('text/event-stream');
 
-  if (routerResult.ok) {
-    narrativeMarkdown = routerResult.narrativeMarkdown;
-    modelUsed = routerResult.modelUsed;
-    mode = 'llm';
-    notice = routerResult.notice;
-  } else {
-    narrativeMarkdown = buildGroundedBrsFallbackNarrative({
-      periodLabel,
-      dimension: body.dimension,
-      targetCode: body.targetCode,
-      style: body.style,
-      articles: selectedRows,
+  if (wantsStream) {
+    setResponseHeader(event, 'content-type', 'text/event-stream; charset=utf-8');
+    setResponseHeader(event, 'cache-control', 'no-cache, no-transform');
+    setResponseHeader(event, 'connection', 'keep-alive');
+
+    const encoder = new TextEncoder();
+    const sseStream = new ReadableStream<Uint8Array>({
+      async start(streamCtrl) {
+        const pushSse = (eventName: string, data: unknown) => {
+          try {
+            streamCtrl.enqueue(
+              encoder.encode(`event: ${eventName}\ndata: ${JSON.stringify(data)}\n\n`),
+            );
+          } catch {
+            // Stream sudah ditutup klien
+          }
+        };
+
+        try {
+          pushSse('meta', { articleCount: selectedRows.length, citations });
+
+          const routerResult = await generateSynthesisWithRouter(
+            {
+              systemInstruction,
+              userPrompt,
+              maxCitationIndex: selectedRows.length,
+            },
+            { env: buildRouterEnvFromRuntimeConfig(runtimeCfg) },
+            { signal: controller.signal, deadlineAtMs },
+            (delta) => pushSse('chunk', { text: delta }),
+          );
+
+          let narrativeMarkdown: string;
+          let modelUsed: string | null = null;
+          let notice: string | null = null;
+          let mode: 'llm' | 'template' = 'template';
+
+          if (routerResult.ok) {
+            narrativeMarkdown = routerResult.narrativeMarkdown;
+            modelUsed = routerResult.modelUsed;
+            mode = 'llm';
+            notice = routerResult.notice;
+          } else {
+            narrativeMarkdown = buildGroundedBrsFallbackNarrative({
+              periodLabel,
+              dimension: body.dimension,
+              targetCode: body.targetCode,
+              style: body.style,
+              articles: selectedRows,
+            });
+            mode = 'template';
+            notice = routerResult.notice;
+            pushSse('chunk', { text: narrativeMarkdown });
+          }
+
+          pushSse('done', {
+            narrativeMarkdown,
+            mode,
+            modelUsed,
+            notice,
+            citations,
+            generatedAt: new Date().toISOString(),
+            articleCount: selectedRows.length,
+          });
+        } catch (err) {
+          pushSse('error', {
+            message: err instanceof Error ? err.message : 'Gagal menyusun sintesis BRS.',
+          });
+        } finally {
+          event.node.req.off('close', abortOnClose);
+          try {
+            streamCtrl.close();
+          } catch {
+            // Abaikan bila sudah tertutup
+          }
+        }
+      },
     });
-    mode = 'template';
-    notice = routerResult.notice;
+
+    return sendStream(event, sseStream);
   }
 
-  return {
-    narrativeMarkdown,
-    mode,
-    modelUsed,
-    notice,
-    citations,
-    generatedAt: new Date().toISOString(),
-    articleCount: selectedRows.length,
-  };
+  try {
+    const routerResult = await generateSynthesisWithRouter(
+      {
+        systemInstruction,
+        userPrompt,
+        maxCitationIndex: selectedRows.length,
+      },
+      {
+        env: buildRouterEnvFromRuntimeConfig(runtimeCfg),
+      },
+      {
+        signal: controller.signal,
+        deadlineAtMs,
+      },
+    );
+
+    let narrativeMarkdown: string;
+    let modelUsed: string | null = null;
+    let notice: string | null = null;
+    let mode: 'llm' | 'template' = 'template';
+
+    if (routerResult.ok) {
+      narrativeMarkdown = routerResult.narrativeMarkdown;
+      modelUsed = routerResult.modelUsed;
+      mode = 'llm';
+      notice = routerResult.notice;
+    } else {
+      narrativeMarkdown = buildGroundedBrsFallbackNarrative({
+        periodLabel,
+        dimension: body.dimension,
+        targetCode: body.targetCode,
+        style: body.style,
+        articles: selectedRows,
+      });
+      mode = 'template';
+      notice = routerResult.notice;
+    }
+
+    return {
+      narrativeMarkdown,
+      mode,
+      modelUsed,
+      notice,
+      citations,
+      generatedAt: new Date().toISOString(),
+      articleCount: selectedRows.length,
+    };
+  } finally {
+    event.node.req.off('close', abortOnClose);
+  }
 });

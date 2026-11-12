@@ -1,195 +1,209 @@
 ---
 name: gemini-api-integration
-description: "Use when integrating Google Gemini API into projects. Covers model selection, multimodal inputs, streaming, function calling, and production best practices."
-risk: safe
-source: community
-date_added: "2026-03-04"
+description: "Use when integrating Google Gemini API in TypeScript/JavaScript or Python via the official @google/genai / google-genai SDKs. Covers model selection (Gemini 3.8 / 3.5 / 4), structured JSON outputs with responseJsonSchema and propertyOrdering, ThinkingConfig, Interactions API streaming, text embeddings (gemini-embedding-2 / gemini-embedding-001) for semantic similarity & RAG, and production rate-limit / error handling."
 ---
 
-# Gemini API Integration
+# Gemini API Integration (`@google/genai`)
 
-## Overview
+Guide for production integration using Google's official unified **`@google/genai`** (JS/TS) and **`google-genai`** (Python) SDKs.
 
-This skill guides AI agents through integrating Google Gemini API into applications — from basic text generation to advanced multimodal, function calling, and streaming use cases. It covers the full Gemini SDK lifecycle with production-grade patterns.
+> **Critical Rules:**
+> - **Never use** deprecated legacy SDKs (`@google/generative-ai` for JS or `google-generativeai` for Python).
+> - **Never select** legacy/deprecated models (`gemini-1.5-*`, `gemini-2.0-*`, `gemini-2.5-*`). Use current models: `gemini-3.8-flash`, `gemini-3.5-flash-lite`, `gemini-3.1-flash-lite`, `gemini-4-argon`, or `gemini-4-carbon`.
+> - If `gemini-api_gemini-api-docs` MCP tools (`gemini_search_docs`, `gemini_get_doc`) are active in the environment, query them before inventing edge-case parameters.
 
-## When to Use This Skill
+---
 
-- Use when setting up Gemini API for the first time in a Node.js, Python, or browser project
-- Use when implementing multimodal inputs (text + image/audio/video)
-- Use when adding streaming responses to improve perceived latency
-- Use when implementing function calling / tool use with Gemini
-- Use when optimizing model selection (Flash vs Pro vs Ultra) for cost and performance
-- Use when debugging Gemini API errors, rate limits, or quota issues
+## 1. Installation & Client Initialization
 
-## Step-by-Step Guide
-
-### 1. Installation & Setup
-
-**Node.js / TypeScript:**
 ```bash
-npm install @google/generative-ai
+npm install @google/genai
+# Optional for native JSON schema generation (built into Zod v4):
+npm install zod
 ```
 
-**Python:**
-```bash
-pip install google-generativeai
+```typescript
+import { GoogleGenAI } from '@google/genai';
+
+// Automatically reads GEMINI_API_KEY, or pass explicit key per slot:
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 ```
 
-Set your API key securely:
-```bash
-read -rsp "Gemini API key: " GEMINI_API_KEY
-echo
-export GEMINI_API_KEY
-```
+---
 
-### 2. Basic Text Generation
+## 2. Model Selection Guide
 
-**Node.js:**
-```javascript
-import { GoogleGenerativeAI } from "@google/generative-ai";
+| Model ID | Best For | Context | Notes |
+| :--- | :--- | :--- | :--- |
+| `gemini-3.8-flash` | Default structured extraction, classification, synthesis, multimodal | 1M | Fast & balanced; supports `ThinkingLevel.LOW` / `MEDIUM` / `HIGH` *(do not set `MINIMAL` on 3.8-flash)* |
+| `gemini-3.5-flash-lite` | High-throughput batch classification, low latency & lowest cost | 1M | Ideal fallback tier; supports `ThinkingLevel.MINIMAL` |
+| `gemini-3.1-flash-lite` | Lightweight high-frequency classification / utility checks | — | Cost-efficient fast tier |
+| `gemini-4-argon` | Interactive coding, analytical synthesis, fast reasoning | 1M | Efficient frontier reasoning |
+| `gemini-4-carbon` | Complex frontier reasoning, deep multimodal analysis | 1M | Highest reasoning capability |
+| `gemini-embedding-2` | Text & multimodal semantic embeddings, dedup, RAG retrieval | 8,192 | Auto-normalizes `outputDimensionality` (`768`/`1536`/`3072`); use task prompt prefixes |
+| `gemini-embedding-001` | Text-only batch array embeddings with explicit `taskType` | 2,048 | Supports string arrays in `contents`; manually L2-normalize dims `< 3072` |
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+---
 
-const result = await model.generateContent("Explain async/await in JavaScript");
-console.log(result.response.text());
-```
+## 3. Stateless Generation & Structured JSON Outputs (`models.generateContent`)
 
-**Python:**
-```python
-import google.generativeai as genai
-import os
+Use `ai.models.generateContent()` for stateless, single-turn backend pipelines (classification, structured extraction, strict zero-server-state workflows):
 
-genai.configure(api_key=os.environ["GEMINI_API_KEY"])
-model = genai.GenerativeModel("gemini-1.5-flash")
+```typescript
+import { GoogleGenAI, ThinkingLevel } from '@google/genai';
+import { z } from 'zod';
 
-response = model.generate_content("Explain async/await in JavaScript")
-print(response.text)
-```
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-### 3. Streaming Responses
-
-```javascript
-const result = await model.generateContentStream("Write a detailed blog post about AI");
-
-for await (const chunk of result.stream) {
-  process.stdout.write(chunk.text());
-}
-```
-
-### 4. Multimodal Input (Text + Image)
-
-```javascript
-import fs from "fs";
-
-const imageData = fs.readFileSync("screenshot.png");
-const imagePart = {
-  inlineData: {
-    data: imageData.toString("base64"),
-    mimeType: "image/png",
-  },
-};
-
-const result = await model.generateContent(["Describe this image:", imagePart]);
-console.log(result.response.text());
-```
-
-### 5. Function Calling / Tool Use
-
-```javascript
-const tools = [{
-  functionDeclarations: [{
-    name: "get_weather",
-    description: "Get current weather for a city",
-    parameters: {
-      type: "OBJECT",
-      properties: {
-        city: { type: "STRING", description: "City name" },
-      },
-      required: ["city"],
-    },
-  }],
-}];
-
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro", tools });
-const result = await model.generateContent("What's the weather in Mumbai?");
-
-const call = result.response.functionCalls()?.[0];
-if (call) {
-  // Execute the actual function
-  const weatherData = await getWeather(call.args.city);
-  // Send result back to model
-}
-```
-
-### 6. Multi-turn Chat
-
-```javascript
-const chat = model.startChat({
-  history: [
-    { role: "user", parts: [{ text: "You are a helpful coding assistant." }] },
-    { role: "model", parts: [{ text: "Sure! I'm ready to help with code." }] },
-  ],
+const OutputZod = z.object({
+  reasoningSummary: z.string(),
+  category: z.enum(['A', 'B', 'C']),
+  confidence: z.number().min(0).max(1),
 });
 
-const response = await chat.sendMessage("How do I reverse a string in Python?");
-console.log(response.response.text());
+// Zod v4 native JSON Schema + Gemini's propertyOrdering (guides reasoning-before-label)
+const responseJsonSchema: Record<string, unknown> = {
+  ...z.toJSONSchema(OutputZod),
+  propertyOrdering: ['reasoningSummary', 'category', 'confidence'],
+};
+
+const response = await ai.models.generateContent({
+  model: 'gemini-3.8-flash',
+  contents: articleText,
+  config: {
+    systemInstruction: staticDomainPrompt, // Keep static prefix identical for implicit caching
+    responseMimeType: 'application/json',
+    responseJsonSchema,
+    maxOutputTokens: 3072, // Account for shared thinking + JSON output budget
+    temperature: 0.1,
+    thinkingConfig: {
+      thinkingLevel: ThinkingLevel.LOW, // Use MINIMAL on flash-lite
+    },
+    abortSignal: controller.signal,
+    httpOptions: {
+      timeout: 15_000,
+      retryOptions: { attempts: 1 }, // Handle failover immediately in your router
+    },
+  },
+});
+
+const text = response.text?.trim() ?? '';
+const parsed = OutputZod.parse(JSON.parse(text));
+
+// Accurate token accounting includes thoughts tokens:
+const inputTokens = response.usageMetadata?.promptTokenCount ?? 0;
+const outputTokens =
+  (response.usageMetadata?.candidatesTokenCount ?? 0) +
+  (response.usageMetadata?.thoughtsTokenCount ?? 0);
 ```
 
-### 7. Model Selection Guide
+### Streaming with `models.generateContentStream`
 
-| Model | Best For | Speed | Cost |
-|-------|----------|-------|------|
-| `gemini-1.5-flash` | High-throughput, cost-sensitive tasks | Fast | Low |
-| `gemini-1.5-pro` | Complex reasoning, long context | Medium | Medium |
-| `gemini-2.0-flash` | Latest fast model, multimodal | Very Fast | Low |
-| `gemini-2.0-pro` | Most capable, advanced tasks | Slow | High |
+```typescript
+const stream = await ai.models.generateContentStream({
+  model: 'gemini-3.8-flash',
+  contents: prompt,
+});
 
-## Best Practices
+for await (const chunk of stream) {
+  process.stdout.write(chunk.text ?? '');
+}
+```
 
-- ✅ **Do:** Use `gemini-1.5-flash` for most tasks — it's fast and cost-effective
-- ✅ **Do:** Always stream responses for user-facing chat UIs to reduce perceived latency
-- ✅ **Do:** Store API keys in environment variables, never hard-code them
-- ✅ **Do:** Implement exponential backoff for rate limit (429) errors
-- ✅ **Do:** Use `systemInstruction` to set persistent model behavior
-- ❌ **Don't:** Use `gemini-pro` for simple tasks — Flash is cheaper and faster
-- ❌ **Don't:** Send large base64 images inline for files > 20MB — use File API instead
-- ❌ **Don't:** Ignore safety ratings in responses for production apps
+---
 
-## Error Handling
+## 4. Stateful Chat, Streaming & Background Tasks (`interactions`)
 
-```javascript
-try {
-  const result = await model.generateContent(prompt);
-  return result.response.text();
-} catch (error) {
-  if (error.status === 429) {
-    // Rate limited — wait and retry with exponential backoff
-    await new Promise(r => setTimeout(r, 2 ** retryCount * 1000));
-  } else if (error.status === 400) {
-    // Invalid request — check prompt or parameters
-    console.error("Invalid request:", error.message);
-  } else {
-    throw error;
+For multi-turn assistant UIs, server-managed state, or long-running background agents, use the modern Interactions API:
+
+```typescript
+const interaction1 = await ai.interactions.create({
+  model: 'gemini-3.8-flash',
+  input: 'Summarize economic indicators from Q1.',
+});
+
+const interaction2 = await ai.interactions.create({
+  model: 'gemini-3.8-flash',
+  input: 'Compare that with Q2.',
+  previous_interaction_id: interaction1.id,
+});
+
+// Streaming events:
+const events = await ai.interactions.create({
+  model: 'gemini-3.8-flash',
+  input: 'Draft a short briefing.',
+  stream: true,
+});
+for await (const ev of events) {
+  if (ev.event_type === 'step.delta' && ev.delta?.type === 'text') {
+    process.stdout.write(ev.delta.text ?? '');
   }
 }
 ```
 
-## Troubleshooting
+---
 
-**Problem:** `API_KEY_INVALID` error
-**Solution:** Ensure `GEMINI_API_KEY` environment variable is set and the key is active in Google AI Studio.
+## 5. Text Embeddings & Semantic Similarity (`models.embedContent`)
 
-**Problem:** Response blocked by safety filters
-**Solution:** Check `result.response.promptFeedback.blockReason` and adjust your prompt or safety settings.
+Prefer **Gemini Embedding API** over running local Python/ONNX sentence-transformer models on memory-constrained Node.js servers (`0 MB` local ML model weight).
 
-**Problem:** Slow response times
-**Solution:** Switch to `gemini-1.5-flash` and enable streaming. Consider caching repeated prompts.
+### Choosing Between `gemini-embedding-2` and `gemini-embedding-001`
+- **`gemini-embedding-2`** (8,192 tokens, text & multimodal): Auto-normalizes truncated dimensions (`768`, `1536`, `3072`). Use **prompt task prefixes** (`task: sentence similarity | query: ...`, `task: classification | query: ...`, or asymmetric `task: search result | query: ...` vs `title: {title} | text: {content}`). **Important:** passing multiple items in `contents: [...]` produces **one aggregated embedding** (`embeddings[0]`), so embed each article/query individually (or via Batch API).
+- **`gemini-embedding-001`** (2,048 tokens, text): Supports passing an array of strings in `contents` to receive **one vector per input string** (`response.embeddings[i].values`) and accepts `config.taskType` (`'SEMANTIC_SIMILARITY'`, `'RETRIEVAL_DOCUMENT'`, `'RETRIEVAL_QUERY'`). Must be manually L2-normalized when `outputDimensionality < 3072`.
 
-**Problem:** `RESOURCE_EXHAUSTED` (quota exceeded)
-**Solution:** Check your quota in Google Cloud Console. Implement request queuing and exponential backoff.
+```typescript
+import { GoogleGenAI } from '@google/genai';
 
-## Limitations
-- Use this skill only when the task clearly matches the scope described above.
-- Do not treat the output as a substitute for environment-specific validation, testing, or expert review.
-- Stop and ask for clarification if required inputs, permissions, safety boundaries, or success criteria are missing.
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+
+export async function embedForSimilarity(text: string): Promise<number[]> {
+  const res = await ai.models.embedContent({
+    model: 'gemini-embedding-2',
+    contents: `task: sentence similarity | query: ${text}`,
+    config: { outputDimensionality: 768 }, // Auto-normalized by gemini-embedding-2
+  });
+  return res.embeddings?.[0]?.values ?? [];
+}
+
+// Batch array embedding helper (gemini-embedding-001 returns 1 vector per string)
+export async function embedBatchNormalized(texts: string[]): Promise<number[][]> {
+  const res = await ai.models.embedContent({
+    model: 'gemini-embedding-001',
+    contents: texts,
+    config: { taskType: 'SEMANTIC_SIMILARITY', outputDimensionality: 768 },
+  });
+  return (res.embeddings ?? []).map((item) => {
+    const v = item.values ?? [];
+    const norm = Math.hypot(...v) || 1;
+    return v.map((x) => x / norm);
+  });
+}
+
+export function cosineSimilarity(a: readonly number[], b: readonly number[]): number {
+  const len = Math.min(a.length, b.length);
+  let dot = 0, normA = 0, normB = 0;
+  for (let i = 0; i < len; i += 1) {
+    dot += a[i]! * b[i]!;
+    normA += a[i]! * a[i]!;
+    normB += b[i]! * b[i]!;
+  }
+  const denom = Math.sqrt(normA) * Math.sqrt(normB);
+  return denom > 0 ? dot / denom : 0;
+}
+```
+
+---
+
+## 6. Production Best Practices & Error Triage
+
+1. **Distinguish quota types on HTTP `429` (`RESOURCE_EXHAUSTED`):**
+   - If the error matches daily quota (`PerDay`, `GenerateRequestsPerDay`, `RPD`, `TPD`), **trip a session circuit-breaker** (`disabledForSession = true`) and immediately fail over to another key/provider (`groq`, `openrouter`, `cerebras`) instead of sleeping in retry loops.
+   - If transient per-minute limit (`429` without daily quota markers), apply a slot cooldown (`~20s`) and fail over `0ms` to the next available provider.
+2. **Handle `503 UNAVAILABLE` / timeouts:** Allow at most 1 fast retry (`~1.5s`), then fail over to a secondary slot rather than blocking batch queues.
+3. **Reserve budget for `thinkingConfig`:** Thinking tokens count toward `maxOutputTokens`. Use at least `2048–3072` `maxOutputTokens` on structured JSON tasks so reasoning never truncates closing braces.
+4. **Never leak secrets or expose keys:** Keep keys in server env vars only, disable SDK multi-retry when using a multi-LLM router, and strip key patterns from error logs before persisting telemetry.
+
+## Related Skills
+- Paired multi-provider free-tier failover (`Groq`, `Cerebras`, `OpenRouter`, `Mistral`) & web extraction: `llm-routing-and-scraping`.
+- Zod v4 schema authoring & `z.toJSONSchema`: `zod-validation-expert`.
+- Full API reference & advanced features (`TTS`, `Omni`, `Live API`): plugin skill `gemini-api-dev`.

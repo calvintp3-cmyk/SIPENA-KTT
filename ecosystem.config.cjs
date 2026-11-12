@@ -64,11 +64,35 @@ module.exports = {
         ...(parsedEnv.GROQ_API_KEYS && !parsedEnv.NUXT_GROQ_API_KEYS
           ? { NUXT_GROQ_API_KEYS: parsedEnv.GROQ_API_KEYS }
           : {}),
+        ...(parsedEnv.CEREBRAS_API_KEY && !parsedEnv.NUXT_CEREBRAS_API_KEY
+          ? { NUXT_CEREBRAS_API_KEY: parsedEnv.CEREBRAS_API_KEY }
+          : {}),
+        ...(parsedEnv.CEREBRAS_API_KEYS && !parsedEnv.NUXT_CEREBRAS_API_KEYS
+          ? { NUXT_CEREBRAS_API_KEYS: parsedEnv.CEREBRAS_API_KEYS }
+          : {}),
+        ...(parsedEnv.MISTRAL_API_KEY && !parsedEnv.NUXT_MISTRAL_API_KEY
+          ? { NUXT_MISTRAL_API_KEY: parsedEnv.MISTRAL_API_KEY }
+          : {}),
+        ...(parsedEnv.MISTRAL_API_KEYS && !parsedEnv.NUXT_MISTRAL_API_KEYS
+          ? { NUXT_MISTRAL_API_KEYS: parsedEnv.MISTRAL_API_KEYS }
+          : {}),
+        ...(parsedEnv.NVIDIA_API_KEY && !parsedEnv.NUXT_NVIDIA_API_KEY
+          ? { NUXT_NVIDIA_API_KEY: parsedEnv.NVIDIA_API_KEY }
+          : {}),
+        ...(parsedEnv.NVIDIA_API_KEYS && !parsedEnv.NUXT_NVIDIA_API_KEYS
+          ? { NUXT_NVIDIA_API_KEYS: parsedEnv.NVIDIA_API_KEYS }
+          : {}),
         ...(parsedEnv.OPENROUTER_API_KEY && !parsedEnv.NUXT_OPENROUTER_API_KEY
           ? { NUXT_OPENROUTER_API_KEY: parsedEnv.OPENROUTER_API_KEY }
           : {}),
+        ...(parsedEnv.OPENROUTER_API_KEYS && !parsedEnv.NUXT_OPENROUTER_API_KEYS
+          ? { NUXT_OPENROUTER_API_KEYS: parsedEnv.OPENROUTER_API_KEYS }
+          : {}),
         ...(parsedEnv.OPENROUTER_FREE_MODEL && !parsedEnv.NUXT_OPENROUTER_FREE_MODEL
           ? { NUXT_OPENROUTER_FREE_MODEL: parsedEnv.OPENROUTER_FREE_MODEL }
+          : {}),
+        ...(parsedEnv.ENABLE_GDELT_MACRO && !parsedEnv.NUXT_ENABLE_GDELT_MACRO
+          ? { NUXT_ENABLE_GDELT_MACRO: parsedEnv.ENABLE_GDELT_MACRO }
           : {}),
         ...(parsedEnv.LLM_CLASSIFY_CHAIN && !parsedEnv.NUXT_LLM_CLASSIFY_CHAIN
           ? { NUXT_LLM_CLASSIFY_CHAIN: parsedEnv.LLM_CLASSIFY_CHAIN }

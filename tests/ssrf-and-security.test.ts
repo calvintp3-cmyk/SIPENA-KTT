@@ -10,7 +10,13 @@ import {
   resetLoginRateLimit,
 } from '#server/utils/rate-limit';
 import { createSessionToken, verifySessionToken } from '#server/utils/session';
-import { isForbiddenIp, SsrfValidationError, validateExternalUrl } from '#server/utils/ssrf';
+import {
+  enforceHostRateLimit,
+  isForbiddenIp,
+  resetHostRateLimitsForTest,
+  SsrfValidationError,
+  validateExternalUrl,
+} from '#server/utils/ssrf';
 import { extractHostnameLabel, hashNormalizedUrl, normalizeUrl } from '#server/utils/url-hash';
 
 const TEST_SESSION_SECRET = '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
@@ -149,6 +155,43 @@ describe('SSRF Guard, URL Hash, Auth Security & Rate Limit', () => {
     expect(isAdminApiPath('/api/public/articles')).toBe(false);
     expect(isAdminApiPath('/admin/articles')).toBe(false);
     expect(isAdminApiPath('/api/%ZZinvalid')).toBe(false);
+  });
+
+  it('enforceHostRateLimit menjaga jeda sopan per hostname tanpa menghambat domain berbeda', async () => {
+    resetHostRateLimitsForTest();
+    let nowMs = 10_000;
+    const sleeps: number[] = [];
+
+    await enforceHostRateLimit('korankaltara.com', {
+      minIntervalMs: 1_200,
+      nowFn: () => nowMs,
+      sleepFn: async (ms) => {
+        sleeps.push(ms);
+        nowMs += ms;
+      },
+    });
+    // Hit kedua langsung pada host yang sama -> tunggu 1.200ms
+    nowMs += 200;
+    await enforceHostRateLimit('korankaltara.com', {
+      minIntervalMs: 1_200,
+      nowFn: () => nowMs,
+      sleepFn: async (ms) => {
+        sleeps.push(ms);
+        nowMs += ms;
+      },
+    });
+    // Host berbeda pada saat yang sama -> 0ms
+    await enforceHostRateLimit('benuanta.co.id', {
+      minIntervalMs: 1_200,
+      nowFn: () => nowMs,
+      sleepFn: async (ms) => {
+        sleeps.push(ms);
+        nowMs += ms;
+      },
+    });
+
+    expect(sleeps).toEqual([1_000]);
+    resetHostRateLimitsForTest();
   });
 });
 

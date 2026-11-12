@@ -1,15 +1,15 @@
 # Rancangan Antarmuka UI/UX & Layout Nuxt UI — SIPENA KTT
 
-**Versi Dokumen:** 2.1.0 (Single Source of Truth — *Cobalt–Emerald Luminous SaaS* & KBLI 2025)  
+**Versi Dokumen:** 2.2.0 (Single Source of Truth — *Cobalt–Emerald Luminous SaaS*, WCAG AA, & KBLI 2025)  
 **Framework UI & Motion:** Nuxt UI v3 (`@nuxt/ui ^3.3.7`), Tailwind CSS v4, `motion-v` (`^2.12.0`), `echarts` (`^6.1.0`) + `vue-echarts` (`^8.3.2`) + `nuxt-echarts` (`^1.1.0`)  
 **Ikonografi:** `@nuxt/icon` (`provider: 'server'`) dengan koleksi `@iconify-json/solar` (`i-solar-*-bold-duotone` untuk navigasi, KPI, hero bento) + `i-lucide-*` untuk mikro-kontrol (`chevron`, `x`, `check`)  
-**Arah Estetika:** *Cobalt–Emerald Luminous SaaS* — antarmuka SaaS modern terang bercahaya untuk portal publik & workstation analitis BPS Kabupaten Tana Tidung (Nerwilis), dipadukan panel showcase gelap *Midnight Cobalt–Emerald* (`hero-mesh-dark`) pada Landing Hero (`/`) dan Split Login (`/login`), tanpa kekakuan birokratis dan bebas font monospace di antarmuka.
+**Arah Estetika:** *Cobalt–Emerald Luminous SaaS* — antarmuka SaaS modern terang bercahaya untuk portal publik & workstation analitis BPS Kabupaten Tana Tidung (Nerwilis), dipadukan panel showcase gelap *Midnight Cobalt–Emerald* (`hero-mesh-dark`) pada Landing Hero (`/`) dan Split Login (`/login`), bebas font monospace di antarmuka, dan patuh standar kontras WCAG AA ($\ge 4.5:1$).
 
 ---
 
 ## 1. Design System Tokens
 
-### 1.1 Konfigurasi Tema Global (`app/app.config.ts` & `app/assets/css/main.css`)
+### 1.1 Konfigurasi Tema Global (`app/app.config.ts`, `app/assets/css/main.css`, & `app/utils/chart-theme.ts`)
 Menggunakan arsitektur token tiga lapis (*Primitive → Semantic → Component*) dari Tailwind CSS v4 dan Nuxt UI v3:
 
 ```ts
@@ -32,7 +32,7 @@ export default defineAppConfig({
     },
     button: {
       slots: {
-        base: 'rounded-xl font-semibold transition-all duration-150 cursor-pointer',
+        base: 'rounded-xl font-semibold transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-150 cursor-pointer',
       },
     },
     badge: {
@@ -81,12 +81,14 @@ Token CSS inti di `app/assets/css/main.css`:
   - Brand accents: `--color-brand-primary`: `#2563EB`, `--color-brand-indigo`: `#4F46E5`, `--color-brand-emerald`: `#059669`, `--color-brand-teal`: `#0D9488`
 - Utilitas Visual Utama:
   - `.hero-mesh-dark`: Latar gradient-aurora *Midnight Cobalt–Emerald* (`#090F24` → `#0F1D45` → `#0B3B3E`) untuk hero landing (`/`) dan panel showcase login (`/login`).
-  - `.saas-card` & `.saas-card-interactive`: Kartu putih `rounded-2xl` berbayang lembut Cobalt dengan elevasi interaktif saat hover.
-  - `.btn-primary-gradient` (serta alias kompatibel `.obsidian-button`): Tombol aksi utama gradien `#2563EB` → `#4F46E5` → `#0D9488` berteks putih murni (kontras ≥ 4.5:1) dengan highlight atas bagian dalam (`inset 0 1px 0`).
+  - `.saas-card` & `.saas-card-interactive`: Kartu putih `rounded-2xl` berbayang lembut Cobalt dengan elevasi interaktif saat hover (tanpa aksen `border-l-4` maupun bilah tepi dekoratif yang terpotong di sudut kartu).
+  - `.btn-primary-gradient` (serta alias kompatibel `.obsidian-button`): Tombol aksi utama gradien `#2563EB` → `#4F46E5` → `#0F766E` berteks putih murni (kontras WCAG AA $\ge 4.5:1$ di seluruh perhentian gradien) dengan highlight atas bagian dalam (`inset 0 1px 0`).
+  - **Token Visualisasi Grafik (`app/utils/chart-theme.ts`):** `SIPENA_CHART_TOKENS`, `SIPENA_KBLI_CLUSTER_CHART_PALETTE`, dan `SIPENA_CHART_TOOLTIP_STYLE` menyinkronkan warna seri, sumbu, gridline, dan tooltip ECharts pada portal publik maupun dashboard/tren admin.
   - `.active-nav-card`: Pill aktif sidebar admin bergradasi indigo–emerald lembut dengan aksen garis vertikal kiri `#2563EB`.
   - `.timeline-spine`: Garis vertikal kronologis gradien Cobalt–Emerald di halaman `/linimasa`.
   - `.saas-table-scroller` & `.saas-scroll`: Area scroll horizontal/vertikal ramah keyboard dengan `scrollbar-width: thin`.
   - `@media print`: Menjaga `.no-print` dan `.synthesis-print-sheet` tetap rapi untuk cetak A4 Berita Resmi Statistik (`/admin/synthesis`).
+  - **Disiplin Transisi & Anti-Slop:** Seluruh tombol & kontrol interaktif mengganti `transition-all` dengan properti terlingkup (`transition-colors` / `transition-[color,background-color,border-color,box-shadow]`), tombol hapus modal menyertakan `autofocus` pada tombol aman (`Batal` / `Tetap di Editor`), serta seluruh ikon aksi tabel memakai ukuran minimal `size="sm"` (`min-w-8 min-h-8`).
 
 ---
 
@@ -154,10 +156,10 @@ Setiap objek `PdrbClusterTheme` menyediakan `hex`, `hexLight`, `pillClass`, `acc
 | **Public Portal** (`/linimasa`) | `app/pages/linimasa.vue` & `app/components/public/*` | `KpiSnapshotGrid` (4 kartu KPI berikon Solar + format `kode_lapus - nama_lapus`), `SectorDistributionCharts` (**2 grafik interaktif ECharts**: Bar 17 Sektor KBLI `A–V` per klaster warna & Donut 6 Pengeluaran dengan klik-filter), `PublicFilterBar` (`USelectMenu` searchable + multi-warna filter), `PhenomenonFeedCard`, `PublicArticleDetailModal`, serta switcher Stream Timeline / Tabel Ringkas (`tabindex="0" role="region"`). |
 | **Split Login Showcase** (`/login`) | `app/pages/login.vue` | Layout 2 kolom (`lg:grid-cols-12`): kiri panel showcase *hero-mesh-dark* dengan 3 highlight Nerwilis, kanan kartu auth elevated berfokus pada Google OAuth Whitelist + form cadangan email/kata sandi dengan `OAUTH_ERROR_MAP` lengkap; mobile menempatkan form OAuth di atas lipatan layar. |
 | **Layout Admin** (`/admin/**`) | `app/layouts/admin.vue` & `CommandPaletteModal.vue` | **Collapsible Sidebar Rail** (`w-64` ↔ `w-20` tersimpan di `localStorage` + `UTooltip` saat ciut), item aktif `.active-nav-card`, badge `PENDING` & `FAILED`, Floating Glass Header dengan `<USelect>` tahun + pill triwulan global + Command Palette (`⌘K`), serta judul tab dinamis per rute. |
-| **Dashboard & Tren** | `app/pages/admin/index.vue`, `app/pages/admin/trends.vue` | `admin/index.vue`: 4 KPI + **ECharts Donut Ketercakupan 17 Sektor** + Heatmap 17×6 Cobalt–Emerald + radar gap. `trends.vue`: **ECharts Stacked Bar + Smooth Area Trendline** 8 triwulan interaktif dengan klik-navigasi periode + ekspor Excel. |
-| **Kurasi, Bank Data, Sintesis** | `review.vue`, `articles.vue`, `synthesis.vue`, `ReviewSlideover.vue`, `ManualArticleModal.vue` | Antrean tab kurasi + batch action + pill penyedia Multi-LLM (`formatLlmProviderBadge`), Bank Data dengan multi-filter `<USelect>`/`<USelectMenu>` & ekspor 10 kolom `.xlsx`/`.csv`, generator narasi BRS via `MultiLlmRouter` + draft PostgreSQL + `.synthesis-print-sheet` cetak A4 utuh. |
-| **Sumber & Taksonomi** | `portals.vue`, `keywords.vue`, `taxonomy.vue`, `KeywordFormModal.vue` | Direktori portal Kaltara + status RSS/Bing+Google News, master keyword nasional dengan multi-warna KBLI 2025/pengeluaran & switch instan, serta kamus interaktif **22 Kategori KBLI 2025 (`A–V`) -> 17 Sektor PDRB × 6 Pengeluaran** berformat `kode_lapus - nama_lapus`. |
-| **Monitor & Akses** | `scrapers.vue`, `users.vue`, `ScraperLogTable.vue`, `UserFormModal.vue` | Panel kontrol manual/retry LLM + polling live + 4 kartu telemetri token + **grid Status & Kapasitas Penyedia Multi-LLM (`providerHealth` & `providerStats30d`)**, riwayat log berkolom Rute LLM & modal rincian per slot + error JSON, serta kelola akses tim whitelist OAuth-First + RBAC role badge. |
+| **Dashboard & Tren** | `app/pages/admin/index.vue`, `app/pages/admin/trends.vue` | `admin/index.vue`: 4 KPI + **ECharts Donut Ketercakupan 17 Sektor** + Heatmap 17×6 Cobalt–Emerald + radar gap (`SIPENA_CHART_TOKENS`). `trends.vue`: **ECharts Stacked Bar + Smooth Area Trendline** 8 triwulan interaktif dengan klik-navigasi periode + ekspor Excel. |
+| **Kurasi, Bank Data, Sintesis** | `review.vue`, `articles.vue`, `synthesis.vue`, `ReviewSlideover.vue`, `SynthesisSpans.vue`, `ManualArticleModal.vue` | `review.vue`: kartu `<article>` dengan stretched `<button>`, banner indikator cakupan periode (`Semua Antrean` vs triwulan aktif), batch action + pill penyedia Multi-LLM (`formatLlmProviderBadge`). `articles.vue`: filter lengkap termasuk `llmStatus`, `isEconomic`, sinkronisasi `useAdminPeriod()`, & ekspor 10 kolom `.xlsx`/`.csv`. `synthesis.vue`: generator narasi BRS **streaming SSE** via `MultiLlmRouter`, parser AST aman (`parseBrsMarkdown` + `SynthesisSpans.vue`), pengaman *dirty draft* navigasi & `.synthesis-print-sheet` cetak A4 + ekspor OOXML **`.docx`** (`buildSynthesisDocxBytes`). |
+| **Sumber & Taksonomi** | `portals.vue`, `keywords.vue`, `taxonomy.vue`, `KeywordFormModal.vue` | `portals.vue`: direktori portal Kaltara dengan pencarian, filter kesehatan, skeleton loading, serta tombol **"Uji Feed"** live (`POST /api/admin/portals/ping`). `keywords.vue`: master keyword nasional dengan skeleton loading, multi-warna KBLI 2025/pengeluaran & switch instan. `taxonomy.vue`: kamus interaktif **22 Kategori KBLI 2025 (`A–V`) -> 17 Sektor PDRB × 6 Pengeluaran** berformat `kode_lapus - nama_lapus`. |
+| **Monitor & Akses** | `scrapers.vue`, `users.vue`, `ScraperLogTable.vue`, `UserFormModal.vue` | Panel kontrol manual/retry LLM + status `role="status"` + polling live + 4 kartu telemetri token + **grid Status & Kapasitas 6 Penyedia Multi-LLM (`providerHealth` & `providerStats30d`)**, riwayat log berkolom Rute LLM & modal rincian per slot + error JSON, serta kelola akses tim whitelist OAuth-First + RBAC role badge. |
 
 ---
 
@@ -251,9 +253,9 @@ Ditrigger dari `/admin/articles` & `/admin/trends` (`GET /api/admin/articles/exp
 | **9** | `Periode Berita` | `Triwulan IV 2026` | Lebar `18`, rata tengah |
 | **10** | `Status Verifikasi` | `Terverifikasi` / `Menunggu Review` / `Diabaikan` | Lebar `18`, rata tengah |
 
-### 4.2 Lembar Cetak A4 Sintesis Narasi BRS (`/admin/synthesis`)
+### 4.2 Lembar Cetak A4 & Ekspor OOXML `.docx` Sintesis Narasi BRS (`/admin/synthesis`)
 - Seluruh kontrol kerja memakai kelas `.no-print` sehingga hilang otomatis saat `window.print()`.
-- Kontainer narasi memakai `.synthesis-print-sheet` dengan margin bersih, sitasi nomor `[1]` terhubung ke daftar pustaka berita terverifikasi di bagian bawah, serta ekspor dokumen `.doc` (HTML Word-compatible Blob) yang tidak terpengaruh oleh perombakan kelas CSS layout layar.
+- Kontainer narasi memakai `.synthesis-print-sheet` dengan margin bersih, parser AST bebas HTML mentah (`parseBrsMarkdown` → `SynthesisSpans.vue`), sitasi nomor `[1]` interaktif terhubung ke daftar pustaka berita terverifikasi di bagian bawah, pengaman *dirty draft* (`UModal` + `onBeforeRouteLeave` + `beforeunload`), streaming SSE *real-time*, serta ekspor dokumen Word asli **OOXML `.docx`** melalui `buildSynthesisDocxBytes` (`shared/utils/docx-export.ts`).
 
 ---
 

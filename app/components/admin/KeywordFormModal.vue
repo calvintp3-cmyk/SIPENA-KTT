@@ -197,11 +197,14 @@ async function handleSubmit(event: FormSubmitEvent<CreateKeywordInput>) {
         <div class="flex items-center justify-between rounded-xl border border-indigo-200/70 bg-indigo-50/40 px-3.5 py-2.5">
           <div class="flex items-center gap-2">
             <UIcon name="i-solar-check-circle-bold-duotone" class="w-4 h-4 text-indigo-600 shrink-0" />
-            <span class="text-xs sm:text-sm font-semibold text-[#0F172A]">
+            <label
+              for="keyword-active-switch"
+              class="text-xs sm:text-sm font-semibold text-slate-900 cursor-pointer"
+            >
               Aktifkan saat crawling harian
-            </span>
+            </label>
           </div>
-          <USwitch v-model="formState.isActive" />
+          <USwitch id="keyword-active-switch" v-model="formState.isActive" />
         </div>
 
         <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">

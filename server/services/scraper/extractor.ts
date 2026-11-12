@@ -429,14 +429,147 @@ export interface ExtractedArticleContent {
   wordCount: number;
   isValidContent: boolean;
   canonicalUrl: string | null;
+  isSoftBlocked: boolean;
+  nextFullPageUrl: string | null;
 }
 
 /**
- * Mengekstrak judul, tanggal rilis, dan 150-250 kata pertama yang bersih dari dokumen HTML portal berita.
+ * Mendeteksi halaman soft-block anti-bot (HTTP 200 Cloudflare challenge, browser check, captcha, access denied)
+ * agar konten sampah tantangan keamanan tidak masuk sebagai teks artikel atau klaim non-ekonomi palsu.
+ */
+export function detectSoftBlockPage(html: string): { isSoftBlocked: boolean; reason: string | null } {
+  const raw = html.trim();
+  if (!raw) {
+    return { isSoftBlocked: false, reason: null };
+  }
+
+  const titleMatch = /<title[^>]*>([\s\S]*?)<\/title>/i.exec(raw);
+  const titleText = cleanText(titleMatch?.[1] ?? '');
+
+  if (
+    /^(?:Just a moment\.\.\.|Attention Required!\s*\|\s*Cloudflare|Access Denied|Security Check|One more step)$/i.test(
+      titleText,
+    )
+  ) {
+    return { isSoftBlocked: true, reason: `Judul halaman tantangan anti-bot: "${titleText}"` };
+  }
+
+  if (
+    /id=["']cf-browser-verification["']|class=["'][^"']*\bcf-(?:error-details|challenge)\b|\/cdn-cgi\/challenge-platform/i.test(
+      raw,
+    )
+  ) {
+    return { isSoftBlocked: true, reason: 'Terdeteksi halaman verifikasi browser Cloudflare.' };
+  }
+
+  const hasCheckingConn = /Checking if the site connection is secure/i.test(raw);
+  const hasEnableJs = /Enable JavaScript and cookies to continue/i.test(raw);
+  if (hasCheckingConn || (hasEnableJs && raw.length < 25_000)) {
+    return {
+      isSoftBlocked: true,
+      reason: 'Halaman meminta verifikasi keamanan JavaScript & cookie (soft-block HTTP 200).',
+    };
+  }
+
+  const hasHumanVerify =
+    /Verifying you are human|Please turn JavaScript on and reload the page/i.test(raw);
+  if (hasHumanVerify) {
+    const plainBodyWords = countWords(raw.replace(/<[^>]+>/g, ' '));
+    if (plainBodyWords < 160) {
+      return {
+        isSoftBlocked: true,
+        reason: 'Halaman terdeteksi sebagai gerbang verifikasi manusia / anti-bot.',
+      };
+    }
+  }
+
+  return { isSoftBlocked: false, reason: null };
+}
+
+function findArticleBodyInJsonLd($: CheerioAPI): string | null {
+  const scripts = $('script[type="application/ld+json"]');
+  for (let i = 0; i < scripts.length; i += 1) {
+    const rawJson = scripts.eq(i).html();
+    if (!rawJson) continue;
+    try {
+      const parsed = JSON.parse(rawJson) as unknown;
+      const stack: unknown[] = Array.isArray(parsed) ? [...parsed] : [parsed];
+      while (stack.length > 0) {
+        const node = stack.shift();
+        if (!node || typeof node !== 'object') continue;
+        const record = node as Record<string, unknown>;
+        if (typeof record.articleBody === 'string' && countWords(record.articleBody) >= 20) {
+          return record.articleBody;
+        }
+        if (Array.isArray(record['@graph'])) {
+          stack.push(...record['@graph']);
+        }
+      }
+    } catch {
+      // Abaikan JSON-LD tidak valid pada halaman portal pihak ketiga
+    }
+  }
+  return null;
+}
+
+function extractNextFullPageUrl(
+  $: CheerioAPI,
+  baseUrl?: string | null,
+  canonicalUrl?: string | null,
+): string | null {
+  const resolveAnchorHref = (rawHref: string | undefined): string | null => {
+    const trimmed = rawHref?.trim();
+    if (!trimmed || trimmed.startsWith('#') || /^javascript:/i.test(trimmed)) return null;
+    const referenceBase = baseUrl || canonicalUrl || undefined;
+    try {
+      const resolved = referenceBase ? new URL(trimmed, referenceBase) : new URL(trimmed);
+      if (resolved.protocol !== 'http:' && resolved.protocol !== 'https:') {
+        return null;
+      }
+      if (baseUrl && resolved.toString() === baseUrl) {
+        return null;
+      }
+      return resolved.toString();
+    } catch {
+      return null;
+    }
+  };
+
+  const explicitSelectors = [
+    'a[href*="page=all"]',
+    'a[href*="show=all"]',
+    '.paging a[href*="all"]',
+  ];
+  for (const sel of explicitSelectors) {
+    const href = $(sel).first().attr('href');
+    const resolved = resolveAnchorHref(href);
+    if (resolved) return resolved;
+  }
+
+  let matchedByLabel: string | null = null;
+  $('a[href]').each((_idx, el) => {
+    if (matchedByLabel) return;
+    const anchor = $(el);
+    const label = cleanText(anchor.text());
+    if (/^(?:tampilkan\s+semua|baca\s+selengkapnya\s*\(semua\)|lihat\s+semua\s+halaman)$/i.test(label)) {
+      const resolved = resolveAnchorHref(anchor.attr('href'));
+      if (resolved) {
+        matchedByLabel = resolved;
+      }
+    }
+  });
+
+  return matchedByLabel;
+}
+
+/**
+ * Mengekstrak judul, tanggal rilis, dan 150-250 kata pertama yang bersih dari dokumen HTML portal berita,
+ * memprioritaskan JSON-LD `articleBody`, mendeteksi soft-block anti-bot, serta mengekstrak link `?page=all`.
  */
 export function extractArticleContent(
   html: string,
   fallbackPublishedAt?: Date | null,
+  baseUrl?: string | null,
 ): ExtractedArticleContent {
   const $ = load(html);
 
@@ -444,6 +577,26 @@ export function extractArticleContent(
   const title = extractCleanTitle($);
   const publishedAt = extractPublishedDate($) ?? fallbackPublishedAt ?? null;
   const canonicalUrl = $('link[rel="canonical"]').attr('href')?.trim() ?? null;
+
+  const softBlock = detectSoftBlockPage(html);
+  if (softBlock.isSoftBlocked) {
+    return {
+      title,
+      publishedAt,
+      snippetText: '',
+      wordCount: 0,
+      isValidContent: false,
+      canonicalUrl,
+      isSoftBlocked: true,
+      nextFullPageUrl: null,
+    };
+  }
+
+  const nextFullPageUrl = extractNextFullPageUrl($, baseUrl, canonicalUrl);
+  const jsonLdArticleBody = findArticleBodyInJsonLd($);
+  const jsonLdResult = jsonLdArticleBody
+    ? accumulateParagraphsToThreshold(jsonLdArticleBody.split(/\r?\n+/))
+    : null;
 
   // Bersihkan seluruh elemen pengganggu
   $(NOISE_ELEMENT_SELECTORS).remove();
@@ -466,26 +619,34 @@ export function extractArticleContent(
   });
 
   // Fallback jika portal jarang memakai <p> (mis. memisahkan baris dengan <br> atau <div>)
-  let result = accumulateParagraphsToThreshold(paragraphs);
-  if (!result.isValidContent) {
+  let domResult = accumulateParagraphsToThreshold(paragraphs);
+  if (!domResult.isValidContent) {
     const fallbackLines = container
       .text()
       .split(/\n+/)
       .map(cleanText)
       .filter((line) => line.length >= 25);
     const fallbackResult = accumulateParagraphsToThreshold(fallbackLines);
-    if (fallbackResult.wordCount > result.wordCount) {
-      result = fallbackResult;
+    if (fallbackResult.wordCount > domResult.wordCount) {
+      domResult = fallbackResult;
     }
   }
+
+  // Prioritaskan JSON-LD articleBody bila tersedia dan memenuhi ambang kata valid (>= 30 kata)
+  const finalResult =
+    jsonLdResult && (jsonLdResult.isValidContent || jsonLdResult.wordCount > domResult.wordCount)
+      ? jsonLdResult
+      : domResult;
 
   return {
     title,
     publishedAt,
-    snippetText: result.snippetText,
-    wordCount: result.wordCount,
-    isValidContent: result.isValidContent,
+    snippetText: finalResult.snippetText,
+    wordCount: finalResult.wordCount,
+    isValidContent: finalResult.isValidContent,
     canonicalUrl,
+    isSoftBlocked: false,
+    nextFullPageUrl,
   };
 }
 

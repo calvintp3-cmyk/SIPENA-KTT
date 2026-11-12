@@ -8,8 +8,8 @@ export const CreateKeywordSchema = z.object({
     .trim()
     .min(2, 'Kata kunci minimal 2 karakter')
     .max(120, 'Kata kunci maksimal 120 karakter'),
-  defaultKbliCategory: z.nativeEnum(KbliCategoryEnum).nullable().optional(),
-  defaultExpenditureComponent: z.nativeEnum(ExpenditureComponentEnum).nullable().optional(),
+  defaultKbliCategory: z.enum(KbliCategoryEnum).nullable().optional(),
+  defaultExpenditureComponent: z.enum(ExpenditureComponentEnum).nullable().optional(),
   description: z
     .string()
     .trim()
@@ -27,8 +27,8 @@ export const UpdateKeywordSchema = z
       .min(2, 'Kata kunci minimal 2 karakter')
       .max(120, 'Kata kunci maksimal 120 karakter')
       .optional(),
-    defaultKbliCategory: z.nativeEnum(KbliCategoryEnum).nullable().optional(),
-    defaultExpenditureComponent: z.nativeEnum(ExpenditureComponentEnum).nullable().optional(),
+    defaultKbliCategory: z.enum(KbliCategoryEnum).nullable().optional(),
+    defaultExpenditureComponent: z.enum(ExpenditureComponentEnum).nullable().optional(),
     description: z
       .string()
       .trim()

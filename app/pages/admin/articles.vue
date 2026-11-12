@@ -4,6 +4,7 @@ import type { DropdownMenuItem, TableColumn } from '@nuxt/ui';
 import {
   ExpenditureComponentEnum,
   KbliCategoryEnum,
+  LlmStatusEnum,
   PDRB_17_SECTORS,
   VerificationStatusEnum,
 } from '#shared/enums/pdrb';
@@ -19,6 +20,7 @@ const route = useRoute();
 const router = useRouter();
 const toast = useToast();
 const { setQueueCounts } = useAdminSession();
+const { selectedYear, selectedQuarter, shortPeriodLabel } = useAdminPeriod();
 const { isExporting, downloadExport } = useExcelExport();
 const {
   kbliOptions,
@@ -46,6 +48,8 @@ const filters = reactive({
   expenditure: 'ALL',
   portal: 'ALL',
   status: 'ALL',
+  llmStatus: 'ALL',
+  isEconomic: 'ALL',
   from: '',
   to: '',
 });
@@ -95,6 +99,13 @@ function applyRouteQuery(queryObj: Record<string, unknown>) {
 
   const qStatus = readSingleQuery(queryObj.status);
   filters.status = qStatus && qStatus in VerificationStatusEnum ? qStatus : 'ALL';
+
+  const qLlmStatus = readSingleQuery(queryObj.llmStatus);
+  filters.llmStatus = qLlmStatus && qLlmStatus in LlmStatusEnum ? qLlmStatus : 'ALL';
+
+  const qIsEconomic = readSingleQuery(queryObj.isEconomic);
+  filters.isEconomic =
+    qIsEconomic === 'true' || qIsEconomic === 'false' ? qIsEconomic : 'ALL';
 
   const qFrom = readSingleQuery(queryObj.from);
   filters.from = /^\d{4}-\d{2}-\d{2}$/.test(qFrom) ? qFrom : '';
@@ -159,6 +170,8 @@ watch(
     filters.expenditure,
     filters.portal,
     filters.status,
+    filters.llmStatus,
+    filters.isEconomic,
     filters.from,
     filters.to,
   ],
@@ -183,6 +196,8 @@ const queryParams = computed(() => {
   if (filters.expenditure !== 'ALL') qObj.expenditure = filters.expenditure;
   if (filters.portal !== 'ALL') qObj.portal = filters.portal;
   if (filters.status !== 'ALL') qObj.status = filters.status;
+  if (filters.llmStatus !== 'ALL') qObj.llmStatus = filters.llmStatus;
+  if (filters.isEconomic !== 'ALL') qObj.isEconomic = filters.isEconomic;
   if (filters.from) qObj.from = filters.from;
   if (filters.to) qObj.to = filters.to;
   return qObj;
@@ -249,6 +264,19 @@ const statusFilterItems = computed<SelectOptionItem<string>[]>(() => [
   ...verificationStatusOptions,
 ]);
 
+const llmStatusFilterItems: SelectOptionItem<string>[] = [
+  { label: 'Semua Status AI', value: 'ALL' },
+  { label: 'AI Sukses', value: LlmStatusEnum.SUCCESS },
+  { label: 'LLM Gagal', value: LlmStatusEnum.FAILED },
+  { label: 'Input Manual', value: LlmStatusEnum.SKIPPED_MANUAL },
+];
+
+const economicFilterItems: SelectOptionItem<string>[] = [
+  { label: 'Semua Relevansi', value: 'ALL' },
+  { label: 'Fenomena Ekonomi', value: 'true' },
+  { label: 'Non-Ekonomi', value: 'false' },
+];
+
 const portalFilterItems = computed<SelectOptionItem<string>[]>(() => {
   const portalSet = new Set<string>(archiveData.value?.availablePortals ?? []);
   if (filters.portal !== 'ALL') {
@@ -268,6 +296,15 @@ const selectedGroupMeta = computed(() =>
     : null,
 );
 
+const isSyncedToGlobalPeriod = computed(
+  () => filters.year === selectedYear.value && filters.quarter === selectedQuarter.value,
+);
+
+function syncToGlobalPeriod() {
+  filters.year = selectedYear.value;
+  filters.quarter = selectedQuarter.value;
+}
+
 const hasActiveFilters = computed(
   () =>
     Boolean(debouncedQ.value) ||
@@ -278,6 +315,8 @@ const hasActiveFilters = computed(
     filters.expenditure !== 'ALL' ||
     filters.portal !== 'ALL' ||
     filters.status !== 'ALL' ||
+    filters.llmStatus !== 'ALL' ||
+    filters.isEconomic !== 'ALL' ||
     Boolean(filters.from) ||
     Boolean(filters.to),
 );
@@ -292,6 +331,8 @@ function resetFilters() {
   filters.expenditure = 'ALL';
   filters.portal = 'ALL';
   filters.status = 'ALL';
+  filters.llmStatus = 'ALL';
+  filters.isEconomic = 'ALL';
   filters.from = '';
   filters.to = '';
   page.value = 1;
@@ -312,6 +353,8 @@ function buildExportParams(format: 'xlsx' | 'csv') {
     expenditure: filters.expenditure === 'ALL' ? undefined : filters.expenditure,
     portal: filters.portal === 'ALL' ? undefined : filters.portal,
     status: filters.status === 'ALL' ? undefined : filters.status,
+    llmStatus: filters.llmStatus === 'ALL' ? undefined : filters.llmStatus,
+    isEconomic: filters.isEconomic === 'ALL' ? undefined : filters.isEconomic,
     from: filters.from || undefined,
     to: filters.to || undefined,
   };
@@ -408,10 +451,10 @@ const columns: TableColumn<AdminArticleItem>[] = [
           <UIcon name="i-solar-database-bold-duotone" class="w-3.5 h-3.5" />
           <span>Repositori Arsip &amp; Kertas Kerja BPS</span>
         </div>
-        <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-[#0F172A] mt-2">
+        <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 text-balance mt-2">
           Bank Data Fenomena Ekonomi
         </h1>
-        <p class="text-xs sm:text-sm text-slate-600 mt-0.5">
+        <p class="text-xs sm:text-sm text-slate-600 mt-0.5 text-pretty">
           Arsip terpusat seluruh fenomena ekonomi Kabupaten Tana Tidung &amp; ekspor kertas kerja
           resmi 10 kolom.
         </p>
@@ -420,7 +463,7 @@ const columns: TableColumn<AdminArticleItem>[] = [
       <div class="flex flex-wrap items-center gap-2.5 shrink-0">
         <button
           type="button"
-          class="h-9 px-3.5 rounded-xl border border-slate-200 bg-white hover:border-indigo-300 hover:bg-slate-50 text-xs font-semibold text-[#0F172A] inline-flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
+          class="min-h-9 px-3.5 rounded-xl border border-slate-200 bg-white hover:border-indigo-300 hover:bg-slate-50 text-xs font-semibold text-slate-900 inline-flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
           @click="() => { manualModalOpen = true; }"
         >
           <UIcon name="i-solar-add-circle-bold-duotone" class="w-4 h-4 text-indigo-600" />
@@ -431,7 +474,7 @@ const columns: TableColumn<AdminArticleItem>[] = [
           <button
             type="button"
             :disabled="isExporting"
-            class="btn-primary-gradient h-9 px-4 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer"
+            class="btn-primary-gradient min-h-9 px-4 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer"
           >
             <UIcon
               :name="isExporting ? 'i-lucide-loader-circle' : 'i-solar-download-bold-duotone'"
@@ -447,14 +490,14 @@ const columns: TableColumn<AdminArticleItem>[] = [
 
     <!-- Filter Toolbar Multi-Parameter -->
     <div class="saas-card rounded-2xl p-4 sm:p-5 space-y-3">
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
-        <div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5">
+        <div class="sm:col-span-2 lg:col-span-1">
           <label for="articles-filter-q" class="sr-only">Cari judul, ringkasan, atau URL</label>
           <UInput
             id="articles-filter-q"
             v-model="filters.q"
             icon="i-solar-magnifer-line-duotone"
-            placeholder="Cari judul, ringkasan, atau URL..."
+            placeholder="Cari judul, ringkasan, URL..."
             size="sm"
             class="w-full"
           />
@@ -501,9 +544,23 @@ const columns: TableColumn<AdminArticleItem>[] = [
             class="w-full"
           />
         </div>
+
+        <div>
+          <label for="articles-filter-llm-status" class="sr-only">Filter Status AI</label>
+          <USelect
+            id="articles-filter-llm-status"
+            v-model="filters.llmStatus"
+            :items="llmStatusFilterItems"
+            value-key="value"
+            label-key="label"
+            aria-label="Filter Status Klasifikasi AI"
+            size="sm"
+            class="w-full"
+          />
+        </div>
       </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5">
         <div>
           <label for="articles-filter-pdrb-group" class="sr-only">Filter 17 Sektor PDRB</label>
           <USelectMenu
@@ -559,6 +616,20 @@ const columns: TableColumn<AdminArticleItem>[] = [
             class="w-full"
           />
         </div>
+
+        <div>
+          <label for="articles-filter-economic" class="sr-only">Filter Relevansi Ekonomi</label>
+          <USelect
+            id="articles-filter-economic"
+            v-model="filters.isEconomic"
+            :items="economicFilterItems"
+            value-key="value"
+            label-key="label"
+            aria-label="Filter Relevansi Ekonomi"
+            size="sm"
+            class="w-full"
+          />
+        </div>
       </div>
 
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pt-2 border-t border-slate-100">
@@ -567,7 +638,9 @@ const columns: TableColumn<AdminArticleItem>[] = [
             Rentang Rilis (WITA):
           </span>
           <div class="flex items-center gap-1.5">
+            <label for="articles-filter-from" class="sr-only">Dari tanggal rilis</label>
             <UInput
+              id="articles-filter-from"
               v-model="filters.from"
               type="date"
               size="sm"
@@ -575,8 +648,10 @@ const columns: TableColumn<AdminArticleItem>[] = [
               title="Dari tanggal rilis (WITA)"
               class="w-36"
             />
-            <span class="text-xs text-slate-400">—</span>
+            <span class="text-xs text-slate-600" aria-hidden="true">—</span>
+            <label for="articles-filter-to" class="sr-only">Sampai tanggal rilis</label>
             <UInput
+              id="articles-filter-to"
               v-model="filters.to"
               type="date"
               size="sm"
@@ -587,15 +662,27 @@ const columns: TableColumn<AdminArticleItem>[] = [
           </div>
         </div>
 
-        <button
-          v-if="hasActiveFilters"
-          type="button"
-          class="h-8 px-3 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-xs font-semibold text-slate-700 inline-flex items-center gap-1.5 self-start sm:self-auto transition-colors cursor-pointer"
-          @click="() => { resetFilters(); }"
-        >
-          <UIcon name="i-solar-restart-bold-duotone" class="w-3.5 h-3.5 text-indigo-600" />
-          <span>Reset Semua Filter</span>
-        </button>
+        <div class="flex flex-wrap items-center gap-2">
+          <button
+            v-if="!isSyncedToGlobalPeriod"
+            type="button"
+            class="min-h-9 px-3 rounded-xl border border-indigo-200 bg-indigo-50/70 hover:bg-indigo-100 text-xs font-semibold text-indigo-800 inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+            @click="() => { syncToGlobalPeriod(); }"
+          >
+            <UIcon name="i-solar-calendar-mark-bold-duotone" class="w-3.5 h-3.5" />
+            <span class="tabular-nums">Sinkron {{ shortPeriodLabel }}</span>
+          </button>
+
+          <button
+            v-if="hasActiveFilters"
+            type="button"
+            class="min-h-9 px-3 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-xs font-semibold text-slate-700 inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+            @click="() => { resetFilters(); }"
+          >
+            <UIcon name="i-solar-restart-bold-duotone" class="w-3.5 h-3.5 text-indigo-600" />
+            <span>Reset Semua Filter</span>
+          </button>
+        </div>
       </div>
 
       <!-- Active Filter Chips Strip -->
@@ -603,14 +690,14 @@ const columns: TableColumn<AdminArticleItem>[] = [
         v-if="hasActiveFilters"
         class="flex flex-wrap items-center gap-1.5 pt-2 border-t border-slate-100 text-xs"
       >
-        <span class="text-[11px] font-semibold text-slate-500 mr-1">
+        <span class="text-[11px] font-semibold text-slate-600 mr-1">
           Filter Aktif:
         </span>
 
         <button
           v-if="selectedGroupMeta"
           type="button"
-          class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border font-semibold transition-opacity hover:opacity-85 cursor-pointer"
+          class="min-h-7 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border font-semibold transition-opacity hover:opacity-85 cursor-pointer"
           :class="getKbliClusterTheme(selectedGroupMeta.groupCode).pillClass"
           @click="() => { filters.pdrbGroup = 'ALL'; }"
         >
@@ -621,7 +708,7 @@ const columns: TableColumn<AdminArticleItem>[] = [
         <button
           v-if="filters.kbli !== 'ALL'"
           type="button"
-          class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border font-semibold transition-opacity hover:opacity-85 cursor-pointer"
+          class="min-h-7 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border font-semibold transition-opacity hover:opacity-85 cursor-pointer"
           :class="getKbliClusterTheme(filters.kbli).pillClass"
           @click="() => { filters.kbli = 'ALL'; }"
         >
@@ -632,7 +719,7 @@ const columns: TableColumn<AdminArticleItem>[] = [
         <button
           v-if="filters.expenditure !== 'ALL'"
           type="button"
-          class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border font-semibold transition-opacity hover:opacity-85 cursor-pointer"
+          class="min-h-7 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border font-semibold transition-opacity hover:opacity-85 cursor-pointer"
           :class="getExpenditureColorTheme(filters.expenditure).pillClass"
           @click="() => { filters.expenditure = 'ALL'; }"
         >
@@ -647,7 +734,7 @@ const columns: TableColumn<AdminArticleItem>[] = [
         <button
           v-if="filters.portal !== 'ALL'"
           type="button"
-          class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-800 border border-indigo-200 font-medium hover:bg-indigo-100 cursor-pointer"
+          class="min-h-7 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-800 border border-indigo-200 font-medium hover:bg-indigo-100 cursor-pointer"
           @click="() => { filters.portal = 'ALL'; }"
         >
           <span>Portal: {{ filters.portal }}</span>
@@ -657,7 +744,7 @@ const columns: TableColumn<AdminArticleItem>[] = [
         <button
           v-if="filters.status !== 'ALL'"
           type="button"
-          class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-800 border border-slate-200 font-medium hover:bg-slate-200 cursor-pointer"
+          class="min-h-7 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-800 border border-slate-200 font-medium hover:bg-slate-200 cursor-pointer"
           @click="() => { filters.status = 'ALL'; }"
         >
           <span>Status: {{ getVerificationStatusBadge(filters.status as VerificationStatusEnum).label }}</span>
@@ -665,9 +752,29 @@ const columns: TableColumn<AdminArticleItem>[] = [
         </button>
 
         <button
+          v-if="filters.llmStatus !== 'ALL'"
+          type="button"
+          class="min-h-7 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-800 border border-slate-200 font-medium hover:bg-slate-200 cursor-pointer"
+          @click="() => { filters.llmStatus = 'ALL'; }"
+        >
+          <span>AI: {{ llmStatusFilterItems.find((i) => i.value === filters.llmStatus)?.label }}</span>
+          <UIcon name="i-lucide-x" class="w-3 h-3" />
+        </button>
+
+        <button
+          v-if="filters.isEconomic !== 'ALL'"
+          type="button"
+          class="min-h-7 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-800 border border-slate-200 font-medium hover:bg-slate-200 cursor-pointer"
+          @click="() => { filters.isEconomic = 'ALL'; }"
+        >
+          <span>{{ filters.isEconomic === 'true' ? 'Hanya Ekonomi' : 'Non-Ekonomi' }}</span>
+          <UIcon name="i-lucide-x" class="w-3 h-3" />
+        </button>
+
+        <button
           v-if="filters.year !== 'ALL' || filters.quarter !== 'ALL'"
           type="button"
-          class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-800 border border-slate-200 font-medium tabular-nums hover:bg-slate-200 cursor-pointer"
+          class="min-h-7 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-800 border border-slate-200 font-medium tabular-nums hover:bg-slate-200 cursor-pointer"
           @click="
             () => {
               filters.year = 'ALL';
@@ -728,12 +835,12 @@ const columns: TableColumn<AdminArticleItem>[] = [
           <template #title-cell="{ row }">
             <div class="space-y-1 min-w-[220px] max-w-sm">
               <div
-                class="font-semibold text-sm text-[#0F172A] line-clamp-2 leading-snug"
+                class="font-semibold text-sm text-slate-900 line-clamp-2 leading-snug"
                 :title="row.original.title"
               >
                 {{ row.original.title }}
               </div>
-              <div class="flex items-center gap-1.5 text-[11px] text-slate-500">
+              <div class="flex items-center gap-1.5 text-[11px] text-slate-600">
                 <a
                   v-if="isSafeHttpUrl(row.original.url)"
                   :href="row.original.url"
@@ -769,7 +876,7 @@ const columns: TableColumn<AdminArticleItem>[] = [
                 </UBadge>
               </div>
             </div>
-            <span v-else class="text-xs text-slate-400">—</span>
+            <span v-else class="text-xs text-slate-600">—</span>
           </template>
 
           <template #expenditure-cell="{ row }">
@@ -793,7 +900,7 @@ const columns: TableColumn<AdminArticleItem>[] = [
                 </UBadge>
               </div>
             </div>
-            <span v-else class="text-xs text-slate-400">—</span>
+            <span v-else class="text-xs text-slate-600">—</span>
           </template>
 
           <template #period-cell="{ row }">
@@ -814,25 +921,27 @@ const columns: TableColumn<AdminArticleItem>[] = [
           </template>
 
           <template #actions-cell="{ row }">
-            <div class="flex items-center gap-1">
+            <div class="flex items-center gap-1.5">
               <UTooltip text="Edit Arsip">
                 <UButton
-                  size="xs"
+                  size="sm"
                   color="primary"
                   variant="subtle"
                   icon="i-lucide-pencil"
                   aria-label="Edit artikel arsip"
+                  class="min-w-8 min-h-8"
                   @click="() => { openEditDrawer(row.original); }"
                 />
               </UTooltip>
 
               <UTooltip text="Hapus Permanen">
                 <UButton
-                  size="xs"
+                  size="sm"
                   color="error"
                   variant="ghost"
                   icon="i-lucide-trash-2"
                   aria-label="Hapus artikel arsip"
+                  class="min-w-8 min-h-8"
                   @click="() => { askDelete(row.original); }"
                 />
               </UTooltip>
@@ -848,7 +957,7 @@ const columns: TableColumn<AdminArticleItem>[] = [
       class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1"
     >
       <span class="text-xs text-slate-600 tabular-nums">
-        Total arsip cocok: <strong class="text-[#0F172A]">{{ archiveData.pagination.total }}</strong> berita • Halaman
+        Total arsip cocok: <strong class="text-slate-900">{{ archiveData.pagination.total }}</strong> berita • Halaman
         {{ archiveData.pagination.page }}/{{ archiveData.pagination.totalPages }}
       </span>
       <UPagination
@@ -881,14 +990,19 @@ const columns: TableColumn<AdminArticleItem>[] = [
       description="Tindakan ini menghapus arsip berita secara permanen dari database."
     >
       <template #body>
-        <p class="text-sm text-slate-700 leading-relaxed">
+        <p class="text-sm text-slate-700 leading-relaxed text-pretty">
           Anda yakin ingin menghapus <strong>{{ deleteTarget?.title }}</strong>?
         </p>
       </template>
 
       <template #footer>
         <div class="w-full flex justify-end gap-2">
-          <UButton color="neutral" variant="ghost" @click="() => { deleteModalOpen = false; }">
+          <UButton
+            autofocus
+            color="neutral"
+            variant="ghost"
+            @click="() => { deleteModalOpen = false; }"
+          >
             Batal
           </UButton>
           <UButton color="error" :loading="isDeleting" @click="() => { void confirmDelete(); }">

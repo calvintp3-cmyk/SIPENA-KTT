@@ -4,6 +4,7 @@ import type { KbliCategoryEnum } from '#shared/enums/pdrb';
 import { PDRB_6_EXPENDITURE_LIST } from '#shared/enums/pdrb';
 import type { PdrbQuarter } from '#shared/utils/period';
 import type { AdminDashboardResponse, DashboardGapTileItem } from '~/types/sipena';
+import { SIPENA_CHART_TOKENS, SIPENA_CHART_TOOLTIP_STYLE } from '~/utils/chart-theme';
 
 definePageMeta({
   layout: 'admin',
@@ -118,9 +119,7 @@ const coverageChartOption = computed<ECOption | null>(() => {
   return {
     tooltip: {
       trigger: 'item',
-      backgroundColor: '#0F172A',
-      borderWidth: 0,
-      textStyle: { color: '#F8FAFC', fontFamily: 'Inter, sans-serif', fontSize: 12 },
+      ...SIPENA_CHART_TOOLTIP_STYLE,
       formatter: (raw: unknown) => {
         const p = raw as { name?: string; value?: number; percent?: number };
         return `<strong>${p.name ?? ''}</strong><br/>${p.value ?? 0} sektor (${p.percent ?? 0}%)`;
@@ -134,12 +133,12 @@ const coverageChartOption = computed<ECOption | null>(() => {
       textStyle: {
         fontSize: 20,
         fontWeight: 800,
-        color: '#0F172A',
+        color: SIPENA_CHART_TOKENS.inkObsidian,
         fontFamily: 'Inter, sans-serif',
       },
       subtextStyle: {
         fontSize: 11,
-        color: '#64748B',
+        color: SIPENA_CHART_TOKENS.inkMuted,
         fontFamily: 'Inter, sans-serif',
       },
     },
@@ -150,7 +149,7 @@ const coverageChartOption = computed<ECOption | null>(() => {
         center: ['50%', '50%'],
         itemStyle: {
           borderRadius: 6,
-          borderColor: '#FFFFFF',
+          borderColor: SIPENA_CHART_TOKENS.surfaceWhite,
           borderWidth: 2,
         },
         label: { show: false },
@@ -161,7 +160,7 @@ const coverageChartOption = computed<ECOption | null>(() => {
             value: covered,
             filterKey: 'covered',
             itemStyle: {
-              color: '#059669',
+              color: SIPENA_CHART_TOKENS.emerald,
               opacity: tileFilter.value === 'all' || tileFilter.value === 'covered' ? 1 : 0.35,
             },
           },
@@ -170,7 +169,7 @@ const coverageChartOption = computed<ECOption | null>(() => {
             value: thin,
             filterKey: 'thin',
             itemStyle: {
-              color: '#D97706',
+              color: SIPENA_CHART_TOKENS.amber,
               opacity: tileFilter.value === 'all' || tileFilter.value === 'thin' ? 1 : 0.35,
             },
           },
@@ -179,7 +178,7 @@ const coverageChartOption = computed<ECOption | null>(() => {
             value: gap,
             filterKey: 'gap',
             itemStyle: {
-              color: '#E11D48',
+              color: SIPENA_CHART_TOKENS.rose,
               opacity: tileFilter.value === 'all' || tileFilter.value === 'gap' ? 1 : 0.35,
             },
           },
@@ -216,10 +215,10 @@ const shortExpHeaders: Record<string, string> = {
           <UIcon name="i-solar-radar-2-bold-duotone" class="w-3.5 h-3.5" />
           <span>Analitik &amp; Kelengkapan Bukti Sektoral</span>
         </div>
-        <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-[#0F172A] mt-2">
+        <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 text-balance mt-2">
           Dashboard &amp; Gap Sektoral — {{ periodLabel }}
         </h1>
-        <p class="text-xs sm:text-sm text-slate-600 mt-0.5">
+        <p class="text-xs sm:text-sm text-slate-600 mt-0.5 text-pretty">
           Deteksi 17 kategori Lapangan Usaha yang belum memiliki bukti berita terverifikasi dan
           peta silang PDRB dua sisi.
         </p>
@@ -229,16 +228,16 @@ const shortExpHeaders: Record<string, string> = {
         <button
           type="button"
           :disabled="isExporting"
-          class="h-9 px-3.5 rounded-xl border border-slate-200 bg-white hover:border-indigo-300 hover:bg-slate-50 text-xs font-semibold text-[#0F172A] inline-flex items-center gap-1.5 shadow-2xs transition-colors disabled:opacity-50 cursor-pointer"
+          class="min-h-9 px-3.5 rounded-xl border border-slate-200 bg-white hover:border-indigo-300 hover:bg-slate-50 text-xs font-semibold text-slate-900 inline-flex items-center gap-1.5 shadow-2xs transition-colors disabled:opacity-50 cursor-pointer"
           @click="() => { handleExportXlsx(); }"
         >
-          <UIcon name="i-solar-download-bold-duotone" class="w-4 h-4 text-emerald-600" />
+          <UIcon name="i-solar-download-bold-duotone" class="w-4 h-4 text-emerald-700" />
           <span>Export Excel ({{ shortPeriodLabel }})</span>
         </button>
 
         <button
           type="button"
-          class="btn-primary-gradient h-9 px-4 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer"
+          class="btn-primary-gradient min-h-9 px-4 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer"
           @click="() => { openManualForSector(null); }"
         >
           <UIcon name="i-solar-add-circle-bold-duotone" class="w-4 h-4 text-emerald-200" />
@@ -282,7 +281,7 @@ const shortExpHeaders: Record<string, string> = {
             <UIcon name="i-solar-check-circle-bold-duotone" class="w-4 h-4" />
           </div>
         </div>
-        <div class="text-3xl font-extrabold tracking-tight text-[#0F172A] tabular-nums">
+        <div class="text-3xl font-extrabold tracking-tight text-slate-900 tabular-nums">
           {{ formatNumberId(dashData.kpi.totalVerifiedPeriod) }}
         </div>
         <div class="text-xs text-slate-600 flex items-center gap-1.5 flex-wrap">
@@ -313,9 +312,9 @@ const shortExpHeaders: Record<string, string> = {
             <UIcon name="i-solar-layers-minimalistic-bold-duotone" class="w-4 h-4" />
           </div>
         </div>
-        <div class="text-3xl font-extrabold tracking-tight text-[#0F172A] tabular-nums">
+        <div class="text-3xl font-extrabold tracking-tight text-slate-900 tabular-nums">
           {{ dashData.kpi.coveredSectors }}
-          <span class="text-base font-semibold text-slate-400">/ {{ dashData.kpi.totalSectors }}</span>
+          <span class="text-base font-semibold text-slate-500">/ {{ dashData.kpi.totalSectors }}</span>
         </div>
         <div class="text-xs flex items-center gap-1.5">
           <span
@@ -345,7 +344,7 @@ const shortExpHeaders: Record<string, string> = {
             <UIcon name="i-solar-inbox-in-bold-duotone" class="w-4 h-4" />
           </div>
         </div>
-        <div class="text-3xl font-extrabold tracking-tight text-[#0F172A] tabular-nums">
+        <div class="text-3xl font-extrabold tracking-tight text-slate-900 tabular-nums">
           {{ formatNumberId(dashData.kpi.pendingQueueCount) }}
         </div>
         <div class="flex items-center justify-between gap-2 text-xs">
@@ -368,7 +367,7 @@ const shortExpHeaders: Record<string, string> = {
           <span class="text-xs font-semibold text-slate-600">
             Sinyal Ekspansi Riil
           </span>
-          <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200/80 flex items-center justify-center shrink-0">
+          <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200/80 flex items-center justify-center shrink-0">
             <UIcon name="i-solar-graph-new-up-bold-duotone" class="w-4 h-4" />
           </div>
         </div>
@@ -400,10 +399,10 @@ const shortExpHeaders: Record<string, string> = {
 
         <div class="lg:col-span-8 space-y-3.5">
           <div>
-            <h2 class="text-base font-extrabold text-[#0F172A]">
+            <h2 class="text-base font-extrabold text-slate-900 text-balance">
               Radar Kelengkapan 17 Lapangan Usaha PDRB
             </h2>
-            <p class="text-xs sm:text-sm text-slate-600 mt-0.5 leading-relaxed">
+            <p class="text-xs sm:text-sm text-slate-600 mt-0.5 leading-relaxed text-pretty">
               Klik segmen donat atau pilih status di bawah untuk menyaring sektor yang berstatus
               <strong class="text-rose-700">Data Gap</strong> atau <strong class="text-amber-700">Tipis</strong> pada
               {{ shortPeriodLabel }}.
@@ -418,7 +417,7 @@ const shortExpHeaders: Record<string, string> = {
             <button
               type="button"
               :aria-pressed="tileFilter === 'all'"
-              class="px-3 py-1.5 rounded-lg text-xs tabular-nums transition-all cursor-pointer"
+              class="min-h-8 px-3 py-1 rounded-lg text-xs tabular-nums transition-colors cursor-pointer"
               :class="
                 tileFilter === 'all'
                   ? 'bg-white text-indigo-700 font-bold shadow-2xs border border-indigo-200/70'
@@ -431,7 +430,7 @@ const shortExpHeaders: Record<string, string> = {
             <button
               type="button"
               :aria-pressed="tileFilter === 'gap'"
-              class="px-3 py-1.5 rounded-lg text-xs tabular-nums transition-all cursor-pointer"
+              class="min-h-8 px-3 py-1 rounded-lg text-xs tabular-nums transition-colors cursor-pointer"
               :class="
                 tileFilter === 'gap'
                   ? 'bg-white text-rose-700 font-bold shadow-2xs border border-rose-200'
@@ -444,7 +443,7 @@ const shortExpHeaders: Record<string, string> = {
             <button
               type="button"
               :aria-pressed="tileFilter === 'thin'"
-              class="px-3 py-1.5 rounded-lg text-xs tabular-nums transition-all cursor-pointer"
+              class="min-h-8 px-3 py-1 rounded-lg text-xs tabular-nums transition-colors cursor-pointer"
               :class="
                 tileFilter === 'thin'
                   ? 'bg-white text-amber-800 font-bold shadow-2xs border border-amber-200'
@@ -457,7 +456,7 @@ const shortExpHeaders: Record<string, string> = {
             <button
               type="button"
               :aria-pressed="tileFilter === 'covered'"
-              class="px-3 py-1.5 rounded-lg text-xs tabular-nums transition-all cursor-pointer"
+              class="min-h-8 px-3 py-1 rounded-lg text-xs tabular-nums transition-colors cursor-pointer"
               :class="
                 tileFilter === 'covered'
                   ? 'bg-white text-emerald-800 font-bold shadow-2xs border border-emerald-200'
@@ -475,20 +474,14 @@ const shortExpHeaders: Record<string, string> = {
         <div
           v-for="tile in filteredGapTiles"
           :key="tile.groupCode"
-          class="rounded-2xl p-4 flex flex-col justify-between gap-3 transition-all relative overflow-hidden"
+          class="rounded-2xl p-4 flex flex-col justify-between gap-3 transition-colors relative overflow-hidden"
           :class="
             tile.isGap
-              ? 'bg-[#FFFDFD] border border-dashed border-rose-300/90 shadow-2xs'
+              ? 'bg-rose-50/35 border border-dashed border-rose-300/90 shadow-2xs'
               : 'saas-card saas-card-interactive'
           "
         >
-          <span
-            aria-hidden="true"
-            class="absolute inset-x-0 top-0 h-1"
-            :class="tile.isGap ? 'bg-rose-500' : getKbliClusterTheme(tile.groupCode).accentBarClass"
-          />
-
-          <div class="space-y-2.5 pt-0.5">
+          <div class="space-y-2.5">
             <div class="flex items-center justify-between gap-2">
               <span
                 class="text-[11px] font-bold px-2.5 py-0.5 rounded-full border"
@@ -521,11 +514,11 @@ const shortExpHeaders: Record<string, string> = {
               </span>
             </div>
 
-            <h3 class="text-sm font-bold text-[#0F172A] leading-snug">
+            <h3 class="text-sm font-bold text-slate-900 leading-snug">
               {{ tile.shortName }}
             </h3>
 
-            <p v-if="tile.isGap" class="text-xs text-slate-600 leading-relaxed">
+            <p v-if="tile.isGap" class="text-xs text-slate-600 leading-relaxed text-pretty">
               Belum ada berita atau catatan lapangan pada sektor ini di {{ shortPeriodLabel }}.
             </p>
             <div v-else class="space-y-1.5">
@@ -552,7 +545,7 @@ const shortExpHeaders: Record<string, string> = {
           <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2">
             <button
               type="button"
-              class="inline-flex items-center gap-1 text-xs font-semibold text-indigo-700 hover:text-indigo-900 hover:underline cursor-pointer"
+              class="min-h-8 inline-flex items-center gap-1 text-xs font-semibold text-indigo-700 hover:text-indigo-900 hover:underline cursor-pointer"
               @click="() => { openManualForSector(tile.primaryKbliCode); }"
             >
               <UIcon name="i-solar-add-circle-bold-duotone" class="w-4 h-4" />
@@ -561,7 +554,7 @@ const shortExpHeaders: Record<string, string> = {
 
             <NuxtLink
               :to="`/admin/articles?year=${selectedYear}&quarter=${selectedQuarter}&pdrbGroup=${encodeURIComponent(tile.groupCode)}&status=VERIFIED`"
-              class="text-xs font-medium text-slate-600 hover:text-[#0F172A] inline-flex items-center gap-1"
+              class="min-h-8 text-xs font-medium text-slate-600 hover:text-slate-900 inline-flex items-center gap-1"
             >
               <span>{{ tile.isGap ? 'Cek Arsip' : 'Lihat Arsip' }}</span>
               <UIcon name="i-lucide-arrow-right" class="w-3 h-3" />
@@ -574,7 +567,7 @@ const shortExpHeaders: Record<string, string> = {
     <!-- SECTION B: 17 x 6 CROSS-AXIS HEATMAP MATRIX -->
     <section v-if="dashData" aria-label="Heatmap Matriks Silang KBLI dan Pengeluaran" class="space-y-3">
       <div>
-        <h2 class="text-base font-extrabold text-[#0F172A]">
+        <h2 class="text-base font-extrabold text-slate-900 text-balance">
           Matriks Silang 17 Sektor KBLI × 6 Komponen Pengeluaran
         </h2>
         <p class="text-xs text-slate-600">
@@ -595,7 +588,7 @@ const shortExpHeaders: Record<string, string> = {
               pengeluaran PDRB pada {{ periodLabel }}
             </caption>
             <thead>
-              <tr class="border-b border-slate-200 bg-[#FAFBFD] text-xs font-semibold text-slate-600">
+              <tr class="border-b border-slate-200 bg-slate-50/70 text-xs font-semibold text-slate-600">
                 <th scope="col" class="px-4 py-3.5 min-w-[230px]">
                   Lapangan Usaha (17 Sektor KBLI)
                 </th>
@@ -620,7 +613,7 @@ const shortExpHeaders: Record<string, string> = {
                 :key="row.groupCode"
                 class="hover:bg-indigo-50/30 transition-colors"
               >
-                <th scope="row" class="px-4 py-2.5 font-medium text-[#0F172A] text-left bg-white sm:sticky sm:left-0">
+                <th scope="row" class="px-4 py-2.5 font-medium text-slate-900 text-left bg-white sm:sticky sm:left-0">
                   <span
                     class="inline-block text-[11px] font-bold px-2 py-0.5 rounded-full border mr-2"
                     :class="getKbliClusterTheme(row.groupCode).pillClass"
@@ -638,20 +631,20 @@ const shortExpHeaders: Record<string, string> = {
                   <NuxtLink
                     v-if="(row.cells[comp.code] ?? 0) > 0"
                     :to="`/admin/articles?year=${selectedYear}&quarter=${selectedQuarter}&pdrbGroup=${encodeURIComponent(row.groupCode)}&expenditure=${comp.code}&status=VERIFIED`"
-                    class="inline-flex items-center justify-center w-10 h-7 rounded-lg text-xs tabular-nums transition-all"
+                    class="inline-flex items-center justify-center w-10 h-7 rounded-lg text-xs tabular-nums transition-colors"
                     :class="heatmapCellClass(row.cells[comp.code] ?? 0)"
                   >
                     {{ row.cells[comp.code] }}
                   </NuxtLink>
                   <span
                     v-else
-                    class="inline-flex items-center justify-center w-10 h-7 rounded-lg text-xs text-slate-300"
+                    class="inline-flex items-center justify-center w-10 h-7 rounded-lg text-xs text-slate-500"
                   >
                     –
                   </span>
                 </td>
 
-                <td class="px-4 py-2.5 text-right font-bold tabular-nums text-[#0F172A]">
+                <td class="px-4 py-2.5 text-right font-bold tabular-nums text-slate-900">
                   {{ row.totalCount }}
                 </td>
               </tr>

@@ -36,6 +36,12 @@ const emit = defineEmits<{
 }>();
 
 const { getExpenditureColorTheme } = usePdrbLabels();
+const kbliSelectId = computed(() =>
+  props.inDrawer ? 'filter-kbli-select-mobile' : 'filter-kbli-select-desktop',
+);
+const kbliLabelId = computed(() =>
+  props.inDrawer ? 'filter-kbli-label-mobile' : 'filter-kbli-label-desktop',
+);
 
 const totalInPeriod = computed(() => props.overview?.kpi.totalVerified ?? 0);
 
@@ -135,7 +141,7 @@ const sourceButtons = [
         <div class="w-6 h-6 rounded-md bg-indigo-50 text-indigo-600 flex items-center justify-center">
           <UIcon name="i-solar-filter-bold-duotone" class="w-3.5 h-3.5" />
         </div>
-        <span class="text-xs font-bold text-[#0F172A]">
+        <span class="text-xs font-bold text-slate-900">
           Filter Fenomena
         </span>
         <span
@@ -147,11 +153,11 @@ const sourceButtons = [
 
       <button
         type="button"
-        class="inline-flex items-center gap-1 text-[11px] font-semibold transition-colors rounded-lg px-2 py-1 min-h-6"
+        class="inline-flex items-center gap-1 text-[11px] font-semibold transition-colors rounded-lg px-2.5 py-1 min-h-9"
         :class="
           activeFilterCount > 0
             ? 'text-indigo-700 hover:text-indigo-900 hover:bg-indigo-50 cursor-pointer'
-            : 'text-slate-400 cursor-not-allowed'
+            : 'text-slate-500 cursor-not-allowed'
         "
         :disabled="activeFilterCount === 0"
         @click="() => { emit('reset'); }"
@@ -176,7 +182,7 @@ const sourceButtons = [
           :key="src.value"
           type="button"
           :aria-pressed="sourceType === src.value"
-          class="py-1.5 px-1.5 rounded-lg text-[11px] transition-all whitespace-nowrap"
+          class="min-h-9 py-1.5 px-1.5 rounded-lg text-[11px] transition-colors whitespace-nowrap"
           :class="
             sourceType === src.value
               ? 'font-semibold bg-white text-indigo-700 shadow-xs border border-indigo-200/70'
@@ -191,14 +197,20 @@ const sourceButtons = [
 
     <!-- 2. Sektor KBLI (17 Kategori BPS) -->
     <div class="pt-3.5 border-t border-slate-200/75">
-      <label class="block text-xs font-semibold text-slate-600 mb-2">
+      <label
+        :id="kbliLabelId"
+        :for="kbliSelectId"
+        class="block text-xs font-semibold text-slate-600 mb-2"
+      >
         2. Sektor KBLI (17 Kategori BPS)
       </label>
       <USelectMenu
+        :id="kbliSelectId"
         v-model="selectedPdrbModel"
         :items="pdrbSelectItems"
         value-key="value"
         label-key="label"
+        :aria-labelledby="kbliLabelId"
         placeholder="Cari sektor KBLI..."
         :search-input="{ placeholder: 'Ketik kode atau nama sektor...' }"
         leading-icon="i-solar-buildings-2-bold-duotone"
@@ -216,7 +228,7 @@ const sourceButtons = [
         <button
           type="button"
           :aria-pressed="expenditure === 'ALL'"
-          class="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs transition-all"
+          class="w-full min-h-9 flex items-center justify-between px-2.5 py-2 rounded-xl text-xs transition-colors"
           :class="
             expenditure === 'ALL'
               ? 'bg-indigo-50/90 text-indigo-900 font-semibold border border-indigo-200/80 shadow-2xs'
@@ -236,7 +248,7 @@ const sourceButtons = [
             :class="
               expenditure === 'ALL'
                 ? 'bg-white text-indigo-700 border border-indigo-200'
-                : 'text-slate-500'
+                : 'text-slate-600'
             "
           >
             {{ totalInPeriod }}
@@ -248,7 +260,7 @@ const sourceButtons = [
           :key="item.code"
           type="button"
           :aria-pressed="expenditure === item.code"
-          class="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs transition-all"
+          class="w-full min-h-9 flex items-center justify-between px-2.5 py-2 rounded-xl text-xs transition-colors"
           :class="
             expenditure === item.code
               ? 'bg-indigo-50/90 text-indigo-900 font-semibold border border-indigo-200/80 shadow-2xs'
@@ -269,7 +281,7 @@ const sourceButtons = [
             :class="
               expenditure === item.code
                 ? 'px-2 py-0.5 rounded-full bg-white text-indigo-700 border border-indigo-200 font-bold'
-                : 'text-slate-500 font-medium'
+                : 'text-slate-600 font-medium'
             "
           >
             {{ expenditureCountMap.get(item.code) ?? 0 }}
@@ -287,7 +299,7 @@ const sourceButtons = [
         <button
           type="button"
           :aria-pressed="impactMacro === 'ALL'"
-          class="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs transition-all"
+          class="w-full min-h-9 flex items-center justify-between px-2.5 py-2 rounded-xl text-xs transition-colors"
           :class="
             impactMacro === 'ALL'
               ? 'bg-indigo-50/90 text-indigo-900 font-semibold border border-indigo-200/80 shadow-2xs'
@@ -307,7 +319,7 @@ const sourceButtons = [
             :class="
               impactMacro === 'ALL'
                 ? 'bg-white text-indigo-700 border border-indigo-200'
-                : 'text-slate-500'
+                : 'text-slate-600'
             "
           >
             {{ totalInPeriod }}
@@ -319,7 +331,7 @@ const sourceButtons = [
           :key="item.value"
           type="button"
           :aria-pressed="impactMacro === item.value"
-          class="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs transition-all"
+          class="w-full min-h-9 flex items-center justify-between px-2.5 py-2 rounded-xl text-xs transition-colors"
           :class="
             impactMacro === item.value
               ? 'bg-indigo-50/90 text-indigo-900 font-semibold border border-indigo-200/80 shadow-2xs'
@@ -336,7 +348,7 @@ const sourceButtons = [
             :class="
               impactMacro === item.value
                 ? 'px-2 py-0.5 rounded-full bg-white text-indigo-700 border border-indigo-200 font-bold'
-                : 'text-slate-500 font-medium'
+                : 'text-slate-600 font-medium'
             "
           >
             {{ item.count }}

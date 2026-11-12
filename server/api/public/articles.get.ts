@@ -75,6 +75,7 @@ export default defineEventHandler(async (event) => {
         sourcePortal: articles.sourcePortal,
         title: articles.title,
         summary: articles.summary,
+        geographicScope: articles.geographicScope,
         kbliCategory: articles.kbliCategory,
         kbliImpact: articles.kbliImpact,
         expenditureComponent: articles.expenditureComponent,

@@ -28,6 +28,63 @@ const FORBIDDEN_HOSTNAMES = new Set([
 ]);
 
 export const DEFAULT_FETCH_TIMEOUT_MS = 7_000;
+export const DEFAULT_HOST_MIN_INTERVAL_MS = 1_200;
+
+const hostNextAllowedAt = new Map<string, number>();
+
+export function resetHostRateLimitsForTest(): void {
+  hostNextAllowedAt.clear();
+}
+
+export interface HostRateLimitOptions {
+  minIntervalMs?: number;
+  nowFn?: () => number;
+  sleepFn?: (ms: number) => Promise<void>;
+  signal?: AbortSignal;
+}
+
+/**
+ * Menjaga jeda sopan per domain host (`minIntervalMs` antar permintaan ke host yang sama)
+ * tanpa menghambat domain berbeda agar tidak memicu WAF/rate-limit portal lokal.
+ */
+export async function enforceHostRateLimit(
+  hostname: string,
+  options: HostRateLimitOptions = {},
+): Promise<void> {
+  const minIntervalMs = Math.max(0, options.minIntervalMs ?? DEFAULT_HOST_MIN_INTERVAL_MS);
+  const key = hostname.trim().toLowerCase().replace(/^www\./, '');
+  if (!key || minIntervalMs <= 0) return;
+
+  const nowFn = options.nowFn ?? (() => Date.now());
+  const sleepFn =
+    options.sleepFn ??
+    ((ms: number) =>
+      new Promise<void>((resolve, reject) => {
+        if (options.signal?.aborted) {
+          reject(options.signal.reason ?? createAbortError('Pipeline dibatalkan.'));
+          return;
+        }
+        const onAbort = () => {
+          clearTimeout(timer);
+          reject(options.signal?.reason ?? createAbortError('Pipeline dibatalkan.'));
+        };
+        const timer = setTimeout(() => {
+          options.signal?.removeEventListener('abort', onAbort);
+          resolve();
+        }, ms);
+        options.signal?.addEventListener('abort', onAbort, { once: true });
+      }));
+
+  const currentNow = nowFn();
+  const reservedAt = hostNextAllowedAt.get(key) ?? 0;
+  const targetAt = Math.max(currentNow, reservedAt);
+  hostNextAllowedAt.set(key, targetAt + minIntervalMs);
+
+  const waitMs = targetAt - currentNow;
+  if (waitMs > 0) {
+    await sleepFn(waitMs);
+  }
+}
 
 export const DEFAULT_BROWSER_USER_AGENT =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36';
@@ -250,6 +307,8 @@ export interface SafeFetchOptions {
   headers?: Record<string, string>;
   signal?: AbortSignal;
   dnsLookup?: DnsLookupFn;
+  politeHostPacing?: boolean;
+  minHostIntervalMs?: number;
 }
 
 export interface SafeFetchResult {
@@ -373,6 +432,13 @@ export async function safeFetchText(
   try {
     while (true) {
       const validatedUrl = await validateExternalUrl(currentUrl, options.dnsLookup);
+
+      if (options.politeHostPacing || (options.minHostIntervalMs ?? 0) > 0) {
+        await enforceHostRateLimit(validatedUrl.hostname, {
+          minIntervalMs: options.minHostIntervalMs ?? DEFAULT_HOST_MIN_INTERVAL_MS,
+          signal: controller.signal,
+        });
+      }
 
       let response: Response;
       try {

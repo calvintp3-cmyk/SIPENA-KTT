@@ -62,10 +62,10 @@ const columns: TableColumn<ScraperLogItem>[] = [
       <UTable :data="logs" :columns="columns" :loading="loading" empty="Belum ada riwayat eksekusi scraper.">
         <template #startedAt-cell="{ row }">
           <div class="space-y-0.5">
-            <div class="text-xs font-medium tabular-nums text-[#0F172A]">
+            <div class="text-xs font-medium tabular-nums text-slate-900">
               {{ formatDateTimeWita(row.original.startedAt) }}
             </div>
-            <div v-if="row.original.triggeredByName" class="text-[11px] text-slate-500">
+            <div v-if="row.original.triggeredByName" class="text-[11px] text-slate-600">
               Oleh: {{ row.original.triggeredByName }}
             </div>
           </div>
@@ -91,7 +91,7 @@ const columns: TableColumn<ScraperLogItem>[] = [
         <template #pipeline-cell="{ row }">
           <div class="text-xs tabular-nums text-slate-700">
             {{ row.original.articlesFetched }} diambil /
-            <span class="text-slate-500">{{ row.original.articlesDeduplicated }} dedup</span> /
+            <span class="text-slate-600">{{ row.original.articlesDeduplicated }} dedup</span> /
             <strong class="text-indigo-700">+{{ row.original.articlesInserted }} baru</strong>
           </div>
         </template>
@@ -100,7 +100,7 @@ const columns: TableColumn<ScraperLogItem>[] = [
           <div class="text-xs tabular-nums">
             <span class="text-emerald-700 font-semibold">{{ row.original.economicCount }} Ekon</span>
             /
-            <span class="text-slate-500">{{ row.original.nonEconomicCount }} Non</span>
+            <span class="text-slate-600">{{ row.original.nonEconomicCount }} Non</span>
             <span v-if="row.original.llmFailedCount > 0" class="text-rose-600 font-semibold ml-1">
               (+{{ row.original.llmFailedCount }}!)
             </span>
@@ -123,14 +123,14 @@ const columns: TableColumn<ScraperLogItem>[] = [
               <span class="opacity-75">{{ entry.successes }}/{{ entry.calls }}</span>
             </span>
           </div>
-          <span v-else class="text-xs text-slate-400">—</span>
+          <span v-else class="text-xs text-slate-500">—</span>
         </template>
 
         <template #tokens-cell="{ row }">
-          <div class="text-xs font-semibold tabular-nums text-[#0F172A]">
+          <div class="text-xs font-semibold tabular-nums text-slate-900">
             {{ formatNumberId(row.original.totalTokens) }} tk
           </div>
-          <div class="text-[11px] tabular-nums text-slate-500">
+          <div class="text-[11px] tabular-nums text-slate-600">
             {{ formatNumberId(row.original.totalInputTokens) }} in /
             {{ formatNumberId(row.original.totalOutputTokens) }} out
           </div>
@@ -144,10 +144,11 @@ const columns: TableColumn<ScraperLogItem>[] = [
 
         <template #actions-cell="{ row }">
           <UButton
-            size="xs"
+            size="sm"
             color="primary"
             variant="subtle"
             icon="i-solar-document-text-bold-duotone"
+            class="min-h-8"
             @click="() => { openDetail(row.original); }"
           >
             Detail
@@ -169,27 +170,27 @@ const columns: TableColumn<ScraperLogItem>[] = [
       <template #body>
         <div v-if="selectedLog" class="space-y-4">
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-            <div class="rounded-xl bg-[#FAFBFD] border border-slate-200/90 p-3">
-              <div class="text-slate-500 font-medium">Portal / Keyword</div>
-              <div class="font-extrabold text-[#0F172A] mt-0.5 tabular-nums">
+            <div class="rounded-xl bg-slate-50/70 border border-slate-200/90 p-3">
+              <div class="text-slate-600 font-medium">Portal / Keyword</div>
+              <div class="font-extrabold text-slate-900 mt-0.5 tabular-nums">
                 {{ selectedLog.portalsChecked }} / {{ selectedLog.keywordsChecked }}
               </div>
             </div>
-            <div class="rounded-xl bg-[#FAFBFD] border border-slate-200/90 p-3">
-              <div class="text-slate-500 font-medium">Rata-rata AI</div>
-              <div class="font-extrabold text-[#0F172A] mt-0.5 tabular-nums">
+            <div class="rounded-xl bg-slate-50/70 border border-slate-200/90 p-3">
+              <div class="text-slate-600 font-medium">Rata-rata AI</div>
+              <div class="font-extrabold text-slate-900 mt-0.5 tabular-nums">
                 {{ selectedLog.avgResponseTimeMs ? `${selectedLog.avgResponseTimeMs} ms` : '-' }}
               </div>
             </div>
-            <div class="rounded-xl bg-[#FAFBFD] border border-slate-200/90 p-3">
-              <div class="text-slate-500 font-medium">Total Token</div>
-              <div class="font-extrabold text-[#0F172A] mt-0.5 tabular-nums">
+            <div class="rounded-xl bg-slate-50/70 border border-slate-200/90 p-3">
+              <div class="text-slate-600 font-medium">Total Token</div>
+              <div class="font-extrabold text-slate-900 mt-0.5 tabular-nums">
                 {{ formatNumberId(selectedLog.totalTokens) }}
               </div>
             </div>
-            <div class="rounded-xl bg-[#FAFBFD] border border-slate-200/90 p-3">
-              <div class="text-slate-500 font-medium">Total Durasi</div>
-              <div class="font-extrabold text-[#0F172A] mt-0.5 tabular-nums">
+            <div class="rounded-xl bg-slate-50/70 border border-slate-200/90 p-3">
+              <div class="text-slate-600 font-medium">Total Durasi</div>
+              <div class="font-extrabold text-slate-900 mt-0.5 tabular-nums">
                 {{ formatDurationMs(selectedLog.durationMs) }}
               </div>
             </div>
@@ -197,13 +198,13 @@ const columns: TableColumn<ScraperLogItem>[] = [
 
           <!-- Rincian Pemakaian per Slot Penyedia LLM -->
           <div class="space-y-2">
-            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-600">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-600">
               Rincian Pemakaian per Slot LLM
-            </h4>
+            </h3>
 
             <div
               v-if="getProviderEntries(selectedLog).length === 0"
-              class="rounded-xl border border-slate-200/80 bg-[#FAFBFD] px-3.5 py-2.5 text-xs text-slate-500"
+              class="rounded-xl border border-slate-200/80 bg-slate-50/70 px-3.5 py-2.5 text-xs text-slate-600"
             >
               Belum ada panggilan LLM tercatat pada sesi ini.
             </div>
@@ -219,7 +220,7 @@ const columns: TableColumn<ScraperLogItem>[] = [
                 <caption class="sr-only">
                   Rincian panggilan, keberhasilan, HTTP 429, latensi rata-rata, dan token per slot LLM pada sesi ini
                 </caption>
-                <thead class="bg-[#FAFBFD] text-[11px] font-semibold text-slate-600">
+                <thead class="bg-slate-50/70 text-[11px] font-semibold text-slate-600">
                   <tr>
                     <th scope="col" class="px-3 py-2">Slot / Model</th>
                     <th scope="col" class="px-3 py-2 text-right">Calls</th>
@@ -238,20 +239,20 @@ const columns: TableColumn<ScraperLogItem>[] = [
                       >
                         {{ formatLlmProviderBadge(`${entry.provider}:${entry.model}`).shortLabel }}
                       </span>
-                      <div class="text-[11px] text-slate-500 mt-0.5">{{ entry.slotId }}</div>
+                      <div class="text-[11px] text-slate-600 mt-0.5">{{ entry.slotId }}</div>
                     </td>
-                    <td class="px-3 py-2 text-right tabular-nums font-semibold text-[#0F172A]">
+                    <td class="px-3 py-2 text-right tabular-nums font-semibold text-slate-900">
                       {{ formatNumberId(entry.calls) }}
                     </td>
                     <td class="px-3 py-2 text-right tabular-nums">
                       <span class="font-semibold text-emerald-700">{{ formatNumberId(entry.successes) }}</span>
                       /
-                      <span :class="entry.failures > 0 ? 'font-semibold text-rose-600' : 'text-slate-500'">
+                      <span :class="entry.failures > 0 ? 'font-semibold text-rose-600' : 'text-slate-600'">
                         {{ formatNumberId(entry.failures) }}
                       </span>
                     </td>
                     <td class="px-3 py-2 text-right tabular-nums">
-                      <span :class="entry.rateLimits > 0 ? 'font-semibold text-amber-700' : 'text-slate-500'">
+                      <span :class="entry.rateLimits > 0 ? 'font-semibold text-amber-700' : 'text-slate-600'">
                         {{ formatNumberId(entry.rateLimits) }}
                       </span>
                     </td>
@@ -268,9 +269,9 @@ const columns: TableColumn<ScraperLogItem>[] = [
           </div>
 
           <div class="space-y-2">
-            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-600">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-600">
               Ringkasan Error ({{ selectedLog.errorSummary?.length ?? 0 }})
-            </h4>
+            </h3>
 
             <UAlert
               v-if="!selectedLog.errorSummary?.length"
@@ -287,13 +288,13 @@ const columns: TableColumn<ScraperLogItem>[] = [
                 class="rounded-xl border border-rose-200/80 bg-rose-50/50 p-3 text-xs space-y-1"
               >
                 <div class="flex items-center justify-between gap-2">
-                  <span class="font-semibold text-[#0F172A]">{{ entry.source }}</span>
+                  <span class="font-semibold text-slate-900">{{ entry.source }}</span>
                   <UBadge color="error" variant="subtle" size="xs">
                     {{ entry.stage }}
                   </UBadge>
                 </div>
                 <p class="text-slate-700 leading-relaxed">{{ entry.message }}</p>
-                <div v-if="entry.url" class="text-[11px] text-slate-500 break-all">
+                <div v-if="entry.url" class="text-[11px] text-slate-600 break-all">
                   {{ entry.url }}
                 </div>
               </div>

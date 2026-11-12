@@ -311,10 +311,25 @@ export interface SynthesisDraftsResponse {
   items: SynthesisDraftItem[];
 }
 
+export type GeographicScopeType =
+  | 'KTT_LOCAL'
+  | 'KALTARA_PROVINCIAL'
+  | 'NATIONAL_MACRO_IMPACT'
+  | 'OTHER_REGION_IRRELEVANT';
+
+export type LlmProviderType =
+  | 'gemini'
+  | 'groq'
+  | 'cerebras'
+  | 'mistral'
+  | 'nvidia'
+  | 'openrouter';
+
 export interface PublicArticleItem {
   id: string;
   url: string;
   sourceType: ArticleSourceTypeEnum;
+  geographicScope?: GeographicScopeType | null;
   sourcePortal: string;
   title: string;
   summary: string | null;
@@ -337,6 +352,7 @@ export interface AdminArticleItem {
   url: string;
   urlHash: string;
   sourceType: ArticleSourceTypeEnum;
+  geographicScope?: GeographicScopeType | null;
   sourcePortal: string;
   keywordId: string | null;
   title: string;
@@ -395,9 +411,20 @@ export interface ScraperErrorEntry {
   url?: string;
 }
 
+export interface PortalPingResult {
+  ok: boolean;
+  portalId: string;
+  status: number;
+  latencyMs: number;
+  isSoftBlocked: boolean;
+  itemsFound: number;
+  resolvedUrl: string | null;
+  error: string | null;
+}
+
 export interface ScraperProviderStatEntry {
   slotId: string;
-  provider: 'gemini' | 'groq' | 'openrouter';
+  provider: LlmProviderType;
   model: string;
   calls: number;
   successes: number;
@@ -411,7 +438,7 @@ export interface ScraperProviderStatEntry {
 
 export interface LlmProviderSlotStatus {
   slotId: string;
-  provider: 'gemini' | 'groq' | 'openrouter';
+  provider: LlmProviderType;
   model: string;
   configured: boolean;
   keyCount: number;

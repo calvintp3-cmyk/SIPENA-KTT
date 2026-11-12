@@ -24,9 +24,10 @@ import {
 import { harvestRegionalPortals, type RegionalPortalConfig } from '#server/services/scraper/portals';
 
 // In-memory state untuk memverifikasi status log PostgreSQL pada pengujian pipeline tanpa DB eksternal
-const { mockLogUpdates, mockInsertedArticles, stateFlags } = vi.hoisted(() => ({
+const { mockLogUpdates, mockInsertedArticles, mockOrderByCount, stateFlags } = vi.hoisted(() => ({
   mockLogUpdates: [] as Array<Record<string, unknown>>,
   mockInsertedArticles: [] as Array<Record<string, unknown>>,
+  mockOrderByCount: { value: 0 },
   stateFlags: {
     failOnQueryExistingHashes: false,
   },
@@ -39,9 +40,14 @@ vi.mock('#server/db', () => {
         const isArticlesTable =
           Boolean(table && typeof table === 'object' && 'urlHash' in (table as Record<string, unknown>));
         const whereResult = {
-          orderBy: () => ({
-            limit: async () => [],
-          }),
+          orderBy: () => {
+            if (isArticlesTable) {
+              mockOrderByCount.value += 1;
+            }
+            return {
+              limit: async () => [],
+            };
+          },
           limit: async () => [],
           then: (resolve: (val: unknown[]) => unknown, reject?: (err: unknown) => unknown) => {
             if (isArticlesTable && stateFlags.failOnQueryExistingHashes) {
@@ -147,6 +153,7 @@ describe('Scraper Pipeline Concurrency, Timeouts, Gemini Failover & Fail-Safe Re
   beforeEach(() => {
     mockLogUpdates.length = 0;
     mockInsertedArticles.length = 0;
+    mockOrderByCount.value = 0;
     stateFlags.failOnQueryExistingHashes = false;
   });
 
@@ -611,5 +618,192 @@ describe('Scraper Pipeline Concurrency, Timeouts, Gemini Failover & Fail-Safe Re
 
     expect(summary.providerStats['gemini:gemini-3.8-flash']?.rateLimits).toBe(1);
     expect(summary.providerStats['groq:llama-3.3-70b-versatile']?.successes).toBe(1);
+  });
+
+  it('harvestRegionalPortals tetap memeriksa additionalIndexUrls setelah >= 5 artikel selama < maxItemsPerPortal', async () => {
+    const now = new Date('2026-10-14T12:00:00.000Z');
+    const fetchedUrls: string[] = [];
+
+    const portal: RegionalPortalConfig = {
+      id: 'kaltara-test',
+      label: 'Kaltara Test',
+      sourcePortal: 'korankaltara.com',
+      indexUrl: 'https://korankaltara.com/utama',
+      additionalIndexUrls: ['https://korankaltara.com/ekonomi'],
+      allowedHosts: ['korankaltara.com'],
+      itemSelectors: ['article'],
+    };
+
+    const result = await harvestRegionalPortals({
+      portals: [portal],
+      now,
+      lookbackDays: 3,
+      maxItemsPerPortal: 15,
+      fetchFn: async (url) => {
+        fetchedUrls.push(url);
+        if (url.endsWith('/utama')) {
+          const articlesHtml = Array.from({ length: 6 }, (_, i) => {
+            return `<article><h2><a href="https://korankaltara.com/berita-utama-${i + 1}-tana-tidung">Berita Ekonomi Tana Tidung Utama Ke ${i + 1}</a></h2><time datetime="2026-10-14T09:00:00+08:00"></time></article>`;
+          }).join('\n');
+          return { finalUrl: url, body: articlesHtml };
+        }
+        return {
+          finalUrl: url,
+          body: `
+            <article><h2><a href="https://korankaltara.com/ekonomi-subkanal-1-ktt">Ekonomi Subkanal Pertama Kabupaten Tana Tidung</a></h2><time datetime="2026-10-14T10:00:00+08:00"></time></article>
+            <article><h2><a href="https://korankaltara.com/ekonomi-subkanal-2-ktt">Ekonomi Subkanal Kedua Kabupaten Tana Tidung</a></h2><time datetime="2026-10-14T10:30:00+08:00"></time></article>
+          `,
+        };
+      },
+    });
+
+    expect(fetchedUrls).toContain('https://korankaltara.com/utama');
+    expect(fetchedUrls).toContain('https://korankaltara.com/ekonomi');
+    expect(result.candidates).toHaveLength(8);
+  });
+
+  it('runScrapePipeline mengurutkan query dedup DB (.orderBy), memakai canonicalUrl satu-host, menyimpan geographicScope & menampung overflow maxArticlesPerRun sebagai FAILED DEFERRED_BATCH_CAP', async () => {
+    const now = new Date('2026-10-14T12:00:00.000Z');
+    const canonicalTarget = 'https://korankaltara.com/investasi-sawit-sesayap-resmi';
+
+    const summary = await runScrapePipeline({
+      runType: ScraperRunTypeEnum.MANUAL,
+      mode: 'REGIONAL_ONLY',
+      now,
+      maxArticlesPerRun: 1,
+      portals: [
+        {
+          id: 'koran-kaltara',
+          label: 'Koran Kaltara',
+          sourcePortal: 'korankaltara.com',
+          indexUrl: 'https://korankaltara.com/category/tana-tidung',
+          allowedHosts: ['korankaltara.com'],
+          itemSelectors: ['article'],
+        },
+      ],
+      fetchFn: async (url) => {
+        if (url.includes('/category/')) {
+          return {
+            finalUrl: url,
+            body: `
+              <article><h2><a href="https://korankaltara.com/amp/investasi-sawit-sesayap">Investasi Sawit Sesayap Kabupaten Tana Tidung Resmi Beroperasi</a></h2><time datetime="2026-10-14T10:00:00+08:00"></time></article>
+              <article><h2><a href="https://korankaltara.com/pelabuhan-tideng-pale-ekspor-kayu">Pelabuhan Tideng Pale KTT Genjot Ekspor Kayu Olahan Triwulan IV</a></h2><time datetime="2026-10-14T08:00:00+08:00"></time></article>
+            `,
+          };
+        }
+        if (url.includes('amp/investasi-sawit')) {
+          const words = Array.from({ length: 160 }, (_, idx) => `sawit${idx + 1}`).join(' ');
+          return {
+            finalUrl: url,
+            body: `
+              <html>
+                <head>
+                  <title>Investasi Sawit Sesayap KTT Resmi Beroperasi</title>
+                  <link rel="canonical" href="${canonicalTarget}?utm_source=amp" />
+                  <meta property="article:published_time" content="2026-10-14T10:00:00+08:00" />
+                </head>
+                <body><article><div class="entry-content"><p>${words}.</p></div></article></body>
+              </html>
+            `,
+          };
+        }
+        return {
+          finalUrl: url,
+          body: buildSampleArticleHtml(
+            'Pelabuhan Tideng Pale KTT Genjot Ekspor Kayu Olahan Triwulan IV',
+            '2026-10-14T08:00:00+08:00',
+          ),
+        };
+      },
+      routerOptions: {
+        env: { groqApiKey: 'gsk_PipelineOverflowTest001' },
+        groqMinIntervalMs: 0,
+        invokeSlotFn: async () => ({
+          outputText: VALID_ECONOMIC_JSON,
+          usage: { inputTokens: 250, outputTokens: 80, totalTokens: 330 },
+        }),
+      },
+    });
+
+    // queryRecentArticleTitles wajib memanggil .orderBy(...)
+    expect(mockOrderByCount.value).toBeGreaterThanOrEqual(1);
+
+    // Keduanya tersimpan (1 lewat LLM, 1 overflow disimpan FAILED DEFERRED_BATCH_CAP agar disapu cron 06:30)
+    expect(mockInsertedArticles).toHaveLength(2);
+    expect(summary.articlesInserted).toBe(2);
+    expect(summary.llmFailedCount).toBe(1);
+
+    const processedItem = mockInsertedArticles.find((a) => a.llmStatus === 'SUCCESS');
+    expect(processedItem?.url).toBe(canonicalTarget);
+    expect(processedItem?.geographicScope).toBe('KTT_LOCAL');
+
+    const deferredItem = mockInsertedArticles.find((a) => a.llmError === 'DEFERRED_BATCH_CAP');
+    expect(deferredItem?.llmStatus).toBe('FAILED');
+    expect(deferredItem?.verificationStatus).toBe('PENDING');
+  });
+
+  it('Phase D mendukung paralelisme terkontrol lintas-provider ketika multi-provider terkonfigurasi', async () => {
+    const now = new Date('2026-10-14T12:00:00.000Z');
+    let activeWorkers = 0;
+    let peakWorkers = 0;
+
+    const summary = await runScrapePipeline({
+      runType: ScraperRunTypeEnum.MANUAL,
+      mode: 'REGIONAL_ONLY',
+      now,
+      maxArticlesPerRun: 10,
+      portals: [
+        {
+          id: 'koran-kaltara',
+          label: 'Koran Kaltara',
+          sourcePortal: 'korankaltara.com',
+          indexUrl: 'https://korankaltara.com/category/tana-tidung',
+          allowedHosts: ['korankaltara.com'],
+          itemSelectors: ['article'],
+        },
+      ],
+      fetchFn: async (url) => {
+        if (url.includes('/category/')) {
+          return {
+            finalUrl: url,
+            body: Array.from({ length: 4 }, (_, i) => {
+              return `<article><h2><a href="https://korankaltara.com/berita-paralel-${i + 1}-ktt">Proyek Strategis Daerah Tana Tidung Tahap Ke ${i + 1} Berjalan</a></h2><time datetime="2026-10-14T0${i + 5}:00:00+08:00"></time></article>`;
+            }).join('\n'),
+          };
+        }
+        return {
+          finalUrl: url,
+          body: buildSampleArticleHtml(
+            `Proyek Strategis Tana Tidung ${url.slice(-6)}`,
+            '2026-10-14T09:00:00+08:00',
+          ),
+        };
+      },
+      routerOptions: {
+        env: {
+          geminiApiKey: 'AIzaParallelGemini001',
+          groqApiKey: 'gsk_ParallelGroq001',
+          cerebrasApiKey: 'csk_ParallelCerebras001',
+        },
+        geminiMinIntervalMs: 0,
+        groqMinIntervalMs: 0,
+        cerebrasMinIntervalMs: 0,
+        invokeSlotFn: async () => {
+          activeWorkers += 1;
+          peakWorkers = Math.max(peakWorkers, activeWorkers);
+          await new Promise((r) => setTimeout(r, 25));
+          activeWorkers -= 1;
+          return {
+            outputText: VALID_ECONOMIC_JSON,
+            usage: { inputTokens: 200, outputTokens: 70, totalTokens: 270 },
+          };
+        },
+      },
+    });
+
+    expect(summary.status).toBe(ScraperRunStatusEnum.SUCCESS);
+    expect(summary.articlesInserted).toBe(4);
+    expect(peakWorkers).toBeGreaterThanOrEqual(2);
+    expect(peakWorkers).toBeLessThanOrEqual(3);
   });
 });

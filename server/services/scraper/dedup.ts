@@ -3,7 +3,23 @@ import { ArticleSourceTypeEnum } from '../../../shared/enums/pdrb';
 import type { DiscoveredArticleCandidate } from './portals';
 
 export const DEFAULT_TITLE_SIMILARITY_THRESHOLD = 0.72;
+export const DEFAULT_SEMANTIC_SIMILARITY_THRESHOLD = 0.85;
 export const DEFAULT_DB_DEDUP_LOOKBACK_DAYS = 10;
+
+const CANONICAL_PHRASE_REPLACEMENTS: Array<[RegExp, string]> = [
+  [/\btandan\s+buah\s+segar\b/g, 'tbs'],
+  [/\bkabupaten\s+tana\s+tidung\b/g, 'ktt'],
+  [/\btana\s+tidung\b/g, 'ktt'],
+  [/\bpemerintah\s+(?:kabupaten|daerah)\b/g, 'pemkab'],
+  [/\bpemda\b/g, 'pemkab'],
+  [/\bpabrik\s+kelapa\s+sawit\b/g, 'pks'],
+  [/\bharga\s+batubara\s+acuan\b/g, 'hba'],
+  [/\bsubsidi\s+ongkos\s+angkut\b/g, 'soa'],
+  [/\bproduk\s+domestik\s+regional\s+bruto\b/g, 'pdrb'],
+  [/\brumah\s+sakit\s+umum\s+daerah\b/g, 'rsud'],
+  [/\bkalimantan\s+utara\b/g, 'kaltara'],
+  [/\bkalimantan\s+timur\b/g, 'kaltim'],
+];
 
 const INDONESIAN_DEDUP_STOPWORDS = new Set([
   'yang',
@@ -51,7 +67,7 @@ const INDONESIAN_DEDUP_STOPWORDS = new Set([
   'terjadi',
 ]);
 
-const DISTINCT_NUMBER_RE = /^\d{2,}$/;
+const DISTINCT_NUMBER_RE = /^\d+$/;
 
 function stripMediaSuffixForDedup(rawTitle: string): string {
   const cleaned = rawTitle.replace(/\u00a0/g, ' ').replace(/\s+/g, ' ').trim();
@@ -67,7 +83,13 @@ function stripMediaSuffixForDedup(rawTitle: string): string {
 }
 
 export function tokenizeTitleForDedup(rawTitle: string): Set<string> {
-  const stripped = stripMediaSuffixForDedup(rawTitle).toLowerCase();
+  let stripped = stripMediaSuffixForDedup(rawTitle).toLowerCase();
+  // Satukan pemisah ribuan titik pada angka Indonesia (mis. "2.980" -> "2980")
+  stripped = stripped.replace(/(\d)\.(\d{3})(?!\d)/g, '$1$2');
+  for (const [pattern, replacement] of CANONICAL_PHRASE_REPLACEMENTS) {
+    stripped = stripped.replace(pattern, replacement);
+  }
+
   const rawTokens = stripped
     .replace(/[^a-z0-9\s]+/g, ' ')
     .split(/\s+/)
@@ -75,7 +97,7 @@ export function tokenizeTitleForDedup(rawTitle: string): Set<string> {
 
   const tokens = new Set<string>();
   for (const tok of rawTokens) {
-    if (tok.length <= 1) continue;
+    if (tok.length <= 1 && !/^\d$/.test(tok)) continue;
     if (INDONESIAN_DEDUP_STOPWORDS.has(tok)) continue;
     tokens.add(tok);
   }
@@ -84,6 +106,58 @@ export function tokenizeTitleForDedup(rawTitle: string): Set<string> {
 
 function isYearToken(tok: string): boolean {
   return /^(?:19|20)\d{2}$/.test(tok);
+}
+
+function extractDistinctMagnitudeNumbers(tokens: Set<string>): string[] {
+  return Array.from(tokens)
+    .filter((t) => DISTINCT_NUMBER_RE.test(t) && !isYearToken(t))
+    .sort();
+}
+
+function hasSemanticNumericMismatch(titleA: string, titleB: string): boolean {
+  const numsA = extractDistinctMagnitudeNumbers(tokenizeTitleForDedup(titleA));
+  const numsB = extractDistinctMagnitudeNumbers(tokenizeTitleForDedup(titleB));
+  if (numsA.length === 0 && numsB.length === 0) return false;
+  if (numsA.length !== numsB.length) return true;
+  return numsA.some((val, idx) => numsB[idx] !== val);
+}
+
+/**
+ * Menghitung cosine similarity antara dua vektor embedding [0..1 / -1..1].
+ */
+export function cosineSimilarity(a: readonly number[], b: readonly number[]): number {
+  if (a.length === 0 || a.length !== b.length) return 0;
+  let dot = 0;
+  let normA = 0;
+  let normB = 0;
+  for (let i = 0; i < a.length; i += 1) {
+    const va = a[i] ?? 0;
+    const vb = b[i] ?? 0;
+    dot += va * vb;
+    normA += va * va;
+    normB += vb * vb;
+  }
+  if (normA <= 0 || normB <= 0) return 0;
+  return dot / (Math.sqrt(normA) * Math.sqrt(normB));
+}
+
+export interface SemanticHistoricalTitleItem {
+  title: string;
+  titleEmbedding?: number[] | null;
+}
+
+export interface SemanticDedupOptions {
+  historicalItems?: ReadonlyArray<SemanticHistoricalTitleItem>;
+  lexicalThreshold?: number;
+  semanticThreshold?: number;
+  embedFn?: (texts: string[]) => Promise<Array<number[] | null>>;
+}
+
+export interface SemanticDedupResult {
+  uniqueCandidates: DiscoveredArticleCandidate[];
+  deduplicatedCount: number;
+  semanticDeduplicatedCount: number;
+  embeddingsByUrlHash: Map<string, number[]>;
 }
 
 /**
@@ -105,12 +179,13 @@ export function computeTitleSimilarity(titleA: string, titleB: string): number {
 
   if (intersection < 3) return 0;
 
-  // Jika keduanya membawa angka besaran berbeda (bukan angka tahun), jangan gabungkan sebagai duplikat
-  const numsA = Array.from(tokensA).filter((t) => DISTINCT_NUMBER_RE.test(t) && !isYearToken(t));
-  const numsB = Array.from(tokensB).filter((t) => DISTINCT_NUMBER_RE.test(t) && !isYearToken(t));
+  // Jika keduanya membawa angka besaran/tahapan berbeda (bukan angka tahun), jangan gabungkan sebagai duplikat
+  const numsA = extractDistinctMagnitudeNumbers(tokensA);
+  const numsB = extractDistinctMagnitudeNumbers(tokensB);
   if (numsA.length > 0 && numsB.length > 0) {
-    const sharesAnyNumber = numsA.some((n) => numsB.includes(n));
-    if (!sharesAnyNumber) return 0;
+    const identicalNumbers =
+      numsA.length === numsB.length && numsA.every((n, i) => numsB[i] === n);
+    if (!identicalNumbers) return 0;
   }
 
   const union = tokensA.size + tokensB.size - intersection;
@@ -184,6 +259,102 @@ export function deduplicateCandidatesByTitle(
   return {
     uniqueCandidates: kept,
     deduplicatedCount,
+  };
+}
+
+/**
+ * Deduplikasi dua tahap:
+ * 1) Stage-1 Lexical Jaccard/Containment dengan kanonisasi akronim/sinonim ekonomi KTT + numeric guard.
+ * 2) Stage-2 Semantic Embedding Tie-Breaker (`cosine >= 0.85`) untuk judul parafrase lintas portal,
+ *    tetap tunduk pada numeric discrepancy guard agar angka anggaran/harga berbeda tidak tergencet.
+ */
+export async function deduplicateCandidatesWithSemantics(
+  candidates: ReadonlyArray<DiscoveredArticleCandidate>,
+  options: SemanticDedupOptions = {},
+): Promise<SemanticDedupResult> {
+  const historicalItems = options.historicalItems ?? [];
+  const lexicalThreshold = options.lexicalThreshold ?? DEFAULT_TITLE_SIMILARITY_THRESHOLD;
+  const semanticThreshold = options.semanticThreshold ?? DEFAULT_SEMANTIC_SIMILARITY_THRESHOLD;
+
+  const lexicalStage = deduplicateCandidatesByTitle(
+    candidates,
+    historicalItems.map((h) => h.title),
+    lexicalThreshold,
+  );
+
+  const embeddingsByUrlHash = new Map<string, number[]>();
+  const embedFn = options.embedFn;
+
+  if (!embedFn || lexicalStage.uniqueCandidates.length === 0) {
+    return {
+      uniqueCandidates: lexicalStage.uniqueCandidates,
+      deduplicatedCount: lexicalStage.deduplicatedCount,
+      semanticDeduplicatedCount: 0,
+      embeddingsByUrlHash,
+    };
+  }
+
+  let candidateVectors: Array<number[] | null> = [];
+  try {
+    candidateVectors = await embedFn(lexicalStage.uniqueCandidates.map((c) => c.title));
+  } catch {
+    return {
+      uniqueCandidates: lexicalStage.uniqueCandidates,
+      deduplicatedCount: lexicalStage.deduplicatedCount,
+      semanticDeduplicatedCount: 0,
+      embeddingsByUrlHash,
+    };
+  }
+
+  const historicalWithVec = historicalItems.filter(
+    (h): h is { title: string; titleEmbedding: number[] } =>
+      Array.isArray(h.titleEmbedding) && h.titleEmbedding.length > 0,
+  );
+
+  const kept: DiscoveredArticleCandidate[] = [];
+  const keptVectors: Array<{ candidate: DiscoveredArticleCandidate; vec: number[] | null }> = [];
+  let semanticDeduplicatedCount = 0;
+
+  for (let i = 0; i < lexicalStage.uniqueCandidates.length; i += 1) {
+    const candidate = lexicalStage.uniqueCandidates[i]!;
+    const rawVec = candidateVectors[i];
+    const vec = Array.isArray(rawVec) && rawVec.length > 0 ? rawVec : null;
+
+    let isSemanticDup = false;
+    if (vec) {
+      isSemanticDup = historicalWithVec.some(
+        (hist) =>
+          !hasSemanticNumericMismatch(candidate.title, hist.title) &&
+          cosineSimilarity(vec, hist.titleEmbedding) >= semanticThreshold,
+      );
+
+      if (!isSemanticDup) {
+        isSemanticDup = keptVectors.some(
+          (prev) =>
+            prev.vec !== null &&
+            !hasSemanticNumericMismatch(candidate.title, prev.candidate.title) &&
+            cosineSimilarity(vec, prev.vec) >= semanticThreshold,
+        );
+      }
+    }
+
+    if (isSemanticDup) {
+      semanticDeduplicatedCount += 1;
+      continue;
+    }
+
+    if (vec) {
+      embeddingsByUrlHash.set(candidate.urlHash, vec);
+    }
+    kept.push(candidate);
+    keptVectors.push({ candidate, vec });
+  }
+
+  return {
+    uniqueCandidates: kept,
+    deduplicatedCount: lexicalStage.deduplicatedCount + semanticDeduplicatedCount,
+    semanticDeduplicatedCount,
+    embeddingsByUrlHash,
   };
 }
 

@@ -18,17 +18,47 @@ export type GeographicScope = z.infer<typeof GeographicScopeSchema>;
 
 export const LlmClassificationRawSchema = z
   .object({
-    geographic_scope: GeographicScopeSchema.optional(),
-    is_economic_phenomenon: z.boolean(),
-    rejection_reason: z.string().trim().max(300).nullable(),
-    summary: z.string().trim().min(20).max(1500),
-    kbli_category: z.nativeEnum(KbliCategoryEnum).nullable(),
-    kbli_impact: z.nativeEnum(KbliImpactEnum).nullable(),
-    expenditure_component: z.nativeEnum(ExpenditureComponentEnum).nullable(),
-    expenditure_impact: z.nativeEnum(ExpenditureImpactEnum).nullable(),
-    quarter: z.number().int().min(1).max(4),
-    year: z.number().int().min(2000).max(2100),
-    confidence: z.number().min(0).max(1),
+    geographic_scope: GeographicScopeSchema.meta({
+      description:
+        'Klasifikasi cakupan geografis fakta artikel: KTT_LOCAL (terjadi di Kab. Tana Tidung / Sesayap / Tideng Pale / Tana Lia / Betayau / Muruk Rian), KALTARA_PROVINCIAL (kebijakan/data Kalimantan Utara yang langsung berimbas ke KTT), NATIONAL_MACRO_IMPACT (kebijakan/komoditas acuan nasional relevan ke ekonomi KTT), atau OTHER_REGION_IRRELEVANT (peristiwa khusus kabupaten/kota/provinsi lain tanpa dampak langsung ke KTT).',
+    }),
+    is_economic_phenomenon: z.boolean().meta({
+      description:
+        'true apabila berita memuat fenomena ekonomi nyata (perubahan produksi, harga, investasi, konsumsi, fiskal, perdagangan) yang relevan bagi PDRB Kab. Tana Tidung (geographic_scope != OTHER_REGION_IRRELEVANT); false untuk berita lokal daerah lain, tarif/data historis statis tanpa perubahan, seremonial, kriminal, atau politik non-ekonomi.',
+    }),
+    rejection_reason: z.string().trim().max(300).nullable().meta({
+      description:
+        'Alasan singkat 1 kalimat bila is_economic_phenomenon = false; wajib null bila is_economic_phenomenon = true.',
+    }),
+    summary: z.string().trim().min(20).max(1500).meta({
+      description:
+        'Ringkasan komprehensif 3-5 kalimat bahasa Indonesia baku (50-110 kata) yang menguraikan peristiwa ekonomi utama, pelaku dan lokasi/kecamatan, besaran angka/harga/volume/anggaran jika ada, serta mekanisme dampaknya terhadap Lapangan Usaha dan Pengeluaran PDRB Kab. Tana Tidung.',
+    }),
+    kbli_category: z.enum(KbliCategoryEnum).nullable().meta({
+      description:
+        'Kode kategori KBLI 2025 (A s.d. V) sektor paling dominan terdampak; wajib null bila is_economic_phenomenon = false.',
+    }),
+    kbli_impact: z.enum(KbliImpactEnum).nullable().meta({
+      description:
+        'Arah dampak sisi Lapangan Usaha: INCREASE_NTB (Meningkatkan NTB), DECREASE_NTB (Menurunkan NTB), INCREASE_PRICE (Meningkatkan Harga), DECREASE_PRICE (Menurunkan Harga); null bila non-ekonomi.',
+    }),
+    expenditure_component: z.enum(ExpenditureComponentEnum).nullable().meta({
+      description:
+        'Komponen PDRB Pengeluaran utama terdampak: PK_RT, PK_LNPRT, PK_P, PMTB, INVENTORY_CHANGE, atau NET_EXPORT; null bila non-ekonomi.',
+    }),
+    expenditure_impact: z.enum(ExpenditureImpactEnum).nullable().meta({
+      description:
+        'Arah dampak sisi Pengeluaran: INCREASE_REAL (Meningkatkan Pengeluaran Riil), DECREASE_REAL (Menurunkan Pengeluaran Riil), INCREASE_DEFLATOR (Meningkatkan Indeks Harga/Deflator), DECREASE_DEFLATOR (Menurunkan Indeks Harga/Deflator); null bila non-ekonomi.',
+    }),
+    quarter: z.number().int().min(1).max(4).meta({
+      description: 'Triwulan periode fenomena ekonomi (1=Jan-Mar, 2=Apr-Jun, 3=Jul-Sep, 4=Okt-Des).',
+    }),
+    year: z.number().int().min(2000).max(2100).meta({
+      description: 'Tahun 4 digit periode fenomena ekonomi.',
+    }),
+    confidence: z.number().min(0).max(1).meta({
+      description: 'Tingkat keyakinan klasifikasi antara 0.0 hingga 1.0.',
+    }),
   })
   .superRefine((data, ctx) => {
     if (data.geographic_scope === 'OTHER_REGION_IRRELEVANT' && data.is_economic_phenomenon) {
@@ -88,100 +118,42 @@ export const LlmClassificationRawSchema = z
 
 export type LlmClassificationOutput = z.infer<typeof LlmClassificationRawSchema>;
 
-// JSON Schema eksplisit untuk Structured Outputs Gemini & OpenAI-compatible router
-// propertyOrdering memandu model menalar lokus geografis & ringkasan fakta sebelum mengunci kode enum PDRB.
+export const LLM_CLASSIFICATION_PROPERTY_ORDERING = [
+  'geographic_scope',
+  'is_economic_phenomenon',
+  'rejection_reason',
+  'summary',
+  'kbli_category',
+  'kbli_impact',
+  'expenditure_component',
+  'expenditure_impact',
+  'quarter',
+  'year',
+  'confidence',
+] as const;
+
+const rawGeneratedClassificationJsonSchema = z.toJSONSchema(
+  LlmClassificationRawSchema,
+) as Record<string, unknown>;
+const { $schema: _omitJsonSchemaDialect, ...baseGeneratedClassificationSchema } =
+  rawGeneratedClassificationJsonSchema;
+
+// Single Source of Truth: diterbitkan langsung dari LlmClassificationRawSchema melalui z.toJSONSchema()
+// agar bebas schema drift; propertyOrdering memandu penalaran Gemini secara berurutan.
 export const LLM_CLASSIFICATION_JSON_SCHEMA = {
-  type: 'object',
+  ...baseGeneratedClassificationSchema,
   additionalProperties: false,
-  propertyOrdering: [
-    'geographic_scope',
-    'is_economic_phenomenon',
-    'rejection_reason',
-    'summary',
-    'kbli_category',
-    'kbli_impact',
-    'expenditure_component',
-    'expenditure_impact',
-    'quarter',
-    'year',
-    'confidence',
-  ],
-  properties: {
-    geographic_scope: {
-      type: 'string',
-      enum: ['KTT_LOCAL', 'KALTARA_PROVINCIAL', 'NATIONAL_MACRO_IMPACT', 'OTHER_REGION_IRRELEVANT'],
-      description:
-        'Klasifikasi cakupan geografis fakta artikel: KTT_LOCAL (terjadi di Kab. Tana Tidung / Sesayap / Tideng Pale / Tana Lia / Betayau / Muruk Rian), KALTARA_PROVINCIAL (kebijakan/data Kalimantan Utara yang langsung berimbas ke KTT), NATIONAL_MACRO_IMPACT (kebijakan/komoditas acuan nasional relevan ke ekonomi KTT), atau OTHER_REGION_IRRELEVANT (peristiwa khusus kabupaten/kota/provinsi lain tanpa dampak langsung ke KTT).',
-    },
-    is_economic_phenomenon: {
-      type: 'boolean',
-      description:
-        'true apabila berita memuat fenomena ekonomi nyata (perubahan produksi, harga, investasi, konsumsi, fiskal, perdagangan) yang relevan bagi PDRB Kab. Tana Tidung (geographic_scope != OTHER_REGION_IRRELEVANT); false untuk berita lokal daerah lain, tarif/data historis statis tanpa perubahan, seremonial, kriminal, atau politik non-ekonomi.',
-    },
-    rejection_reason: {
-      type: ['string', 'null'],
-      description:
-        'Alasan singkat 1 kalimat bila is_economic_phenomenon = false; wajib null bila is_economic_phenomenon = true.',
-    },
-    summary: {
-      type: 'string',
-      description:
-        'Ringkasan komprehensif 3-5 kalimat bahasa Indonesia baku (50-110 kata) yang menguraikan peristiwa ekonomi utama, pelaku dan lokasi/kecamatan, besaran angka/harga/volume/anggaran jika ada, serta mekanisme dampaknya terhadap Lapangan Usaha dan Pengeluaran PDRB Kab. Tana Tidung.',
-    },
-    kbli_category: {
-      type: ['string', 'null'],
-      enum: [...Object.values(KbliCategoryEnum), null],
-      description:
-        'Kode kategori KBLI 2025 (A s.d. V) sektor paling dominan terdampak; wajib null bila is_economic_phenomenon = false.',
-    },
-    kbli_impact: {
-      type: ['string', 'null'],
-      enum: [...Object.values(KbliImpactEnum), null],
-      description:
-        'Arah dampak sisi Lapangan Usaha: INCREASE_NTB (Meningkatkan NTB), DECREASE_NTB (Menurunkan NTB), INCREASE_PRICE (Meningkatkan Harga), DECREASE_PRICE (Menurunkan Harga); null bila non-ekonomi.',
-    },
-    expenditure_component: {
-      type: ['string', 'null'],
-      enum: [...Object.values(ExpenditureComponentEnum), null],
-      description:
-        'Komponen PDRB Pengeluaran utama terdampak: PK_RT, PK_LNPRT, PK_P, PMTB, INVENTORY_CHANGE, atau NET_EXPORT; null bila non-ekonomi.',
-    },
-    expenditure_impact: {
-      type: ['string', 'null'],
-      enum: [...Object.values(ExpenditureImpactEnum), null],
-      description:
-        'Arah dampak sisi Pengeluaran: INCREASE_REAL (Meningkatkan Pengeluaran Riil), DECREASE_REAL (Menurunkan Pengeluaran Riil), INCREASE_DEFLATOR (Meningkatkan Indeks Harga/Deflator), DECREASE_DEFLATOR (Menurunkan Indeks Harga/Deflator); null bila non-ekonomi.',
-    },
-    quarter: {
-      type: 'integer',
-      minimum: 1,
-      maximum: 4,
-      description: 'Triwulan periode fenomena ekonomi (1=Jan-Mar, 2=Apr-Jun, 3=Jul-Sep, 4=Okt-Des).',
-    },
-    year: {
-      type: 'integer',
-      minimum: 2000,
-      maximum: 2100,
-      description: 'Tahun 4 digit periode fenomena ekonomi.',
-    },
-    confidence: {
-      type: 'number',
-      minimum: 0,
-      maximum: 1,
-      description: 'Tingkat keyakinan klasifikasi antara 0.0 hingga 1.0.',
-    },
-  },
-  required: [
-    'geographic_scope',
-    'is_economic_phenomenon',
-    'rejection_reason',
-    'summary',
-    'kbli_category',
-    'kbli_impact',
-    'expenditure_component',
-    'expenditure_impact',
-    'quarter',
-    'year',
-    'confidence',
-  ],
+  propertyOrdering: [...LLM_CLASSIFICATION_PROPERTY_ORDERING],
 } as const;
+
+export function buildOpenAiJsonSchemaResponseFormat() {
+  const { propertyOrdering: _omitOrdering, ...strictSchema } = LLM_CLASSIFICATION_JSON_SCHEMA;
+  return {
+    type: 'json_schema' as const,
+    json_schema: {
+      name: 'sipena_classification',
+      strict: true,
+      schema: structuredClone(strictSchema) as Record<string, unknown>,
+    },
+  };
+}

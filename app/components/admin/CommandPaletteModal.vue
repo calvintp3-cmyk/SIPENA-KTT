@@ -51,7 +51,7 @@ const routeItems = computed<PaletteRouteItem[]>(() => {
       label: 'Sintesis Narasi PDRB',
       section: 'Analitik & Sintesis PDRB',
       icon: 'i-solar-magic-stick-3-bold-duotone',
-      keywords: 'sintesis narasi brs gemini groq openrouter multi llm export doc pdf',
+      keywords: 'sintesis narasi brs gemini cerebras mistral nim groq openrouter multi llm export docx pdf',
     },
     {
       to: '/admin/review',
@@ -223,7 +223,7 @@ async function handleSubmitEnter() {
     <template #content>
       <div class="bg-white flex flex-col max-h-[80vh]">
         <!-- Search Header -->
-        <div class="px-4 py-3.5 border-b border-slate-200 flex items-center gap-3">
+        <div class="px-4 py-3.5 border-b border-slate-200 flex items-center gap-3 focus-within:border-indigo-500">
           <UIcon name="i-solar-magnifer-line-duotone" class="w-4 h-4 text-indigo-600 shrink-0" />
           <label for="admin-command-palette-input" class="sr-only">
             Cari halaman atau fenomena ekonomi
@@ -234,12 +234,12 @@ async function handleSubmitEnter() {
             v-model="query"
             type="search"
             placeholder="Lompat ke menu atau ketik minimal 2 huruf untuk cari artikel..."
-            class="w-full bg-transparent text-sm text-[#0F172A] placeholder:text-slate-400"
+            class="w-full bg-transparent text-sm text-slate-900 placeholder:text-slate-500 focus:outline-none"
             @keydown.enter.prevent="handleSubmitEnter"
           >
           <button
             type="button"
-            class="text-[11px] font-semibold px-2 py-0.5 rounded-md border border-slate-200 bg-slate-50 text-slate-500 hover:text-slate-800 shrink-0 cursor-pointer"
+            class="min-h-8 text-[11px] font-semibold px-2.5 py-0.5 rounded-md border border-slate-200 bg-slate-50 text-slate-600 hover:text-slate-900 shrink-0 cursor-pointer"
             @click="() => { modalOpen = false; }"
           >
             ESC
@@ -250,7 +250,7 @@ async function handleSubmitEnter() {
         <div class="flex-1 overflow-y-auto saas-scroll p-3 space-y-4">
           <!-- Routes Section -->
           <div v-if="filteredRoutes.length > 0" class="space-y-1">
-            <div class="px-2 py-1 text-[11px] font-semibold tracking-wide text-slate-400">
+            <div class="px-2 py-1 text-[11px] font-semibold tracking-wide text-slate-600">
               Menu Workstation
             </div>
             <button
@@ -265,8 +265,8 @@ async function handleSubmitEnter() {
                   <UIcon :name="item.icon" class="w-4 h-4" />
                 </div>
                 <div class="min-w-0">
-                  <div class="text-xs font-semibold text-[#0F172A] truncate">{{ item.label }}</div>
-                  <div class="text-[11px] text-slate-500 truncate">{{ item.section }}</div>
+                  <div class="text-xs font-semibold text-slate-900 truncate">{{ item.label }}</div>
+                  <div class="text-[11px] text-slate-600 truncate">{{ item.section }}</div>
                 </div>
               </div>
               <div class="flex items-center gap-2 shrink-0">
@@ -276,7 +276,7 @@ async function handleSubmitEnter() {
                 >
                   {{ item.badge }}
                 </span>
-                <UIcon name="i-lucide-corner-down-left" class="w-3.5 h-3.5 text-slate-300" />
+                <UIcon name="i-lucide-corner-down-left" class="w-3.5 h-3.5 text-slate-500" />
               </div>
             </button>
           </div>
@@ -284,7 +284,7 @@ async function handleSubmitEnter() {
           <!-- Articles Section -->
           <div v-if="query.trim().length >= 2" class="space-y-1 pt-2 border-t border-slate-100">
             <div class="px-2 py-1 flex items-center justify-between">
-              <span class="text-[11px] font-semibold tracking-wide text-slate-400">
+              <span class="text-[11px] font-semibold tracking-wide text-slate-600">
                 Hasil Fenomena Ekonomi
               </span>
               <span v-if="searchingArticles" class="text-xs font-semibold text-indigo-600">
@@ -294,7 +294,7 @@ async function handleSubmitEnter() {
 
             <div
               v-if="!searchingArticles && matchedArticles.length === 0"
-              class="px-2 py-4 text-center text-xs text-slate-500"
+              class="px-2 py-4 text-center text-xs text-slate-600"
             >
               Tidak ditemukan fenomena yang cocok dengan "{{ query.trim() }}".
             </div>
@@ -307,10 +307,10 @@ async function handleSubmitEnter() {
               @click="() => { void openArticleInReview(art); }"
             >
               <div class="min-w-0 space-y-1">
-                <div class="text-xs font-semibold text-[#0F172A] line-clamp-1">
+                <div class="text-xs font-semibold text-slate-900 line-clamp-1">
                   {{ art.title }}
                 </div>
-                <div class="flex flex-wrap items-center gap-1.5 text-[11px] text-slate-500 tabular-nums">
+                <div class="flex flex-wrap items-center gap-1.5 text-[11px] text-slate-600 tabular-nums">
                   <span>{{ formatDateId(art.publishedAt) }}</span>
                   <span>•</span>
                   <span>{{ art.sourcePortal }}</span>

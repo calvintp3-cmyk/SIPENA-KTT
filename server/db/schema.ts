@@ -142,7 +142,7 @@ export interface ScraperPortalErrorEntry {
 
 export interface ScraperProviderStatEntry {
   slotId: string;
-  provider: 'gemini' | 'groq' | 'openrouter';
+  provider: 'gemini' | 'groq' | 'openrouter' | 'cerebras' | 'mistral' | 'nvidia';
   model: string;
   calls: number;
   successes: number;
@@ -219,12 +219,14 @@ export const articles = pgTable(
     year: smallint('year').notNull(), // mis. 2026
 
     // Hasil Klasifikasi AI / Kurasi Admin
+    geographicScope: text('geographic_scope'),
     isEconomicPhenomenon: boolean('is_economic_phenomenon'), // null bila LLM gagal & belum ditinjau manual
     summary: text('summary'), // Ringkasan berita 2-3 kalimat baku bahasa Indonesia
     kbliCategory: kbliCategoryPgEnum('kbli_category'),
     kbliImpact: kbliImpactPgEnum('kbli_impact'),
     expenditureComponent: expenditureComponentPgEnum('expenditure_component'),
     expenditureImpact: expenditureImpactPgEnum('expenditure_impact'),
+    titleEmbedding: doublePrecision('title_embedding').array(), // Vektor semantik opsional (768-dim) untuk Stage-2 dedup
 
     // Telemetry & Fallback LLM Worker
     llmModel: text('llm_model'), // mis. 'gemini-3.8-flash' | 'gemini-3.5-flash-lite'

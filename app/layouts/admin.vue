@@ -199,7 +199,7 @@ onBeforeUnmount(() => {
 
 <template>
   <div
-    class="min-h-screen canvas-aurora-light text-[#0F172A] font-sans selection:bg-indigo-100 selection:text-indigo-900"
+    class="min-h-screen canvas-aurora-light text-slate-900 font-sans selection:bg-indigo-100 selection:text-indigo-900"
   >
     <a
       href="#main-content"
@@ -218,7 +218,7 @@ onBeforeUnmount(() => {
         type="button"
         :aria-label="isSidebarCollapsed ? 'Perluas sidebar navigasi' : 'Ciutkan sidebar navigasi'"
         :title="isSidebarCollapsed ? 'Perluas sidebar' : 'Ciutkan sidebar'"
-        class="hidden lg:inline-flex items-center justify-center w-6 h-6 rounded-full bg-white border border-slate-200 text-slate-500 hover:text-indigo-600 hover:border-indigo-300 shadow-xs absolute -right-3 top-5 z-40 transition-colors cursor-pointer"
+        class="hidden lg:inline-flex items-center justify-center w-7 h-7 rounded-full bg-white border border-slate-200 text-slate-600 hover:text-indigo-700 hover:border-indigo-300 shadow-xs absolute -right-3.5 top-4.5 z-40 transition-colors cursor-pointer"
         @click="() => { toggleSidebarCollapsed(); }"
       >
         <UIcon
@@ -238,18 +238,16 @@ onBeforeUnmount(() => {
           :class="isSidebarCollapsed ? 'justify-center' : ''"
         >
           <div
-            class="h-9 w-9 rounded-xl bg-gradient-to-br from-blue-600 via-indigo-600 to-emerald-600 text-white flex items-center justify-center shrink-0 shadow-[inset_0_1px_0_rgba(255,255,255,0.28),0_4px_12px_-2px_rgba(37,99,235,0.38)]"
+            class="h-9 w-9 rounded-xl bg-gradient-to-br from-blue-600 via-indigo-600 to-teal-700 text-white flex items-center justify-center shrink-0 shadow-[inset_0_1px_0_rgba(255,255,255,0.28),0_4px_12px_-2px_rgba(37,99,235,0.38)]"
           >
             <UIcon name="i-solar-chart-2-bold-duotone" class="w-5 h-5" />
           </div>
           <div v-if="!isSidebarCollapsed" class="min-w-0">
-            <div class="font-extrabold text-sm tracking-tight text-[#0F172A] truncate">
+            <div class="font-extrabold text-sm tracking-tight text-slate-900 truncate">
               SIPENA
-              <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-emerald-600">
-                KTT
-              </span>
+              <span class="text-indigo-700">KTT</span>
             </div>
-            <div class="text-[11px] font-medium text-slate-500 truncate">
+            <div class="text-xs font-medium text-slate-600 truncate">
               Workstation Nerwilis
             </div>
           </div>
@@ -265,7 +263,7 @@ onBeforeUnmount(() => {
         <div v-for="group in navGroups" :key="group.title" class="space-y-1">
           <div
             v-if="!isSidebarCollapsed"
-            class="px-2.5 pb-1 text-[11px] font-semibold tracking-wide text-slate-400"
+            class="px-2.5 pb-1 text-[11px] font-semibold tracking-wide text-slate-600"
           >
             {{ group.title }}
           </div>
@@ -282,19 +280,19 @@ onBeforeUnmount(() => {
               :to="item.to"
               :aria-current="isActiveRoute(item) ? 'page' : undefined"
               :aria-label="isSidebarCollapsed ? item.label : undefined"
-              class="relative flex items-center rounded-xl text-[13px] transition-all"
+              class="relative flex items-center rounded-xl text-[13px] min-h-9 transition-[color,background-color,border-color,box-shadow]"
               :class="[
                 isSidebarCollapsed ? 'justify-center px-2 py-2.5' : 'justify-between gap-2 px-3 py-2',
                 isActiveRoute(item)
                   ? 'active-nav-card text-indigo-950 font-semibold'
-                  : 'text-slate-600 hover:bg-slate-100/80 hover:text-[#0F172A] font-medium border border-transparent',
+                  : 'text-slate-700 hover:bg-slate-100/80 hover:text-slate-900 font-medium border border-transparent',
               ]"
             >
               <span class="flex items-center min-w-0" :class="isSidebarCollapsed ? '' : 'gap-2.5'">
                 <UIcon
                   :name="item.icon"
                   class="w-[18px] h-[18px] shrink-0 transition-colors"
-                  :class="isActiveRoute(item) ? 'text-indigo-600' : 'text-slate-400'"
+                  :class="isActiveRoute(item) ? 'text-indigo-600' : 'text-slate-500'"
                 />
                 <span v-if="!isSidebarCollapsed" class="truncate">{{ item.label }}</span>
               </span>
@@ -331,14 +329,14 @@ onBeforeUnmount(() => {
           <NuxtLink
             to="/linimasa"
             aria-label="Lihat Portal Publik"
-            class="w-full inline-flex items-center rounded-xl border border-slate-200/90 bg-white hover:border-indigo-300 hover:bg-indigo-50/40 text-xs font-semibold text-slate-700 hover:text-indigo-800 transition-colors shadow-2xs"
+            class="w-full min-h-9 inline-flex items-center rounded-xl border border-slate-200/90 bg-white hover:border-indigo-300 hover:bg-indigo-50/40 text-xs font-semibold text-slate-700 hover:text-indigo-800 transition-colors shadow-2xs"
             :class="isSidebarCollapsed ? 'justify-center p-2.5' : 'justify-between px-3 py-2'"
           >
             <span class="inline-flex items-center gap-2">
-              <UIcon name="i-solar-calendar-search-bold-duotone" class="w-4 h-4 text-emerald-600 shrink-0" />
+              <UIcon name="i-solar-calendar-search-bold-duotone" class="w-4 h-4 text-emerald-700 shrink-0" />
               <span v-if="!isSidebarCollapsed">Lihat Portal Publik</span>
             </span>
-            <UIcon v-if="!isSidebarCollapsed" name="i-lucide-arrow-up-right" class="w-3.5 h-3.5 text-slate-400" />
+            <UIcon v-if="!isSidebarCollapsed" name="i-lucide-arrow-up-right" class="w-3.5 h-3.5 text-slate-500" />
           </NuxtLink>
         </UTooltip>
 
@@ -347,13 +345,13 @@ onBeforeUnmount(() => {
           class="rounded-xl bg-white border border-slate-200/90 p-2.5 flex items-center gap-2.5 shadow-2xs"
         >
           <div
-            class="h-8 w-8 rounded-full bg-gradient-to-br from-blue-600 to-emerald-600 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs"
+            class="h-8 w-8 rounded-full bg-gradient-to-br from-blue-600 to-teal-700 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs"
           >
             {{ userInitials }}
           </div>
           <div class="min-w-0 flex-1">
             <div class="flex items-center gap-1.5">
-              <span class="text-xs font-bold text-[#0F172A] truncate">
+              <span class="text-xs font-bold text-slate-900 truncate">
                 {{ user?.name || 'Administrator' }}
               </span>
               <span
@@ -363,7 +361,7 @@ onBeforeUnmount(() => {
                 Admin
               </span>
             </div>
-            <div class="text-[11px] text-slate-500 truncate">
+            <div class="text-[11px] text-slate-600 truncate">
               {{ user?.email || 'Nerwilis KTT' }}
             </div>
           </div>
@@ -372,7 +370,7 @@ onBeforeUnmount(() => {
             aria-label="Keluar dari sesi admin"
             title="Keluar"
             :disabled="isLoggingOut"
-            class="min-w-8 min-h-8 inline-flex items-center justify-center rounded-lg text-slate-400 hover:text-rose-700 hover:bg-rose-50 transition-colors shrink-0 cursor-pointer"
+            class="min-w-9 min-h-9 inline-flex items-center justify-center rounded-lg text-slate-600 hover:text-rose-700 hover:bg-rose-50 transition-colors shrink-0 cursor-pointer"
             @click="handleLogout"
           >
             <UIcon name="i-lucide-log-out" class="w-4 h-4" />
@@ -395,7 +393,7 @@ onBeforeUnmount(() => {
       </div>
     </aside>
 
-    <!-- Mobile Navigation Slideover -->
+    <!-- Mobile Navigation Slideover (includes Global Period Selector!) -->
     <USlideover
       v-model:open="mobileNavOpen"
       side="left"
@@ -404,51 +402,92 @@ onBeforeUnmount(() => {
       :ui="{ content: 'max-w-xs' }"
     >
       <template #body>
-        <nav aria-label="Menu Mobile Admin" class="space-y-5">
-          <div v-for="group in navGroups" :key="group.title" class="space-y-1">
-            <div class="px-2 pb-1 text-[11px] font-semibold tracking-wide text-slate-400">
-              {{ group.title }}
-            </div>
-            <NuxtLink
-              v-for="item in group.items"
-              :key="item.to"
-              :to="item.to"
-              :aria-current="isActiveRoute(item) ? 'page' : undefined"
-              class="flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl text-sm transition-colors"
-              :class="
-                isActiveRoute(item)
-                  ? 'active-nav-card text-indigo-950 font-semibold'
-                  : 'text-slate-700 hover:bg-slate-100 font-medium'
-              "
+        <div class="space-y-5">
+          <!-- Mobile Global Period Selector inside Drawer -->
+          <div class="rounded-xl bg-slate-50 border border-slate-200/90 p-3 space-y-2.5">
+            <label for="admin-mobile-drawer-year" class="block text-xs font-bold text-slate-800">
+              Periode Analisis Global ({{ shortPeriodLabel }})
+            </label>
+            <USelect
+              id="admin-mobile-drawer-year"
+              :model-value="selectedYear"
+              :items="yearOptions"
+              value-key="value"
+              label-key="label"
+              leading-icon="i-solar-calendar-bold-duotone"
+              size="sm"
+              class="w-full"
+              @update:model-value="(val: unknown) => { if (typeof val === 'number') setPeriod(val, selectedQuarter); }"
+            />
+            <div
+              role="group"
+              aria-label="Pilih Triwulan Global Mobile"
+              class="grid grid-cols-4 gap-1 p-1 bg-white rounded-xl border border-slate-200/90"
             >
-              <span class="flex items-center gap-2.5 min-w-0">
-                <UIcon
-                  :name="item.icon"
-                  class="w-[18px] h-[18px] shrink-0"
-                  :class="isActiveRoute(item) ? 'text-indigo-600' : 'text-slate-400'"
-                />
-                <span class="truncate">{{ item.label }}</span>
-              </span>
-              <span
-                v-if="item.badge !== undefined"
-                class="px-2 py-0.5 rounded-full text-[11px] font-bold tabular-nums shrink-0 border"
+              <button
+                v-for="chip in quarterChips"
+                :key="chip.value"
+                type="button"
+                :aria-pressed="selectedQuarter === chip.value"
+                class="min-h-9 px-2 py-1 rounded-lg text-xs tabular-nums transition-colors cursor-pointer"
                 :class="
-                  item.badgeColor === 'error'
-                    ? 'bg-rose-50 text-rose-700 border-rose-200'
-                    : 'bg-amber-50 text-amber-800 border-amber-200'
+                  selectedQuarter === chip.value
+                    ? 'bg-indigo-600 text-white font-bold shadow-2xs'
+                    : 'text-slate-700 hover:bg-slate-100 font-medium'
+                "
+                @click="() => { setPeriod(selectedYear, chip.value); }"
+              >
+                {{ chip.shortLabel }}
+              </button>
+            </div>
+          </div>
+
+          <nav aria-label="Menu Mobile Admin" class="space-y-5">
+            <div v-for="group in navGroups" :key="group.title" class="space-y-1">
+              <div class="px-2 pb-1 text-[11px] font-semibold tracking-wide text-slate-600">
+                {{ group.title }}
+              </div>
+              <NuxtLink
+                v-for="item in group.items"
+                :key="item.to"
+                :to="item.to"
+                :aria-current="isActiveRoute(item) ? 'page' : undefined"
+                class="flex items-center justify-between gap-2 px-3 py-2.5 min-h-11 rounded-xl text-sm transition-colors"
+                :class="
+                  isActiveRoute(item)
+                    ? 'active-nav-card text-indigo-950 font-semibold'
+                    : 'text-slate-700 hover:bg-slate-100 font-medium'
                 "
               >
-                {{ item.badge }}
-              </span>
-            </NuxtLink>
-          </div>
-        </nav>
+                <span class="flex items-center gap-2.5 min-w-0">
+                  <UIcon
+                    :name="item.icon"
+                    class="w-[18px] h-[18px] shrink-0"
+                    :class="isActiveRoute(item) ? 'text-indigo-600' : 'text-slate-500'"
+                  />
+                  <span class="truncate">{{ item.label }}</span>
+                </span>
+                <span
+                  v-if="item.badge !== undefined"
+                  class="px-2 py-0.5 rounded-full text-[11px] font-bold tabular-nums shrink-0 border"
+                  :class="
+                    item.badgeColor === 'error'
+                      ? 'bg-rose-50 text-rose-700 border-rose-200'
+                      : 'bg-amber-50 text-amber-800 border-amber-200'
+                  "
+                >
+                  {{ item.badge }}
+                </span>
+              </NuxtLink>
+            </div>
+          </nav>
+        </div>
       </template>
 
       <template #footer>
         <div class="w-full space-y-2.5">
           <div class="text-xs text-slate-600 px-1">
-            Login sebagai <strong class="text-[#0F172A]">{{ user?.name || 'Admin' }}</strong>
+            Login sebagai <strong class="text-slate-900">{{ user?.name || 'Admin' }}</strong>
           </div>
           <UButton
             to="/linimasa"
@@ -482,36 +521,36 @@ onBeforeUnmount(() => {
     >
       <!-- Floating Frosted Glass Header Bar -->
       <header
-        class="no-print sticky top-0 z-20 px-4 sm:px-6 lg:px-8 pt-2.5 pb-1.5 pointer-events-none"
+        class="no-print sticky top-0 z-20 px-4 sm:px-6 lg:px-8 pt-2.5 pb-1.5 pointer-events-none space-y-1.5"
         style="view-transition-name: sipena-admin-header"
       >
         <div
-          class="pointer-events-auto max-w-[1440px] mx-auto h-14 px-3.5 sm:px-5 rounded-2xl bg-white/85 backdrop-blur-xl border border-slate-200/85 shadow-[0_8px_24px_-12px_rgba(15,23,42,0.1)] flex items-center justify-between gap-3"
+          class="pointer-events-auto max-w-[1440px] mx-auto h-14 px-3.5 sm:px-5 rounded-2xl bg-white/90 backdrop-blur-xl border border-slate-200/85 shadow-[0_8px_24px_-12px_rgba(15,23,42,0.1)] flex items-center justify-between gap-3"
         >
           <!-- Left: Hamburger + Breadcrumb -->
           <div class="flex items-center gap-2.5 min-w-0">
             <button
               type="button"
               aria-label="Buka menu navigasi admin"
-              class="lg:hidden min-w-9 min-h-9 inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 cursor-pointer"
+              class="lg:hidden min-w-10 min-h-10 inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 cursor-pointer"
               @click="() => { mobileNavOpen = true; }"
             >
               <UIcon name="i-solar-hamburger-menu-bold-duotone" class="w-5 h-5 text-indigo-600" />
             </button>
 
             <div class="hidden sm:flex items-center gap-2 text-xs min-w-0">
-              <span class="text-slate-500 font-medium truncate">{{ currentBreadcrumb.section }}</span>
-              <span class="text-slate-300">/</span>
-              <span class="font-bold text-[#0F172A] truncate">{{ currentBreadcrumb.page }}</span>
+              <span class="text-slate-600 font-medium truncate">{{ currentBreadcrumb.section }}</span>
+              <span class="text-slate-400">/</span>
+              <span class="font-bold text-slate-900 truncate">{{ currentBreadcrumb.page }}</span>
             </div>
-            <span class="sm:hidden font-bold text-xs text-[#0F172A] truncate">
+            <span class="sm:hidden font-bold text-xs text-slate-900 truncate">
               {{ currentBreadcrumb.page }}
             </span>
 
             <span
               class="hidden xl:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200/80 text-xs font-semibold text-emerald-800 tabular-nums shrink-0"
             >
-              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-600" />
               <span>{{ shortPeriodLabel }}</span>
             </span>
           </div>
@@ -521,19 +560,20 @@ onBeforeUnmount(() => {
             <!-- Command Palette Trigger -->
             <button
               type="button"
-              class="h-9 px-3 rounded-xl border border-slate-200/90 bg-slate-100/75 hover:bg-white hover:border-indigo-300 text-xs text-slate-600 hover:text-[#0F172A] inline-flex items-center gap-2 transition-colors cursor-pointer"
+              aria-label="Cari menu atau artikel dengan pintasan Command K"
+              class="h-9 min-w-9 px-3 rounded-xl border border-slate-200/90 bg-slate-100/75 hover:bg-white hover:border-indigo-300 text-xs text-slate-700 hover:text-slate-900 inline-flex items-center gap-2 transition-colors cursor-pointer"
               @click="() => { commandPaletteOpen = true; }"
             >
-              <UIcon name="i-solar-magnifer-line-duotone" class="w-4 h-4 text-slate-400" />
+              <UIcon name="i-solar-magnifer-line-duotone" class="w-4 h-4 text-slate-500" />
               <span class="hidden md:inline font-medium">Cari menu / artikel...</span>
               <kbd
-                class="hidden sm:inline text-[11px] font-semibold px-1.5 py-0.5 rounded-md bg-white border border-slate-200 text-slate-500 leading-none"
+                class="hidden sm:inline text-[11px] font-semibold px-1.5 py-0.5 rounded-md bg-white border border-slate-200 text-slate-600 leading-none"
               >
                 ⌘K
               </kbd>
             </button>
 
-            <!-- Shared Global Period Selector (USelect + Modern Quarter Pills) -->
+            <!-- Shared Global Period Selector (Desktop >= md) -->
             <div class="hidden md:flex items-center gap-1.5">
               <div class="w-24">
                 <USelect
@@ -560,11 +600,11 @@ onBeforeUnmount(() => {
                   :key="chip.value"
                   type="button"
                   :aria-pressed="selectedQuarter === chip.value"
-                  class="px-2.5 py-1 rounded-lg text-xs tabular-nums transition-all cursor-pointer"
+                  class="px-2.5 py-1 min-h-8 rounded-lg text-xs tabular-nums transition-[color,background-color,box-shadow] cursor-pointer"
                   :class="
                     selectedQuarter === chip.value
                       ? 'bg-white text-indigo-700 font-bold shadow-2xs border border-indigo-200/70'
-                      : 'text-slate-600 hover:text-slate-950 font-medium'
+                      : 'text-slate-700 hover:text-slate-950 font-medium'
                   "
                   @click="() => { setPeriod(selectedYear, chip.value); }"
                 >
@@ -578,7 +618,7 @@ onBeforeUnmount(() => {
               to="/admin/review"
               class="btn-primary-gradient h-9 px-3.5 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 whitespace-nowrap"
             >
-              <UIcon name="i-solar-inbox-in-bold-duotone" class="w-4 h-4 text-emerald-200" />
+              <UIcon name="i-solar-inbox-in-bold-duotone" class="w-4 h-4 text-emerald-100" />
               <span class="hidden sm:inline">Buka Review</span>
               <span
                 v-if="pendingCount > 0"
@@ -587,6 +627,46 @@ onBeforeUnmount(() => {
                 {{ pendingCount }}
               </span>
             </NuxtLink>
+          </div>
+        </div>
+
+        <!-- Compact Mobile Period Switcher Sub-bar (< md) -->
+        <div
+          class="md:hidden pointer-events-auto max-w-[1440px] mx-auto px-3 py-1.5 rounded-xl bg-white/95 backdrop-blur-lg border border-slate-200/85 shadow-xs flex items-center justify-between gap-2"
+        >
+          <div class="w-24 shrink-0">
+            <USelect
+              id="admin-mobile-year"
+              :model-value="selectedYear"
+              :items="yearOptions"
+              value-key="value"
+              label-key="label"
+              size="sm"
+              aria-label="Tahun Analisis Mobile"
+              class="w-full"
+              @update:model-value="(val: unknown) => { if (typeof val === 'number') setPeriod(val, selectedQuarter); }"
+            />
+          </div>
+          <div
+            role="group"
+            aria-label="Pilih Triwulan Mobile"
+            class="flex-1 grid grid-cols-4 gap-1 p-0.5 bg-slate-100 rounded-lg border border-slate-200/80"
+          >
+            <button
+              v-for="chip in quarterChips"
+              :key="`m-${chip.value}`"
+              type="button"
+              :aria-pressed="selectedQuarter === chip.value"
+              class="min-h-9 px-1.5 py-1 rounded-md text-xs tabular-nums transition-colors cursor-pointer"
+              :class="
+                selectedQuarter === chip.value
+                  ? 'bg-white text-indigo-700 font-bold shadow-2xs border border-indigo-200/70'
+                  : 'text-slate-700 hover:text-slate-950 font-medium'
+              "
+              @click="() => { setPeriod(selectedYear, chip.value); }"
+            >
+              {{ chip.shortLabel }}
+            </button>
           </div>
         </div>
       </header>

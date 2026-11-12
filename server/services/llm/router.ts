@@ -1,7 +1,9 @@
 // server/services/llm/router.ts
+import { createHash } from 'node:crypto';
 import { GoogleGenAI, ThinkingLevel } from '@google/genai';
 import type { ScraperProviderStatEntry } from '../../db/schema';
 import {
+  buildOpenAiJsonSchemaResponseFormat,
   LLM_CLASSIFICATION_JSON_SCHEMA,
   type LlmClassificationOutput,
 } from '../../../shared/schemas/llm-output.schema';
@@ -26,26 +28,47 @@ import {
   sanitizeSecretFromText,
 } from './openai-compat';
 
-export type LlmProviderName = 'gemini' | 'groq' | 'openrouter';
+export type LlmProviderName =
+  | 'gemini'
+  | 'groq'
+  | 'cerebras'
+  | 'mistral'
+  | 'nvidia'
+  | 'openrouter';
 
 export const DEFAULT_GROQ_PRIMARY_MODEL = 'llama-3.3-70b-versatile' as const;
 export const DEFAULT_GROQ_FALLBACK_MODEL = 'llama-3.1-8b-instant' as const;
+export const DEFAULT_CEREBRAS_MODEL = 'llama-3.3-70b' as const;
+export const DEFAULT_MISTRAL_MODEL = 'mistral-small-latest' as const;
+export const DEFAULT_NVIDIA_MODEL = 'meta/llama-3.3-70b-instruct' as const;
+export const DEFAULT_GEMINI_EMBEDDING_MODEL = 'gemini-embedding-2' as const;
+
 export const OPENROUTER_DEFAULT_FREE_MODELS = [
   'google/gemma-4-31b-it:free',
   'google/gemma-4-26b-a4b-it:free',
-  'nvidia/nemotron-3.5-super-vl:free',
+  'meta-llama/llama-3.3-70b-instruct:free',
+  'qwen/qwen3-coder:free',
   'openrouter/free',
 ] as const;
 
 export const DEFAULT_LLM_MAX_OUTPUT_TOKENS = DEFAULT_GEMINI_MAX_OUTPUT_TOKENS;
 export const DEFAULT_SYNTHESIS_TIMEOUT_MS = 22_000;
 
+export type RouterThinkingLevel = 'MINIMAL' | 'LOW' | 'MEDIUM';
+
 export interface RouterEnvConfig {
   geminiApiKey?: string;
   geminiApiKeys?: string;
   groqApiKey?: string;
   groqApiKeys?: string;
+  cerebrasApiKey?: string;
+  cerebrasApiKeys?: string;
+  mistralApiKey?: string;
+  mistralApiKeys?: string;
+  nvidiaApiKey?: string;
+  nvidiaApiKeys?: string;
   openrouterApiKey?: string;
+  openrouterApiKeys?: string;
   openrouterFreeModel?: string;
   llmClassifyChain?: string;
   llmSynthesisChain?: string;
@@ -62,6 +85,7 @@ export interface RouterSlotInvokeRequest {
   temperature: number;
   maxOutputTokens: number;
   timeoutMs: number;
+  thinkingLevel?: RouterThinkingLevel;
   abortSignal?: AbortSignal;
 }
 
@@ -80,6 +104,9 @@ export interface MultiLlmRouterOptions {
   maxCallsPerRun?: number;
   geminiMinIntervalMs?: number;
   groqMinIntervalMs?: number;
+  cerebrasMinIntervalMs?: number;
+  mistralMinIntervalMs?: number;
+  nvidiaMinIntervalMs?: number;
   openrouterMinIntervalMs?: number;
   transientRetryDelayMs?: number;
   rateLimitCooldownMs?: number;
@@ -173,9 +200,49 @@ export function parseCsvValues(raw: string | undefined | null): string[] {
     .filter((item) => item.length > 0 && !PLACEHOLDER_RE.test(item));
 }
 
+interface PersistedSlotQuotaState {
+  disabledUntilMs: number;
+  cooldownUntilMs: number;
+}
+
+const persistentSlotQuotaStore = new Map<string, PersistedSlotQuotaState>();
+
+function buildSlotPersistenceKey(provider: LlmProviderName, model: string, apiKey: string): string {
+  const keyHash = createHash('sha256').update(apiKey).digest('hex').slice(0, 16);
+  return `${provider}:${model}:${keyHash}`;
+}
+
+function getNextUtcMidnightMs(nowMs: number): number {
+  const d = new Date(nowMs);
+  return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() + 1, 0, 1, 0);
+}
+
+function mirrorSlotQuotaToNitroStorage(persistenceKey: string, state: PersistedSlotQuotaState): void {
+  try {
+    const useStorageFn = (
+      globalThis as {
+        useStorage?: (name: string) => { setItem?: (k: string, v: unknown) => Promise<void> };
+      }
+    ).useStorage;
+    if (typeof useStorageFn === 'function') {
+      const cacheStorage = useStorageFn('cache');
+      void cacheStorage?.setItem?.(`llm-quota:${persistenceKey}`, state)?.catch(() => undefined);
+    }
+  } catch {
+    // Abaikan di luar runtime Nitro (mis. Vitest)
+  }
+}
+
+export function resetRouterCooldownStore(): void {
+  persistentSlotQuotaStore.clear();
+}
+
 export function resolveConfiguredProviderKeys(env: RouterEnvConfig = {}): {
   gemini: string[];
   groq: string[];
+  cerebras: string[];
+  mistral: string[];
+  nvidia: string[];
   openrouter: string[];
   openrouterFreeModels: string[];
   classifyChainRaw: string;
@@ -189,9 +256,18 @@ export function resolveConfiguredProviderKeys(env: RouterEnvConfig = {}): {
   const groqSingle = parseCsvValues(env.groqApiKey ?? process.env.GROQ_API_KEY);
   const groqMulti = parseCsvValues(env.groqApiKeys ?? process.env.GROQ_API_KEYS);
 
-  const openrouter = dedupe(
-    parseCsvValues(env.openrouterApiKey ?? process.env.OPENROUTER_API_KEY),
-  );
+  const cerebrasSingle = parseCsvValues(env.cerebrasApiKey ?? process.env.CEREBRAS_API_KEY);
+  const cerebrasMulti = parseCsvValues(env.cerebrasApiKeys ?? process.env.CEREBRAS_API_KEYS);
+
+  const mistralSingle = parseCsvValues(env.mistralApiKey ?? process.env.MISTRAL_API_KEY);
+  const mistralMulti = parseCsvValues(env.mistralApiKeys ?? process.env.MISTRAL_API_KEYS);
+
+  const nvidiaSingle = parseCsvValues(env.nvidiaApiKey ?? process.env.NVIDIA_API_KEY);
+  const nvidiaMulti = parseCsvValues(env.nvidiaApiKeys ?? process.env.NVIDIA_API_KEYS);
+
+  const openrouterSingle = parseCsvValues(env.openrouterApiKey ?? process.env.OPENROUTER_API_KEY);
+  const openrouterMulti = parseCsvValues(env.openrouterApiKeys ?? process.env.OPENROUTER_API_KEYS);
+
   const customOpenrouterModels = dedupe(
     parseCsvValues(env.openrouterFreeModel ?? process.env.OPENROUTER_FREE_MODEL),
   );
@@ -199,7 +275,10 @@ export function resolveConfiguredProviderKeys(env: RouterEnvConfig = {}): {
   return {
     gemini: dedupe([...geminiSingle, ...geminiMulti]),
     groq: dedupe([...groqSingle, ...groqMulti]),
-    openrouter,
+    cerebras: dedupe([...cerebrasSingle, ...cerebrasMulti]),
+    mistral: dedupe([...mistralSingle, ...mistralMulti]),
+    nvidia: dedupe([...nvidiaSingle, ...nvidiaMulti]),
+    openrouter: dedupe([...openrouterSingle, ...openrouterMulti]),
     openrouterFreeModels:
       customOpenrouterModels.length > 0
         ? customOpenrouterModels
@@ -242,6 +321,27 @@ function getSlotRateLimits(provider: LlmProviderName, model: string): {
       dailyQuotaNote: '1.000 RPD / 100.000 TPD / 12.000 TPM gratis tanpa kartu kredit',
     };
   }
+  if (provider === 'cerebras') {
+    return {
+      rpmLimit: 28,
+      tpmLimit: 60_000,
+      dailyQuotaNote: '14.400 RPD / 1.000.000 TPD inferensi cepat gratis',
+    };
+  }
+  if (provider === 'mistral') {
+    return {
+      rpmLimit: 25,
+      tpmLimit: 450_000,
+      dailyQuotaNote: '500.000 TPM Experiment free tier multilingual',
+    };
+  }
+  if (provider === 'nvidia') {
+    return {
+      rpmLimit: 38,
+      tpmLimit: 120_000,
+      dailyQuotaNote: '40 RPM free tier developer credits NVIDIA NIM',
+    };
+  }
   return {
     rpmLimit: 18,
     tpmLimit: 60_000,
@@ -264,34 +364,61 @@ function parseSlotToken(rawToken: string): Array<{ provider: LlmProviderName; mo
   const model = token.slice(colonIdx + 1).trim();
   if (!model) return [];
 
-  if (providerRaw === 'gemini' || providerRaw === 'groq' || providerRaw === 'openrouter') {
+  if (
+    providerRaw === 'gemini' ||
+    providerRaw === 'groq' ||
+    providerRaw === 'cerebras' ||
+    providerRaw === 'mistral' ||
+    providerRaw === 'nvidia' ||
+    providerRaw === 'openrouter'
+  ) {
     return [{ provider: providerRaw, model }];
   }
   return [];
 }
 
 function buildDefaultChainSpecs(
-  openrouterFreeModels: ReadonlyArray<string>,
+  resolved: ReturnType<typeof resolveConfiguredProviderKeys>,
+  includeAllOptionalProviders: boolean = false,
 ): Array<{ provider: LlmProviderName; model: string }> {
-  return [
+  const specs: Array<{ provider: LlmProviderName; model: string }> = [
     { provider: 'gemini', model: PRIMARY_GEMINI_MODEL },
+  ];
+
+  if (includeAllOptionalProviders || resolved.cerebras.length > 0) {
+    specs.push({ provider: 'cerebras', model: DEFAULT_CEREBRAS_MODEL });
+  }
+
+  specs.push(
     { provider: 'groq', model: DEFAULT_GROQ_PRIMARY_MODEL },
     { provider: 'gemini', model: FALLBACK_GEMINI_MODEL },
-    { provider: 'groq', model: DEFAULT_GROQ_FALLBACK_MODEL },
-    ...openrouterFreeModels.map((model) => ({
-      provider: 'openrouter' as const,
-      model,
-    })),
-  ];
+  );
+
+  if (includeAllOptionalProviders || resolved.mistral.length > 0) {
+    specs.push({ provider: 'mistral', model: DEFAULT_MISTRAL_MODEL });
+  }
+
+  specs.push({ provider: 'groq', model: DEFAULT_GROQ_FALLBACK_MODEL });
+
+  if (includeAllOptionalProviders || resolved.nvidia.length > 0) {
+    specs.push({ provider: 'nvidia', model: DEFAULT_NVIDIA_MODEL });
+  }
+
+  for (const model of resolved.openrouterFreeModels) {
+    specs.push({ provider: 'openrouter', model });
+  }
+
+  return specs;
 }
 
 export function getConfiguredProviderHealthSummary(
   env: RouterEnvConfig = {},
+  options?: { includeAllOptionalProviders?: boolean },
 ): LlmProviderSlotStatus[] {
   const resolved = resolveConfiguredProviderKeys(env);
   const specs = resolved.classifyChainRaw
     ? parseCsvValues(resolved.classifyChainRaw).flatMap((t) => parseSlotToken(t))
-    : buildDefaultChainSpecs(resolved.openrouterFreeModels);
+    : buildDefaultChainSpecs(resolved, Boolean(options?.includeAllOptionalProviders));
 
   const uniqueSpecs: Array<{ provider: LlmProviderName; model: string }> = [];
   const seen = new Set<string>();
@@ -309,7 +436,13 @@ export function getConfiguredProviderHealthSummary(
         ? resolved.gemini.length
         : spec.provider === 'groq'
           ? resolved.groq.length
-          : resolved.openrouter.length;
+          : spec.provider === 'cerebras'
+            ? resolved.cerebras.length
+            : spec.provider === 'mistral'
+              ? resolved.mistral.length
+              : spec.provider === 'nvidia'
+                ? resolved.nvidia.length
+                : resolved.openrouter.length;
     const limits = getSlotRateLimits(spec.provider, spec.model);
 
     return {
@@ -483,16 +616,23 @@ export class MultiLlmRouter {
           }
           return parseSlotToken(token);
         })
-      : buildDefaultChainSpecs(resolved.openrouterFreeModels);
+      : buildDefaultChainSpecs(resolved, false);
 
     const seenRuntimeKeys = new Set<string>();
+    const initNowMs = this.nowFn();
     for (const spec of specs) {
       const keys =
         spec.provider === 'gemini'
           ? resolved.gemini
           : spec.provider === 'groq'
             ? resolved.groq
-            : resolved.openrouter;
+            : spec.provider === 'cerebras'
+              ? resolved.cerebras
+              : spec.provider === 'mistral'
+                ? resolved.mistral
+                : spec.provider === 'nvidia'
+                  ? resolved.nvidia
+                  : resolved.openrouter;
 
       if (keys.length === 0) continue;
 
@@ -508,7 +648,19 @@ export class MultiLlmRouter {
             ? options.geminiMinIntervalMs ?? (spec.model.includes('lite') ? 2_500 : 4_200)
             : spec.provider === 'groq'
               ? options.groqMinIntervalMs ?? 900
-              : options.openrouterMinIntervalMs ?? 1_500;
+              : spec.provider === 'cerebras'
+                ? options.cerebrasMinIntervalMs ?? 800
+                : spec.provider === 'mistral'
+                  ? options.mistralMinIntervalMs ?? 1_000
+                  : spec.provider === 'nvidia'
+                    ? options.nvidiaMinIntervalMs ?? 1_600
+                    : options.openrouterMinIntervalMs ?? 1_500;
+
+        const persistenceKey = buildSlotPersistenceKey(spec.provider, spec.model, apiKey);
+        const persisted = persistentSlotQuotaStore.get(persistenceKey);
+        const disabledFromStore = Boolean(persisted && persisted.disabledUntilMs > initNowMs);
+        const cooldownFromStore =
+          persisted && persisted.cooldownUntilMs > initNowMs ? persisted.cooldownUntilMs : 0;
 
         this.slots.push({
           runtimeKey,
@@ -520,8 +672,8 @@ export class MultiLlmRouter {
           rpmLimit: limits.rpmLimit,
           tpmLimit: limits.tpmLimit,
           minIntervalMs,
-          disabledForSession: false,
-          cooldownUntilMs: 0,
+          disabledForSession: disabledFromStore,
+          cooldownUntilMs: cooldownFromStore,
           lastCallAtMs: 0,
           recentCallTimestamps: [],
           recentTokenUsages: [],
@@ -550,8 +702,23 @@ export class MultiLlmRouter {
     return this.slots.length;
   }
 
+  get configuredProviderCount(): number {
+    return new Set(this.slots.filter((s) => !s.disabledForSession).map((s) => s.provider)).size;
+  }
+
   get totalCallsMade(): number {
     return this.callsMade;
+  }
+
+  private persistSlotQuotaState(slot: InternalSlotState, disabled: boolean): void {
+    const persistenceKey = buildSlotPersistenceKey(slot.provider, slot.model, slot.apiKey);
+    const nowMs = this.nowFn();
+    const state: PersistedSlotQuotaState = {
+      disabledUntilMs: disabled ? getNextUtcMidnightMs(nowMs) : 0,
+      cooldownUntilMs: slot.cooldownUntilMs,
+    };
+    persistentSlotQuotaStore.set(persistenceKey, state);
+    mirrorSlotQuotaToNitroStorage(persistenceKey, state);
   }
 
   getProviderStats(): Record<string, ScraperProviderStatEntry> {
@@ -658,6 +825,14 @@ export class MultiLlmRouter {
     if (req.provider === 'gemini') {
       const ai = this.getGeminiClient(req.apiKey);
       const isFlashLite = req.model.includes('lite');
+      const resolvedThinkingLevel =
+        req.thinkingLevel === 'MEDIUM'
+          ? ThinkingLevel.MEDIUM
+          : req.thinkingLevel === 'MINIMAL'
+            ? ThinkingLevel.MINIMAL
+            : isFlashLite
+              ? ThinkingLevel.MINIMAL
+              : ThinkingLevel.LOW;
       const response = await ai.models.generateContent({
         model: req.model,
         contents: req.userInput,
@@ -675,7 +850,7 @@ export class MultiLlmRouter {
           maxOutputTokens: req.maxOutputTokens,
           temperature: req.temperature,
           thinkingConfig: {
-            thinkingLevel: isFlashLite ? ThinkingLevel.MINIMAL : ThinkingLevel.LOW,
+            thinkingLevel: resolvedThinkingLevel,
           },
           abortSignal: req.abortSignal,
           httpOptions: {
@@ -712,6 +887,7 @@ export class MultiLlmRouter {
       systemInstruction: req.systemInstruction,
       userInput: req.userInput,
       jsonMode: req.jsonMode,
+      jsonSchema: req.jsonMode ? buildOpenAiJsonSchemaResponseFormat().json_schema : undefined,
       temperature: req.temperature,
       maxTokens: req.maxOutputTokens,
       timeoutMs: req.timeoutMs,
@@ -918,6 +1094,12 @@ export class MultiLlmRouter {
             temperature: 0.1,
             maxOutputTokens: DEFAULT_LLM_MAX_OUTPUT_TOKENS,
             timeoutMs: GEMINI_REQUEST_TIMEOUT_MS,
+            thinkingLevel:
+              slot.provider === 'gemini'
+                ? slot.model.includes('lite')
+                  ? 'MINIMAL'
+                  : 'LOW'
+                : undefined,
             abortSignal: callOptions?.signal,
           });
 
@@ -959,6 +1141,7 @@ export class MultiLlmRouter {
 
           if (failure.kind === 'AUTH') {
             slot.disabledForSession = true;
+            this.persistSlotQuotaState(slot, true);
             lastErrorCode = 'CONFIG_ERROR';
             lastIsRateLimit = false;
             break slotLoop;
@@ -969,9 +1152,11 @@ export class MultiLlmRouter {
             lastIsRateLimit = true;
             if (failure.isDailyQuota) {
               slot.disabledForSession = true;
+              this.persistSlotQuotaState(slot, true);
             } else {
               const cooldown = Math.max(failure.retryAfterMs ?? this.rateLimitCooldownMs, 5_000);
               slot.cooldownUntilMs = this.nowFn() + cooldown;
+              this.persistSlotQuotaState(slot, false);
             }
             // Failover 0ms ke slot berikutnya!
             break slotLoop;
@@ -1028,8 +1213,9 @@ export class MultiLlmRouter {
   }
 
   async generateSynthesis(
-    params: { systemInstruction: string; userPrompt: string },
+    params: { systemInstruction: string; userPrompt: string; maxCitationIndex?: number },
     callOptions?: RouterCallOptions,
+    onChunk?: (delta: string) => void,
   ): Promise<RouterSynthesisResult> {
     if (this.slots.length === 0) {
       return {
@@ -1065,26 +1251,79 @@ export class MultiLlmRouter {
       this.recordAttemptStart(slot, callStartedAt);
 
       try {
-        const res = await this.invokeProviderSlot({
-          slotId: slot.slotId,
-          provider: slot.provider,
-          model: slot.model,
-          apiKey: slot.apiKey,
-          systemInstruction: params.systemInstruction,
-          userInput: params.userPrompt,
-          jsonMode: false,
-          temperature: 0.25,
-          maxOutputTokens: DEFAULT_LLM_MAX_OUTPUT_TOKENS,
-          timeoutMs: DEFAULT_SYNTHESIS_TIMEOUT_MS,
-          abortSignal: callOptions?.signal,
-        });
+        const thinkingLevel: RouterThinkingLevel | undefined =
+          slot.provider === 'gemini'
+            ? slot.model.includes('lite')
+              ? 'LOW'
+              : 'MEDIUM'
+            : undefined;
+
+        let res: RouterSlotInvokeResponse;
+        if (onChunk && !this.customInvokeSlotFn && slot.provider === 'gemini') {
+          const ai = this.getGeminiClient(slot.apiKey);
+          const stream = await ai.models.generateContentStream({
+            model: slot.model,
+            contents: params.userPrompt,
+            config: {
+              systemInstruction: params.systemInstruction,
+              maxOutputTokens: DEFAULT_LLM_MAX_OUTPUT_TOKENS,
+              temperature: 0.25,
+              thinkingConfig: {
+                thinkingLevel:
+                  thinkingLevel === 'MEDIUM' ? ThinkingLevel.MEDIUM : ThinkingLevel.LOW,
+              },
+              abortSignal: callOptions?.signal,
+              httpOptions: {
+                timeout: DEFAULT_SYNTHESIS_TIMEOUT_MS,
+                retryOptions: { attempts: 1 },
+              },
+            },
+          });
+
+          let streamedText = '';
+          let lastUsage: GeminiTokenUsage = { inputTokens: 0, outputTokens: 0, totalTokens: 0 };
+          for await (const chunk of stream) {
+            const delta = chunk.text ?? '';
+            if (delta) {
+              streamedText += delta;
+              onChunk(delta);
+            }
+            if (chunk.usageMetadata) {
+              const inp = chunk.usageMetadata.promptTokenCount ?? 0;
+              const outp =
+                (chunk.usageMetadata.candidatesTokenCount ?? 0) +
+                (chunk.usageMetadata.thoughtsTokenCount ?? 0);
+              const tot = chunk.usageMetadata.totalTokenCount ?? inp + outp;
+              lastUsage = { inputTokens: inp, outputTokens: outp, totalTokens: tot };
+            }
+          }
+          res = { outputText: streamedText.trim(), usage: lastUsage };
+        } else {
+          res = await this.invokeProviderSlot({
+            slotId: slot.slotId,
+            provider: slot.provider,
+            model: slot.model,
+            apiKey: slot.apiKey,
+            systemInstruction: params.systemInstruction,
+            userInput: params.userPrompt,
+            jsonMode: false,
+            temperature: 0.25,
+            maxOutputTokens: DEFAULT_LLM_MAX_OUTPUT_TOKENS,
+            timeoutMs: DEFAULT_SYNTHESIS_TIMEOUT_MS,
+            thinkingLevel,
+            abortSignal: callOptions?.signal,
+          });
+          if (onChunk && res.outputText) {
+            onChunk(res.outputText);
+          }
+        }
 
         const latencyMs = Math.max(0, this.nowFn() - callStartedAt);
         totalUsage.inputTokens += res.usage.inputTokens;
         totalUsage.outputTokens += res.usage.outputTokens;
         totalUsage.totalTokens += res.usage.totalTokens;
 
-        const cleanMarkdown = res.outputText
+        let cleanMarkdown = res.outputText
           .replace(/<think>[\s\S]*?<\/think>/gi, '')
           .trim();
 
@@ -1094,6 +1333,15 @@ export class MultiLlmRouter {
           );
         }
 
+        let citationNotice: string | null = null;
+        if (typeof params.maxCitationIndex === 'number' && params.maxCitationIndex >= 1) {
+          const sanitized = sanitizeSynthesisCitations(cleanMarkdown, params.maxCitationIndex);
+          cleanMarkdown = sanitized.sanitizedMarkdown;
+          if (sanitized.strippedCitations.length > 0) {
+            citationNotice = `Sebanyak ${sanitized.strippedCitations.length} nomor sitasi di luar rentang [1..${params.maxCitationIndex}] dibersihkan otomatis untuk mencegah halusinasi referensi.`;
+          }
+        }
+
         this.recordSuccess(slot, res.usage, latencyMs);
         return {
           ok: true,
@@ -1101,7 +1349,7 @@ export class MultiLlmRouter {
           modelUsed: slot.slotId,
           providerUsed: slot.provider,
           usage: totalUsage,
-          notice: null,
+          notice: citationNotice,
           responseTimeMs: Math.max(0, this.nowFn() - startMs),
         };
       } catch (err) {
@@ -1112,8 +1360,10 @@ export class MultiLlmRouter {
 
         if (failure.kind === 'AUTH' || (failure.kind === 'RATE_LIMIT' && failure.isDailyQuota)) {
           slot.disabledForSession = true;
+          this.persistSlotQuotaState(slot, true);
         } else {
           slot.cooldownUntilMs = this.nowFn() + (failure.retryAfterMs ?? this.rateLimitCooldownMs);
+          this.persistSlotQuotaState(slot, false);
         }
       }
     }
@@ -1135,14 +1385,130 @@ export class MultiLlmRouter {
   }
 }
 
+export function sanitizeSynthesisCitations(
+  markdown: string,
+  maxCitationIndex: number,
+): { sanitizedMarkdown: string; strippedCitations: number[] } {
+  const strippedCitations: number[] = [];
+  const citationRe = /\[(\d+(?:\s*[-–,]\s*\d+)*)\](?!\()/g;
+
+  const replaced = markdown.replace(citationRe, (fullMatch, innerRaw: string) => {
+    const trimmed = innerRaw.trim();
+    const rangeMatch = /^(\d+)\s*[-–]\s*(\d+)$/.exec(trimmed);
+    if (rangeMatch) {
+      const start = Number(rangeMatch[1]);
+      const end = Number(rangeMatch[2]);
+      if (start < 1 || start > maxCitationIndex || end < start) {
+        strippedCitations.push(start);
+        return '';
+      }
+      if (end > maxCitationIndex) {
+        strippedCitations.push(end);
+        return start === maxCitationIndex ? `[${start}]` : `[${start}-${maxCitationIndex}]`;
+      }
+      return fullMatch;
+    }
+
+    const parts = trimmed
+      .split(',')
+      .map((s) => Number(s.trim()))
+      .filter((n) => Number.isFinite(n));
+
+    const valid: number[] = [];
+    for (const num of parts) {
+      if (num >= 1 && num <= maxCitationIndex) {
+        valid.push(num);
+      } else {
+        strippedCitations.push(num);
+      }
+    }
+
+    if (valid.length === parts.length) {
+      return fullMatch;
+    }
+    if (valid.length === 0) {
+      return '';
+    }
+    return `[${valid.join(', ')}]`;
+  });
+
+  const sanitizedMarkdown = replaced
+    .replace(/[ \t]{2,}/g, ' ')
+    .replace(/ ([.,;:!?])/g, '$1')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+
+  return {
+    sanitizedMarkdown,
+    strippedCitations,
+  };
+}
+
+export async function embedTextsWithGemini(
+  texts: ReadonlyArray<string>,
+  options: {
+    apiKey?: string;
+    env?: RouterEnvConfig;
+    model?: string;
+    outputDimensionality?: number;
+    abortSignal?: AbortSignal;
+  } = {},
+): Promise<Array<number[] | null>> {
+  if (texts.length === 0) return [];
+
+  const keys =
+    options.apiKey !== undefined
+      ? parseCsvValues(options.apiKey)
+      : resolveConfiguredProviderKeys(options.env).gemini;
+
+  if (keys.length === 0) {
+    return texts.map(() => null);
+  }
+
+  const ai = new GoogleGenAI({ apiKey: keys[0]! });
+  const model = options.model ?? DEFAULT_GEMINI_EMBEDDING_MODEL;
+  const outputDimensionality = options.outputDimensionality ?? 768;
+  const results: Array<number[] | null> = [];
+
+  for (const rawText of texts) {
+    const cleaned = rawText.replace(/\s+/g, ' ').trim();
+    if (!cleaned || options.abortSignal?.aborted) {
+      results.push(null);
+      continue;
+    }
+    try {
+      const response = await ai.models.embedContent({
+        model,
+        contents: `task: sentence similarity | query: ${cleaned}`,
+        config: {
+          outputDimensionality,
+          abortSignal: options.abortSignal,
+        },
+      });
+      const vec = response.embeddings?.[0]?.values;
+      if (!vec || vec.length === 0) {
+        results.push(null);
+        continue;
+      }
+      const norm = Math.hypot(...vec) || 1;
+      results.push(vec.map((x) => x / norm));
+    } catch {
+      results.push(null);
+    }
+  }
+
+  return results;
+}
+
 export async function generateSynthesisWithRouter(
-  params: { systemInstruction: string; userPrompt: string },
+  params: { systemInstruction: string; userPrompt: string; maxCitationIndex?: number },
   options?: MultiLlmRouterOptions,
   callOptions?: RouterCallOptions,
+  onChunk?: (delta: string) => void,
 ): Promise<RouterSynthesisResult> {
   const router = new MultiLlmRouter({
     ...options,
     task: 'synthesis',
   });
-  return router.generateSynthesis(params, callOptions);
+  return router.generateSynthesis(params, callOptions, onChunk);
 }

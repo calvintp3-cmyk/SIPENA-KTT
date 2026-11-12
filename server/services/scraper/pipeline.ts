@@ -26,11 +26,12 @@ import {
 import { extractHostnameLabel, hashNormalizedUrl, isSafeHttpUrl } from '../../utils/url-hash';
 import { mapClassificationToPersistence } from '../llm/classifier';
 import { GeminiClassificationWorker, type GeminiWorkerOptions } from '../llm/gemini-client';
-import { MultiLlmRouter, type MultiLlmRouterOptions } from '../llm/router';
+import { embedTextsWithGemini, MultiLlmRouter, type MultiLlmRouterOptions } from '../llm/router';
 import {
   DEFAULT_DB_DEDUP_LOOKBACK_DAYS,
-  deduplicateCandidatesByTitle,
+  deduplicateCandidatesWithSemantics,
   getCandidateSourcePriority,
+  type SemanticHistoricalTitleItem,
 } from './dedup';
 import { extractArticleContent } from './extractor';
 import { evaluateGeographicRelevance } from './geo-filter';
@@ -83,6 +84,9 @@ export interface RunScrapePipelineParams {
   maxArticlesPerRun?: number;
   fetchTimeoutMs?: number;
   fetchConcurrency?: number;
+  enableGdeltMacro?: boolean;
+  enableSemanticDedup?: boolean;
+  embedFn?: (texts: string[]) => Promise<Array<number[] | null>>;
   portals?: ReadonlyArray<RegionalPortalConfig>;
   keywords?: ReadonlyArray<ActiveKeywordTarget>;
   fetchFn?: (url: string, options?: SafeFetchOptions) => Promise<{ finalUrl: string; body: string }>;
@@ -137,6 +141,33 @@ interface ExtractedReadyArticle {
   snippetText: string;
   wordCount: number;
   publishedAt: Date;
+  titleEmbedding?: number[] | null;
+}
+
+function isSameDomainHost(urlA: string, urlB: string): boolean {
+  try {
+    const hostA = new URL(urlA).hostname.toLowerCase().replace(/^www\./, '');
+    const hostB = new URL(urlB).hostname.toLowerCase().replace(/^www\./, '');
+    return Boolean(hostA && hostA === hostB);
+  } catch {
+    return false;
+  }
+}
+
+function resolveSameHostCanonicalUrl(canonicalRaw: string | null, currentFinalUrl: string): string {
+  if (!canonicalRaw) return currentFinalUrl;
+  try {
+    const resolved = new URL(canonicalRaw, currentFinalUrl);
+    const resolvedStr = resolved.toString();
+    if (!isSafeHttpUrl(resolvedStr)) return currentFinalUrl;
+    if (!isSameDomainHost(resolvedStr, currentFinalUrl)) return currentFinalUrl;
+    if (resolved.pathname.length <= 1 && new URL(currentFinalUrl).pathname.length > 1) {
+      return currentFinalUrl;
+    }
+    return resolvedStr;
+  } catch {
+    return currentFinalUrl;
+  }
 }
 
 function isGoogleWrapperHost(rawUrl: string): boolean {
@@ -171,15 +202,19 @@ async function queryExistingHashes(hashes: string[]): Promise<Set<string>> {
 async function queryRecentArticleTitles(
   now: Date,
   lookbackDays: number = DEFAULT_DB_DEDUP_LOOKBACK_DAYS,
-): Promise<string[]> {
+): Promise<SemanticHistoricalTitleItem[]> {
   try {
     const cutoff = getWitaLookbackCutoff(now, lookbackDays);
     const rows = await db
-      .select({ title: articles.title })
+      .select({
+        title: articles.title,
+        titleEmbedding: articles.titleEmbedding,
+      })
       .from(articles)
       .where(gte(articles.publishedAt, cutoff))
+      .orderBy(desc(articles.publishedAt))
       .limit(1000);
-    return rows.map((r) => r.title).filter(Boolean);
+    return rows.filter((r) => Boolean(r.title));
   } catch {
     return [];
   }
@@ -478,6 +513,7 @@ async function executeLockedScrapePipeline(
             timeoutMs: fetchTimeoutMs,
             concurrency: fetchConcurrency,
             signal: pipelineController.signal,
+            enableGdeltMacro: params.enableGdeltMacro,
           })
         : Promise.resolve(null);
 
@@ -508,7 +544,7 @@ async function executeLockedScrapePipeline(
     articlesFetched = uniqueUrlCandidates.length;
 
     // -------------------------------------------------------------------------
-    // Phase B: Hard-Noise Filter, DB URL Hash Dedup & Dedup Judul 10 Hari Lintas Sumber
+    // Phase B: Hard-Noise Filter, DB URL Hash Dedup & Dedup 2-Tahap Lintas Sumber
     // -------------------------------------------------------------------------
     const noiseFilteredCandidates: DiscoveredArticleCandidate[] = [];
     for (const candidate of uniqueUrlCandidates) {
@@ -535,21 +571,35 @@ async function executeLockedScrapePipeline(
       hashFilteredCandidates.push(candidate);
     }
 
-    const recentHistoricalTitles = await queryRecentArticleTitles(
+    const recentHistoricalItems = await queryRecentArticleTitles(
       now,
       DEFAULT_DB_DEDUP_LOOKBACK_DAYS,
     );
-    const titleDedupResult = deduplicateCandidatesByTitle(
-      hashFilteredCandidates,
-      recentHistoricalTitles,
-    );
+    const shouldUseLiveSemanticDedup =
+      params.enableSemanticDedup ??
+      (!params.fetchFn && !params.routerOptions?.invokeSlotFn && !legacyWorker);
+    const effectiveEmbedFn =
+      params.embedFn ??
+      (shouldUseLiveSemanticDedup && hasRemainingBudget(3_000)
+        ? (texts: string[]) =>
+            embedTextsWithGemini(texts, {
+              env: params.routerOptions?.env,
+              abortSignal: pipelineController.signal,
+            })
+        : undefined);
+
+    const titleDedupResult = await deduplicateCandidatesWithSemantics(hashFilteredCandidates, {
+      historicalItems: recentHistoricalItems,
+      embedFn: effectiveEmbedFn,
+    });
     articlesDeduplicated += titleDedupResult.deduplicatedCount;
+    const semanticEmbeddingMap = titleDedupResult.embeddingsByUrlHash;
     const newCandidates = titleDedupResult.uniqueCandidates;
 
     await persistLogSnapshot(ScraperRunStatusEnum.RUNNING, false).catch(() => {});
 
     // -------------------------------------------------------------------------
-    // Phase C: Parallel HTML Fetch / RSS Fast Path + Dekoder Google News CBMi
+    // Phase C: Parallel HTML Fetch / RSS Fast Path, Soft-Block Guard & ?page=all
     // -------------------------------------------------------------------------
     const extractedReady: ExtractedReadyArticle[] = [];
     const extractedSeenHashes = new Set<string>();
@@ -578,6 +628,7 @@ async function executeLockedScrapePipeline(
         snippetText: fallback.snippetText,
         wordCount: fallback.wordCount,
         publishedAt: candidate.publishedHint ?? now,
+        titleEmbedding: semanticEmbeddingMap.get(candidate.urlHash) ?? null,
       });
     };
 
@@ -610,6 +661,7 @@ async function executeLockedScrapePipeline(
               snippetText: candidate.prefetchedSnippetText,
               wordCount: candidate.prefetchedWordCount ?? 0,
               publishedAt,
+              titleEmbedding: semanticEmbeddingMap.get(candidate.urlHash) ?? null,
             });
             return;
           }
@@ -621,6 +673,7 @@ async function executeLockedScrapePipeline(
               userAgent: DEFAULT_BROWSER_USER_AGENT,
               headers: DEFAULT_BROWSER_HEADERS,
               signal: pipelineController.signal,
+              politeHostPacing: !params.fetchFn,
             });
 
             if (isGoogleWrapperHost(fetched.finalUrl)) {
@@ -653,6 +706,7 @@ async function executeLockedScrapePipeline(
                     userAgent: DEFAULT_BROWSER_USER_AGENT,
                     headers: DEFAULT_BROWSER_HEADERS,
                     signal: pipelineController.signal,
+                    politeHostPacing: !params.fetchFn,
                   });
                 } catch {
                   pushNationalMetadataFallback(candidate, externalTarget);
@@ -664,15 +718,69 @@ async function executeLockedScrapePipeline(
               }
             }
 
-            const finalUrl = isSafeHttpUrl(fetched.finalUrl) ? fetched.finalUrl : candidate.url;
-            const { normalizedUrl, urlHash } = hashNormalizedUrl(finalUrl);
+            const rawFinalUrl = isSafeHttpUrl(fetched.finalUrl) ? fetched.finalUrl : candidate.url;
+            let extracted = extractArticleContent(
+              fetched.body,
+              candidate.publishedHint,
+              rawFinalUrl,
+            );
+
+            if (extracted.isSoftBlocked) {
+              if (
+                candidate.sourceType === ArticleSourceTypeEnum.NATIONAL &&
+                candidate.fallbackDescription
+              ) {
+                pushNationalMetadataFallback(candidate, rawFinalUrl);
+                return;
+              }
+              errors.push({
+                source: candidate.sourcePortal,
+                stage: 'EXTRACT',
+                message: 'Halaman terblokir proteksi anti-bot (soft-block HTTP 200).',
+                url: rawFinalUrl,
+              });
+              return;
+            }
+
+            if (
+              extracted.nextFullPageUrl &&
+              isSameDomainHost(extracted.nextFullPageUrl, rawFinalUrl) &&
+              hasRemainingBudget(400)
+            ) {
+              try {
+                const fullResp = await fetchFn(extracted.nextFullPageUrl, {
+                  timeoutMs: fetchTimeoutMs,
+                  maxBytes: 2 * 1024 * 1024,
+                  userAgent: DEFAULT_BROWSER_USER_AGENT,
+                  headers: DEFAULT_BROWSER_HEADERS,
+                  signal: pipelineController.signal,
+                  politeHostPacing: !params.fetchFn,
+                });
+                const fullExtracted = extractArticleContent(
+                  fullResp.body,
+                  candidate.publishedHint,
+                  fullResp.finalUrl,
+                );
+                if (
+                  !fullExtracted.isSoftBlocked &&
+                  fullExtracted.isValidContent &&
+                  fullExtracted.wordCount >= extracted.wordCount
+                ) {
+                  extracted = fullExtracted;
+                }
+              } catch {
+                // Abaikan kegagalan ?page=all; gunakan hasil halaman utama
+              }
+            }
+
+            const effectiveFinalUrl = resolveSameHostCanonicalUrl(extracted.canonicalUrl, rawFinalUrl);
+            const { normalizedUrl, urlHash } = hashNormalizedUrl(effectiveFinalUrl);
 
             if (extractedSeenHashes.has(urlHash)) {
               articlesDeduplicated += 1;
               return;
             }
 
-            const extracted = extractArticleContent(fetched.body, candidate.publishedHint);
             const publishedAt = extracted.publishedAt ?? candidate.publishedHint ?? now;
 
             if (extracted.publishedAt && !isWithinLookbackWindow(extracted.publishedAt, cutoffDate)) {
@@ -685,7 +793,7 @@ async function executeLockedScrapePipeline(
                 candidate.sourceType === ArticleSourceTypeEnum.NATIONAL &&
                 candidate.fallbackDescription
               ) {
-                pushNationalMetadataFallback(candidate, finalUrl);
+                pushNationalMetadataFallback(candidate, effectiveFinalUrl);
                 return;
               }
 
@@ -693,20 +801,20 @@ async function executeLockedScrapePipeline(
                 source: candidate.sourcePortal,
                 stage: 'EXTRACT',
                 message: `Konten teks terlalu pendek (${extracted.wordCount} kata bersih).`,
-                url: finalUrl,
+                url: effectiveFinalUrl,
               });
               return;
             }
 
             extractedSeenHashes.add(urlHash);
             const resolvedPortal =
-              candidate.sourceType === ArticleSourceTypeEnum.NATIONAL && !isGoogleWrapperHost(finalUrl)
-                ? extractHostnameLabel(finalUrl)
+              candidate.sourceType === ArticleSourceTypeEnum.NATIONAL && !isGoogleWrapperHost(effectiveFinalUrl)
+                ? extractHostnameLabel(effectiveFinalUrl)
                 : candidate.sourcePortal;
 
             extractedReady.push({
               candidate,
-              finalUrl,
+              finalUrl: effectiveFinalUrl,
               normalizedUrl,
               urlHash,
               sourcePortal: resolvedPortal,
@@ -714,6 +822,7 @@ async function executeLockedScrapePipeline(
               snippetText: extracted.snippetText,
               wordCount: extracted.wordCount,
               publishedAt,
+              titleEmbedding: semanticEmbeddingMap.get(candidate.urlHash) ?? null,
             });
           } catch (err) {
             if (
@@ -736,7 +845,7 @@ async function executeLockedScrapePipeline(
       );
     }
 
-    // Cek ulang hash URL final hasil redirect/dekode Google News terhadap DB
+    // Cek ulang hash URL final hasil redirect/dekode Google News & canonical terhadap DB
     const existingFinalHashes = await queryExistingHashes(
       extractedReady.map((item) => item.urlHash),
     );
@@ -777,6 +886,8 @@ async function executeLockedScrapePipeline(
             publishedAt: item.publishedAt,
             quarter: defaultPeriod.quarter,
             year: defaultPeriod.year,
+            geographicScope: 'OTHER_REGION_IRRELEVANT',
+            titleEmbedding: item.titleEmbedding ?? null,
             isEconomicPhenomenon: false,
             summary: null,
             kbliCategory: null,
@@ -815,147 +926,110 @@ async function executeLockedScrapePipeline(
     });
 
     const readyForLlm = llmEligible.slice(0, maxArticlesPerRun);
-    if (llmEligible.length > maxArticlesPerRun) {
+    const overflowForLater = llmEligible.slice(maxArticlesPerRun);
+    if (overflowForLater.length > 0) {
       errors.push({
         source: 'pipeline',
         stage: 'SYSTEM',
-        message: `Antrean dibatasi ke ${maxArticlesPerRun} artikel prioritas per sesi (${llmEligible.length - maxArticlesPerRun} artikel sisanya ditangguhkan ke sesi berikutnya).`,
+        message: `Antrean dibatasi ke ${maxArticlesPerRun} artikel prioritas per sesi (${overflowForLater.length} artikel sisanya disimpan untuk sapuan otomatis berikutnya).`,
       });
+      for (const item of overflowForLater) {
+        const defaultPeriod = getQuarterFromDateWita(item.publishedAt);
+        const [deferredInserted] = await db
+          .insert(articles)
+          .values({
+            url: item.normalizedUrl,
+            urlHash: item.urlHash,
+            sourceType: item.candidate.sourceType,
+            sourcePortal: item.sourcePortal,
+            title: item.title,
+            snippetText: item.snippetText,
+            wordCount: item.wordCount,
+            publishedAt: item.publishedAt,
+            quarter: defaultPeriod.quarter,
+            year: defaultPeriod.year,
+            geographicScope: null,
+            titleEmbedding: item.titleEmbedding ?? null,
+            isEconomicPhenomenon: null,
+            summary: null,
+            kbliCategory: null,
+            kbliImpact: null,
+            expenditureComponent: null,
+            expenditureImpact: null,
+            llmModel: null,
+            llmStatus: LlmStatusEnum.FAILED,
+            llmError: 'DEFERRED_BATCH_CAP',
+            llmConfidence: null,
+            verificationStatus: VerificationStatusEnum.PENDING,
+            keywordId: item.candidate.keywordId,
+            scraperLogId: logId,
+          })
+          .onConflictDoNothing({ target: articles.urlHash })
+          .returning({ id: articles.id });
+
+        if (deferredInserted) {
+          articlesInserted += 1;
+          llmFailedCount += 1;
+        } else {
+          articlesDeduplicated += 1;
+        }
+      }
     }
 
     await persistLogSnapshot(ScraperRunStatusEnum.RUNNING, false).catch(() => {});
 
     // -------------------------------------------------------------------------
-    // Phase D: Multi-Provider LLM Classification Worker (0ms Failover & Deadline Guard)
+    // Phase D: Multi-Provider LLM Classification Worker (Paralel Terkontrol & 0ms Failover)
     // -------------------------------------------------------------------------
     let consecutiveRateLimitErrors = 0;
     let circuitBreakerOpen = false;
     let deadlineWarningRecorded = false;
+    let completedInPhaseD = 0;
 
-    for (let idx = 0; idx < readyForLlm.length; idx += 1) {
-      const item = readyForLlm[idx];
-      if (!item) continue;
+    const phaseDConcurrency = legacyWorker
+      ? 1
+      : Math.min(3, Math.max(1, llmRouter?.configuredProviderCount ?? 1));
 
-      const defaultPeriod = getQuarterFromDateWita(item.publishedAt);
-      const publishedAtWita = formatDateTimeWita(item.publishedAt);
-      const budgetExhausted = !hasRemainingBudget(20);
+    await runWithConcurrency(
+      readyForLlm,
+      phaseDConcurrency,
+      async (item, idx) => {
+        const defaultPeriod = getQuarterFromDateWita(item.publishedAt);
+        const publishedAtWita = formatDateTimeWita(item.publishedAt);
+        const budgetExhausted = !hasRemainingBudget(20);
 
-      if (budgetExhausted && !deadlineWarningRecorded) {
-        deadlineWarningRecorded = true;
-        timedOut = true;
-        errors.push({
-          source: 'pipeline',
-          stage: 'SYSTEM',
-          message: `Batas waktu maksimal ${Math.round(maxDurationMs / 1000)} detik tercapai; sisa antrean (${readyForLlm.length - idx} artikel) disimpan sebagai LLM FAILED untuk retry berikutnya.`,
-        });
-      }
-
-      let persistenceFields: {
-        isEconomicPhenomenon: boolean | null;
-        summary: string | null;
-        kbliCategory: typeof articles.$inferInsert['kbliCategory'];
-        kbliImpact: typeof articles.$inferInsert['kbliImpact'];
-        expenditureComponent: typeof articles.$inferInsert['expenditureComponent'];
-        expenditureImpact: typeof articles.$inferInsert['expenditureImpact'];
-        quarter: number;
-        year: number;
-        llmModel: string | null;
-        llmStatus: LlmStatusEnum;
-        llmError: string | null;
-        llmConfidence: number | null;
-        verificationStatus: VerificationStatusEnum;
-      };
-
-      if (circuitBreakerOpen || budgetExhausted) {
-        llmFailedCount += 1;
-        persistenceFields = {
-          isEconomicPhenomenon: null,
-          summary: null,
-          kbliCategory: null,
-          kbliImpact: null,
-          expenditureComponent: null,
-          expenditureImpact: null,
-          quarter: defaultPeriod.quarter,
-          year: defaultPeriod.year,
-          llmModel: null,
-          llmStatus: LlmStatusEnum.FAILED,
-          llmError: budgetExhausted ? 'PIPELINE_TIMEOUT_BUDGET' : 'CIRCUIT_BREAKER_QUOTA',
-          llmConfidence: null,
-          verificationStatus: VerificationStatusEnum.PENDING,
-        };
-      } else {
-        const classificationInput = {
-          title: item.title,
-          sourcePortal: item.sourcePortal,
-          sourceType: item.candidate.sourceType,
-          matchedKeyword: item.candidate.matchedKeyword,
-          defaultKbliHint: item.candidate.defaultKbliCategory,
-          defaultExpenditureHint: item.candidate.defaultExpenditureComponent,
-          publishedAtWita,
-          defaultQuarter: defaultPeriod.quarter,
-          defaultYear: defaultPeriod.year,
-          snippetText: item.snippetText,
-        };
-
-        const aiResult = legacyWorker
-          ? await legacyWorker.classifyArticle(classificationInput, {
-              signal: pipelineController.signal,
-              deadlineAtMs,
-            })
-          : await llmRouter!.classifyArticle(classificationInput, {
-              signal: pipelineController.signal,
-              deadlineAtMs,
-            });
-
-        totalInputTokens += aiResult.usage.inputTokens;
-        totalOutputTokens += aiResult.usage.outputTokens;
-        totalTokens += aiResult.usage.totalTokens;
-        if (aiResult.responseTimeMs > 0) {
-          totalResponseTimeMs += aiResult.responseTimeMs;
-          timedLlmCalls += 1;
+        if (budgetExhausted && !deadlineWarningRecorded) {
+          deadlineWarningRecorded = true;
+          timedOut = true;
+          errors.push({
+            source: 'pipeline',
+            stage: 'SYSTEM',
+            message: `Batas waktu maksimal ${Math.round(maxDurationMs / 1000)} detik tercapai; sisa antrean (${readyForLlm.length - idx} artikel) disimpan sebagai LLM FAILED untuk retry berikutnya.`,
+          });
         }
 
-        if (aiResult.ok) {
-          consecutiveRateLimitErrors = 0;
-          const mapped = mapClassificationToPersistence(
-            aiResult.classification,
-            aiResult.modelUsed,
-          );
-          persistenceFields = { ...mapped };
-          if (mapped.isEconomicPhenomenon) {
-            economicCount += 1;
-          } else {
-            nonEconomicCount += 1;
-          }
-        } else {
+        let persistenceFields: {
+          isEconomicPhenomenon: boolean | null;
+          geographicScope: string | null;
+          summary: string | null;
+          kbliCategory: typeof articles.$inferInsert['kbliCategory'];
+          kbliImpact: typeof articles.$inferInsert['kbliImpact'];
+          expenditureComponent: typeof articles.$inferInsert['expenditureComponent'];
+          expenditureImpact: typeof articles.$inferInsert['expenditureImpact'];
+          quarter: number;
+          year: number;
+          llmModel: string | null;
+          llmStatus: LlmStatusEnum;
+          llmError: string | null;
+          llmConfidence: number | null;
+          verificationStatus: VerificationStatusEnum;
+        };
+
+        if (circuitBreakerOpen || budgetExhausted) {
           llmFailedCount += 1;
-          errors.push({
-            source: item.sourcePortal,
-            stage: 'LLM',
-            message: `[${aiResult.errorCode}] ${aiResult.errorMessage}`,
-            url: item.normalizedUrl,
-          });
-
-          if (aiResult.errorCode === 'TIMEOUT_BUDGET_EXCEEDED') {
-            timedOut = true;
-          }
-
-          if (aiResult.isRateLimit) {
-            consecutiveRateLimitErrors += 1;
-            if (consecutiveRateLimitErrors >= CIRCUIT_BREAKER_CONSECUTIVE_429_THRESHOLD) {
-              circuitBreakerOpen = true;
-              errors.push({
-                source: 'llm-router',
-                stage: 'LLM',
-                message: `Circuit breaker aktif setelah ${CIRCUIT_BREAKER_CONSECUTIVE_429_THRESHOLD}x kegagalan 429 beruntun di seluruh slot; sisa antrean disimpan untuk retry.`,
-              });
-            }
-          } else {
-            consecutiveRateLimitErrors = 0;
-          }
-
           persistenceFields = {
             isEconomicPhenomenon: null,
+            geographicScope: null,
             summary: null,
             kbliCategory: null,
             kbliImpact: null,
@@ -963,58 +1037,149 @@ async function executeLockedScrapePipeline(
             expenditureImpact: null,
             quarter: defaultPeriod.quarter,
             year: defaultPeriod.year,
-            llmModel: aiResult.modelUsed,
+            llmModel: null,
             llmStatus: LlmStatusEnum.FAILED,
-            llmError:
-              aiResult.errorCode === 'RATE_LIMIT_EXCEEDED'
-                ? 'RATE_LIMIT_EXCEEDED'
-                : aiResult.errorMessage.slice(0, 500),
+            llmError: budgetExhausted ? 'PIPELINE_TIMEOUT_BUDGET' : 'CIRCUIT_BREAKER_QUOTA',
             llmConfidence: null,
             verificationStatus: VerificationStatusEnum.PENDING,
           };
+        } else {
+          const classificationInput = {
+            title: item.title,
+            sourcePortal: item.sourcePortal,
+            sourceType: item.candidate.sourceType,
+            matchedKeyword: item.candidate.matchedKeyword,
+            defaultKbliHint: item.candidate.defaultKbliCategory,
+            defaultExpenditureHint: item.candidate.defaultExpenditureComponent,
+            publishedAtWita,
+            defaultQuarter: defaultPeriod.quarter,
+            defaultYear: defaultPeriod.year,
+            snippetText: item.snippetText,
+          };
+
+          const aiResult = legacyWorker
+            ? await legacyWorker.classifyArticle(classificationInput, {
+                signal: pipelineController.signal,
+                deadlineAtMs,
+              })
+            : await llmRouter!.classifyArticle(classificationInput, {
+                signal: pipelineController.signal,
+                deadlineAtMs,
+              });
+
+          totalInputTokens += aiResult.usage.inputTokens;
+          totalOutputTokens += aiResult.usage.outputTokens;
+          totalTokens += aiResult.usage.totalTokens;
+          if (aiResult.responseTimeMs > 0) {
+            totalResponseTimeMs += aiResult.responseTimeMs;
+            timedLlmCalls += 1;
+          }
+
+          if (aiResult.ok) {
+            consecutiveRateLimitErrors = 0;
+            const mapped = mapClassificationToPersistence(
+              aiResult.classification,
+              aiResult.modelUsed,
+            );
+            persistenceFields = { ...mapped };
+            if (mapped.isEconomicPhenomenon) {
+              economicCount += 1;
+            } else {
+              nonEconomicCount += 1;
+            }
+          } else {
+            llmFailedCount += 1;
+            errors.push({
+              source: item.sourcePortal,
+              stage: 'LLM',
+              message: `[${aiResult.errorCode}] ${aiResult.errorMessage}`,
+              url: item.normalizedUrl,
+            });
+
+            if (aiResult.errorCode === 'TIMEOUT_BUDGET_EXCEEDED') {
+              timedOut = true;
+            }
+
+            if (aiResult.isRateLimit) {
+              consecutiveRateLimitErrors += 1;
+              if (consecutiveRateLimitErrors >= CIRCUIT_BREAKER_CONSECUTIVE_429_THRESHOLD) {
+                circuitBreakerOpen = true;
+                errors.push({
+                  source: 'llm-router',
+                  stage: 'LLM',
+                  message: `Circuit breaker aktif setelah ${CIRCUIT_BREAKER_CONSECUTIVE_429_THRESHOLD}x kegagalan 429 beruntun di seluruh slot; sisa antrean disimpan untuk retry.`,
+                });
+              }
+            } else {
+              consecutiveRateLimitErrors = 0;
+            }
+
+            persistenceFields = {
+              isEconomicPhenomenon: null,
+              geographicScope: null,
+              summary: null,
+              kbliCategory: null,
+              kbliImpact: null,
+              expenditureComponent: null,
+              expenditureImpact: null,
+              quarter: defaultPeriod.quarter,
+              year: defaultPeriod.year,
+              llmModel: aiResult.modelUsed,
+              llmStatus: LlmStatusEnum.FAILED,
+              llmError:
+                aiResult.errorCode === 'RATE_LIMIT_EXCEEDED'
+                  ? 'RATE_LIMIT_EXCEEDED'
+                  : aiResult.errorMessage.slice(0, 500),
+              llmConfidence: null,
+              verificationStatus: VerificationStatusEnum.PENDING,
+            };
+          }
         }
-      }
 
-      const [inserted] = await db
-        .insert(articles)
-        .values({
-          url: item.normalizedUrl,
-          urlHash: item.urlHash,
-          sourceType: item.candidate.sourceType,
-          sourcePortal: item.sourcePortal,
-          title: item.title,
-          snippetText: item.snippetText,
-          wordCount: item.wordCount,
-          publishedAt: item.publishedAt,
-          quarter: persistenceFields.quarter,
-          year: persistenceFields.year,
-          isEconomicPhenomenon: persistenceFields.isEconomicPhenomenon,
-          summary: persistenceFields.summary,
-          kbliCategory: persistenceFields.kbliCategory,
-          kbliImpact: persistenceFields.kbliImpact,
-          expenditureComponent: persistenceFields.expenditureComponent,
-          expenditureImpact: persistenceFields.expenditureImpact,
-          llmModel: persistenceFields.llmModel,
-          llmStatus: persistenceFields.llmStatus,
-          llmError: persistenceFields.llmError,
-          llmConfidence: persistenceFields.llmConfidence,
-          verificationStatus: persistenceFields.verificationStatus,
-          keywordId: item.candidate.keywordId,
-          scraperLogId: logId,
-        })
-        .onConflictDoNothing({ target: articles.urlHash })
-        .returning({ id: articles.id });
+        const [inserted] = await db
+          .insert(articles)
+          .values({
+            url: item.normalizedUrl,
+            urlHash: item.urlHash,
+            sourceType: item.candidate.sourceType,
+            sourcePortal: item.sourcePortal,
+            title: item.title,
+            snippetText: item.snippetText,
+            wordCount: item.wordCount,
+            publishedAt: item.publishedAt,
+            quarter: persistenceFields.quarter,
+            year: persistenceFields.year,
+            geographicScope: persistenceFields.geographicScope,
+            titleEmbedding: item.titleEmbedding ?? null,
+            isEconomicPhenomenon: persistenceFields.isEconomicPhenomenon,
+            summary: persistenceFields.summary,
+            kbliCategory: persistenceFields.kbliCategory,
+            kbliImpact: persistenceFields.kbliImpact,
+            expenditureComponent: persistenceFields.expenditureComponent,
+            expenditureImpact: persistenceFields.expenditureImpact,
+            llmModel: persistenceFields.llmModel,
+            llmStatus: persistenceFields.llmStatus,
+            llmError: persistenceFields.llmError,
+            llmConfidence: persistenceFields.llmConfidence,
+            verificationStatus: persistenceFields.verificationStatus,
+            keywordId: item.candidate.keywordId,
+            scraperLogId: logId,
+          })
+          .onConflictDoNothing({ target: articles.urlHash })
+          .returning({ id: articles.id });
 
-      if (inserted) {
-        articlesInserted += 1;
-      } else {
-        articlesDeduplicated += 1;
-      }
+        if (inserted) {
+          articlesInserted += 1;
+        } else {
+          articlesDeduplicated += 1;
+        }
 
-      if ((idx + 1) % 3 === 0 || idx === readyForLlm.length - 1) {
-        await persistLogSnapshot(ScraperRunStatusEnum.RUNNING, false).catch(() => {});
-      }
-    }
+        completedInPhaseD += 1;
+        if (completedInPhaseD % 3 === 0 || completedInPhaseD === readyForLlm.length) {
+          await persistLogSnapshot(ScraperRunStatusEnum.RUNNING, false).catch(() => {});
+        }
+      },
+    );
 
     if (timedOut && !deadlineWarningRecorded) {
       errors.push({
@@ -1275,6 +1440,7 @@ async function executeLockedRetryLlmBatch(
         await db
           .update(articles)
           .set({
+            geographicScope: 'OTHER_REGION_IRRELEVANT',
             isEconomicPhenomenon: false,
             summary: null,
             kbliCategory: null,
@@ -1334,6 +1500,7 @@ async function executeLockedRetryLlmBatch(
         await db
           .update(articles)
           .set({
+            geographicScope: mapped.geographicScope,
             isEconomicPhenomenon: mapped.isEconomicPhenomenon,
             summary: mapped.summary,
             kbliCategory: mapped.kbliCategory,

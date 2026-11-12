@@ -17,7 +17,7 @@ export default defineAppConfig({
     },
     button: {
       slots: {
-        base: 'rounded-xl font-semibold transition-all duration-150 cursor-pointer',
+        base: 'rounded-xl font-semibold transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-150 cursor-pointer',
       },
     },
     badge: {
