@@ -129,6 +129,8 @@ export const REGIONAL_PORTALS: ReadonlyArray<RegionalPortalConfig> = [
     paginationPattern: 'SLASH_PAGE',
     maxPages: 5,
     itemSelectors: [
+      'a[href^="/"]:not([href="/"]):not([href="/epaper"]):not([href*="/category/"]):not([href*="/redaksi"]):not([href*="/kode-etik"]):not([href*="/disclaimer"]):not([href*="/privacy-policy"]):not([href*="/kontak"])',
+      'div.max-w-\\[1240px\\] a[href]',
       'article',
       'div.border-b',
       'div.w-10\\/12',
@@ -173,6 +175,9 @@ export const REGIONAL_PORTALS: ReadonlyArray<RegionalPortalConfig> = [
     paginationPattern: 'QUERY_PAGE',
     maxPages: 5,
     itemSelectors: [
+      'div.ui-card a[href]',
+      'a[href*="/tana-tidung/"]',
+      '.ui-card',
       '.ui-r-fg, .ui-r-display.ui-r-dir',
       '.latest__item',
       '.article__list .article__item',

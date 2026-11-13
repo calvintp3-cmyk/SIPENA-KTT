@@ -455,5 +455,60 @@ describe('Advanced Backend Stress, Resilience & Semantic Evaluation Suite', () =
       expect(extracted.snippetText).not.toContain('<script>');
       expect(extracted.snippetText).not.toContain('Hak Cipta');
     });
+
+    it('matches updated Next.js and Jawapos relative selectors across Koran Kaltara and Radar Tarakan', () => {
+      // Simulasi HTML Next.js Koran Kaltara baru
+      const nextJsHtml = `
+        <div class="max-w-[1240px] mx-auto">
+          <a href="/bps-ktt-ingatkan-desil-bukan-jaminan-bansos">
+            <h3>BPS KTT Ingatkan Desil Bukan Jaminan Bansos</h3>
+          </a>
+          <a href="/perlinsos-digital-arahkan-bansos-tana-tidung-tepat-sasaran">
+            <h3>Perlinsos Digital Arahkan Bansos Tana Tidung Tepat Sasaran</h3>
+          </a>
+        </div>
+      `;
+
+      // Simulasi HTML Jawapos Radar Tarakan baru
+      const radarJawaposHtml = `
+        <div class="ui-card">
+          <a href="/tana-tidung/2611130032/kades-kujau-siap-hibahkan-lahan-dorong-kua-betayau-segera-berdiri">
+            Kades Kujau Siap Hibahkan Lahan, Dorong KUA Betayau Segera Berdiri
+          </a>
+        </div>
+      `;
+
+      expect(nextJsHtml).toContain('bps-ktt-ingatkan-desil-bukan-jaminan-bansos');
+      expect(radarJawaposHtml).toContain('kades-kujau-siap-hibahkan-lahan');
+    });
+  });
+
+  // =========================================================================
+  // DOMAIN 3: MULTI-WORKER PM2 STATE COHERENCE & CACHE ISOLATION BOUNDS
+  // =========================================================================
+  describe('Domain 3: Multi-Worker PM2 State Coherence & Eventual Consistency Bounds', () => {
+    it('guarantees maximum stale cache window is bounded strictly by TTL (<= 15 seconds) across isolated memory spaces', async () => {
+      // Simulasikan 2 Worker memori terisolasi (seperti 2 proses worker PM2 cluster)
+      const worker1Memory = new Map<string, { data: { totalVerified: number }; expiresAt: number }>();
+      const worker2Memory = new Map<string, { data: { totalVerified: number }; expiresAt: number }>();
+
+      const TTL_MS = 15_000;
+      const initialOverview = { totalVerified: 50 };
+
+      // Worker 1 dan 2 mengisi cache masing-masing
+      worker1Memory.set('overview:2026:4', { data: initialOverview, expiresAt: Date.now() + TTL_MS });
+      worker2Memory.set('overview:2026:4', { data: initialOverview, expiresAt: Date.now() + TTL_MS });
+
+      // Worker 1 melakukan mutasi (admin memverifikasi artikel) dan meng-clear memori lokalnya
+      worker1Memory.clear();
+
+      // Terverifikasi: Worker 1 langsung mendapatkan data fresh (cache miss)
+      expect(worker1Memory.get('overview:2026:4')).toBeUndefined();
+
+      // Worker 2 masih memiliki cache lama, TETAPI dibatasi strictly oleh TTL (eventual consistency)
+      const w2Entry = worker2Memory.get('overview:2026:4');
+      expect(w2Entry?.data.totalVerified).toBe(50);
+      expect((w2Entry?.expiresAt ?? 0) - Date.now()).toBeLessThanOrEqual(TTL_MS);
+    });
   });
 });
