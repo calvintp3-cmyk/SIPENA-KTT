@@ -80,7 +80,26 @@ Pada KBLI 2025, aktivitas jasa reparasi kendaraan dipisahkan dari perniagaan bar
 
 ---
 
-## 4. Implementasi pada Webapp SIPENA KTT
+## 4. Struktur Database 4-Generasi KBLI (Hasil Ekstraksi Lengkap)
+
+Seluruh publikasi resmi KBLI BPS RI (2009, 2015, 2020, dan 2025) telah berhasil diekstraksi secara lengkap ke dalam 5 tingkatan hierarki standar (*Kategori*, *Golongan Pokok*, *Golongan*, *Subgolongan*, dan *Kelompok Usaha*) dalam aneka format terstruktur (`.json`, `.csv`, `.xlsx`, `.db`, `_wide.csv`, `_tree.json`):
+
+| Generasi KBLI | Dasar Regulasi BPS | Total Entri | Kategori (1 Digit) | Gol. Pokok (2 Digit) | Golongan (3 Digit) | Subgolongan (4 Digit) | Kelompok (5 Digit) | Folder Dataset |
+| :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :--- |
+| **KBLI 2009** | Perka BPS No. 57/2009 | **2.255** | 21 | 88 | 200 | 512 | 1.434 | [`kbli/kbli2009_parsing`](file:///f:/18%20-%20SIPENA%20KTT/kbli/kbli2009_parsing) |
+| **KBLI 2015** | Perka BPS No. 95/2015 | **2.442** | 21 | 88 | 240 | 520 | 1.573 | [`kbli/kbli2015_parsing`](file:///f:/18%20-%20SIPENA%20KTT/kbli/kbli2015_parsing) |
+| **KBLI 2020** | Peraturan BPS No. 2/2020 | **2.710** | 21 | 88 | 245 | 567 | 1.789 | [`kbli/kbli2020_parsing`](file:///f:/18%20-%20SIPENA%20KTT/kbli/kbli2020_parsing) |
+| **KBLI 2025** | Peraturan BPS No. 7/2025 | **2.444** | 22 | 87 | 257 | 519 | 1.559 | [`kbli/kbli20025_parsing`](file:///f:/18%20-%20SIPENA%20KTT/kbli/kbli20025_parsing) |
+
+### Struktur Kolom Dataset:
+Setiap paket ekstraksi menyediakan format tabular datar (*flat*) dan tabel bentang (*wide* 15 kolom):
+- **Flat Format (`kbli<Tahun>.csv / .json / .db / .xlsx`)**: `code`, `type`, `description`, `explanation`, `parent_code`
+- **Wide Format (`kbli<Tahun>_wide.csv / .db / .xlsx`)**: `kategori_code`, `kategori_name`, `kategori_explanation`, `golongan_pokok_code`, `golongan_pokok_name`, `golongan_pokok_explanation`, `golongan_code`, `golongan_name`, `golongan_explanation`, `subgolongan_code`, `subgolongan_name`, `subgolongan_explanation`, `kelompok_code`, `kelompok_name`, `kelompok_explanation`
+- **Tree Format (`kbli<Tahun>_tree.json`)**: Hierarki rekursif bersarang `children: []` siap pakai untuk komponen GUI navigasi pohon (*Tree-view component*).
+
+---
+
+## 5. Implementasi pada Webapp SIPENA KTT
 
 Data konkordansi master telah disimpan dalam berkas terstruktur:  
 📂 [`kbli/concordance_categories_all_versions.json`](file:///f:/18%20-%20SIPENA%20KTT/kbli/concordance_categories_all_versions.json)
