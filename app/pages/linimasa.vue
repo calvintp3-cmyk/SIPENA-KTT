@@ -591,7 +591,7 @@ function openDetailModal(article: PublicArticleItem) {
                   :key="qBtn.value"
                   type="button"
                   :aria-pressed="selectedQuarter === qBtn.value"
-                  class="min-h-7 px-2.5 py-1 rounded-lg text-xs transition-colors tabular-nums cursor-pointer"
+                  class="min-h-8 px-2.5 py-1 rounded-lg text-xs transition-colors tabular-nums cursor-pointer"
                   :class="
                     selectedQuarter === qBtn.value
                       ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold shadow-xs'

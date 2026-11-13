@@ -1205,7 +1205,7 @@ const statusTabs = computed(() => {
                 <button
                   v-if="canRestoreAiSummary"
                   type="button"
-                  class="inline-flex items-center gap-1 min-h-7 px-1.5 text-xs font-semibold text-indigo-700 hover:underline cursor-pointer"
+                  class="inline-flex items-center gap-1 min-h-8 px-2 rounded-lg text-xs font-semibold text-indigo-700 hover:bg-indigo-50 transition-colors cursor-pointer"
                   @click="() => { restoreAiSummary(); }"
                 >
                   <UIcon name="i-lucide-rotate-ccw" class="w-3 h-3" />

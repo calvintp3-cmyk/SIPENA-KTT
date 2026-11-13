@@ -924,29 +924,29 @@ const columns: TableColumn<AdminArticleItem>[] = [
         <button
           v-if="selectedGroupMeta"
           type="button"
-          class="min-h-7 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border font-semibold transition-opacity hover:opacity-85 cursor-pointer"
+          class="min-h-8 inline-flex items-center gap-1.5 px-3 py-1 rounded-full border font-semibold transition-opacity hover:opacity-85 cursor-pointer"
           :class="getKbliClusterTheme(selectedGroupMeta.groupCode).pillClass"
           @click="() => { filters.pdrbGroup = 'ALL'; }"
         >
           <span>Sektor {{ selectedGroupMeta.groupCode }} - {{ selectedGroupMeta.shortName }}</span>
-          <UIcon name="i-lucide-x" class="w-3 h-3" />
+          <UIcon name="i-lucide-x" class="w-3.5 h-3.5" />
         </button>
 
         <button
           v-if="filters.kbli !== 'ALL'"
           type="button"
-          class="min-h-7 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border font-semibold transition-opacity hover:opacity-85 cursor-pointer"
+          class="min-h-8 inline-flex items-center gap-1.5 px-3 py-1 rounded-full border font-semibold transition-opacity hover:opacity-85 cursor-pointer"
           :class="getKbliClusterTheme(filters.kbli).pillClass"
           @click="() => { filters.kbli = 'ALL'; }"
         >
           <span>KBLI: {{ getKbliShortCodeName(filters.kbli as KbliCategoryEnum) }}</span>
-          <UIcon name="i-lucide-x" class="w-3 h-3" />
+          <UIcon name="i-lucide-x" class="w-3.5 h-3.5" />
         </button>
 
         <button
           v-if="filters.expenditure !== 'ALL'"
           type="button"
-          class="min-h-7 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border font-semibold transition-opacity hover:opacity-85 cursor-pointer"
+          class="min-h-8 inline-flex items-center gap-1.5 px-3 py-1 rounded-full border font-semibold transition-opacity hover:opacity-85 cursor-pointer"
           :class="getExpenditureColorTheme(filters.expenditure).pillClass"
           @click="() => { filters.expenditure = 'ALL'; }"
         >
@@ -955,53 +955,53 @@ const columns: TableColumn<AdminArticleItem>[] = [
             :class="getExpenditureColorTheme(filters.expenditure).dotClass"
           />
           <span>{{ getExpenditureLabel(filters.expenditure as ExpenditureComponentEnum, false) }}</span>
-          <UIcon name="i-lucide-x" class="w-3 h-3" />
+          <UIcon name="i-lucide-x" class="w-3.5 h-3.5" />
         </button>
 
         <button
           v-if="filters.portal !== 'ALL'"
           type="button"
-          class="min-h-7 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-800 border border-indigo-200 font-medium hover:bg-indigo-100 cursor-pointer"
+          class="min-h-8 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 text-indigo-800 border border-indigo-200 font-medium hover:bg-indigo-100 cursor-pointer"
           @click="() => { filters.portal = 'ALL'; }"
         >
           <span>Portal: {{ filters.portal }}</span>
-          <UIcon name="i-lucide-x" class="w-3 h-3" />
+          <UIcon name="i-lucide-x" class="w-3.5 h-3.5" />
         </button>
 
         <button
           v-if="filters.status !== 'ALL'"
           type="button"
-          class="min-h-7 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-800 border border-slate-200 font-medium hover:bg-slate-200 cursor-pointer"
+          class="min-h-8 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-slate-800 border border-slate-200 font-medium hover:bg-slate-200 cursor-pointer"
           @click="() => { filters.status = 'ALL'; }"
         >
           <span>Status: {{ getVerificationStatusBadge(filters.status as VerificationStatusEnum).label }}</span>
-          <UIcon name="i-lucide-x" class="w-3 h-3" />
+          <UIcon name="i-lucide-x" class="w-3.5 h-3.5" />
         </button>
 
         <button
           v-if="filters.llmStatus !== 'ALL'"
           type="button"
-          class="min-h-7 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-800 border border-slate-200 font-medium hover:bg-slate-200 cursor-pointer"
+          class="min-h-8 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-slate-800 border border-slate-200 font-medium hover:bg-slate-200 cursor-pointer"
           @click="() => { filters.llmStatus = 'ALL'; }"
         >
           <span>AI: {{ llmStatusFilterItems.find((i) => i.value === filters.llmStatus)?.label }}</span>
-          <UIcon name="i-lucide-x" class="w-3 h-3" />
+          <UIcon name="i-lucide-x" class="w-3.5 h-3.5" />
         </button>
 
         <button
           v-if="filters.isEconomic !== 'ALL'"
           type="button"
-          class="min-h-7 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-800 border border-slate-200 font-medium hover:bg-slate-200 cursor-pointer"
+          class="min-h-8 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-slate-800 border border-slate-200 font-medium hover:bg-slate-200 cursor-pointer"
           @click="() => { filters.isEconomic = 'ALL'; }"
         >
           <span>{{ filters.isEconomic === 'true' ? 'Hanya Ekonomi' : 'Non-Ekonomi' }}</span>
-          <UIcon name="i-lucide-x" class="w-3 h-3" />
+          <UIcon name="i-lucide-x" class="w-3.5 h-3.5" />
         </button>
 
         <button
           v-if="filters.year !== 'ALL' || filters.quarter !== 'ALL'"
           type="button"
-          class="min-h-7 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-800 border border-slate-200 font-medium tabular-nums hover:bg-slate-200 cursor-pointer"
+          class="min-h-8 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-slate-800 border border-slate-200 font-medium tabular-nums hover:bg-slate-200 cursor-pointer"
           @click="
             () => {
               filters.year = 'ALL';
@@ -1013,7 +1013,7 @@ const columns: TableColumn<AdminArticleItem>[] = [
             Periode: {{ filters.quarter === 'ALL' ? 'Semua TW' : `TW ${filters.quarter}` }}
             {{ filters.year === 'ALL' ? '' : filters.year }}
           </span>
-          <UIcon name="i-lucide-x" class="w-3 h-3" />
+          <UIcon name="i-lucide-x" class="w-3.5 h-3.5" />
         </button>
       </div>
     </div>
@@ -1119,6 +1119,31 @@ const columns: TableColumn<AdminArticleItem>[] = [
                   {{ getKbliImpactBadge(row.original.kbliImpact).shortLabel }}
                 </UBadge>
               </div>
+
+              <!-- Sektor KBLI Sekunder jika ada -->
+              <div
+                v-if="row.original.secondaryKbliCategory"
+                class="pt-1 border-t border-slate-100 flex flex-col gap-1"
+              >
+                <div class="text-[10px] font-semibold text-slate-500">Sekunder:</div>
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  <span
+                    class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium border"
+                    :class="getKbliClusterTheme(row.original.secondaryKbliCategory).pillClass"
+                  >
+                    {{ getKbliShortCodeName(row.original.secondaryKbliCategory) }}
+                  </span>
+                  <UBadge
+                    v-if="row.original.secondaryKbliImpact"
+                    :color="getKbliImpactBadge(row.original.secondaryKbliImpact).color"
+                    variant="subtle"
+                    size="xs"
+                    :icon="getKbliImpactBadge(row.original.secondaryKbliImpact).icon"
+                  >
+                    {{ getKbliImpactBadge(row.original.secondaryKbliImpact).shortLabel }}
+                  </UBadge>
+                </div>
+              </div>
             </div>
             <span v-else class="text-xs text-slate-600">—</span>
           </template>
@@ -1142,6 +1167,28 @@ const columns: TableColumn<AdminArticleItem>[] = [
                 >
                   {{ getExpenditureImpactBadge(row.original.expenditureImpact).shortLabel }}
                 </UBadge>
+              </div>
+
+              <!-- Komponen Pengeluaran Sekunder jika ada -->
+              <div
+                v-if="row.original.secondaryExpenditureComponent"
+                class="pt-1 border-t border-slate-100 flex flex-col gap-1"
+              >
+                <div class="text-[10px] font-semibold text-slate-500">Sekunder:</div>
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  <span class="text-[10px] font-medium text-slate-700">
+                    {{ getExpenditureLabel(row.original.secondaryExpenditureComponent, false) }}
+                  </span>
+                  <UBadge
+                    v-if="row.original.secondaryExpenditureImpact"
+                    :color="getExpenditureImpactBadge(row.original.secondaryExpenditureImpact).color"
+                    variant="subtle"
+                    size="xs"
+                    :icon="getExpenditureImpactBadge(row.original.secondaryExpenditureImpact).icon"
+                  >
+                    {{ getExpenditureImpactBadge(row.original.secondaryExpenditureImpact).shortLabel }}
+                  </UBadge>
+                </div>
               </div>
             </div>
             <span v-else class="text-xs text-slate-600">—</span>

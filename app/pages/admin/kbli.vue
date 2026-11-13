@@ -251,17 +251,25 @@ async function copyEntryCitation(entry: KbliConcordanceEntry) {
 
     <!-- Concordance Master Table -->
     <div class="saas-card rounded-2xl overflow-hidden border border-slate-200">
-      <div class="overflow-x-auto saas-scroll">
+      <div
+        tabindex="0"
+        role="region"
+        aria-label="Tabel Matriks Konkordansi KBLI 4-Generasi"
+        class="overflow-x-auto saas-scroll"
+      >
         <table class="w-full text-left text-xs border-collapse">
+          <caption class="sr-only">
+            Matriks Konkordansi Lapangan Usaha KBLI 2009, 2015, 2020, dan 2025 BPS RI
+          </caption>
           <thead>
             <tr class="bg-slate-50 border-b border-slate-200 text-slate-700 font-bold uppercase tracking-wider text-[10px]">
-              <th class="py-3 px-4 w-48">KBLI 2025 (Terkini)</th>
-              <th class="py-3 px-3 w-40">KBLI 2020</th>
-              <th class="py-3 px-3 w-36">KBLI 2015</th>
-              <th class="py-3 px-3 w-36">KBLI 2009</th>
-              <th class="py-3 px-4 w-48">Akun PDRB KTT</th>
-              <th class="py-3 px-4 min-w-[280px]">Catatan Konkordansi BPS</th>
-              <th class="py-3 px-3 w-16 text-center">Aksi</th>
+              <th scope="col" class="py-3 px-4 w-48">KBLI 2025 (Terkini)</th>
+              <th scope="col" class="py-3 px-3 w-40">KBLI 2020</th>
+              <th scope="col" class="py-3 px-3 w-36">KBLI 2015</th>
+              <th scope="col" class="py-3 px-3 w-36">KBLI 2009</th>
+              <th scope="col" class="py-3 px-4 w-48">Akun PDRB KTT</th>
+              <th scope="col" class="py-3 px-4 min-w-[280px]">Catatan Konkordansi BPS</th>
+              <th scope="col" class="py-3 px-3 w-16 text-center">Aksi</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-100">
@@ -271,7 +279,7 @@ async function copyEntryCitation(entry: KbliConcordanceEntry) {
               class="hover:bg-indigo-50/30 transition-colors"
             >
               <!-- 2025 -->
-              <td class="py-3.5 px-4 align-top">
+              <th scope="row" class="py-3.5 px-4 align-top font-normal text-left">
                 <div class="flex items-start gap-1.5">
                   <span class="inline-flex items-center justify-center w-6 h-6 rounded-lg bg-indigo-600 text-white font-extrabold text-xs shrink-0 shadow-2xs">
                     {{ entry.code_2025 }}
@@ -280,7 +288,7 @@ async function copyEntryCitation(entry: KbliConcordanceEntry) {
                     {{ entry.title_2025 }}
                   </div>
                 </div>
-              </td>
+              </th>
 
               <!-- 2020 -->
               <td class="py-3.5 px-3 align-top">
@@ -340,6 +348,7 @@ async function copyEntryCitation(entry: KbliConcordanceEntry) {
                 <button
                   type="button"
                   title="Salin rincian konkordansi"
+                  :aria-label="`Salin rincian konkordansi Kategori ${entry.code_2025}`"
                   class="min-h-8 min-w-8 inline-flex items-center justify-center rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 transition-colors cursor-pointer"
                   @click="copyEntryCitation(entry)"
                 >
