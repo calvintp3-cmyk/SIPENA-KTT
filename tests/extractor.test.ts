@@ -8,6 +8,7 @@ import {
   EXTRACTOR_MAX_WORDS,
   EXTRACTOR_MIN_WORDS,
   extractArticleContent,
+  normalizeToFullPageArticleUrl,
   parseIndonesianDateTime,
 } from '#server/services/scraper/extractor';
 import {
@@ -19,7 +20,12 @@ import {
   parseGoogleNewsRss,
 } from '#server/services/scraper/national';
 import { ExpenditureComponentEnum, KbliCategoryEnum } from '#shared/enums/pdrb';
-import { parseRegionalPortalIndex, REGIONAL_PORTALS } from '#server/services/scraper/portals';
+import {
+  buildPaginatedPortalUrl,
+  harvestRegionalPortals,
+  parseRegionalPortalIndex,
+  REGIONAL_PORTALS,
+} from '#server/services/scraper/portals';
 import { isHardNoiseTitleForNational } from '#server/services/scraper/title-filter';
 
 function generateWords(n: number, prefix = 'ekonomi'): string {
@@ -375,6 +381,80 @@ describe('Scraper Extractor & Portal/RSS Parsers', () => {
     const extractedBlocked = extractArticleContent(cloudflareHtml);
     expect(extractedBlocked.isSoftBlocked).toBe(true);
     expect(extractedBlocked.isValidContent).toBe(false);
+  });
+
+  it('buildPaginatedPortalUrl dan normalizeToFullPageArticleUrl menangani format halaman secara tepat', () => {
+    // buildPaginatedPortalUrl
+    expect(buildPaginatedPortalUrl('https://korankaltara.com/category/tana-tidung', 1)).toBe(
+      'https://korankaltara.com/category/tana-tidung',
+    );
+    expect(buildPaginatedPortalUrl('https://korankaltara.com/category/tana-tidung', 2, 'SLASH_PAGE')).toBe(
+      'https://korankaltara.com/category/tana-tidung/page/2/',
+    );
+    expect(buildPaginatedPortalUrl('https://kaltara.tribunnews.com/tag/tana-tidung', 3, 'QUERY_PAGE')).toBe(
+      'https://kaltara.tribunnews.com/tag/tana-tidung?page=3',
+    );
+    expect(buildPaginatedPortalUrl('https://benuanta.co.id/?s=tana+tidung', 2, 'QUERY_PAGED')).toBe(
+      'https://benuanta.co.id/?s=tana+tidung&paged=2',
+    );
+
+    // normalizeToFullPageArticleUrl
+    expect(
+      normalizeToFullPageArticleUrl('https://kaltara.tribunnews.com/2026/10/14/proyek-jembatan-ktt-dikebut'),
+    ).toBe('https://kaltara.tribunnews.com/2026/10/14/proyek-jembatan-ktt-dikebut?page=all');
+    // Jika sudah ada ?page=all, tidak diduplikasi
+    expect(
+      normalizeToFullPageArticleUrl('https://kaltara.tribunnews.com/2026/10/14/proyek-jembatan-ktt-dikebut?page=all'),
+    ).toBe('https://kaltara.tribunnews.com/2026/10/14/proyek-jembatan-ktt-dikebut?page=all');
+    // Domain non-Tribun tidak terpengaruh
+    expect(
+      normalizeToFullPageArticleUrl('https://korankaltara.com/ekspor-cpo-tana-tidung-menguat'),
+    ).toBe('https://korankaltara.com/ekspor-cpo-tana-tidung-menguat');
+  });
+
+  it('harvestRegionalPortals mendukung deep-pagination dengan early-exit saat mencapai batas cutoff tanggal', async () => {
+    const now = new Date('2026-10-14T20:00:00.000Z');
+    const pagesRequested: string[] = [];
+
+    const mockPortal = {
+      id: 'test-deep-portal',
+      label: 'Deep Portal Test',
+      sourcePortal: 'deepportal.example.id',
+      indexUrl: 'https://deepportal.example.id/ktt',
+      allowedHosts: ['deepportal.example.id'],
+      itemSelectors: ['article'],
+      maxPages: 5,
+      paginationPattern: 'SLASH_PAGE' as const,
+    };
+
+    const result = await harvestRegionalPortals({
+      portals: [mockPortal],
+      now,
+      lookbackDays: 3, // cutoff = 11 Oktober 2026 00:00 WITA
+      fetchFn: async (url) => {
+        pagesRequested.push(url);
+        if (url.includes('/page/2/')) {
+          // Halaman 2 memuat artikel di luar lookback (5 Oktober 2026)
+          return {
+            finalUrl: url,
+            body: `<article><h2><a href="https://deepportal.example.id/berita-lama-ktt">Berita Tana Tidung Lawas Dari Pekan Lalu</a></h2><time datetime="2026-10-05T09:00:00+08:00">5 Oktober 2026</time></article>`,
+          };
+        }
+        // Halaman 1 memuat artikel segar (14 Oktober 2026)
+        return {
+          finalUrl: url,
+          body: `<article><h2><a href="https://deepportal.example.id/berita-segar-ktt">Berita Tana Tidung Segar Hari Ini</a></h2><time datetime="2026-10-14T09:00:00+08:00">14 Oktober 2026</time></article>`,
+        };
+      },
+    });
+
+    // Harus berhenti setelah halaman 2 karena reachedCutoff (tidak lanjut ke page 3, 4, 5)
+    expect(pagesRequested).toEqual([
+      'https://deepportal.example.id/ktt',
+      'https://deepportal.example.id/ktt/page/2/',
+    ]);
+    expect(result.candidates).toHaveLength(1);
+    expect(result.candidates[0]?.title).toContain('Berita Tana Tidung Segar');
   });
 });
 

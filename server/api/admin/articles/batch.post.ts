@@ -36,6 +36,10 @@ export default defineEventHandler(async (event) => {
     if (body.kbliImpact) updatePayload.kbliImpact = body.kbliImpact;
     if (body.expenditureComponent) updatePayload.expenditureComponent = body.expenditureComponent;
     if (body.expenditureImpact) updatePayload.expenditureImpact = body.expenditureImpact;
+    if (body.secondaryKbliCategory !== undefined) updatePayload.secondaryKbliCategory = body.secondaryKbliCategory;
+    if (body.secondaryKbliImpact !== undefined) updatePayload.secondaryKbliImpact = body.secondaryKbliImpact;
+    if (body.secondaryExpenditureComponent !== undefined) updatePayload.secondaryExpenditureComponent = body.secondaryExpenditureComponent;
+    if (body.secondaryExpenditureImpact !== undefined) updatePayload.secondaryExpenditureImpact = body.secondaryExpenditureImpact;
 
     if (Object.keys(updatePayload).length > 0) {
       await db

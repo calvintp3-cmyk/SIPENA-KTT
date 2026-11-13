@@ -47,6 +47,23 @@ const {
   quarterOptions,
 } = usePdrbLabels();
 
+const secondaryKbliOptions = computed(() => [
+  { value: null, label: '— Tidak Ada (Hanya Sektor Utama) —' },
+  ...kbliOptions,
+]);
+const secondaryExpenditureOptions = computed(() => [
+  { value: null, label: '— Tidak Ada (Hanya Komponen Utama) —' },
+  ...expenditureOptions,
+]);
+const secondaryKbliImpactOptions = computed(() => [
+  { value: null, label: '— Tanpa Dampak Sekunder —' },
+  ...kbliImpactOptions,
+]);
+const secondaryExpImpactOptions = computed(() => [
+  { value: null, label: '— Tanpa Dampak Sekunder —' },
+  ...expenditureImpactOptions,
+]);
+
 const modalOpen = computed({
   get: () => props.open,
   set: (v: boolean) => emit('update:open', v),
@@ -70,6 +87,10 @@ const formState = reactive<CreateManualArticleInput>({
   kbliImpact: KbliImpactEnum.INCREASE_NTB,
   expenditureComponent: ExpenditureComponentEnum.PK_RT,
   expenditureImpact: ExpenditureImpactEnum.INCREASE_REAL,
+  secondaryKbliCategory: null,
+  secondaryKbliImpact: null,
+  secondaryExpenditureComponent: null,
+  secondaryExpenditureImpact: null,
   quarter: currentPeriod.quarter,
   year: currentPeriod.year,
   verifyImmediately: true,
@@ -109,6 +130,10 @@ async function handleExtractFromUrl() {
       kbliImpact: KbliImpactEnum;
       expenditureComponent: ExpenditureComponentEnum;
       expenditureImpact: ExpenditureImpactEnum;
+      secondaryKbliCategory?: KbliCategoryEnum | null;
+      secondaryKbliImpact?: KbliImpactEnum | null;
+      secondaryExpenditureComponent?: ExpenditureComponentEnum | null;
+      secondaryExpenditureImpact?: ExpenditureImpactEnum | null;
     }>('/api/admin/articles/extract-url', {
       method: 'POST',
       body: { url },
@@ -126,6 +151,10 @@ async function handleExtractFromUrl() {
     formState.kbliImpact = res.kbliImpact;
     formState.expenditureComponent = res.expenditureComponent;
     formState.expenditureImpact = res.expenditureImpact;
+    formState.secondaryKbliCategory = res.secondaryKbliCategory ?? null;
+    formState.secondaryKbliImpact = res.secondaryKbliImpact ?? null;
+    formState.secondaryExpenditureComponent = res.secondaryExpenditureComponent ?? null;
+    formState.secondaryExpenditureImpact = res.secondaryExpenditureImpact ?? null;
 
     toast.add({
       title: 'Berhasil Ekstrak Konten & Analisis AI',
@@ -157,6 +186,10 @@ function resetForm() {
   formState.kbliImpact = KbliImpactEnum.INCREASE_NTB;
   formState.expenditureComponent = ExpenditureComponentEnum.PK_RT;
   formState.expenditureImpact = ExpenditureImpactEnum.INCREASE_REAL;
+  formState.secondaryKbliCategory = null;
+  formState.secondaryKbliImpact = null;
+  formState.secondaryExpenditureComponent = null;
+  formState.secondaryExpenditureImpact = null;
   formState.quarter = props.defaultQuarter ?? period.quarter;
   formState.year = props.defaultYear ?? period.year;
   formState.verifyImmediately = true;
@@ -368,6 +401,55 @@ async function handleSubmit(event: FormSubmitEvent<CreateManualArticleInput>) {
               class="w-full"
             />
           </UFormField>
+        </div>
+
+        <!-- Sektor & Dampak Sekunder (Opsional / Inter-industry Linkage) -->
+        <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200/80 space-y-3">
+          <div class="flex items-center gap-2">
+            <UIcon name="i-solar-link-round-bold-duotone" class="w-4 h-4 text-indigo-600" />
+            <span class="text-xs font-bold text-slate-800">Sektor Sekunder (Opsional — Keterkaitan Sektoral)</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <UFormField label="KBLI Sekunder" name="secondaryKbliCategory">
+              <USelectMenu
+                v-model="formState.secondaryKbliCategory"
+                :items="secondaryKbliOptions"
+                value-key="value"
+                label-key="label"
+                class="w-full"
+              />
+            </UFormField>
+
+            <UFormField label="Dampak KBLI Sekunder" name="secondaryKbliImpact">
+              <USelect
+                v-model="formState.secondaryKbliImpact"
+                :items="secondaryKbliImpactOptions"
+                value-key="value"
+                label-key="label"
+                class="w-full"
+              />
+            </UFormField>
+
+            <UFormField label="Pengeluaran Sekunder" name="secondaryExpenditureComponent">
+              <USelect
+                v-model="formState.secondaryExpenditureComponent"
+                :items="secondaryExpenditureOptions"
+                value-key="value"
+                label-key="label"
+                class="w-full"
+              />
+            </UFormField>
+
+            <UFormField label="Dampak Pengeluaran Sekunder" name="secondaryExpenditureImpact">
+              <USelect
+                v-model="formState.secondaryExpenditureImpact"
+                :items="secondaryExpImpactOptions"
+                value-key="value"
+                label-key="label"
+                class="w-full"
+              />
+            </UFormField>
+          </div>
         </div>
 
         <UCheckbox

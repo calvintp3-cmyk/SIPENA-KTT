@@ -25,6 +25,9 @@ import { KTT_ANCHOR_RE } from './geo-filter';
 
 export const DEFAULT_REGIONAL_MAX_ITEMS = 15;
 export const DEFAULT_LOOKBACK_DAYS = 7;
+export const DEFAULT_MAX_PAGES_PER_PORTAL = 5;
+
+export type PaginationPattern = 'SLASH_PAGE' | 'QUERY_PAGE' | 'QUERY_P' | 'QUERY_PAGED';
 
 export interface RegionalPortalConfig {
   id: string;
@@ -35,6 +38,50 @@ export interface RegionalPortalConfig {
   additionalIndexUrls?: ReadonlyArray<string>;
   allowedHosts: ReadonlyArray<string>;
   itemSelectors: ReadonlyArray<string>;
+  paginationPattern?: PaginationPattern;
+  maxPages?: number;
+}
+
+export function buildPaginatedPortalUrl(
+  baseUrl: string,
+  page: number,
+  pattern?: PaginationPattern,
+): string {
+  if (page <= 1) return baseUrl;
+  try {
+    const url = new URL(baseUrl);
+    if (pattern === 'QUERY_PAGE') {
+      url.searchParams.set('page', String(page));
+      return url.toString();
+    }
+    if (pattern === 'QUERY_P') {
+      url.searchParams.set('p', String(page));
+      return url.toString();
+    }
+    if (pattern === 'QUERY_PAGED') {
+      url.searchParams.set('paged', String(page));
+      return url.toString();
+    }
+    if (pattern === 'SLASH_PAGE') {
+      const cleanPath = url.pathname.replace(/\/+$/, '');
+      url.pathname = `${cleanPath}/page/${page}/`;
+      return url.toString();
+    }
+
+    if (url.searchParams.has('s')) {
+      url.searchParams.set('paged', String(page));
+      return url.toString();
+    }
+    if (url.search) {
+      url.searchParams.set('page', String(page));
+      return url.toString();
+    }
+    const cleanPath = url.pathname.replace(/\/+$/, '');
+    url.pathname = `${cleanPath}/page/${page}/`;
+    return url.toString();
+  } catch {
+    return baseUrl;
+  }
 }
 
 export interface DiscoveredArticleCandidate {
@@ -62,6 +109,8 @@ export const REGIONAL_PORTALS: ReadonlyArray<RegionalPortalConfig> = [
     indexUrl: 'https://kaltara.tribunnews.com/tag/tana-tidung',
     additionalIndexUrls: ['https://kaltara.tribunnews.com/kaltara/tanah-tidung'],
     allowedHosts: ['kaltara.tribunnews.com'],
+    paginationPattern: 'QUERY_PAGE',
+    maxPages: 5,
     itemSelectors: [
       'div.mr140, div.pos_abs.hlover',
       'ul.lsi li.p1520',
@@ -77,6 +126,8 @@ export const REGIONAL_PORTALS: ReadonlyArray<RegionalPortalConfig> = [
     sourcePortal: 'korankaltara.com',
     indexUrl: 'https://korankaltara.com/category/tana-tidung',
     allowedHosts: ['korankaltara.com', 'www.korankaltara.com'],
+    paginationPattern: 'SLASH_PAGE',
+    maxPages: 5,
     itemSelectors: [
       'article',
       'div.border-b',
@@ -103,6 +154,8 @@ export const REGIONAL_PORTALS: ReadonlyArray<RegionalPortalConfig> = [
       'https://benuanta.co.id/category/pemkab-tana-tidung/',
     ],
     allowedHosts: ['benuanta.co.id', 'www.benuanta.co.id'],
+    paginationPattern: 'QUERY_PAGED',
+    maxPages: 5,
     itemSelectors: [
       'article',
       '.jeg_post',
@@ -117,6 +170,8 @@ export const REGIONAL_PORTALS: ReadonlyArray<RegionalPortalConfig> = [
     sourcePortal: 'radartarakan.jawapos.com',
     indexUrl: 'https://radartarakan.jawapos.com/tana-tidung',
     allowedHosts: ['radartarakan.jawapos.com'],
+    paginationPattern: 'QUERY_PAGE',
+    maxPages: 5,
     itemSelectors: [
       '.ui-r-fg, .ui-r-display.ui-r-dir',
       '.latest__item',
@@ -124,6 +179,118 @@ export const REGIONAL_PORTALS: ReadonlyArray<RegionalPortalConfig> = [
       'article',
       '.post-item',
       '.news-item',
+    ],
+  },
+  {
+    id: 'pemkab-tana-tidung',
+    label: 'Pemkab Tana Tidung (Portal Resmi)',
+    sourcePortal: 'tanatidungkab.go.id',
+    indexUrl: 'https://tanatidungkab.go.id/berita',
+    allowedHosts: ['tanatidungkab.go.id', 'www.tanatidungkab.go.id'],
+    paginationPattern: 'QUERY_PAGE',
+    maxPages: 5,
+    itemSelectors: [
+      '.news-item',
+      'article',
+      '.post',
+      '.card',
+      '.blog-item',
+      '.content-item',
+    ],
+  },
+  {
+    id: 'pemprov-kaltara',
+    label: 'Pemprov Kaltara (Diskominfo)',
+    sourcePortal: 'kaltaraprov.go.id',
+    indexUrl: 'https://kaltaraprov.go.id/berita',
+    additionalIndexUrls: ['https://kaltaraprov.go.id/'],
+    allowedHosts: ['kaltaraprov.go.id', 'www.kaltaraprov.go.id'],
+    paginationPattern: 'SLASH_PAGE',
+    maxPages: 5,
+    itemSelectors: [
+      'article',
+      '.post',
+      '.news-item',
+      '.card',
+      '.jeg_post',
+    ],
+  },
+  {
+    id: 'disbun-kaltara',
+    label: 'Disbun Kaltara (Harga TBS & Sawit)',
+    sourcePortal: 'disbun.kaltaraprov.go.id',
+    indexUrl: 'https://disbun.kaltaraprov.go.id/berita',
+    allowedHosts: ['disbun.kaltaraprov.go.id'],
+    paginationPattern: 'SLASH_PAGE',
+    maxPages: 5,
+    itemSelectors: [
+      'article',
+      '.post',
+      '.news-item',
+      '.card',
+    ],
+  },
+  {
+    id: 'antara-kaltara',
+    label: 'Antara News Kaltara',
+    sourcePortal: 'kaltara.antaranews.com',
+    indexUrl: 'https://kaltara.antaranews.com/kaltara',
+    additionalIndexUrls: ['https://kaltara.antaranews.com/biro-kaltara'],
+    allowedHosts: ['kaltara.antaranews.com'],
+    paginationPattern: 'QUERY_PAGE',
+    maxPages: 5,
+    itemSelectors: [
+      'article',
+      '.simple-post',
+      '.post-item',
+      '.list-news li',
+    ],
+  },
+  {
+    id: 'focus-borneo',
+    label: 'Fokus Borneo',
+    sourcePortal: 'focusborneo.com',
+    indexUrl: 'https://focusborneo.com/category/kaltara/tana-tidung/',
+    additionalIndexUrls: ['https://focusborneo.com/category/kaltara/'],
+    allowedHosts: ['focusborneo.com', 'www.focusborneo.com'],
+    paginationPattern: 'SLASH_PAGE',
+    maxPages: 5,
+    itemSelectors: [
+      'article',
+      '.jeg_post',
+      '.post-item',
+      '.td_module_wrap',
+    ],
+  },
+  {
+    id: 'niaga-asia',
+    label: 'Niaga.Asia (Kaltara)',
+    sourcePortal: 'niaga.asia',
+    indexUrl: 'https://www.niaga.asia/category/kaltara/',
+    allowedHosts: ['niaga.asia', 'www.niaga.asia'],
+    paginationPattern: 'SLASH_PAGE',
+    maxPages: 5,
+    itemSelectors: [
+      'article',
+      '.jeg_post',
+      '.post-item',
+      '.td_module_wrap',
+    ],
+  },
+  {
+    id: 'pro-kaltara',
+    label: 'Pro Kaltara (Jawa Pos)',
+    sourcePortal: 'prokaltara.jawapos.com',
+    indexUrl: 'https://prokaltara.jawapos.com/tana-tidung',
+    additionalIndexUrls: ['https://prokaltara.jawapos.com/kaltara'],
+    allowedHosts: ['prokaltara.jawapos.com'],
+    paginationPattern: 'QUERY_PAGE',
+    maxPages: 5,
+    itemSelectors: [
+      'article',
+      '.latest__item',
+      '.post-item',
+      '.ui-r-fg',
     ],
   },
 ];
@@ -423,7 +590,13 @@ export function parseRegionalRssFeed(
 export function parseRegionalPortalIndex(
   html: string,
   portal: RegionalPortalConfig,
-  options?: { now?: Date; lookbackDays?: number; maxItems?: number; baseUrl?: string },
+  options?: {
+    now?: Date;
+    lookbackDays?: number;
+    maxItems?: number;
+    baseUrl?: string;
+    onCutoffReached?: () => void;
+  },
 ): DiscoveredArticleCandidate[] {
   const now = options?.now ?? new Date();
   const cutoff = getWitaLookbackCutoff(now, options?.lookbackDays ?? DEFAULT_LOOKBACK_DAYS);
@@ -458,6 +631,7 @@ export function parseRegionalPortalIndex(
 
     const publishedHint = parseIndonesianDateTime(rawDateStr, now);
     if (!isWithinLookbackWindow(publishedHint, cutoff)) {
+      options?.onCutoffReached?.();
       return false;
     }
 
@@ -605,6 +779,7 @@ export interface RegionalHarvestOptions {
   now?: Date;
   lookbackDays?: number;
   maxItemsPerPortal?: number;
+  maxPagesPerPortal?: number;
   timeoutMs?: number;
   concurrency?: number;
   signal?: AbortSignal;
@@ -613,6 +788,7 @@ export interface RegionalHarvestOptions {
 /**
  * Mengambil indeks artikel terkini dari seluruh portal regional Kabupaten Tana Tidung secara paralel.
  * Portal dengan `feedUrls` WordPress RSS memprioritaskan jalur cepat RSS terstruktur sebelum HTML index.
+ * Mendukung adaptif deep-pagination dengan early-exit saat mencapai batas cutoff tanggal atau artikel usang.
  */
 export async function harvestRegionalPortals(
   options: RegionalHarvestOptions = {},
@@ -681,54 +857,81 @@ export async function harvestRegionalPortals(
         }
       }
 
-      // 2. HTML index & additionalIndexUrls (utama untuk portal non-RSS atau pelengkap bila kuota portal belum penuh)
+      // 2. HTML index & additionalIndexUrls dengan deep-pagination adaptif
       const htmlUrlsToCheck = [portal.indexUrl, ...(portal.additionalIndexUrls ?? [])];
       for (const targetIndexUrl of htmlUrlsToCheck) {
         if (signal?.aborted) break;
         if (portalFoundCount >= maxItemsPerPortal) break;
 
-        try {
-          const response = await fetchFn(targetIndexUrl, {
-            timeoutMs,
-            maxBytes: 2 * 1024 * 1024,
-            userAgent: DEFAULT_BROWSER_USER_AGENT,
-            headers: DEFAULT_BROWSER_HEADERS,
-            signal,
-            politeHostPacing: !options.fetchFn,
-          });
+        const maxPages = portal.maxPages ?? options.maxPagesPerPortal ?? 1;
+        for (let page = 1; page <= maxPages; page++) {
+          if (signal?.aborted) break;
+          if (portalFoundCount >= maxItemsPerPortal) break;
 
-          const softBlock = detectSoftBlockPage(response.body);
-          if (softBlock.isSoftBlocked) {
+          const currentUrl = buildPaginatedPortalUrl(targetIndexUrl, page, portal.paginationPattern);
+
+          if (page > 1) {
+            await new Promise((r) => setTimeout(r, options.fetchFn ? 0 : 300));
+          }
+
+          try {
+            const response = await fetchFn(currentUrl, {
+              timeoutMs,
+              maxBytes: 2 * 1024 * 1024,
+              userAgent: DEFAULT_BROWSER_USER_AGENT,
+              headers: DEFAULT_BROWSER_HEADERS,
+              signal,
+              politeHostPacing: !options.fetchFn,
+            });
+
+            const softBlock = detectSoftBlockPage(response.body);
+            if (softBlock.isSoftBlocked) {
+              portalErrors.push({
+                source: portal.sourcePortal,
+                stage: 'HARVEST',
+                message: softBlock.reason ?? 'Halaman indeks terblokir soft-block anti-bot.',
+                url: currentUrl,
+              });
+              break;
+            }
+
+            let reachedCutoff = false;
+            const portalCandidates = parseRegionalPortalIndex(response.body, portal, {
+              now,
+              lookbackDays,
+              maxItems: maxItemsPerPortal - portalFoundCount,
+              baseUrl: currentUrl,
+              onCutoffReached: () => {
+                reachedCutoff = true;
+              },
+            });
+
+            if (portalCandidates.length === 0) {
+              break;
+            }
+
+            let newFoundOnPage = 0;
+            for (const candidate of portalCandidates) {
+              if (!globalSeenHashes.has(candidate.urlHash)) {
+                globalSeenHashes.add(candidate.urlHash);
+                candidates.push(candidate);
+                portalFoundCount += 1;
+                newFoundOnPage += 1;
+              }
+            }
+
+            if (reachedCutoff || newFoundOnPage === 0 || portalFoundCount >= maxItemsPerPortal) {
+              break;
+            }
+          } catch (err) {
             portalErrors.push({
               source: portal.sourcePortal,
               stage: 'HARVEST',
-              message: softBlock.reason ?? 'Halaman indeks terblokir soft-block anti-bot.',
-              url: targetIndexUrl,
+              message: err instanceof Error ? err.message : String(err),
+              url: currentUrl,
             });
-            continue;
+            break;
           }
-
-          const portalCandidates = parseRegionalPortalIndex(response.body, portal, {
-            now,
-            lookbackDays,
-            maxItems: maxItemsPerPortal - portalFoundCount,
-            baseUrl: targetIndexUrl,
-          });
-
-          for (const candidate of portalCandidates) {
-            if (!globalSeenHashes.has(candidate.urlHash)) {
-              globalSeenHashes.add(candidate.urlHash);
-              candidates.push(candidate);
-              portalFoundCount += 1;
-            }
-          }
-        } catch (err) {
-          portalErrors.push({
-            source: portal.sourcePortal,
-            stage: 'HARVEST',
-            message: err instanceof Error ? err.message : String(err),
-            url: targetIndexUrl,
-          });
         }
       }
 

@@ -64,6 +64,10 @@ const form = reactive({
   kbliImpact: '' as KbliImpactEnum | '',
   expenditureComponent: '' as ExpenditureComponentEnum | '',
   expenditureImpact: '' as ExpenditureImpactEnum | '',
+  secondaryKbliCategory: '' as KbliCategoryEnum | '',
+  secondaryKbliImpact: '' as KbliImpactEnum | '',
+  secondaryExpenditureComponent: '' as ExpenditureComponentEnum | '',
+  secondaryExpenditureImpact: '' as ExpenditureImpactEnum | '',
   quarter: defaultPeriod.quarter as PdrbQuarter,
   year: defaultPeriod.year,
   isEconomicPhenomenon: true,
@@ -89,6 +93,10 @@ watch(
     form.kbliImpact = nextArticle.kbliImpact ?? '';
     form.expenditureComponent = nextArticle.expenditureComponent ?? '';
     form.expenditureImpact = nextArticle.expenditureImpact ?? '';
+    form.secondaryKbliCategory = nextArticle.secondaryKbliCategory ?? '';
+    form.secondaryKbliImpact = nextArticle.secondaryKbliImpact ?? '';
+    form.secondaryExpenditureComponent = nextArticle.secondaryExpenditureComponent ?? '';
+    form.secondaryExpenditureImpact = nextArticle.secondaryExpenditureImpact ?? '';
     form.quarter = nextArticle.quarter as PdrbQuarter;
     form.year = nextArticle.year;
     form.isEconomicPhenomenon = nextArticle.isEconomicPhenomenon ?? true;
@@ -134,6 +142,51 @@ const expenditureImpactModel = computed<string | undefined>({
     form.expenditureImpact = (v as ExpenditureImpactEnum | undefined) ?? '';
   },
 });
+
+const secondaryKbliModel = computed<string | undefined>({
+  get: () => (form.secondaryKbliCategory === '' ? undefined : form.secondaryKbliCategory),
+  set: (v: string | undefined) => {
+    form.secondaryKbliCategory = (v as KbliCategoryEnum | undefined) ?? '';
+  },
+});
+
+const secondaryKbliImpactModel = computed<string | undefined>({
+  get: () => (form.secondaryKbliImpact === '' ? undefined : form.secondaryKbliImpact),
+  set: (v: string | undefined) => {
+    form.secondaryKbliImpact = (v as KbliImpactEnum | undefined) ?? '';
+  },
+});
+
+const secondaryExpenditureModel = computed<string | undefined>({
+  get: () => (form.secondaryExpenditureComponent === '' ? undefined : form.secondaryExpenditureComponent),
+  set: (v: string | undefined) => {
+    form.secondaryExpenditureComponent = (v as ExpenditureComponentEnum | undefined) ?? '';
+  },
+});
+
+const secondaryExpenditureImpactModel = computed<string | undefined>({
+  get: () => (form.secondaryExpenditureImpact === '' ? undefined : form.secondaryExpenditureImpact),
+  set: (v: string | undefined) => {
+    form.secondaryExpenditureImpact = (v as ExpenditureImpactEnum | undefined) ?? '';
+  },
+});
+
+const secondaryKbliOptions = computed(() => [
+  { value: '', label: '— Tidak Ada (Hanya Sektor Utama) —' },
+  ...kbliOptions,
+]);
+const secondaryExpenditureOptions = computed(() => [
+  { value: '', label: '— Tidak Ada (Hanya Komponen Utama) —' },
+  ...expenditureOptions,
+]);
+const secondaryKbliImpactOptions = computed(() => [
+  { value: '', label: '— Tanpa Dampak Sekunder —' },
+  ...kbliImpactOptions,
+]);
+const secondaryExpImpactOptions = computed(() => [
+  { value: '', label: '— Tanpa Dampak Sekunder —' },
+  ...expenditureImpactOptions,
+]);
 
 const snippetWordCount = computed(() => {
   const txt = props.article?.snippetText?.trim();
@@ -192,6 +245,10 @@ async function submitUpdate(action: 'VERIFIED' | 'IGNORED' | 'DRAFT') {
       kbliImpact: form.kbliImpact || null,
       expenditureComponent: form.expenditureComponent || null,
       expenditureImpact: form.expenditureImpact || null,
+      secondaryKbliCategory: form.secondaryKbliCategory || null,
+      secondaryKbliImpact: form.secondaryKbliImpact || null,
+      secondaryExpenditureComponent: form.secondaryExpenditureComponent || null,
+      secondaryExpenditureImpact: form.secondaryExpenditureImpact || null,
       quarter: form.quarter,
       year: Number(form.year),
       ...(nextStatus ? { verificationStatus: nextStatus } : {}),
@@ -437,6 +494,59 @@ async function submitUpdate(action: 'VERIFIED' | 'IGNORED' | 'DRAFT') {
                 value-key="value"
                 label-key="label"
                 placeholder="Pilih arah dampak pengeluaran..."
+                class="w-full"
+              />
+            </UFormField>
+          </div>
+        </div>
+
+        <!-- Sektor & Dampak Sekunder (Opsional / Inter-industry Linkage) -->
+        <div class="rounded-xl border border-slate-200/90 bg-slate-50/70 p-3.5 space-y-3">
+          <div class="flex items-center gap-2">
+            <UIcon name="i-solar-link-round-bold-duotone" class="w-4 h-4 text-indigo-600" />
+            <span class="text-xs font-bold text-slate-800">Keterkaitan Sektoral Sekunder (Opsional)</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <UFormField label="KBLI Sekunder">
+              <USelectMenu
+                v-model="secondaryKbliModel"
+                :items="secondaryKbliOptions"
+                value-key="value"
+                label-key="label"
+                placeholder="Pilih KBLI sekunder..."
+                class="w-full"
+              />
+            </UFormField>
+
+            <UFormField label="Dampak KBLI Sekunder">
+              <USelect
+                v-model="secondaryKbliImpactModel"
+                :items="secondaryKbliImpactOptions"
+                value-key="value"
+                label-key="label"
+                placeholder="Pilih dampak sekunder..."
+                class="w-full"
+              />
+            </UFormField>
+
+            <UFormField label="Pengeluaran Sekunder">
+              <USelect
+                v-model="secondaryExpenditureModel"
+                :items="secondaryExpenditureOptions"
+                value-key="value"
+                label-key="label"
+                placeholder="Pilih pengeluaran sekunder..."
+                class="w-full"
+              />
+            </UFormField>
+
+            <UFormField label="Dampak Pengeluaran Sekunder">
+              <USelect
+                v-model="secondaryExpenditureImpactModel"
+                :items="secondaryExpImpactOptions"
+                value-key="value"
+                label-key="label"
+                placeholder="Pilih dampak pengeluaran..."
                 class="w-full"
               />
             </UFormField>

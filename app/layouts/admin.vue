@@ -120,6 +120,11 @@ const navGroups = computed<NavGroup[]>(() => {
           to: '/admin/taxonomy',
           icon: 'i-solar-book-bookmark-bold-duotone',
         },
+        {
+          label: 'Konkordansi KBLI 2009–2025',
+          to: '/admin/kbli',
+          icon: 'i-solar-route-bold-duotone',
+        },
       ],
     },
     {

@@ -208,13 +208,23 @@ const expenditureImpactRows: Array<{
         </p>
       </div>
 
-      <NuxtLink
-        :to="`/admin/articles?year=${selectedYear}&quarter=${selectedQuarter}&status=${VerificationStatusEnum.VERIFIED}`"
-        class="btn-primary-gradient min-h-9 px-4 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 self-start lg:self-auto shrink-0"
-      >
-        <UIcon name="i-solar-database-bold-duotone" class="w-4 h-4 text-emerald-200" />
-        <span>Buka Bank Data ({{ shortPeriodLabel }})</span>
-      </NuxtLink>
+      <div class="flex items-center gap-2 flex-wrap self-start lg:self-auto shrink-0">
+        <NuxtLink
+          to="/admin/kbli"
+          class="min-h-9 px-3.5 rounded-xl border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 text-xs font-bold text-indigo-800 inline-flex items-center gap-1.5 transition-colors shadow-2xs"
+        >
+          <UIcon name="i-solar-route-bold-duotone" class="w-4 h-4 text-indigo-600" />
+          <span>Matriks Konkordansi 4-Generasi</span>
+        </NuxtLink>
+
+        <NuxtLink
+          :to="`/admin/articles?year=${selectedYear}&quarter=${selectedQuarter}&status=${VerificationStatusEnum.VERIFIED}`"
+          class="btn-primary-gradient min-h-9 px-4 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5"
+        >
+          <UIcon name="i-solar-database-bold-duotone" class="w-4 h-4 text-emerald-200" />
+          <span>Buka Bank Data ({{ shortPeriodLabel }})</span>
+        </NuxtLink>
+      </div>
     </div>
 
     <UAlert

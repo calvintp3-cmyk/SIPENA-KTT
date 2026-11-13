@@ -4,6 +4,7 @@ import {
   PDRB_6_EXPENDITURE_LIST,
   getPdrb17GroupForKbli,
 } from '#shared/enums/pdrb';
+import { getKbliFourGenerations } from '#shared/utils/kbli-concordance';
 import { formatDateTimeWita, toRomanQuarter } from '#shared/utils/period';
 import type { PublicArticleItem } from '~/types/sipena';
 
@@ -69,6 +70,24 @@ const expenditureMeta = computed(() => {
 const kbliImpactBadge = computed(() => getKbliImpactBadge(props.article?.kbliImpact));
 const expImpactBadge = computed(() => getExpenditureImpactBadge(props.article?.expenditureImpact));
 const hasSafeUrl = computed(() => isSafeHttpUrl(props.article?.url));
+
+const kbliBridge = computed(() => {
+  if (!props.article?.kbliCategory) return null;
+  return getKbliFourGenerations(props.article.kbliCategory);
+});
+
+const secondaryClusterTheme = computed(() =>
+  getKbliClusterTheme(props.article?.secondaryKbliCategory),
+);
+const secondaryKbliImpactBadge = computed(() =>
+  getKbliImpactBadge(props.article?.secondaryKbliImpact),
+);
+const secondaryExpenditureTheme = computed(() =>
+  getExpenditureColorTheme(props.article?.secondaryExpenditureComponent),
+);
+const secondaryExpImpactBadge = computed(() =>
+  getExpenditureImpactBadge(props.article?.secondaryExpenditureImpact),
+);
 
 async function handleCopyCitation() {
   if (!props.article) return;
@@ -235,6 +254,120 @@ async function handleCopyCitation() {
             >
               {{ expenditureMeta.description }}
             </div>
+          </div>
+        </div>
+
+        <!-- Keterkaitan Sektoral Sekunder (Jika teridentifikasi) -->
+        <div
+          v-if="article.secondaryKbliCategory || article.secondaryExpenditureComponent"
+          class="p-4 rounded-2xl bg-slate-50 border border-slate-200/90 space-y-3"
+        >
+          <div class="flex items-center gap-2">
+            <UIcon name="i-solar-link-round-bold-duotone" class="w-4 h-4 text-indigo-600" />
+            <span class="text-xs font-bold text-slate-800">
+              Keterkaitan Sektoral Sekunder (Inter-Industry Linkage)
+            </span>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+            <div
+              v-if="article.secondaryKbliCategory"
+              class="p-3 rounded-xl bg-white border border-slate-200 flex flex-col gap-1.5"
+            >
+              <span class="text-[11px] font-semibold text-slate-500">Sektor Sekunder (KBLI)</span>
+              <span class="font-bold text-slate-900">{{ getKbliLabel(article.secondaryKbliCategory, true) }}</span>
+              <div v-if="article.secondaryKbliImpact" class="flex items-center gap-1.5 mt-0.5">
+                <span class="text-[11px] text-slate-500">Dampak:</span>
+                <UBadge :color="secondaryKbliImpactBadge.color" variant="subtle" size="xs" :icon="secondaryKbliImpactBadge.icon">
+                  {{ secondaryKbliImpactBadge.label }}
+                </UBadge>
+              </div>
+            </div>
+            <div
+              v-if="article.secondaryExpenditureComponent"
+              class="p-3 rounded-xl bg-white border border-slate-200 flex flex-col gap-1.5"
+            >
+              <span class="text-[11px] font-semibold text-slate-500">Pengeluaran Sekunder</span>
+              <span class="font-bold text-slate-900">{{ getExpenditureLabel(article.secondaryExpenditureComponent, true) }}</span>
+              <div v-if="article.secondaryExpenditureImpact" class="flex items-center gap-1.5 mt-0.5">
+                <span class="text-[11px] text-slate-500">Dampak:</span>
+                <UBadge :color="secondaryExpImpactBadge.color" variant="subtle" size="xs" :icon="secondaryExpImpactBadge.icon">
+                  {{ secondaryExpImpactBadge.label }}
+                </UBadge>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Jembatan Konkordansi KBLI 4-Generasi (2009 -> 2025) -->
+        <div
+          v-if="kbliBridge"
+          class="p-4 rounded-2xl bg-indigo-50/50 border border-indigo-200/90 space-y-3"
+        >
+          <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+              <UIcon name="i-solar-route-bold-duotone" class="w-4 h-4 text-indigo-700" />
+              <span class="text-xs font-bold text-indigo-950">
+                Jembatan Konkordansi KBLI 4-Generasi (BPS RI)
+              </span>
+            </div>
+            <span class="text-[10px] bg-indigo-100 text-indigo-800 font-bold px-2 py-0.5 rounded-full">
+              {{ kbliBridge.pdrbSector }}
+            </span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+            <div class="p-2.5 rounded-xl bg-white border border-indigo-200/80 shadow-2xs">
+              <div class="text-[10px] font-bold text-indigo-700 uppercase tracking-wider mb-1">
+                KBLI 2025 (Terkini)
+              </div>
+              <div class="font-bold text-slate-900">
+                Kategori {{ kbliBridge.code2025 }}
+              </div>
+              <div class="text-[11px] text-slate-600 line-clamp-2" :title="kbliBridge.title2025">
+                {{ kbliBridge.title2025 }}
+              </div>
+            </div>
+
+            <div class="p-2.5 rounded-xl bg-white/90 border border-slate-200 shadow-2xs">
+              <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+                KBLI 2020 (Transisi)
+              </div>
+              <div class="font-bold text-slate-800">
+                Kategori {{ kbliBridge.code2020 }}
+              </div>
+              <div class="text-[11px] text-slate-600 line-clamp-2" :title="kbliBridge.title2020">
+                {{ kbliBridge.title2020 }}
+              </div>
+            </div>
+
+            <div class="p-2.5 rounded-xl bg-white/80 border border-slate-200">
+              <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+                KBLI 2015
+              </div>
+              <div class="font-bold text-slate-800">
+                Kategori {{ kbliBridge.code2015 }}
+              </div>
+              <div class="text-[11px] text-slate-600 line-clamp-2" :title="kbliBridge.title2015">
+                {{ kbliBridge.title2015 }}
+              </div>
+            </div>
+
+            <div class="p-2.5 rounded-xl bg-white/80 border border-slate-200">
+              <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+                KBLI 2009 (Awal)
+              </div>
+              <div class="font-bold text-slate-800">
+                Kategori {{ kbliBridge.code2009 }}
+              </div>
+              <div class="text-[11px] text-slate-600 line-clamp-2" :title="kbliBridge.title2009">
+                {{ kbliBridge.title2009 }}
+              </div>
+            </div>
+          </div>
+
+          <div class="text-[11px] text-slate-600 bg-white/70 p-2.5 rounded-xl border border-indigo-100 leading-relaxed">
+            <span class="font-bold text-indigo-900">Catatan Perubahan Struktur BPS: </span>
+            {{ kbliBridge.changeNotes }}
           </div>
         </div>
 

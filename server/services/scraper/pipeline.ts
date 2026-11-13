@@ -33,7 +33,7 @@ import {
   getCandidateSourcePriority,
   type SemanticHistoricalTitleItem,
 } from './dedup';
-import { extractArticleContent } from './extractor';
+import { extractArticleContent, normalizeToFullPageArticleUrl } from './extractor';
 import { evaluateGeographicRelevance } from './geo-filter';
 import {
   DEFAULT_GOOGLE_NEWS_DECODE_CAP_PER_RUN,
@@ -667,7 +667,8 @@ async function executeLockedScrapePipeline(
           }
 
           try {
-            let fetched = await fetchFn(candidate.url, {
+            const normalizedFetchUrl = normalizeToFullPageArticleUrl(candidate.url);
+            let fetched = await fetchFn(normalizedFetchUrl, {
               timeoutMs: fetchTimeoutMs,
               maxBytes: 2 * 1024 * 1024,
               userAgent: DEFAULT_BROWSER_USER_AGENT,
@@ -700,7 +701,8 @@ async function executeLockedScrapePipeline(
 
               if (externalTarget && hasRemainingBudget(20)) {
                 try {
-                  fetched = await fetchFn(externalTarget, {
+                  const normalizedExternalTarget = normalizeToFullPageArticleUrl(externalTarget);
+                  fetched = await fetchFn(normalizedExternalTarget, {
                     timeoutMs: fetchTimeoutMs,
                     maxBytes: 2 * 1024 * 1024,
                     userAgent: DEFAULT_BROWSER_USER_AGENT,
@@ -1016,6 +1018,10 @@ async function executeLockedScrapePipeline(
           kbliImpact: typeof articles.$inferInsert['kbliImpact'];
           expenditureComponent: typeof articles.$inferInsert['expenditureComponent'];
           expenditureImpact: typeof articles.$inferInsert['expenditureImpact'];
+          secondaryKbliCategory: typeof articles.$inferInsert['secondaryKbliCategory'];
+          secondaryKbliImpact: typeof articles.$inferInsert['secondaryKbliImpact'];
+          secondaryExpenditureComponent: typeof articles.$inferInsert['secondaryExpenditureComponent'];
+          secondaryExpenditureImpact: typeof articles.$inferInsert['secondaryExpenditureImpact'];
           quarter: number;
           year: number;
           llmModel: string | null;
@@ -1035,6 +1041,10 @@ async function executeLockedScrapePipeline(
             kbliImpact: null,
             expenditureComponent: null,
             expenditureImpact: null,
+            secondaryKbliCategory: null,
+            secondaryKbliImpact: null,
+            secondaryExpenditureComponent: null,
+            secondaryExpenditureImpact: null,
             quarter: defaultPeriod.quarter,
             year: defaultPeriod.year,
             llmModel: null,
@@ -1122,6 +1132,10 @@ async function executeLockedScrapePipeline(
               kbliImpact: null,
               expenditureComponent: null,
               expenditureImpact: null,
+              secondaryKbliCategory: null,
+              secondaryKbliImpact: null,
+              secondaryExpenditureComponent: null,
+              secondaryExpenditureImpact: null,
               quarter: defaultPeriod.quarter,
               year: defaultPeriod.year,
               llmModel: aiResult.modelUsed,
@@ -1157,6 +1171,10 @@ async function executeLockedScrapePipeline(
             kbliImpact: persistenceFields.kbliImpact,
             expenditureComponent: persistenceFields.expenditureComponent,
             expenditureImpact: persistenceFields.expenditureImpact,
+            secondaryKbliCategory: persistenceFields.secondaryKbliCategory,
+            secondaryKbliImpact: persistenceFields.secondaryKbliImpact,
+            secondaryExpenditureComponent: persistenceFields.secondaryExpenditureComponent,
+            secondaryExpenditureImpact: persistenceFields.secondaryExpenditureImpact,
             llmModel: persistenceFields.llmModel,
             llmStatus: persistenceFields.llmStatus,
             llmError: persistenceFields.llmError,
@@ -1507,6 +1525,10 @@ async function executeLockedRetryLlmBatch(
             kbliImpact: mapped.kbliImpact,
             expenditureComponent: mapped.expenditureComponent,
             expenditureImpact: mapped.expenditureImpact,
+            secondaryKbliCategory: mapped.secondaryKbliCategory,
+            secondaryKbliImpact: mapped.secondaryKbliImpact,
+            secondaryExpenditureComponent: mapped.secondaryExpenditureComponent,
+            secondaryExpenditureImpact: mapped.secondaryExpenditureImpact,
             quarter: mapped.quarter,
             year: mapped.year,
             llmModel: mapped.llmModel,

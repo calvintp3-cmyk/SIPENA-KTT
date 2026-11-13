@@ -100,3 +100,4 @@ Data konkordansi master telah disimpan dalam berkas terstruktur:
    Sistem secara otomatis memanfaatkan tabel konkordansi ini untuk menampilkan berita yang relevan sesuai generasi KBLI yang dipilih.
 3. **Kamus & Matriks Konkordansi Interaktif (`/admin/kbli-concordance`)**:
    Halaman khusus bagi tim BPS untuk mencari dan melihat pohon hierarki KBLI serta alur konversinya secara visual.
+

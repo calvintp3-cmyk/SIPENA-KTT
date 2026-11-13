@@ -410,6 +410,25 @@ function extractPublishedDate($: CheerioAPI): Date | null {
   return null;
 }
 
+/**
+ * Menormalkan URL artikel multi-halaman agar langsung meminta halaman utuh (mis. ?page=all untuk Tribun Network).
+ */
+export function normalizeToFullPageArticleUrl(rawUrl: string): string {
+  try {
+    const parsed = new URL(rawUrl);
+    const host = parsed.hostname.toLowerCase();
+    if (host === 'tribunnews.com' || host.endsWith('.tribunnews.com')) {
+      if (parsed.searchParams.get('page') !== 'all') {
+        parsed.searchParams.set('page', 'all');
+        return parsed.toString();
+      }
+    }
+    return rawUrl;
+  } catch {
+    return rawUrl;
+  }
+}
+
 function extractCleanTitle($: CheerioAPI): string {
   const rawTitle =
     $('meta[property="og:title"]').attr('content') ||
@@ -418,7 +437,10 @@ function extractCleanTitle($: CheerioAPI): string {
     '';
 
   return cleanText(rawTitle)
-    .replace(/\s*[-|–]\s*(?:Tribun\s*Kaltara|Tribunkaltara\.com|Koran\s*Kaltara|Benuanta|Radar\s*Tarakan|Jawa\s*Pos).*$/i, '')
+    .replace(
+      /\s*[-|–]\s*(?:Tribun\s*Kaltara|Tribunkaltara\.com|Koran\s*Kaltara|Benuanta|Radar\s*Tarakan|Jawa\s*Pos|Antara\s*Kaltara|Antara\s*News|Fokus\s*Borneo|Niaga\.Asia|Pro\s*Kaltara|Pemkab\s*Tana\s*Tidung|Pemprov\s*Kaltara).*$/i,
+      '',
+    )
     .trim();
 }
 

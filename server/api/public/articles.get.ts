@@ -28,23 +28,23 @@ export default defineEventHandler(async (event) => {
     conditions.push(eq(articles.quarter, query.quarter));
   }
   if (query.kbli) {
-    conditions.push(eq(articles.kbliCategory, query.kbli));
+    conditions.push(or(eq(articles.kbliCategory, query.kbli), eq(articles.secondaryKbliCategory, query.kbli))!);
   } else if (query.pdrbGroup) {
     const rawGroups = query.pdrbGroup.split(',').map((s) => s.trim()).filter(Boolean);
     const allGroupCodes = rawGroups.flatMap((grp) => resolvePdrbGroupCodes(grp));
     const uniqueCodes = Array.from(new Set(allGroupCodes));
     if (uniqueCodes.length === 1) {
-      conditions.push(eq(articles.kbliCategory, uniqueCodes[0]!));
+      conditions.push(or(eq(articles.kbliCategory, uniqueCodes[0]!), eq(articles.secondaryKbliCategory, uniqueCodes[0]!))!);
     } else if (uniqueCodes.length > 1) {
-      conditions.push(inArray(articles.kbliCategory, uniqueCodes));
+      conditions.push(or(inArray(articles.kbliCategory, uniqueCodes), inArray(articles.secondaryKbliCategory, uniqueCodes))!);
     }
   }
   if (query.expenditure) {
     const rawExp = query.expenditure.split(',').map((s) => s.trim()).filter(Boolean);
     if (rawExp.length === 1) {
-      conditions.push(eq(articles.expenditureComponent, rawExp[0] as any));
+      conditions.push(or(eq(articles.expenditureComponent, rawExp[0] as any), eq(articles.secondaryExpenditureComponent, rawExp[0] as any))!);
     } else if (rawExp.length > 1) {
-      conditions.push(inArray(articles.expenditureComponent, rawExp as any));
+      conditions.push(or(inArray(articles.expenditureComponent, rawExp as any), inArray(articles.secondaryExpenditureComponent, rawExp as any))!);
     }
   }
   if (query.sourceType) {
@@ -59,6 +59,8 @@ export default defineEventHandler(async (event) => {
         or(
           eq(articles.kbliImpact, KbliImpactEnum.INCREASE_NTB),
           eq(articles.expenditureImpact, ExpenditureImpactEnum.INCREASE_REAL),
+          eq(articles.secondaryKbliImpact, KbliImpactEnum.INCREASE_NTB),
+          eq(articles.secondaryExpenditureImpact, ExpenditureImpactEnum.INCREASE_REAL),
         )!,
       );
     } else if (query.impactMacro === 'CONTRACTION') {
@@ -66,6 +68,8 @@ export default defineEventHandler(async (event) => {
         or(
           eq(articles.kbliImpact, KbliImpactEnum.DECREASE_NTB),
           eq(articles.expenditureImpact, ExpenditureImpactEnum.DECREASE_REAL),
+          eq(articles.secondaryKbliImpact, KbliImpactEnum.DECREASE_NTB),
+          eq(articles.secondaryExpenditureImpact, ExpenditureImpactEnum.DECREASE_REAL),
         )!,
       );
     } else if (query.impactMacro === 'PRICE_UP') {
@@ -73,6 +77,8 @@ export default defineEventHandler(async (event) => {
         or(
           eq(articles.kbliImpact, KbliImpactEnum.INCREASE_PRICE),
           eq(articles.expenditureImpact, ExpenditureImpactEnum.INCREASE_DEFLATOR),
+          eq(articles.secondaryKbliImpact, KbliImpactEnum.INCREASE_PRICE),
+          eq(articles.secondaryExpenditureImpact, ExpenditureImpactEnum.INCREASE_DEFLATOR),
         )!,
       );
     } else if (query.impactMacro === 'PRICE_DOWN') {
@@ -80,6 +86,8 @@ export default defineEventHandler(async (event) => {
         or(
           eq(articles.kbliImpact, KbliImpactEnum.DECREASE_PRICE),
           eq(articles.expenditureImpact, ExpenditureImpactEnum.DECREASE_DEFLATOR),
+          eq(articles.secondaryKbliImpact, KbliImpactEnum.DECREASE_PRICE),
+          eq(articles.secondaryExpenditureImpact, ExpenditureImpactEnum.DECREASE_DEFLATOR),
         )!,
       );
     }
@@ -121,6 +129,10 @@ export default defineEventHandler(async (event) => {
         kbliImpact: articles.kbliImpact,
         expenditureComponent: articles.expenditureComponent,
         expenditureImpact: articles.expenditureImpact,
+        secondaryKbliCategory: articles.secondaryKbliCategory,
+        secondaryKbliImpact: articles.secondaryKbliImpact,
+        secondaryExpenditureComponent: articles.secondaryExpenditureComponent,
+        secondaryExpenditureImpact: articles.secondaryExpenditureImpact,
         publishedAt: articles.publishedAt,
         quarter: articles.quarter,
         year: articles.year,

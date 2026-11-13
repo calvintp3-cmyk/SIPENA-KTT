@@ -78,23 +78,23 @@ export function buildAdminArticleFilters(filter: ArticleFilterInput): SQL | unde
     conditions.push(eq(articles.quarter, filter.quarter));
   }
   if (filter.kbli) {
-    conditions.push(eq(articles.kbliCategory, filter.kbli));
+    conditions.push(or(eq(articles.kbliCategory, filter.kbli), eq(articles.secondaryKbliCategory, filter.kbli))!);
   } else if (filter.pdrbGroup) {
     const codes = resolvePdrbGroupCodes(filter.pdrbGroup);
     if (codes.length === 1) {
-      conditions.push(eq(articles.kbliCategory, codes[0]!));
+      conditions.push(or(eq(articles.kbliCategory, codes[0]!), eq(articles.secondaryKbliCategory, codes[0]!))!);
     } else if (codes.length > 1) {
-      conditions.push(inArray(articles.kbliCategory, codes));
+      conditions.push(or(inArray(articles.kbliCategory, codes), inArray(articles.secondaryKbliCategory, codes))!);
     }
   }
   if (filter.kbliImpact) {
-    conditions.push(eq(articles.kbliImpact, filter.kbliImpact));
+    conditions.push(or(eq(articles.kbliImpact, filter.kbliImpact), eq(articles.secondaryKbliImpact, filter.kbliImpact))!);
   }
   if (filter.expenditure) {
-    conditions.push(eq(articles.expenditureComponent, filter.expenditure));
+    conditions.push(or(eq(articles.expenditureComponent, filter.expenditure), eq(articles.secondaryExpenditureComponent, filter.expenditure))!);
   }
   if (filter.expenditureImpact) {
-    conditions.push(eq(articles.expenditureImpact, filter.expenditureImpact));
+    conditions.push(or(eq(articles.expenditureImpact, filter.expenditureImpact), eq(articles.secondaryExpenditureImpact, filter.expenditureImpact))!);
   }
   if (filter.portal) {
     conditions.push(eq(articles.sourcePortal, filter.portal));

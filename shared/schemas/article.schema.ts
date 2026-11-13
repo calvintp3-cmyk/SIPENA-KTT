@@ -280,6 +280,10 @@ export const CreateManualArticleSchema = z.object({
   kbliImpact: z.enum(KbliImpactEnum),
   expenditureComponent: z.enum(ExpenditureComponentEnum),
   expenditureImpact: z.enum(ExpenditureImpactEnum),
+  secondaryKbliCategory: optionalEnum(KbliCategoryEnum),
+  secondaryKbliImpact: optionalEnum(KbliImpactEnum),
+  secondaryExpenditureComponent: optionalEnum(ExpenditureComponentEnum),
+  secondaryExpenditureImpact: optionalEnum(ExpenditureImpactEnum),
   quarter: optionalQuarter,
   year: optionalPositiveInt(2000, 2100),
   verifyImmediately: z.boolean().optional().default(true),
@@ -294,6 +298,10 @@ export const UpdateArticleReviewSchema = z
     kbliImpact: z.enum(KbliImpactEnum).nullable().optional(),
     expenditureComponent: z.enum(ExpenditureComponentEnum).nullable().optional(),
     expenditureImpact: z.enum(ExpenditureImpactEnum).nullable().optional(),
+    secondaryKbliCategory: z.enum(KbliCategoryEnum).nullable().optional(),
+    secondaryKbliImpact: z.enum(KbliImpactEnum).nullable().optional(),
+    secondaryExpenditureComponent: z.enum(ExpenditureComponentEnum).nullable().optional(),
+    secondaryExpenditureImpact: z.enum(ExpenditureImpactEnum).nullable().optional(),
     quarter: optionalQuarter,
     year: optionalPositiveInt(2000, 2100),
     verificationStatus: z.enum(VerificationStatusEnum).optional(),
@@ -310,6 +318,10 @@ export const BatchArticleActionSchema = z.object({
   kbliImpact: optionalEnum(KbliImpactEnum),
   expenditureComponent: optionalEnum(ExpenditureComponentEnum),
   expenditureImpact: optionalEnum(ExpenditureImpactEnum),
+  secondaryKbliCategory: optionalEnum(KbliCategoryEnum),
+  secondaryKbliImpact: optionalEnum(KbliImpactEnum),
+  secondaryExpenditureComponent: optionalEnum(ExpenditureComponentEnum),
+  secondaryExpenditureImpact: optionalEnum(ExpenditureImpactEnum),
 });
 
 export const TriggerScraperSchema = z.object({

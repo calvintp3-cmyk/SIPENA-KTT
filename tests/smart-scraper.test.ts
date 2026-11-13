@@ -223,6 +223,21 @@ describe('Smart Scraper Filters, Dedup, Google News Decoder & Geo-Gate', () => {
         sourceType: ArticleSourceTypeEnum.NATIONAL,
       }).decision,
     ).toBe('DROP_STATIC_NOISE');
+
+    // Civic & police noise dari kota/kabupaten lain tanpa jangkar KTT langsung dibuang (0 token LLM)
+    expect(
+      evaluateGeographicRelevance({
+        title: 'Satpol PP Tarakan Razia THM dan Amankan Belasan Pengunjung Tanpa KTP',
+        sourceType: ArticleSourceTypeEnum.REGIONAL,
+      }).decision,
+    ).toBe('DROP_OTHER_REGENCY_LOCAL');
+
+    expect(
+      evaluateGeographicRelevance({
+        title: 'Polres Tarakan Ringkus Sindikat Curanmor Lintas Kelurahan di Kaltara',
+        sourceType: ArticleSourceTypeEnum.NATIONAL,
+      }).decision,
+    ).toBe('DROP_OTHER_REGENCY_LOCAL');
   });
 
   it('title-filter, Bing News parser, dan buildNationalFallbackSnippet menjaga netralitas lokus serta menyaring noise statis', () => {

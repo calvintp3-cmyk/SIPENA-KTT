@@ -36,6 +36,10 @@ const OTHER_PROVINCE_LOCAL_RE =
 const OTHER_REGENCY_URL_PATH_RE =
   /\/(?:nunukan|tarakan|bulungan|malinau|krayan|sebatik|berau|samarinda|balikpapan|kaltim)\//i;
 
+// Pola berita urusan internal/kriminalitas/operasi perkotaan kabupaten tetangga tanpa relevansi ekonomi makro KTT
+const NEIGHBOR_MUNICIPAL_NOISE_RE =
+  /\b(?:razia|satpol\s+pp|pdam|futsal|curanmor|narkoba|pencurian|judi\s+online|judol|laka\s+lantas|lakalantas|kebakaran\s+rumah|tilang|polres\s+(?:tarakan|nunukan|bulungan|malinau)|polsek|pemkot\s+tarakan|dprd\s+tarakan|walikota\s+tarakan|pembunuhan|penganiayaan|balap\s+liar|lapas\s+tarakan)\b/i;
+
 // Pola berita harga/tarif statis atau grafik data historis tanpa kejadian perubahan nyata
 const STATIC_NOISE_PATTERNS: RegExp[] = [
   /^(?:cek|daftar|rincian)\s+(?:harga|tarif)\b.*\b(?:hari\s+ini|terbaru|seluruh\s+indonesia)\b/i,
@@ -75,7 +79,16 @@ export function evaluateGeographicRelevance(input: {
     };
   }
 
-  // 3. Jalur B (Tolak): Tanpa jangkar KTT — periksa entitas lokal daerah/provinsi lain
+  // 3. Jalur B (Tolak): Tanpa jangkar KTT — saring operasi kota tetangga & urusan internal non-ekonomi
+  if (NEIGHBOR_MUNICIPAL_NOISE_RE.test(combinedText)) {
+    return {
+      decision: 'DROP_OTHER_REGENCY_LOCAL',
+      reason:
+        'Berita berkaitan dengan urusan internal kota/kabupaten lain (Tarakan/Nunukan/Bulungan), razia, kriminalitas, atau fasilitas perkotaan tanpa keterkaitan ekonomi KTT.',
+    };
+  }
+
+  // Periksa entitas lokal daerah/provinsi lain
   if (OTHER_PROVINCE_LOCAL_RE.test(combinedText) && !NATIONAL_MACRO_ANCHOR_RE.test(combinedText)) {
     return {
       decision: 'DROP_OTHER_REGENCY_LOCAL',

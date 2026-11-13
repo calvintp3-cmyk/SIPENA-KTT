@@ -50,6 +50,22 @@ export const LlmClassificationRawSchema = z
       description:
         'Arah dampak sisi Pengeluaran: INCREASE_REAL (Meningkatkan Pengeluaran Riil), DECREASE_REAL (Menurunkan Pengeluaran Riil), INCREASE_DEFLATOR (Meningkatkan Indeks Harga/Deflator), DECREASE_DEFLATOR (Menurunkan Indeks Harga/Deflator); null bila non-ekonomi.',
     }),
+    secondary_kbli_category: z.enum(KbliCategoryEnum).nullable().meta({
+      description:
+        'Kode kategori KBLI 2025 (A s.d. V) sektor sekunder yang terdampak secara nyata (inter-industry linkage); wajib null bila tidak ada keterkaitan sekunder atau bila non-ekonomi.',
+    }),
+    secondary_kbli_impact: z.enum(KbliImpactEnum).nullable().meta({
+      description:
+        'Arah dampak sisi Lapangan Usaha untuk sektor sekunder; wajib null bila secondary_kbli_category null.',
+    }),
+    secondary_expenditure_component: z.enum(ExpenditureComponentEnum).nullable().meta({
+      description:
+        'Komponen Pengeluaran sekunder terdampak; wajib null bila tidak ada dampak pengeluaran sekunder atau non-ekonomi.',
+    }),
+    secondary_expenditure_impact: z.enum(ExpenditureImpactEnum).nullable().meta({
+      description:
+        'Arah dampak sisi Pengeluaran untuk komponen sekunder; wajib null bila secondary_expenditure_component null.',
+    }),
     quarter: z.number().int().min(1).max(4).meta({
       description: 'Triwulan periode fenomena ekonomi (1=Jan-Mar, 2=Apr-Jun, 3=Jul-Sep, 4=Okt-Des).',
     }),
@@ -99,12 +115,33 @@ export const LlmClassificationRawSchema = z
           message: 'expenditure_impact wajib terisi ketika is_economic_phenomenon = true.',
         });
       }
+      if (data.secondary_kbli_category && !data.secondary_kbli_impact) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['secondary_kbli_impact'],
+          message: 'secondary_kbli_impact wajib terisi bila secondary_kbli_category diisi.',
+        });
+      }
+      if (data.secondary_expenditure_component && !data.secondary_expenditure_impact) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['secondary_expenditure_impact'],
+          message:
+            'secondary_expenditure_impact wajib terisi bila secondary_expenditure_component diisi.',
+        });
+      }
     } else {
       if (
         data.kbli_category !== null ||
         data.kbli_impact !== null ||
         data.expenditure_component !== null ||
-        data.expenditure_impact !== null
+        data.expenditure_impact !== null ||
+        (data.secondary_kbli_category !== null && data.secondary_kbli_category !== undefined) ||
+        (data.secondary_kbli_impact !== null && data.secondary_kbli_impact !== undefined) ||
+        (data.secondary_expenditure_component !== null &&
+          data.secondary_expenditure_component !== undefined) ||
+        (data.secondary_expenditure_impact !== null &&
+          data.secondary_expenditure_impact !== undefined)
       ) {
         ctx.addIssue({
           code: 'custom',
@@ -127,6 +164,10 @@ export const LLM_CLASSIFICATION_PROPERTY_ORDERING = [
   'kbli_impact',
   'expenditure_component',
   'expenditure_impact',
+  'secondary_kbli_category',
+  'secondary_kbli_impact',
+  'secondary_expenditure_component',
+  'secondary_expenditure_impact',
   'quarter',
   'year',
   'confidence',

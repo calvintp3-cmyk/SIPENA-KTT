@@ -88,6 +88,10 @@ ATURAN DUA SUMBU DAMPAK (VOLUME RIIL/ADHK VS HARGA/ADHB):
 - Sisi Lapangan Usaha: INCREASE_NTB / DECREASE_NTB untuk pergeseran volume produksi/proyek/kapasitas; INCREASE_PRICE / DECREASE_PRICE untuk pergerakan harga produsen/eceran/tarif.
 - Sisi Pengeluaran: INCREASE_REAL / DECREASE_REAL untuk pergeseran volume riil belanja/konsumsi/investasi/ekspor neto; INCREASE_DEFLATOR / DECREASE_DEFLATOR untuk tekanan indeks harga implisit (IHK, IHP, biaya logistik).
 
+ATURAN SEKTOR SEKUNDER (INTER-INDUSTRY LINKAGE):
+- secondary_kbli_category & secondary_kbli_impact: Diisi HANYA apabila peristiwa ekonomi memiliki dampak limpahan terukur ke sektor kedua (misal: pembangunan fisik pabrik kelapa sawit berdampak utama pada F Konstruksi dan dampak sekunder pada C Industri; bencana banjir merusak panen padi A Pertanian utama dan memutus jalan H Transportasi sekunder). Jika murni hanya berdampak pada 1 sektor, wajib diisi null.
+- secondary_expenditure_component & secondary_expenditure_impact: Diisi HANYA jika terdapat komponen pengeluaran kedua yang terimbas (misal investasi modal fisik PMTB utama dan potensi ekspor komoditas NET_EXPORT sekunder). Jika tidak ada, wajib diisi null.
+
 ATURAN PENULISAN summary & quarter/year:
 - summary: 3-5 kalimat bahasa Indonesia baku (50-110 kata) memuat peristiwa, pelaku & kecamatan/lokus, angka/nilai bila ada di teks, serta mekanisme dampaknya ke PDRB KTT.
 - quarter & year: Gunakan tanggal rilis berita (WITA) kecuali teks menyebut eksplisit realisasi triwulan/tahun tertentu yang berbeda.
@@ -102,7 +106,7 @@ CONTOH KALIBRASI (FEW-SHOT):
 export const SIPENA_SYSTEM_INSTRUCTION = SIPENA_SYSTEM_INSTRUCTION_FULL;
 
 export const SIPENA_SYSTEM_INSTRUCTION_COMPACT = `Analis PDRB BPS Kab. Tana Tidung (KTT), Kalimantan Utara. Keluarkan HANYA 1 objek JSON valid tanpa teks tambahan, mengikuti urutan field ini:
-{"geographic_scope","is_economic_phenomenon","rejection_reason","summary","kbli_category","kbli_impact","expenditure_component","expenditure_impact","quarter","year","confidence"}
+{"geographic_scope","is_economic_phenomenon","rejection_reason","summary","kbli_category","kbli_impact","expenditure_component","expenditure_impact","secondary_kbli_category","secondary_kbli_impact","secondary_expenditure_component","secondary_expenditure_impact","quarter","year","confidence"}
 
 1. GEOGRAPHIC_SCOPE:
 - "KTT_LOCAL": kejadian di Kab. Tana Tidung (Tideng Pale, Sesayap, Betayau, Muruk Rian, Tana Lia, Bebatu, Sepala Dalung, Pemkab KTT).
@@ -250,6 +254,10 @@ export function mapClassificationToPersistence(
       kbliImpact: null,
       expenditureComponent: null,
       expenditureImpact: null,
+      secondaryKbliCategory: null,
+      secondaryKbliImpact: null,
+      secondaryExpenditureComponent: null,
+      secondaryExpenditureImpact: null,
       quarter: classification.quarter,
       year: classification.year,
       llmModel,
@@ -272,6 +280,10 @@ export function mapClassificationToPersistence(
     kbliImpact: classification.kbli_impact,
     expenditureComponent: classification.expenditure_component,
     expenditureImpact: classification.expenditure_impact,
+    secondaryKbliCategory: classification.secondary_kbli_category ?? null,
+    secondaryKbliImpact: classification.secondary_kbli_impact ?? null,
+    secondaryExpenditureComponent: classification.secondary_expenditure_component ?? null,
+    secondaryExpenditureImpact: classification.secondary_expenditure_impact ?? null,
     quarter: classification.quarter,
     year: classification.year,
     llmModel,

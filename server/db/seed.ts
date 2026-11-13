@@ -53,6 +53,48 @@ const INITIAL_KEYWORDS: InitialKeywordSeed[] = [
     description:
       'Memantau regulasi pembatasan/moratorium hasil hutan kayu yang berdampak langsung ke subsektor kehutanan (KBLI A), industri kayu (C), dan ekspor.',
   },
+  {
+    keyword: 'harga TBS kaltara',
+    defaultKbliCategory: KbliCategoryEnum.A,
+    defaultExpenditureComponent: ExpenditureComponentEnum.NET_EXPORT,
+    description:
+      'Memantau penetapan harga TBS kelapa sawit oleh Disbun Kaltara yang ditransmisikan langsung ke pekebun sawit Tana Tidung.',
+  },
+  {
+    keyword: 'ekspor batubara kalimantan utara',
+    defaultKbliCategory: KbliCategoryEnum.B,
+    defaultExpenditureComponent: ExpenditureComponentEnum.NET_EXPORT,
+    description:
+      'Memantau volume, kuota RKAB, dan pengapalan batubara dari perairan Kaltara/Tarakan ke pasar ekspor internasional.',
+  },
+  {
+    keyword: 'DBH sawit kaltara',
+    defaultKbliCategory: KbliCategoryEnum.P,
+    defaultExpenditureComponent: ExpenditureComponentEnum.PK_P,
+    description:
+      'Memantau alokasi Dana Bagi Hasil (DBH) perkebunan sawit untuk infrastruktur jalan produksi di Kabupaten Tana Tidung.',
+  },
+  {
+    keyword: 'subsidi ongkos angkut kaltara',
+    defaultKbliCategory: KbliCategoryEnum.H,
+    defaultExpenditureComponent: ExpenditureComponentEnum.PK_P,
+    description:
+      'Memantau penerbangan perintis dan angkutan sungai bersubsidi SOA untuk kestabilan harga sembako di KTT.',
+  },
+  {
+    keyword: 'logistik pelabuhan kaltara tarakan',
+    defaultKbliCategory: KbliCategoryEnum.H,
+    defaultExpenditureComponent: ExpenditureComponentEnum.NET_EXPORT,
+    description:
+      'Memantau arus logistik, peti kemas Malundung Tarakan, dan pelabuhan feeder ke Sesayap KTT.',
+  },
+  {
+    keyword: 'inflasi kalimantan utara',
+    defaultKbliCategory: KbliCategoryEnum.G,
+    defaultExpenditureComponent: ExpenditureComponentEnum.PK_RT,
+    description:
+      'Memantau rilis IHK/inflasi BPS Kaltara dan komoditas pemicu volatile food yang berdampak pada konsumsi rumah tangga KTT.',
+  },
 ];
 
 const BASIC_EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

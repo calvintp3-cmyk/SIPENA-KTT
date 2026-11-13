@@ -226,6 +226,13 @@ export const articles = pgTable(
     kbliImpact: kbliImpactPgEnum('kbli_impact'),
     expenditureComponent: expenditureComponentPgEnum('expenditure_component'),
     expenditureImpact: expenditureImpactPgEnum('expenditure_impact'),
+
+    // Sektor & Dampak Sekunder (Inter-industry Linkage)
+    secondaryKbliCategory: kbliCategoryPgEnum('secondary_kbli_category'),
+    secondaryKbliImpact: kbliImpactPgEnum('secondary_kbli_impact'),
+    secondaryExpenditureComponent: expenditureComponentPgEnum('secondary_expenditure_component'),
+    secondaryExpenditureImpact: expenditureImpactPgEnum('secondary_expenditure_impact'),
+
     titleEmbedding: doublePrecision('title_embedding').array(), // Vektor semantik opsional (768-dim) untuk Stage-2 dedup
 
     // Telemetry & Fallback LLM Worker
@@ -272,6 +279,8 @@ export const articles = pgTable(
     // Filter Analitik KBLI & Komponen Pengeluaran per Periode
     index('articles_kbli_period_idx').on(t.kbliCategory, t.year, t.quarter),
     index('articles_exp_period_idx').on(t.expenditureComponent, t.year, t.quarter),
+    index('articles_sec_kbli_period_idx').on(t.secondaryKbliCategory, t.year, t.quarter),
+    index('articles_sec_exp_period_idx').on(t.secondaryExpenditureComponent, t.year, t.quarter),
     index('articles_source_portal_idx').on(t.sourcePortal, t.publishedAt.desc()),
     index('articles_source_type_period_idx').on(t.sourceType, t.year, t.quarter, t.publishedAt.desc()),
     index('articles_geo_scope_period_idx').on(t.geographicScope, t.year, t.quarter),

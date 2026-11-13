@@ -36,6 +36,13 @@
       "when": 1794539442596,
       "tag": "0004_broad_energizer",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1794548661925,
+      "tag": "0005_gigantic_anita_blake",
+      "breakpoints": true
     }
   ]
 }

@@ -43,6 +43,22 @@ export default defineEventHandler(async (event) => {
         : existing.expenditureComponent,
     expenditureImpact:
       body.expenditureImpact !== undefined ? body.expenditureImpact : existing.expenditureImpact,
+    secondaryKbliCategory:
+      body.secondaryKbliCategory !== undefined
+        ? body.secondaryKbliCategory
+        : existing.secondaryKbliCategory,
+    secondaryKbliImpact:
+      body.secondaryKbliImpact !== undefined
+        ? body.secondaryKbliImpact
+        : existing.secondaryKbliImpact,
+    secondaryExpenditureComponent:
+      body.secondaryExpenditureComponent !== undefined
+        ? body.secondaryExpenditureComponent
+        : existing.secondaryExpenditureComponent,
+    secondaryExpenditureImpact:
+      body.secondaryExpenditureImpact !== undefined
+        ? body.secondaryExpenditureImpact
+        : existing.secondaryExpenditureImpact,
     quarter: body.quarter ?? existing.quarter,
     year: body.year ?? existing.year,
     verificationStatus: body.verificationStatus ?? existing.verificationStatus,
