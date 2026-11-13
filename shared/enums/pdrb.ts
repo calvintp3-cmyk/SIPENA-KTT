@@ -220,10 +220,10 @@ export enum KbliImpactEnum {
 }
 
 export const KBLI_IMPACT_LABELS: Record<KbliImpactEnum, string> = {
-  [KbliImpactEnum.INCREASE_NTB]: 'Meningkatkan NTB',
-  [KbliImpactEnum.DECREASE_NTB]: 'Menurunkan NTB',
-  [KbliImpactEnum.INCREASE_PRICE]: 'Meningkatkan Harga',
-  [KbliImpactEnum.DECREASE_PRICE]: 'Menurunkan Harga',
+  [KbliImpactEnum.INCREASE_NTB]: 'Aktivitas / Produksi Naik',
+  [KbliImpactEnum.DECREASE_NTB]: 'Aktivitas / Produksi Turun',
+  [KbliImpactEnum.INCREASE_PRICE]: 'Harga / Tarif Naik',
+  [KbliImpactEnum.DECREASE_PRICE]: 'Harga / Tarif Turun',
 };
 
 export enum ExpenditureComponentEnum {
@@ -273,10 +273,10 @@ export enum ExpenditureImpactEnum {
 }
 
 export const EXPENDITURE_IMPACT_LABELS: Record<ExpenditureImpactEnum, string> = {
-  [ExpenditureImpactEnum.INCREASE_REAL]: 'Meningkatkan Pengeluaran Riil',
-  [ExpenditureImpactEnum.DECREASE_REAL]: 'Menurunkan Pengeluaran Riil',
-  [ExpenditureImpactEnum.INCREASE_DEFLATOR]: 'Meningkatkan Indeks Harga/Deflator',
-  [ExpenditureImpactEnum.DECREASE_DEFLATOR]: 'Menurunkan Indeks Harga/Deflator',
+  [ExpenditureImpactEnum.INCREASE_REAL]: 'Volume Permintaan / Belanja Naik',
+  [ExpenditureImpactEnum.DECREASE_REAL]: 'Volume Permintaan / Belanja Turun',
+  [ExpenditureImpactEnum.INCREASE_DEFLATOR]: 'Tekanan Harga / Biaya Naik',
+  [ExpenditureImpactEnum.DECREASE_DEFLATOR]: 'Tekanan Harga / Biaya Turun',
 };
 
 export enum VerificationStatusEnum {

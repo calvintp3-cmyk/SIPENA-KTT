@@ -478,10 +478,45 @@ export function parseRegionalPortalIndex(
       defaultKbliCategory: null,
       defaultExpenditureComponent: null,
       fallbackDescription: null,
+      prefetchedSnippetText: null,
+      prefetchedWordCount: 0,
     });
 
     return true;
   };
+
+  // Strategi 0: Ekstraksi tautan berita dari JSON-LD ItemList / CollectionPage jika tersedia
+  $('script[type="application/ld+json"]').each((_idx, el) => {
+    if (results.length >= maxItems) return;
+    const rawJson = $(el).html();
+    if (!rawJson) return;
+    try {
+      const parsed = JSON.parse(rawJson) as unknown;
+      const stack: unknown[] = Array.isArray(parsed) ? [...parsed] : [parsed];
+      while (stack.length > 0 && results.length < maxItems) {
+        const node = stack.shift();
+        if (!node || typeof node !== 'object') continue;
+        const rec = node as Record<string, unknown>;
+        if (Array.isArray(rec['@graph'])) {
+          stack.push(...rec['@graph']);
+        }
+        if (Array.isArray(rec.itemListElement)) {
+          for (const item of rec.itemListElement) {
+            if (item && typeof item === 'object') {
+              const itemRec = item as Record<string, unknown>;
+              const itemUrl = (itemRec.url || (typeof itemRec.item === 'string' ? itemRec.item : (itemRec.item as Record<string, unknown>)?.['@id'])) as string | undefined;
+              const itemTitle = (itemRec.name || (itemRec.item as Record<string, unknown>)?.name || '') as string;
+              if (itemUrl && itemTitle) {
+                registerCandidate(itemUrl, itemTitle, undefined);
+              }
+            }
+          }
+        }
+      }
+    } catch {
+      // Abaikan JSON-LD tidak valid
+    }
+  });
 
   // Strategi 1: Iterasi kontainer item berita terstruktur sesuai pola masing-masing portal
   for (const containerSelector of portal.itemSelectors) {

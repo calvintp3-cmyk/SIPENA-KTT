@@ -31,12 +31,12 @@ if (hasLegacyTimelineQuery(route.query as Record<string, unknown>)) {
 }
 
 useHead({
-  title: 'SIPENA KTT — Portal Intelijen Ekonomi & Fenomena PDRB Kabupaten Tana Tidung',
+  title: 'SIPENA KTT — Portal Pencari & Pemantau Fenomena Ekonomi Kabupaten Tana Tidung',
   meta: [
     {
       name: 'description',
       content:
-        'Rekam jejak dinamika sektor usaha, pergerakan harga, dan aktivitas ekonomi Kabupaten Tana Tidung secara terkurasi dan transparan.',
+        'Portal pencari berita ekonomi dan pemantau dinamika sektor usaha Kabupaten Tana Tidung serta transmisi kebijakan nasional.',
     },
   ],
 });
@@ -149,19 +149,19 @@ const taxonomyPillars = [
   },
   {
     metric: '6 Komponen',
-    caption: 'PDRB Pengeluaran dari Konsumsi Rumah Tangga hingga Ekspor Neto',
+    caption: 'Kelompok Permintaan dari Konsumsi Rumah Tangga hingga Ekspor Barang/Jasa',
     icon: 'i-solar-wallet-money-bold-duotone',
     badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200/80',
   },
   {
-    metric: '4 Klaster Warna',
-    caption: 'Pemetaan sinyal produksi riil (ADHK) dan tekanan harga (ADHB)',
+    metric: '4 Sinyal Dinamika',
+    caption: 'Pemetaan sinyal aktivitas volume ekonomi dan pergerakan tingkat harga',
     icon: 'i-solar-chart-square-bold-duotone',
     badgeClass: 'bg-amber-50 text-amber-700 border-amber-200/80',
   },
   {
-    metric: 'Verifikasi Nerwilis',
-    caption: 'Kurasi berlapis sebelum publikasi transparan kepada masyarakat',
+    metric: 'Verifikasi Kurasi',
+    caption: 'Kurasi kebenaran fakta sebelum publikasi transparan kepada masyarakat',
     icon: 'i-solar-shield-check-bold-duotone',
     badgeClass: 'bg-violet-50 text-violet-700 border-violet-200/80',
   },
@@ -170,51 +170,51 @@ const taxonomyPillars = [
 const capabilityBento = [
   {
     span: 'lg:col-span-7',
-    eyebrow: '01 • Penjaringan Media Terkurasi',
-    title: 'Pemantauan Media Regional Kaltara & Isu Transmisi Nasional',
+    eyebrow: '01 • Penjaringan Berita Terpadu',
+    title: 'Pemantauan Media Lokal Kaltara & Transmisi Nasional',
     description:
-      'Crawler harian menghimpun pemberitaan dari portal berita Kalimantan Utara dan isu komoditas strategis nasional, dilengkapi catatan lapangan manual oleh tim statistisi.',
+      'Crawler otomatis menghimpun pemberitaan ekonomi Kabupaten Tana Tidung dari portal berita lokal serta kebijakan strategis nasional yang berdampak ke daerah.',
     icon: 'i-solar-radar-2-bold-duotone',
     accentBg: 'from-blue-50/90 to-indigo-50/40 border-blue-200/80',
     iconBox: 'bg-blue-600 text-white shadow-blue-600/25',
     eyebrowClass: 'text-blue-700',
-    tags: ['Portal Kaltara', 'Isu Strategis Nasional', 'Deduplikasi Cerdas'],
+    tags: ['Berita Lokal KTT', 'Dampak Nasional', 'Deduplikasi Cerdas'],
   },
   {
     span: 'lg:col-span-5',
-    eyebrow: '02 • Taksonomi Dua Sisi PDRB',
-    title: 'Klasifikasi 17 KBLI & 6 Pengeluaran',
+    eyebrow: '02 • Taksonomi Sektor Ekonomi',
+    title: 'Klasifikasi Sektor Usaha & Kelompok Permintaan',
     description:
-      'Setiap peristiwa ekonomi dipetakan ganda pada sisi produksi dan penggunaan beserta arah dampaknya terhadap volume riil dan indeks harga.',
+      'Setiap peristiwa ekonomi dipetakan pada sektor lapangan usaha (KBLI) dan kelompok permintaan beserta arah dampaknya terhadap volume dan harga.',
     icon: 'i-solar-diagram-up-bold-duotone',
     accentBg: 'from-emerald-50/90 to-teal-50/40 border-emerald-200/80',
     iconBox: 'bg-emerald-600 text-white shadow-emerald-600/25',
     eyebrowClass: 'text-emerald-700',
-    tags: ['Lapangan Usaha', 'Sisi Pengeluaran', 'ADHK vs ADHB'],
+    tags: ['Lapangan Usaha', 'Kelompok Permintaan', 'Aktivitas vs Harga'],
   },
   {
     span: 'lg:col-span-5',
-    eyebrow: '03 • Audit & Validasi Berlapis',
-    title: 'Kurasi Ketat Tim Nerwilis BPS KTT',
+    eyebrow: '03 • Audit & Validasi Faktual',
+    title: 'Kurasi Ketat Berita Ekonomi KTT',
     description:
-      'Tidak ada draf mentah yang langsung tayang ke publik. Setiap fenomena ditelaah relevansi wilayah, kejelasan ringkasan, dan akurasi sektornya terlebih dahulu.',
+      'Tidak ada draf mentah yang langsung tayang. Setiap fenomena ditelaah lokus wilayah, kejelasan ringkasan, dan relevansinya bagi Kabupaten Tana Tidung.',
     icon: 'i-solar-checklist-minimalistic-bold-duotone',
     accentBg: 'from-amber-50/90 to-orange-50/35 border-amber-200/80',
     iconBox: 'bg-amber-600 text-white shadow-amber-600/25',
     eyebrowClass: 'text-amber-700',
-    tags: ['Human-in-the-Loop', 'Sitasi Jelas', 'Arsip Periodik'],
+    tags: ['Human-in-the-Loop', 'Sitasi Berita', 'Arsip Periodik'],
   },
   {
     span: 'lg:col-span-7',
-    eyebrow: '04 • Intelijen Gap & Sintesis BRS',
-    title: 'Deteksi Sektor Kosong, Tren 8 Triwulan & Penulisan Narasi',
+    eyebrow: '04 • Intelijen Sektor & Rangkuman Analitis',
+    title: 'Deteksi Sektor Kosong, Tren Periodik & Ikhtisar Narasi',
     description:
-      'Analis Nerwilis memantau kekosongan bukti pada 17 sektor KBLI secara seketika, menelusuri pergeseran q-to-q dan y-on-y, serta menyusun narasi Berita Resmi Statistik bersitasi.',
+      'Memantau sebaran bukti fenomena pada 17 sektor usaha, menelusuri tren dinamika antar-triwulan dan antar-tahun, serta menyusun rangkuman analitis terstruktur.',
     icon: 'i-solar-document-add-bold-duotone',
     accentBg: 'from-violet-50/90 to-indigo-50/40 border-violet-200/80',
     iconBox: 'bg-violet-600 text-white shadow-violet-600/25',
     eyebrowClass: 'text-violet-700',
-    tags: ['Radar Gap 17 Sektor', 'Ekspor 10 Kolom', 'Draf Narasi BRS'],
+    tags: ['Sebaran Sektor', 'Ekspor Data Excel', 'Ikhtisar Eksekutif'],
   },
 ];
 </script>
@@ -317,12 +317,12 @@ const capabilityBento = [
                 </div>
 
                 <div class="rounded-xl bg-white/[0.05] border border-white/10 p-3.5 space-y-1">
-                  <div class="text-[11px] font-medium text-slate-400">Sinyal Ekspansi Riil</div>
+                  <div class="text-[11px] font-medium text-slate-400">Sinyal Peningkatan Aktivitas</div>
                   <div class="text-2xl sm:text-3xl font-extrabold text-emerald-300 tabular-nums">
                     {{ activeOverview?.kpi.expansionStats.positiveRealPercent ?? 0 }}%
                   </div>
                   <div class="text-[11px] text-slate-300 tabular-nums">
-                    {{ formatNumberId(activeOverview?.kpi.expansionStats.expansionCount ?? 0) }} catatan naik NTB
+                    {{ formatNumberId(activeOverview?.kpi.expansionStats.expansionCount ?? 0) }} berita aktivitas naik
                   </div>
                 </div>
               </div>
@@ -427,11 +427,11 @@ const capabilityBento = [
           <span>Arsitektur &amp; Metodologi Kerja</span>
         </div>
         <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
-          Dari Pemberitaan Daerah Hingga Rekonsiliasi PDRB Resmi
+          Dari Pemberitaan Daerah Menjadi Peta Fenomena Ekonomi Terstruktur
         </h2>
         <p class="text-sm text-slate-600 leading-relaxed">
-          Alur kerja terpadu yang membantu tim statistik mendokumentasikan sinyal sektor riil secara
-          sistematis, terklasifikasi dua sisi, dan dapat diakses terbuka oleh publik.
+          Alur kerja terpadu yang membantu mendokumentasikan sinyal sektor ekonomi secara
+          sistematis, terklasifikasi, dan dapat diakses terbuka oleh publik.
         </p>
       </div>
 
@@ -495,7 +495,7 @@ const capabilityBento = [
             Fenomena Ekonomi Terbaru
           </h2>
           <p class="text-xs sm:text-sm text-slate-600">
-            Pilih fenomena untuk membaca intisari pemetaan PDRB lengkap atau telusuri seluruh arsip per sektor.
+            Pilih fenomena untuk membaca intisari dan bukti berita lengkap atau telusuri seluruh arsip per sektor usaha.
           </p>
         </div>
 

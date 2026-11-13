@@ -43,9 +43,9 @@ const style = ref<SynthesisStyle>('BRS_FORMAL');
 let isRestoringDraft = false;
 
 const styleOptions: Array<{ value: SynthesisStyle; label: string }> = [
-  { value: 'BRS_FORMAL', label: 'BRS Formal BPS (Analitis Terstruktur)' },
+  { value: 'BRS_FORMAL', label: 'Laporan Analitis Terstruktur' },
   { value: 'EXECUTIVE_BRIEF', label: 'Kajian Eksekutif Pimpinan' },
-  { value: 'BULLET_POINTS', label: 'Butir-Butir Fenomena Lampiran' },
+  { value: 'BULLET_POINTS', label: 'Butir-Butir Fenomena Pokok' },
 ];
 
 watch(dimension, (nextDim: 'kbli' | 'expenditure') => {
@@ -574,7 +574,7 @@ function requestGenerateNarrative() {
   promptDiscardIfDirty(
     () => generateNarrative(),
     {
-      title: 'Susun Ulang Narasi BRS?',
+      title: 'Susun Ulang Narasi Fenomena?',
       description:
         'Editor masih memiliki perubahan yang belum disimpan. Menyusun narasi baru akan menggantikan teks di editor saat ini.',
     },
@@ -691,7 +691,7 @@ async function generateNarrative() {
           const msg =
             typeof parsed.message === 'string'
               ? parsed.message
-              : 'Gagal menyusun sintesis BRS.';
+              : 'Gagal menyusun sintesis fenomena.';
           throw new Error(msg);
         }
       };
@@ -732,7 +732,7 @@ async function generateNarrative() {
 
     if (persisted) {
       toast.add({
-        title: 'Draf Narasi BRS Siap & Tersimpan',
+        title: 'Draf Narasi Siap & Tersimpan',
         description: `${finalRes.articleCount} bukti terverifikasi berhasil disintesis.`,
         color: 'success',
         icon: 'i-lucide-sparkles',
@@ -825,7 +825,7 @@ function downloadDocxFile() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `SIPENA-Narasi-BRS-${selectedYear.value}-TW${selectedQuarter.value}.docx`;
+  a.download = `SIPENA-Rangkuman-Ekonomi-${selectedYear.value}-TW${selectedQuarter.value}.docx`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -850,13 +850,13 @@ const manualModalOpen = ref(false);
             class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200/80 text-xs font-semibold"
           >
             <UIcon name="i-solar-magic-stick-3-bold-duotone" class="w-3.5 h-3.5" />
-            <span>Studio Penulisan Berita Resmi Statistik (BRS)</span>
+            <span>Studio Rangkuman Fenomena Ekonomi</span>
           </div>
           <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 text-balance mt-2">
-            Sintesis Narasi PDRB — {{ periodLabel }}
+            Sintesis Fenomena Ekonomi — {{ periodLabel }}
           </h1>
           <p class="text-xs sm:text-sm text-slate-600 mt-0.5 text-pretty">
-            Susun draf narasi faktual berakar 100% pada bukti berita terverifikasi lengkap dengan sitasi silang.
+            Susun draf rangkuman faktual berakar 100% pada bukti berita terverifikasi lengkap dengan sitasi silang.
           </p>
         </div>
 
@@ -881,7 +881,7 @@ const manualModalOpen = ref(false);
               class="w-4 h-4 text-emerald-200"
               :class="isGenerating ? 'animate-spin' : ''"
             />
-            <span>{{ isGenerating ? 'Menyusun Narasi...' : 'Generate Narasi BRS' }}</span>
+            <span>{{ isGenerating ? 'Menyusun Narasi...' : 'Sintesis Fenomena' }}</span>
           </button>
         </div>
       </div>
@@ -1145,7 +1145,7 @@ const manualModalOpen = ref(false);
       </section>
 
       <!-- RIGHT 60%: NARRATIVE DOCUMENT & EDITOR -->
-      <section aria-label="Editor dan Pratinjau Narasi BRS" class="lg:col-span-7 space-y-4">
+      <section aria-label="Editor dan Pratinjau Narasi Fenomena" class="lg:col-span-7 space-y-4">
         <div class="saas-card synthesis-print-sheet rounded-2xl overflow-hidden flex flex-col">
           <!-- Toolbar (Hidden in Print) -->
           <div class="no-print px-5 py-3.5 border-b border-slate-200/80 bg-slate-50/70 flex flex-wrap items-center justify-between gap-2.5">
@@ -1166,7 +1166,7 @@ const manualModalOpen = ref(false);
                 }}
               </span>
               <span v-else class="text-xs font-bold text-slate-700">
-                Lembar Kerja Narasi BRS
+                Lembar Kerja Narasi Fenomena
               </span>
             </div>
 

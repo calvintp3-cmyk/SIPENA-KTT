@@ -379,13 +379,45 @@ const exportMenuItems = computed<DropdownMenuItem[][]>(() => [
   ],
 ]);
 
-// Manual modal + edit drawer + delete modal
 const manualModalOpen = ref(false);
 const drawerOpen = ref(false);
 const editingArticle = ref<AdminArticleItem | null>(null);
 const deleteModalOpen = ref(false);
 const deleteTarget = ref<AdminArticleItem | null>(null);
 const isDeleting = ref(false);
+const showAdvancedFilters = ref(false);
+
+const activeTabStatus = computed<'ALL' | VerificationStatusEnum | 'LLM_FAILED'>({
+  get: () => {
+    if (filters.llmStatus === LlmStatusEnum.FAILED) return 'LLM_FAILED';
+    if (filters.status === VerificationStatusEnum.VERIFIED) return VerificationStatusEnum.VERIFIED;
+    if (filters.status === VerificationStatusEnum.PENDING) return VerificationStatusEnum.PENDING;
+    if (filters.status === VerificationStatusEnum.IGNORED) return VerificationStatusEnum.IGNORED;
+    return 'ALL';
+  },
+  set: (val: 'ALL' | VerificationStatusEnum | 'LLM_FAILED') => {
+    if (val === 'LLM_FAILED') {
+      filters.status = 'ALL';
+      filters.llmStatus = LlmStatusEnum.FAILED;
+    } else if (val === 'ALL') {
+      filters.status = 'ALL';
+      filters.llmStatus = 'ALL';
+    } else {
+      filters.status = val;
+      filters.llmStatus = 'ALL';
+    }
+  },
+});
+
+const advancedFilterActiveCount = computed(() => {
+  let count = 0;
+  if (filters.pdrbGroup !== 'ALL' || filters.kbli !== 'ALL') count++;
+  if (filters.expenditure !== 'ALL') count++;
+  if (filters.portal !== 'ALL') count++;
+  if (filters.isEconomic !== 'ALL') count++;
+  if (filters.from || filters.to) count++;
+  return count;
+});
 
 function openEditDrawer(article: AdminArticleItem) {
   editingArticle.value = article;
@@ -488,36 +520,144 @@ const columns: TableColumn<AdminArticleItem>[] = [
       </div>
     </div>
 
-    <!-- Filter Toolbar Multi-Parameter -->
-    <div class="saas-card rounded-2xl p-4 sm:p-5 space-y-3">
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5">
-        <div class="sm:col-span-2 lg:col-span-1">
+    <!-- Filter Toolbar & Status Segment Workbench -->
+    <div class="saas-card rounded-2xl p-4 sm:p-5 space-y-4">
+      <!-- Quick Status Segment Tabs -->
+      <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100">
+        <div class="flex flex-wrap items-center gap-1.5 p-1 bg-slate-100/80 rounded-xl border border-slate-200/80">
+          <button
+            type="button"
+            class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer inline-flex items-center gap-1.5"
+            :class="
+              activeTabStatus === 'ALL'
+                ? 'bg-white text-indigo-700 shadow-xs border border-indigo-200'
+                : 'text-slate-600 hover:text-slate-900'
+            "
+            @click="() => { activeTabStatus = 'ALL'; }"
+          >
+            <span>Semua Berita</span>
+            <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-slate-200 text-slate-700 tabular-nums font-bold">
+              {{ archiveData?.pagination.total ?? 0 }}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer inline-flex items-center gap-1.5"
+            :class="
+              activeTabStatus === VerificationStatusEnum.VERIFIED
+                ? 'bg-white text-emerald-700 shadow-xs border border-emerald-200'
+                : 'text-slate-600 hover:text-slate-900'
+            "
+            @click="() => { activeTabStatus = VerificationStatusEnum.VERIFIED; }"
+          >
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+            <span>Terverifikasi</span>
+            <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-emerald-100 text-emerald-800 tabular-nums font-bold">
+              {{ archiveData?.summaryCounts.verifiedCount ?? 0 }}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer inline-flex items-center gap-1.5"
+            :class="
+              activeTabStatus === VerificationStatusEnum.PENDING
+                ? 'bg-white text-amber-700 shadow-xs border border-amber-200'
+                : 'text-slate-600 hover:text-slate-900'
+            "
+            @click="() => { activeTabStatus = VerificationStatusEnum.PENDING; }"
+          >
+            <span class="w-1.5 h-1.5 rounded-full bg-amber-500" />
+            <span>Menunggu Review</span>
+            <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-amber-100 text-amber-800 tabular-nums font-bold">
+              {{ archiveData?.summaryCounts.pendingCount ?? 0 }}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer inline-flex items-center gap-1.5"
+            :class="
+              activeTabStatus === VerificationStatusEnum.IGNORED
+                ? 'bg-white text-slate-800 shadow-xs border border-slate-300'
+                : 'text-slate-600 hover:text-slate-900'
+            "
+            @click="() => { activeTabStatus = VerificationStatusEnum.IGNORED; }"
+          >
+            <span>Diabaikan</span>
+            <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-slate-200 text-slate-700 tabular-nums font-bold">
+              {{ archiveData?.summaryCounts.ignoredCount ?? 0 }}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer inline-flex items-center gap-1.5"
+            :class="
+              activeTabStatus === 'LLM_FAILED'
+                ? 'bg-white text-rose-700 shadow-xs border border-rose-200'
+                : 'text-slate-600 hover:text-slate-900'
+            "
+            @click="() => { activeTabStatus = 'LLM_FAILED'; }"
+          >
+            <span class="w-1.5 h-1.5 rounded-full bg-rose-500" />
+            <span>Gagal AI</span>
+            <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-rose-100 text-rose-800 tabular-nums font-bold">
+              {{ archiveData?.summaryCounts.llmFailedCount ?? 0 }}
+            </span>
+          </button>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button
+            v-if="!isSyncedToGlobalPeriod"
+            type="button"
+            class="h-8 px-2.5 rounded-lg border border-indigo-200 bg-indigo-50/70 hover:bg-indigo-100 text-xs font-semibold text-indigo-800 inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+            @click="syncToGlobalPeriod"
+          >
+            <UIcon name="i-solar-calendar-mark-bold-duotone" class="w-3.5 h-3.5" />
+            <span>Sinkron {{ shortPeriodLabel }}</span>
+          </button>
+
+          <button
+            type="button"
+            class="h-8 px-3 rounded-lg border text-xs font-semibold inline-flex items-center gap-1.5 transition-all cursor-pointer"
+            :class="
+              showAdvancedFilters || advancedFilterActiveCount > 0
+                ? 'border-indigo-300 bg-indigo-50 text-indigo-900'
+                : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'
+            "
+            @click="() => { showAdvancedFilters = !showAdvancedFilters; }"
+          >
+            <UIcon name="i-solar-filter-bold-duotone" class="w-3.5 h-3.5 text-indigo-600" />
+            <span>Filter Lanjutan</span>
+            <span
+              v-if="advancedFilterActiveCount > 0"
+              class="w-4 h-4 rounded-full bg-indigo-600 text-white text-[10px] flex items-center justify-center font-bold"
+            >
+              {{ advancedFilterActiveCount }}
+            </span>
+            <UIcon :name="showAdvancedFilters ? 'i-lucide-chevron-up' : 'i-lucide-chevron-down'" class="w-3 h-3 text-slate-400" />
+          </button>
+        </div>
+      </div>
+
+      <!-- Primary Compact Filter Row -->
+      <div class="grid grid-cols-1 sm:grid-cols-12 gap-2.5">
+        <div class="sm:col-span-5">
           <label for="articles-filter-q" class="sr-only">Cari judul, ringkasan, atau URL</label>
           <UInput
             id="articles-filter-q"
             v-model="filters.q"
             icon="i-solar-magnifer-line-duotone"
-            placeholder="Cari judul, ringkasan, URL..."
+            placeholder="Cari judul berita, ringkasan, atau URL..."
             size="sm"
             class="w-full"
           />
         </div>
 
-        <div>
-          <label for="articles-filter-quarter" class="sr-only">Filter Triwulan</label>
-          <USelect
-            id="articles-filter-quarter"
-            v-model="filters.quarter"
-            :items="quarterFilterItems"
-            value-key="value"
-            label-key="label"
-            aria-label="Filter Triwulan"
-            size="sm"
-            class="w-full"
-          />
-        </div>
-
-        <div>
+        <div class="sm:col-span-2">
           <label for="articles-filter-year" class="sr-only">Filter Tahun</label>
           <USelect
             id="articles-filter-year"
@@ -531,156 +671,132 @@ const columns: TableColumn<AdminArticleItem>[] = [
           />
         </div>
 
-        <div>
-          <label for="articles-filter-status" class="sr-only">Filter Status Verifikasi</label>
+        <div class="sm:col-span-2">
+          <label for="articles-filter-quarter" class="sr-only">Filter Triwulan</label>
           <USelect
-            id="articles-filter-status"
-            v-model="filters.status"
-            :items="statusFilterItems"
+            id="articles-filter-quarter"
+            v-model="filters.quarter"
+            :items="quarterFilterItems"
             value-key="value"
             label-key="label"
-            aria-label="Filter Status Verifikasi"
+            aria-label="Filter Triwulan"
             size="sm"
             class="w-full"
           />
         </div>
 
-        <div>
-          <label for="articles-filter-llm-status" class="sr-only">Filter Status AI</label>
-          <USelect
-            id="articles-filter-llm-status"
-            v-model="filters.llmStatus"
-            :items="llmStatusFilterItems"
-            value-key="value"
-            label-key="label"
-            aria-label="Filter Status Klasifikasi AI"
-            size="sm"
-            class="w-full"
-          />
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5">
-        <div>
-          <label for="articles-filter-pdrb-group" class="sr-only">Filter 17 Sektor PDRB</label>
+        <div class="sm:col-span-3">
+          <label for="articles-filter-pdrb-group" class="sr-only">Filter Sektor Usaha</label>
           <USelectMenu
             id="articles-filter-pdrb-group"
             v-model="filters.pdrbGroup"
             :items="pdrbGroupFilterItems"
             value-key="value"
             label-key="label"
-            aria-label="Filter 17 Sektor PDRB"
-            size="sm"
-            class="w-full"
-          />
-        </div>
-
-        <div>
-          <label for="articles-filter-kbli" class="sr-only">Filter Huruf KBLI A–V</label>
-          <USelectMenu
-            id="articles-filter-kbli"
-            v-model="filters.kbli"
-            :items="kbliFilterItems"
-            value-key="value"
-            label-key="label"
-            aria-label="Filter Huruf KBLI A sampai V"
-            size="sm"
-            class="w-full"
-          />
-        </div>
-
-        <div>
-          <label for="articles-filter-expenditure" class="sr-only">Filter Komponen Pengeluaran</label>
-          <USelect
-            id="articles-filter-expenditure"
-            v-model="filters.expenditure"
-            :items="expenditureFilterItems"
-            value-key="value"
-            label-key="label"
-            aria-label="Filter Komponen Pengeluaran"
-            size="sm"
-            class="w-full"
-          />
-        </div>
-
-        <div>
-          <label for="articles-filter-portal" class="sr-only">Filter Portal Sumber</label>
-          <USelect
-            id="articles-filter-portal"
-            v-model="filters.portal"
-            :items="portalFilterItems"
-            value-key="value"
-            label-key="label"
-            aria-label="Filter Portal Sumber"
-            size="sm"
-            class="w-full"
-          />
-        </div>
-
-        <div>
-          <label for="articles-filter-economic" class="sr-only">Filter Relevansi Ekonomi</label>
-          <USelect
-            id="articles-filter-economic"
-            v-model="filters.isEconomic"
-            :items="economicFilterItems"
-            value-key="value"
-            label-key="label"
-            aria-label="Filter Relevansi Ekonomi"
+            aria-label="Filter Sektor Lapangan Usaha"
+            placeholder="Semua Sektor Lapangan Usaha"
             size="sm"
             class="w-full"
           />
         </div>
       </div>
 
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pt-2 border-t border-slate-100">
-        <div class="flex flex-wrap items-center gap-2">
-          <span class="text-xs font-semibold text-slate-600">
-            Rentang Rilis (WITA):
+      <!-- Collapsible Advanced Filter Section -->
+      <div
+        v-if="showAdvancedFilters"
+        class="pt-3 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 bg-slate-50/60 p-3.5 rounded-xl border"
+      >
+        <div>
+          <label for="articles-filter-kbli" class="block text-[11px] font-bold text-slate-700 mb-1">
+            KBLI Spesifik (A–V)
+          </label>
+          <USelectMenu
+            id="articles-filter-kbli"
+            v-model="filters.kbli"
+            :items="kbliFilterItems"
+            value-key="value"
+            label-key="label"
+            size="sm"
+            class="w-full"
+          />
+        </div>
+
+        <div>
+          <label for="articles-filter-expenditure" class="block text-[11px] font-bold text-slate-700 mb-1">
+            Kelompok Permintaan
+          </label>
+          <USelect
+            id="articles-filter-expenditure"
+            v-model="filters.expenditure"
+            :items="expenditureFilterItems"
+            value-key="value"
+            label-key="label"
+            size="sm"
+            class="w-full"
+          />
+        </div>
+
+        <div>
+          <label for="articles-filter-portal" class="block text-[11px] font-bold text-slate-700 mb-1">
+            Portal Sumber
+          </label>
+          <USelect
+            id="articles-filter-portal"
+            v-model="filters.portal"
+            :items="portalFilterItems"
+            value-key="value"
+            label-key="label"
+            size="sm"
+            class="w-full"
+          />
+        </div>
+
+        <div>
+          <label for="articles-filter-economic" class="block text-[11px] font-bold text-slate-700 mb-1">
+            Relevansi Ekonomi
+          </label>
+          <USelect
+            id="articles-filter-economic"
+            v-model="filters.isEconomic"
+            :items="economicFilterItems"
+            value-key="value"
+            label-key="label"
+            size="sm"
+            class="w-full"
+          />
+        </div>
+
+        <div class="sm:col-span-2">
+          <span class="block text-[11px] font-bold text-slate-700 mb-1">
+            Rentang Waktu Rilis (WITA)
           </span>
-          <div class="flex items-center gap-1.5">
-            <label for="articles-filter-from" class="sr-only">Dari tanggal rilis</label>
+          <div class="flex items-center gap-2">
             <UInput
               id="articles-filter-from"
               v-model="filters.from"
               type="date"
               size="sm"
-              aria-label="Dari tanggal rilis"
-              title="Dari tanggal rilis (WITA)"
-              class="w-36"
+              class="w-full"
             />
-            <span class="text-xs text-slate-600" aria-hidden="true">—</span>
-            <label for="articles-filter-to" class="sr-only">Sampai tanggal rilis</label>
+            <span class="text-xs text-slate-400">—</span>
             <UInput
               id="articles-filter-to"
               v-model="filters.to"
               type="date"
               size="sm"
-              aria-label="Sampai tanggal rilis"
-              title="Sampai tanggal rilis (WITA)"
-              class="w-36"
+              class="w-full"
             />
           </div>
         </div>
 
-        <div class="flex flex-wrap items-center gap-2">
+        <div class="sm:col-span-2 flex items-end justify-end">
           <button
-            v-if="!isSyncedToGlobalPeriod"
             type="button"
-            class="min-h-9 px-3 rounded-xl border border-indigo-200 bg-indigo-50/70 hover:bg-indigo-100 text-xs font-semibold text-indigo-800 inline-flex items-center gap-1.5 transition-colors cursor-pointer"
-            @click="() => { syncToGlobalPeriod(); }"
-          >
-            <UIcon name="i-solar-calendar-mark-bold-duotone" class="w-3.5 h-3.5" />
-            <span class="tabular-nums">Sinkron {{ shortPeriodLabel }}</span>
-          </button>
-
-          <button
-            v-if="hasActiveFilters"
-            type="button"
-            class="min-h-9 px-3 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-xs font-semibold text-slate-700 inline-flex items-center gap-1.5 transition-colors cursor-pointer"
-            @click="() => { resetFilters(); }"
+            class="h-8 px-3 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 inline-flex items-center gap-1.5 cursor-pointer"
+            @click="resetFilters"
           >
             <UIcon name="i-solar-restart-bold-duotone" class="w-3.5 h-3.5 text-indigo-600" />
-            <span>Reset Semua Filter</span>
+            <span>Reset Seluruh Filter</span>
           </button>
         </div>
       </div>

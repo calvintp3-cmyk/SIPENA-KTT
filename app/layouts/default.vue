@@ -1,8 +1,10 @@
 <!-- app/layouts/default.vue -->
 <script setup lang="ts">
 const route = useRoute();
+const router = useRouter();
 const { user } = useAdminSession();
 const { searchInput, shortHeaderPeriod } = usePublicPortalState();
+const { shortcutKey, shortcutTitle } = usePlatformShortcut();
 
 const headerSearchEl = ref<HTMLInputElement | null>(null);
 const mobileMenuOpen = ref(false);
@@ -32,10 +34,40 @@ const navLinks = computed(() => [
 ]);
 
 function handleGlobalKeydown(e: KeyboardEvent) {
-  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k' && isLinimasaRoute.value) {
+  const targetTag = (e.target as HTMLElement)?.tagName?.toLowerCase();
+  const isInputActive = targetTag === 'input' || targetTag === 'textarea' || (e.target as HTMLElement)?.isContentEditable;
+
+  // Shortcut Ctrl+K / Cmd+K (aktif di semua rute publik)
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
     e.preventDefault();
-    headerSearchEl.value?.focus();
-    headerSearchEl.value?.select();
+    if (!isLinimasaRoute.value) {
+      void router.push('/linimasa').then(() => {
+        nextTick(() => {
+          headerSearchEl.value?.focus();
+          headerSearchEl.value?.select();
+        });
+      });
+    } else {
+      headerSearchEl.value?.focus();
+      headerSearchEl.value?.select();
+    }
+    return;
+  }
+
+  // Shortcut tombol '/' saat tidak sedang mengetik di input
+  if (e.key === '/' && !isInputActive && !e.metaKey && !e.ctrlKey && !e.altKey) {
+    e.preventDefault();
+    if (!isLinimasaRoute.value) {
+      void router.push('/linimasa').then(() => {
+        nextTick(() => {
+          headerSearchEl.value?.focus();
+          headerSearchEl.value?.select();
+        });
+      });
+    } else {
+      headerSearchEl.value?.focus();
+      headerSearchEl.value?.select();
+    }
   }
 }
 
@@ -153,9 +185,10 @@ onBeforeUnmount(() => {
               </button>
               <kbd
                 v-else
+                :title="shortcutTitle"
                 class="text-[11px] text-slate-600 bg-white border border-slate-200/90 shadow-2xs rounded-md px-1.5 py-0.5 font-semibold leading-none pointer-events-none"
               >
-                ⌘K
+                {{ shortcutKey }}
               </kbd>
             </div>
           </div>

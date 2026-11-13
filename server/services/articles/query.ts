@@ -16,11 +16,15 @@ export type ArticleFilterInput = Partial<
     | 'status'
     | 'llmStatus'
     | 'isEconomic'
+    | 'sourceType'
+    | 'geographicScope'
     | 'year'
     | 'quarter'
     | 'kbli'
+    | 'kbliImpact'
     | 'pdrbGroup'
     | 'expenditure'
+    | 'expenditureImpact'
     | 'portal'
     | 'from'
     | 'to'
@@ -40,6 +44,7 @@ export function buildArticleSearchClause(rawQuery: string | undefined): SQL | un
     ilike(articles.title, pattern),
     ilike(articles.summary, pattern),
     ilike(articles.url, pattern),
+    ilike(articles.sourcePortal, pattern),
   );
 }
 
@@ -60,6 +65,12 @@ export function buildAdminArticleFilters(filter: ArticleFilterInput): SQL | unde
   } else if (filter.isEconomic === 'false') {
     conditions.push(eq(articles.isEconomicPhenomenon, false));
   }
+  if (filter.sourceType) {
+    conditions.push(eq(articles.sourceType, filter.sourceType));
+  }
+  if (filter.geographicScope) {
+    conditions.push(eq(articles.geographicScope, filter.geographicScope));
+  }
   if (filter.year !== undefined) {
     conditions.push(eq(articles.year, filter.year));
   }
@@ -76,8 +87,14 @@ export function buildAdminArticleFilters(filter: ArticleFilterInput): SQL | unde
       conditions.push(inArray(articles.kbliCategory, codes));
     }
   }
+  if (filter.kbliImpact) {
+    conditions.push(eq(articles.kbliImpact, filter.kbliImpact));
+  }
   if (filter.expenditure) {
     conditions.push(eq(articles.expenditureComponent, filter.expenditure));
+  }
+  if (filter.expenditureImpact) {
+    conditions.push(eq(articles.expenditureImpact, filter.expenditureImpact));
   }
   if (filter.portal) {
     conditions.push(eq(articles.sourcePortal, filter.portal));

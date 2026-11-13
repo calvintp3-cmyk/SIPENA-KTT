@@ -2,7 +2,6 @@
 <script setup lang="ts">
 import {
   ArticleSourceTypeEnum,
-  KbliImpactEnum,
   PDRB_17_SECTORS,
   PDRB_6_EXPENDITURE_LIST,
 } from '#shared/enums/pdrb';
@@ -35,7 +34,9 @@ const emit = defineEmits<{
   reset: [];
 }>();
 
+const { searchInput } = usePublicPortalState();
 const { getExpenditureColorTheme } = usePdrbLabels();
+
 const kbliSelectId = computed(() =>
   props.inDrawer ? 'filter-kbli-select-mobile' : 'filter-kbli-select-desktop',
 );
@@ -60,9 +61,9 @@ const sectorOptions = computed<Pdrb17DistributionItem[]>(() => {
 });
 
 const pdrbSelectItems = computed<SelectOptionItem<string>[]>(() => [
-  { label: `Semua Lapangan Usaha (${totalInPeriod.value})`, value: 'ALL' },
+  { label: `Semua Sektor Lapangan Usaha (${totalInPeriod.value})`, value: 'ALL' },
   ...sectorOptions.value.map((sector: Pdrb17DistributionItem) => ({
-    label: `${sector.groupCode} - ${sector.shortName} (${sector.count})`,
+    label: `${sector.groupCode} • ${sector.shortName} (${sector.count})`,
     value: sector.groupCode,
   })),
 ]);
@@ -80,84 +81,81 @@ const expenditureCountMap = computed(() => {
   return map;
 });
 
-const impactItems = computed(() => {
-  const counts = props.overview?.kpi.impactBreakdown.kbli;
-  return [
-    {
-      value: 'EXPANSION',
-      label: 'Meningkatkan NTB / Riil',
-      icon: 'i-lucide-trending-up',
-      dotClass: 'bg-emerald-500',
-      textClass: 'text-emerald-700',
-      count: counts?.[KbliImpactEnum.INCREASE_NTB] ?? 0,
-    },
-    {
-      value: 'CONTRACTION',
-      label: 'Menurunkan NTB / Riil',
-      icon: 'i-lucide-trending-down',
-      dotClass: 'bg-rose-500',
-      textClass: 'text-rose-700',
-      count: counts?.[KbliImpactEnum.DECREASE_NTB] ?? 0,
-    },
-    {
-      value: 'PRICE_UP',
-      label: 'Kenaikan Harga / Deflator',
-      icon: 'i-lucide-arrow-up-circle',
-      dotClass: 'bg-amber-500',
-      textClass: 'text-amber-700',
-      count: counts?.[KbliImpactEnum.INCREASE_PRICE] ?? 0,
-    },
-    {
-      value: 'PRICE_DOWN',
-      label: 'Penurunan Harga / Deflator',
-      icon: 'i-lucide-arrow-down-circle',
-      dotClass: 'bg-sky-500',
-      textClass: 'text-sky-700',
-      count: counts?.[KbliImpactEnum.DECREASE_PRICE] ?? 0,
-    },
-  ];
-});
-
 const sourceButtons = [
-  { value: 'ALL', label: 'Semua' },
+  { value: 'ALL', label: 'Semua Sumber' },
   { value: ArticleSourceTypeEnum.REGIONAL, label: 'Lokal KTT' },
-  { value: ArticleSourceTypeEnum.NATIONAL, label: 'Nasional' },
+  { value: ArticleSourceTypeEnum.NATIONAL, label: 'Dampak Nasional' },
+];
+
+const bentoImpactItems = [
+  {
+    value: 'EXPANSION',
+    label: 'Aktivitas Naik',
+    subLabel: 'Produksi & volume',
+    icon: 'i-lucide-trending-up',
+    activeClass: 'border-emerald-500 bg-emerald-50 text-emerald-950 ring-1 ring-emerald-500/20',
+    dotClass: 'bg-emerald-600',
+  },
+  {
+    value: 'CONTRACTION',
+    label: 'Aktivitas Turun',
+    subLabel: 'Penurunan output',
+    icon: 'i-lucide-trending-down',
+    activeClass: 'border-rose-500 bg-rose-50 text-rose-950 ring-1 ring-rose-500/20',
+    dotClass: 'bg-rose-600',
+  },
+  {
+    value: 'PRICE_UP',
+    label: 'Harga Naik',
+    subLabel: 'Inflasi & tarif',
+    icon: 'i-lucide-arrow-up-right',
+    activeClass: 'border-amber-500 bg-amber-50 text-amber-950 ring-1 ring-amber-500/20',
+    dotClass: 'bg-amber-600',
+  },
+  {
+    value: 'PRICE_DOWN',
+    label: 'Harga Turun',
+    subLabel: 'Deflasi & diskon',
+    icon: 'i-lucide-arrow-down-right',
+    activeClass: 'border-sky-500 bg-sky-50 text-sky-950 ring-1 ring-sky-500/20',
+    dotClass: 'bg-sky-600',
+  },
 ];
 </script>
 
 <template>
   <aside
-    aria-label="Filter Fenomena Ekonomi"
-    class="flex flex-col gap-5 text-slate-800"
+    aria-label="Filter Portal Fenomena Ekonomi"
+    class="flex flex-col text-slate-800"
     :class="
       inDrawer
-        ? 'w-full'
-        : 'w-full lg:w-[290px] lg:sticky lg:top-[84px] shrink-0 self-start lg:max-h-[calc(100vh-104px)] lg:overflow-y-auto saas-scroll bg-white/95 backdrop-blur-md border border-slate-200/85 shadow-[0_10px_28px_-14px_rgba(15,23,42,0.10)] rounded-2xl p-4 sm:p-5'
+        ? 'w-full gap-4'
+        : 'w-full lg:w-[310px] h-full overflow-hidden bg-white/95 backdrop-blur-md border border-slate-200/90 shadow-sm rounded-2xl flex flex-col'
     "
   >
-    <!-- Header Rail -->
-    <div class="flex items-center justify-between pb-3 border-b border-slate-200/80">
+    <!-- Filter Card Header Bar -->
+    <div class="px-4 py-3.5 border-b border-slate-200/80 bg-slate-50/60 flex items-center justify-between shrink-0">
       <div class="inline-flex items-center gap-2">
-        <div class="w-6 h-6 rounded-md bg-indigo-50 text-indigo-600 flex items-center justify-center">
-          <UIcon name="i-solar-filter-bold-duotone" class="w-3.5 h-3.5" />
+        <div class="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200/70 flex items-center justify-center">
+          <UIcon name="i-solar-filter-bold-duotone" class="w-4 h-4" />
         </div>
-        <span class="text-xs font-bold text-slate-900">
-          Filter Fenomena
-        </span>
-        <span
-          class="bg-indigo-50 text-indigo-700 border border-indigo-200/80 px-2 py-0.5 rounded-full text-[11px] font-semibold tabular-nums"
-        >
-          {{ activeFilterCount > 0 ? `${activeFilterCount}` : 'Semua' }}
-        </span>
+        <div>
+          <span class="text-xs font-bold text-slate-900 block leading-tight">
+            Filter Terpadu
+          </span>
+          <span class="text-[10px] text-slate-600 font-medium leading-tight">
+            {{ activeFilterCount > 0 ? `${activeFilterCount} kriteria aktif` : 'Semua fenomena' }}
+          </span>
+        </div>
       </div>
 
       <button
         type="button"
-        class="inline-flex items-center gap-1 text-[11px] font-semibold transition-colors rounded-lg px-2.5 py-1 min-h-9"
+        class="inline-flex items-center gap-1 text-[11px] font-semibold transition-colors rounded-lg px-2 py-1"
         :class="
           activeFilterCount > 0
-            ? 'text-indigo-700 hover:text-indigo-900 hover:bg-indigo-50 cursor-pointer'
-            : 'text-slate-500 cursor-not-allowed'
+            ? 'text-indigo-700 hover:text-indigo-900 hover:bg-indigo-100/60 cursor-pointer'
+            : 'text-slate-500 cursor-not-allowed opacity-60'
         "
         :disabled="activeFilterCount === 0"
         @click="() => { emit('reset'); }"
@@ -167,193 +165,182 @@ const sourceButtons = [
       </button>
     </div>
 
-    <!-- 1. Sumber Berita -->
-    <div>
-      <span class="block text-xs font-semibold text-slate-600 mb-2">
-        1. Sumber Berita
-      </span>
-      <div
-        role="group"
-        aria-label="Filter Sumber Berita"
-        class="grid grid-cols-3 gap-1 p-1 bg-slate-100 rounded-xl border border-slate-200/80 text-center"
-      >
-        <button
-          v-for="src in sourceButtons"
-          :key="src.value"
-          type="button"
-          :aria-pressed="sourceType === src.value"
-          class="min-h-9 py-1.5 px-1.5 rounded-lg text-[11px] transition-colors whitespace-nowrap"
-          :class="
-            sourceType === src.value
-              ? 'font-semibold bg-white text-indigo-700 shadow-xs border border-indigo-200/70'
-              : 'text-slate-600 hover:text-slate-900 font-medium'
-          "
-          @click="() => { emit('update:sourceType', src.value); }"
-        >
-          {{ src.label }}
-        </button>
+    <!-- Scrollable Filter Body -->
+    <div
+      class="flex-1 min-h-0 overflow-y-auto saas-scroll px-4 py-4 space-y-4 text-xs"
+      :class="{ 'p-0': inDrawer }"
+    >
+      <!-- Quick Keyword Search Field inside Filter Bar -->
+      <div class="space-y-1.5">
+        <label for="filter-sidebar-search" class="block text-[11px] font-bold text-slate-700">
+          Cari Kata Kunci
+        </label>
+        <div class="relative">
+          <UIcon
+            name="i-solar-magnifer-line-duotone"
+            class="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-600 pointer-events-none"
+          />
+          <input
+            id="filter-sidebar-search"
+            v-model="searchInput"
+            type="search"
+            placeholder="Cari komoditas, proyek, lokasi..."
+            class="w-full h-8 pl-8 pr-7 bg-slate-50 hover:bg-white focus:bg-white text-xs text-slate-900 placeholder:text-slate-600 rounded-lg border border-slate-200 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20 transition-colors"
+          >
+          <button
+            v-if="searchInput"
+            type="button"
+            aria-label="Bersihkan pencarian"
+            class="absolute right-1 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center text-slate-500 hover:text-slate-800 cursor-pointer"
+            @click="() => { searchInput = ''; }"
+          >
+            <UIcon name="i-lucide-x" class="w-3 h-3" />
+          </button>
+        </div>
       </div>
-    </div>
 
-    <!-- 2. Sektor KBLI (17 Kategori BPS) -->
-    <div class="pt-3.5 border-t border-slate-200/75">
-      <label
-        :id="kbliLabelId"
-        :for="kbliSelectId"
-        class="block text-xs font-semibold text-slate-600 mb-2"
-      >
-        2. Sektor KBLI (17 Kategori BPS)
-      </label>
-      <USelectMenu
-        :id="kbliSelectId"
-        v-model="selectedPdrbModel"
-        :items="pdrbSelectItems"
-        value-key="value"
-        label-key="label"
-        :aria-labelledby="kbliLabelId"
-        placeholder="Cari sektor KBLI..."
-        :search-input="{ placeholder: 'Ketik kode atau nama sektor...' }"
-        leading-icon="i-solar-buildings-2-bold-duotone"
-        size="sm"
-        class="w-full"
-      />
-    </div>
-
-    <!-- 3. Komponen Pengeluaran PDRB (6 Komponen) -->
-    <div class="pt-3.5 border-t border-slate-200/75">
-      <span class="block text-xs font-semibold text-slate-600 mb-2">
-        3. Komponen Pengeluaran PDRB
-      </span>
-      <div role="group" aria-label="Filter Komponen Pengeluaran PDRB" class="flex flex-col gap-1">
-        <button
-          type="button"
-          :aria-pressed="expenditure === 'ALL'"
-          class="w-full min-h-9 flex items-center justify-between px-2.5 py-2 rounded-xl text-xs transition-colors"
-          :class="
-            expenditure === 'ALL'
-              ? 'bg-indigo-50/90 text-indigo-900 font-semibold border border-indigo-200/80 shadow-2xs'
-              : 'text-slate-700 hover:text-slate-950 hover:bg-slate-50 font-medium border border-transparent'
-          "
-          @click="() => { emit('update:expenditure', 'ALL'); }"
+      <!-- Sumber Berita & Liputan -->
+      <div class="space-y-1.5 pt-3 border-t border-slate-100">
+        <span class="block text-[11px] font-bold text-slate-700">
+          Cakupan Sumber
+        </span>
+        <div
+          role="group"
+          aria-label="Filter Sumber Berita"
+          class="grid grid-cols-3 gap-1 p-1 bg-slate-100/90 rounded-xl border border-slate-200/80 text-center"
         >
-          <span class="inline-flex items-center gap-2 min-w-0">
-            <span
-              class="w-2 h-2 rounded-full shrink-0"
-              :class="expenditure === 'ALL' ? 'bg-indigo-600' : 'bg-slate-300'"
-            />
-            <span class="truncate">Semua Pengeluaran</span>
+          <button
+            v-for="src in sourceButtons"
+            :key="src.value"
+            type="button"
+            :aria-pressed="sourceType === src.value"
+            class="py-1 px-1 rounded-lg text-[10px] transition-all whitespace-nowrap cursor-pointer"
+            :class="
+              sourceType === src.value
+                ? 'font-bold bg-white text-indigo-700 shadow-2xs border border-indigo-200'
+                : 'text-slate-600 hover:text-slate-900 font-medium'
+            "
+            @click="() => { emit('update:sourceType', src.value); }"
+          >
+            {{ src.label }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Arah Dinamika Ekonomi (2x2 Bento Chips) -->
+      <div class="space-y-1.5 pt-3 border-t border-slate-100">
+        <div class="flex items-center justify-between">
+          <span class="block text-[11px] font-bold text-slate-700">
+            Arah Dinamika
           </span>
-          <span
-            class="px-2 py-0.5 rounded-full text-[11px] font-bold tabular-nums shrink-0"
+          <button
+            v-if="impactMacro !== 'ALL'"
+            type="button"
+            class="text-[10px] font-semibold text-indigo-600 hover:text-indigo-800 cursor-pointer"
+            @click="() => { emit('update:impactMacro', 'ALL'); }"
+          >
+            Hapus
+          </button>
+        </div>
+
+        <div class="grid grid-cols-2 gap-1.5">
+          <button
+            v-for="chip in bentoImpactItems"
+            :key="chip.value"
+            type="button"
+            :aria-pressed="impactMacro === chip.value"
+            class="p-2 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between min-h-[58px]"
+            :class="
+              impactMacro === chip.value
+                ? chip.activeClass
+                : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50/70 text-slate-700'
+            "
+            @click="() => { emit('update:impactMacro', impactMacro === chip.value ? 'ALL' : chip.value); }"
+          >
+            <div class="flex items-center justify-between gap-1">
+              <span class="w-1.5 h-1.5 rounded-full shrink-0" :class="chip.dotClass" />
+              <UIcon :name="chip.icon" class="w-3.5 h-3.5 text-slate-500" />
+            </div>
+            <div>
+              <div class="font-bold text-[11px] leading-tight">
+                {{ chip.label }}
+              </div>
+              <div class="text-[9px] text-slate-500 leading-tight">
+                {{ chip.subLabel }}
+              </div>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Sektor Lapangan Usaha -->
+      <div class="space-y-1.5 pt-3 border-t border-slate-100">
+        <label
+          :id="kbliLabelId"
+          :for="kbliSelectId"
+          class="block text-[11px] font-bold text-slate-700"
+        >
+          Sektor Lapangan Usaha (KBLI)
+        </label>
+        <USelectMenu
+          :id="kbliSelectId"
+          v-model="selectedPdrbModel"
+          :items="pdrbSelectItems"
+          value-key="value"
+          label-key="label"
+          :aria-labelledby="kbliLabelId"
+          placeholder="Pilih sektor usaha..."
+          :search-input="{ placeholder: 'Cari nama sektor...' }"
+          leading-icon="i-solar-buildings-2-bold-duotone"
+          size="sm"
+          class="w-full"
+        />
+      </div>
+
+      <!-- Kelompok Permintaan & Pengeluaran -->
+      <div class="space-y-1.5 pt-3 border-t border-slate-100">
+        <span class="block text-[11px] font-bold text-slate-700">
+          Kelompok Permintaan
+        </span>
+        <div role="group" aria-label="Filter Kelompok Permintaan" class="flex flex-col gap-1">
+          <button
+            type="button"
+            :aria-pressed="expenditure === 'ALL'"
+            class="w-full h-8 flex items-center justify-between px-2.5 rounded-lg text-[11px] transition-colors cursor-pointer"
             :class="
               expenditure === 'ALL'
-                ? 'bg-white text-indigo-700 border border-indigo-200'
-                : 'text-slate-600'
+                ? 'bg-indigo-50 text-indigo-900 font-bold border border-indigo-200'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium'
             "
+            @click="() => { emit('update:expenditure', 'ALL'); }"
           >
-            {{ totalInPeriod }}
-          </span>
-        </button>
+            <span class="truncate">Semua Kelompok</span>
+            <span class="text-[10px] tabular-nums font-semibold">{{ totalInPeriod }}</span>
+          </button>
 
-        <button
-          v-for="item in PDRB_6_EXPENDITURE_LIST"
-          :key="item.code"
-          type="button"
-          :aria-pressed="expenditure === item.code"
-          class="w-full min-h-9 flex items-center justify-between px-2.5 py-2 rounded-xl text-xs transition-colors"
-          :class="
-            expenditure === item.code
-              ? 'bg-indigo-50/90 text-indigo-900 font-semibold border border-indigo-200/80 shadow-2xs'
-              : 'text-slate-700 hover:text-slate-950 hover:bg-slate-50 font-medium border border-transparent'
-          "
-          :title="item.official"
-          @click="() => { emit('update:expenditure', expenditure === item.code ? 'ALL' : item.code); }"
-        >
-          <span class="inline-flex items-center gap-2 min-w-0 pr-2">
-            <span
-              class="w-2 h-2 rounded-full shrink-0"
-              :class="getExpenditureColorTheme(item.code).dotClass"
-            />
-            <span class="truncate">{{ item.short }}</span>
-          </span>
-          <span
-            class="text-[11px] tabular-nums shrink-0"
+          <button
+            v-for="item in PDRB_6_EXPENDITURE_LIST"
+            :key="item.code"
+            type="button"
+            :aria-pressed="expenditure === item.code"
+            class="w-full h-8 flex items-center justify-between px-2.5 rounded-lg text-[11px] transition-colors cursor-pointer"
             :class="
               expenditure === item.code
-                ? 'px-2 py-0.5 rounded-full bg-white text-indigo-700 border border-indigo-200 font-bold'
-                : 'text-slate-600 font-medium'
+                ? 'bg-indigo-50 text-indigo-900 font-bold border border-indigo-200'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium'
             "
+            :title="item.official"
+            @click="() => { emit('update:expenditure', expenditure === item.code ? 'ALL' : item.code); }"
           >
-            {{ expenditureCountMap.get(item.code) ?? 0 }}
-          </span>
-        </button>
-      </div>
-    </div>
-
-    <!-- 4. Arah Dampak Makro -->
-    <div class="pt-3.5 border-t border-slate-200/75">
-      <span class="block text-xs font-semibold text-slate-600 mb-2">
-        4. Arah Dampak Makro
-      </span>
-      <div role="group" aria-label="Filter Arah Dampak Makro" class="flex flex-col gap-1">
-        <button
-          type="button"
-          :aria-pressed="impactMacro === 'ALL'"
-          class="w-full min-h-9 flex items-center justify-between px-2.5 py-2 rounded-xl text-xs transition-colors"
-          :class="
-            impactMacro === 'ALL'
-              ? 'bg-indigo-50/90 text-indigo-900 font-semibold border border-indigo-200/80 shadow-2xs'
-              : 'text-slate-700 hover:text-slate-950 hover:bg-slate-50 font-medium border border-transparent'
-          "
-          @click="() => { emit('update:impactMacro', 'ALL'); }"
-        >
-          <span class="inline-flex items-center gap-2 min-w-0">
-            <span
-              class="w-2 h-2 rounded-full shrink-0"
-              :class="impactMacro === 'ALL' ? 'bg-indigo-600' : 'bg-slate-300'"
-            />
-            <span class="truncate">Semua Dampak</span>
-          </span>
-          <span
-            class="px-2 py-0.5 rounded-full text-[11px] font-bold tabular-nums shrink-0"
-            :class="
-              impactMacro === 'ALL'
-                ? 'bg-white text-indigo-700 border border-indigo-200'
-                : 'text-slate-600'
-            "
-          >
-            {{ totalInPeriod }}
-          </span>
-        </button>
-
-        <button
-          v-for="item in impactItems"
-          :key="item.value"
-          type="button"
-          :aria-pressed="impactMacro === item.value"
-          class="w-full min-h-9 flex items-center justify-between px-2.5 py-2 rounded-xl text-xs transition-colors"
-          :class="
-            impactMacro === item.value
-              ? 'bg-indigo-50/90 text-indigo-900 font-semibold border border-indigo-200/80 shadow-2xs'
-              : 'text-slate-700 hover:text-slate-950 hover:bg-slate-50 font-medium border border-transparent'
-          "
-          @click="() => { emit('update:impactMacro', impactMacro === item.value ? 'ALL' : item.value); }"
-        >
-          <span class="inline-flex items-center gap-2 min-w-0">
-            <UIcon :name="item.icon" class="w-3.5 h-3.5 shrink-0" :class="item.textClass" />
-            <span class="truncate">{{ item.label }}</span>
-          </span>
-          <span
-            class="text-[11px] tabular-nums shrink-0"
-            :class="
-              impactMacro === item.value
-                ? 'px-2 py-0.5 rounded-full bg-white text-indigo-700 border border-indigo-200 font-bold'
-                : 'text-slate-600 font-medium'
-            "
-          >
-            {{ item.count }}
-          </span>
-        </button>
+            <span class="inline-flex items-center gap-1.5 truncate pr-2">
+              <span class="w-1.5 h-1.5 rounded-full shrink-0" :class="getExpenditureColorTheme(item.code).dotClass" />
+              <span class="truncate">{{ item.short }}</span>
+            </span>
+            <span class="text-[10px] tabular-nums font-semibold text-slate-500">
+              {{ expenditureCountMap.get(item.code) ?? 0 }}
+            </span>
+          </button>
+        </div>
       </div>
     </div>
   </aside>

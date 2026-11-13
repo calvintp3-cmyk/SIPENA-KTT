@@ -117,7 +117,7 @@ const historyChartOption = computed<ECOption | null>(() => {
     },
     series: [
       {
-        name: 'Naik NTB',
+        name: 'Aktivitas Naik',
         type: 'bar',
         stack: 'sinyal',
         barMaxWidth: 32,
@@ -139,7 +139,7 @@ const historyChartOption = computed<ECOption | null>(() => {
         })),
       },
       {
-        name: 'Turun NTB',
+        name: 'Aktivitas Turun',
         type: 'bar',
         stack: 'sinyal',
         barMaxWidth: 32,
@@ -290,7 +290,7 @@ function handleExportXlsx() {
                 "
                 @click="() => { mode = 'qoq'; }"
               >
-                q-to-q (Triwulan Sebelumnya)
+                Antar-Triwulan (vs Triwulan Lalu)
               </button>
               <button
                 type="button"
@@ -303,7 +303,7 @@ function handleExportXlsx() {
                 "
                 @click="() => { mode = 'yoy'; }"
               >
-                y-on-y (Tahun Sebelumnya)
+                Antar-Tahun (vs Tahun Lalu)
               </button>
             </div>
           </div>

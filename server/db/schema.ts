@@ -273,6 +273,8 @@ export const articles = pgTable(
     index('articles_kbli_period_idx').on(t.kbliCategory, t.year, t.quarter),
     index('articles_exp_period_idx').on(t.expenditureComponent, t.year, t.quarter),
     index('articles_source_portal_idx').on(t.sourcePortal, t.publishedAt.desc()),
+    index('articles_source_type_period_idx').on(t.sourceType, t.year, t.quarter, t.publishedAt.desc()),
+    index('articles_geo_scope_period_idx').on(t.geographicScope, t.year, t.quarter),
 
     // Indeks Wajib seluruh Foreign Key (PostgreSQL tidak mengindeks FK secara otomatis)
     index('articles_keyword_id_idx').on(t.keywordId),
@@ -280,15 +282,16 @@ export const articles = pgTable(
     index('articles_verified_by_idx').on(t.verifiedBy),
     index('articles_created_by_idx').on(t.createdBy),
 
-    // Partial Index khusus antrean retry artikel yang gagal diproses Gemini Free Tier
+    // Partial Index khusus antrean retry artikel yang gagal diproses Gemini / Multi-LLM
     index('articles_llm_retry_partial_idx')
-      .on(t.createdAt)
-      .where(sql`${t.llmStatus} = 'FAILED'`),
+      .on(t.publishedAt.desc())
+      .where(sql`${t.llmStatus} = 'FAILED' AND ${t.verificationStatus} = 'PENDING'`),
 
     // Integritas Domain & Kebenaran Data
     check('articles_quarter_range_chk', sql`${t.quarter} BETWEEN 1 AND 4`),
     check('articles_year_range_chk', sql`${t.year} BETWEEN 2000 AND 2100`),
     check('articles_word_count_chk', sql`${t.wordCount} >= 0`),
+    check('articles_confidence_range_chk', sql`${t.llmConfidence} IS NULL OR (${t.llmConfidence} >= 0 AND ${t.llmConfidence} <= 1)`),
     check(
       'articles_verified_completeness_chk',
       sql`${t.verificationStatus} <> 'VERIFIED' OR (

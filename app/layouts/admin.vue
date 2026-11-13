@@ -17,6 +17,7 @@ const mobileNavOpen = ref(false);
 const commandPaletteOpen = ref(false);
 const isLoggingOut = ref(false);
 const isSidebarCollapsed = useState<boolean>('sipena:admin-sidebar-collapsed', () => false);
+const { shortcutKey, shortcutTitle } = usePlatformShortcut();
 
 function toggleSidebarCollapsed() {
   isSidebarCollapsed.value = !isSidebarCollapsed.value;
@@ -567,9 +568,10 @@ onBeforeUnmount(() => {
               <UIcon name="i-solar-magnifer-line-duotone" class="w-4 h-4 text-slate-500" />
               <span class="hidden md:inline font-medium">Cari menu / artikel...</span>
               <kbd
+                :title="shortcutTitle"
                 class="hidden sm:inline text-[11px] font-semibold px-1.5 py-0.5 rounded-md bg-white border border-slate-200 text-slate-600 leading-none"
               >
-                ⌘K
+                {{ shortcutKey }}
               </kbd>
             </button>
 

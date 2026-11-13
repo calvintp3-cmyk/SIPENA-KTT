@@ -601,14 +601,56 @@ export function extractArticleContent(
   // Bersihkan seluruh elemen pengganggu
   $(NOISE_ELEMENT_SELECTORS).remove();
 
-  let container = $('body' as string);
+  // Scrapling Pattern Layer 2 & 3: Adaptive Container Scoring dengan penalti kepadatan link
+  let bestContainer = $('body' as string);
+  let bestScore = -1;
+
   for (const selector of CONTENT_CONTAINER_SELECTORS) {
-    const candidate = $(selector).first();
-    if (candidate.length > 0 && countWords(candidate.text()) >= EXTRACTOR_MIN_VALID_WORDS) {
-      container = candidate;
-      break;
+    const candidates = $(selector);
+    for (let i = 0; i < Math.min(candidates.length, 3); i += 1) {
+      const candidate = candidates.eq(i);
+      const rawCandidateText = candidate.text();
+      const words = countWords(rawCandidateText);
+      if (words < EXTRACTOR_MIN_VALID_WORDS) continue;
+
+      let linkChars = 0;
+      candidate.find('a').each((_aIdx, aEl) => {
+        linkChars += $(aEl).text().trim().length;
+      });
+      const totalChars = Math.max(1, rawCandidateText.trim().length);
+      const linkDensity = Math.min(1, linkChars / totalChars);
+      const pCount = candidate.find('p').length;
+
+      // Skor tinggi untuk teks padat non-link dan memiliki struktur paragraf <p>
+      const score = words * (1 - linkDensity) + (pCount * 12);
+      if (score > bestScore) {
+        bestScore = score;
+        bestContainer = candidate;
+      }
     }
   }
+
+  // Adaptive Paragraph Parent Clustering Fallback bila selector CSS tema standar gagal
+  if (bestScore <= 0) {
+    let topParent: ReturnType<typeof $> | null = null;
+    let topParentPCount = 0;
+    $('article, main, div').each((_dIdx, dEl) => {
+      const el = $(dEl);
+      const directOrNearP = el.find('p').length;
+      if (directOrNearP >= 3 && directOrNearP > topParentPCount) {
+        const words = countWords(el.text());
+        if (words >= EXTRACTOR_MIN_VALID_WORDS) {
+          topParentPCount = directOrNearP;
+          topParent = el;
+        }
+      }
+    });
+    if (topParent) {
+      bestContainer = topParent;
+    }
+  }
+
+  const container = bestContainer;
 
   const paragraphs: string[] = [];
   container.find('p').each((_idx, el) => {

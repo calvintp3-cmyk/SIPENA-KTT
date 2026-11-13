@@ -19,7 +19,38 @@ export default defineEventHandler(async (event) => {
 
   const [items, [totalRow], summaryCounts, portalRows] = await Promise.all([
     db
-      .select()
+      .select({
+        id: articles.id,
+        url: articles.url,
+        urlHash: articles.urlHash,
+        sourceType: articles.sourceType,
+        sourcePortal: articles.sourcePortal,
+        title: articles.title,
+        snippetText: articles.snippetText,
+        wordCount: articles.wordCount,
+        publishedAt: articles.publishedAt,
+        quarter: articles.quarter,
+        year: articles.year,
+        geographicScope: articles.geographicScope,
+        isEconomicPhenomenon: articles.isEconomicPhenomenon,
+        summary: articles.summary,
+        kbliCategory: articles.kbliCategory,
+        kbliImpact: articles.kbliImpact,
+        expenditureComponent: articles.expenditureComponent,
+        expenditureImpact: articles.expenditureImpact,
+        llmModel: articles.llmModel,
+        llmStatus: articles.llmStatus,
+        llmError: articles.llmError,
+        llmConfidence: articles.llmConfidence,
+        verificationStatus: articles.verificationStatus,
+        verifiedBy: articles.verifiedBy,
+        verifiedAt: articles.verifiedAt,
+        keywordId: articles.keywordId,
+        scraperLogId: articles.scraperLogId,
+        createdBy: articles.createdBy,
+        createdAt: articles.createdAt,
+        updatedAt: articles.updatedAt,
+      })
       .from(articles)
       .where(whereClause)
       .orderBy(desc(articles.publishedAt), desc(articles.createdAt))

@@ -57,6 +57,15 @@ export const ImpactMacroFilterSchema = z.enum([
 
 export type ImpactMacroFilter = z.infer<typeof ImpactMacroFilterSchema>;
 
+export const GeographicScopeFilterSchema = z.enum([
+  'KTT_LOCAL',
+  'KALTARA_PROVINCIAL',
+  'NATIONAL_MACRO_IMPACT',
+  'OTHER_REGION_IRRELEVANT',
+]);
+
+export type GeographicScopeFilter = z.infer<typeof GeographicScopeFilterSchema>;
+
 export const PublicOverviewQuerySchema = z.object({
   year: optionalPositiveInt(2000, 2100),
   quarter: optionalQuarter,
@@ -75,9 +84,17 @@ export const PublicArticlesQuerySchema = z.object({
     (v) => (v === '' || v === 'ALL' || v === null || v === undefined ? undefined : v),
     z.enum(ArticleSourceTypeEnum).optional(),
   ),
+  geographicScope: z.preprocess(
+    (v) => (v === '' || v === 'ALL' || v === null || v === undefined ? undefined : v),
+    GeographicScopeFilterSchema.optional(),
+  ),
   impactMacro: z.preprocess(
     (v) => (v === '' || v === 'ALL' || v === null || v === undefined ? undefined : v),
     ImpactMacroFilterSchema.optional(),
+  ),
+  sort: z.preprocess(
+    (v) => (v === '' || v === null || v === undefined ? undefined : v),
+    z.enum(['newest', 'oldest', 'sector']).default('newest'),
   ),
   q: z
     .string()
@@ -130,14 +147,24 @@ export const AdminArticlesQuerySchema = z.object({
     (v) => (v === '' || v === 'ALL' ? undefined : v),
     z.enum(['true', 'false']).optional(),
   ),
+  sourceType: z.preprocess(
+    (v) => (v === '' || v === 'ALL' ? undefined : v),
+    z.enum(ArticleSourceTypeEnum).optional(),
+  ),
+  geographicScope: z.preprocess(
+    (v) => (v === '' || v === 'ALL' ? undefined : v),
+    GeographicScopeFilterSchema.optional(),
+  ),
   year: optionalPositiveInt(2000, 2100),
   quarter: optionalQuarter,
   kbli: optionalEnum(KbliCategoryEnum),
+  kbliImpact: optionalEnum(KbliImpactEnum),
   pdrbGroup: z.preprocess(
     (v) => (v === '' || v === 'ALL' || v === null || v === undefined ? undefined : String(v).trim()),
     z.string().max(16).optional(),
   ),
   expenditure: optionalEnum(ExpenditureComponentEnum),
+  expenditureImpact: optionalEnum(ExpenditureImpactEnum),
   portal: z
     .string()
     .trim()
@@ -170,14 +197,24 @@ export const ExportArticlesQuerySchema = z.object({
     (v) => (v === '' || v === 'ALL' ? undefined : v),
     z.enum(['true', 'false']).optional(),
   ),
+  sourceType: z.preprocess(
+    (v) => (v === '' || v === 'ALL' ? undefined : v),
+    z.enum(ArticleSourceTypeEnum).optional(),
+  ),
+  geographicScope: z.preprocess(
+    (v) => (v === '' || v === 'ALL' ? undefined : v),
+    GeographicScopeFilterSchema.optional(),
+  ),
   year: optionalPositiveInt(2000, 2100),
   quarter: optionalQuarter,
   kbli: optionalEnum(KbliCategoryEnum),
+  kbliImpact: optionalEnum(KbliImpactEnum),
   pdrbGroup: z.preprocess(
     (v) => (v === '' || v === 'ALL' || v === null || v === undefined ? undefined : String(v).trim()),
     z.string().max(16).optional(),
   ),
   expenditure: optionalEnum(ExpenditureComponentEnum),
+  expenditureImpact: optionalEnum(ExpenditureImpactEnum),
   portal: z
     .string()
     .trim()

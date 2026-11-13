@@ -49,25 +49,25 @@ export interface GeographicScopeBadgeMeta {
 const KBLI_IMPACT_VISUAL: Record<KbliImpactEnum, BadgeVisualMeta> = {
   [KbliImpactEnum.INCREASE_NTB]: {
     label: KBLI_IMPACT_LABELS[KbliImpactEnum.INCREASE_NTB],
-    shortLabel: 'Naik NTB',
+    shortLabel: 'Aktivitas Naik',
     color: 'success',
     icon: 'i-lucide-trending-up',
   },
   [KbliImpactEnum.DECREASE_NTB]: {
     label: KBLI_IMPACT_LABELS[KbliImpactEnum.DECREASE_NTB],
-    shortLabel: 'Turun NTB',
+    shortLabel: 'Aktivitas Turun',
     color: 'error',
     icon: 'i-lucide-trending-down',
   },
   [KbliImpactEnum.INCREASE_PRICE]: {
     label: KBLI_IMPACT_LABELS[KbliImpactEnum.INCREASE_PRICE],
-    shortLabel: 'Naik Harga',
+    shortLabel: 'Harga Naik',
     color: 'warning',
     icon: 'i-lucide-arrow-up-right',
   },
   [KbliImpactEnum.DECREASE_PRICE]: {
     label: KBLI_IMPACT_LABELS[KbliImpactEnum.DECREASE_PRICE],
-    shortLabel: 'Turun Harga',
+    shortLabel: 'Harga Turun',
     color: 'info',
     icon: 'i-lucide-arrow-down-right',
   },
@@ -76,25 +76,25 @@ const KBLI_IMPACT_VISUAL: Record<KbliImpactEnum, BadgeVisualMeta> = {
 const EXPENDITURE_IMPACT_VISUAL: Record<ExpenditureImpactEnum, BadgeVisualMeta> = {
   [ExpenditureImpactEnum.INCREASE_REAL]: {
     label: EXPENDITURE_IMPACT_LABELS[ExpenditureImpactEnum.INCREASE_REAL],
-    shortLabel: 'Naik Riil',
+    shortLabel: 'Permintaan Naik',
     color: 'success',
     icon: 'i-lucide-trending-up',
   },
   [ExpenditureImpactEnum.DECREASE_REAL]: {
     label: EXPENDITURE_IMPACT_LABELS[ExpenditureImpactEnum.DECREASE_REAL],
-    shortLabel: 'Turun Riil',
+    shortLabel: 'Permintaan Turun',
     color: 'error',
     icon: 'i-lucide-trending-down',
   },
   [ExpenditureImpactEnum.INCREASE_DEFLATOR]: {
     label: EXPENDITURE_IMPACT_LABELS[ExpenditureImpactEnum.INCREASE_DEFLATOR],
-    shortLabel: 'Naik Deflator',
+    shortLabel: 'Biaya Naik',
     color: 'warning',
     icon: 'i-lucide-arrow-up-right',
   },
   [ExpenditureImpactEnum.DECREASE_DEFLATOR]: {
     label: EXPENDITURE_IMPACT_LABELS[ExpenditureImpactEnum.DECREASE_DEFLATOR],
-    shortLabel: 'Turun Deflator',
+    shortLabel: 'Biaya Turun',
     color: 'info',
     icon: 'i-lucide-arrow-down-right',
   },

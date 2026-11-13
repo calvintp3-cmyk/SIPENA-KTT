@@ -1,7 +1,8 @@
 // server/api/public/articles.get.ts
-import { and, count, desc, eq, ilike, inArray, or, type SQL } from 'drizzle-orm';
+import { and, asc, count, desc, eq, ilike, inArray, or, type SQL } from 'drizzle-orm';
 import { defineEventHandler } from 'h3';
 import {
+  ExpenditureImpactEnum,
   KbliImpactEnum,
   resolvePdrbGroupCodes,
   VerificationStatusEnum,
@@ -42,20 +43,46 @@ export default defineEventHandler(async (event) => {
   if (query.sourceType) {
     conditions.push(eq(articles.sourceType, query.sourceType));
   }
+  if (query.geographicScope) {
+    conditions.push(eq(articles.geographicScope, query.geographicScope));
+  }
   if (query.impactMacro) {
-    const impactMap: Record<NonNullable<typeof query.impactMacro>, KbliImpactEnum> = {
-      EXPANSION: KbliImpactEnum.INCREASE_NTB,
-      CONTRACTION: KbliImpactEnum.DECREASE_NTB,
-      PRICE_UP: KbliImpactEnum.INCREASE_PRICE,
-      PRICE_DOWN: KbliImpactEnum.DECREASE_PRICE,
-    };
-    conditions.push(eq(articles.kbliImpact, impactMap[query.impactMacro]));
+    if (query.impactMacro === 'EXPANSION') {
+      conditions.push(
+        or(
+          eq(articles.kbliImpact, KbliImpactEnum.INCREASE_NTB),
+          eq(articles.expenditureImpact, ExpenditureImpactEnum.INCREASE_REAL),
+        )!,
+      );
+    } else if (query.impactMacro === 'CONTRACTION') {
+      conditions.push(
+        or(
+          eq(articles.kbliImpact, KbliImpactEnum.DECREASE_NTB),
+          eq(articles.expenditureImpact, ExpenditureImpactEnum.DECREASE_REAL),
+        )!,
+      );
+    } else if (query.impactMacro === 'PRICE_UP') {
+      conditions.push(
+        or(
+          eq(articles.kbliImpact, KbliImpactEnum.INCREASE_PRICE),
+          eq(articles.expenditureImpact, ExpenditureImpactEnum.INCREASE_DEFLATOR),
+        )!,
+      );
+    } else if (query.impactMacro === 'PRICE_DOWN') {
+      conditions.push(
+        or(
+          eq(articles.kbliImpact, KbliImpactEnum.DECREASE_PRICE),
+          eq(articles.expenditureImpact, ExpenditureImpactEnum.DECREASE_DEFLATOR),
+        )!,
+      );
+    }
   }
   if (query.q) {
     const pattern = `%${escapeSqlLikePattern(query.q)}%`;
     const searchCond = or(
       ilike(articles.title, pattern),
       ilike(articles.summary, pattern),
+      ilike(articles.snippetText, pattern),
       ilike(articles.sourcePortal, pattern),
     );
     if (searchCond) {
@@ -65,6 +92,13 @@ export default defineEventHandler(async (event) => {
 
   const whereClause = and(...conditions);
   const offset = (query.page - 1) * query.limit;
+
+  const orderClauses =
+    query.sort === 'oldest'
+      ? [asc(articles.publishedAt), asc(articles.createdAt)]
+      : query.sort === 'sector'
+        ? [asc(articles.kbliCategory), desc(articles.publishedAt)]
+        : [desc(articles.publishedAt), desc(articles.createdAt)];
 
   const [items, [countRow]] = await Promise.all([
     db
@@ -86,7 +120,7 @@ export default defineEventHandler(async (event) => {
       })
       .from(articles)
       .where(whereClause)
-      .orderBy(desc(articles.publishedAt), desc(articles.createdAt))
+      .orderBy(...orderClauses)
       .limit(query.limit)
       .offset(offset),
     db.select({ total: count() }).from(articles).where(whereClause),

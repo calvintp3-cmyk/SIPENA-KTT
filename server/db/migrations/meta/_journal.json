@@ -29,6 +29,13 @@
       "when": 1794456685434,
       "tag": "0003_wakeful_guardian",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1794539442596,
+      "tag": "0004_broad_energizer",
+      "breakpoints": true
     }
   ]
 }

@@ -687,10 +687,10 @@ function openDetailModal(article: PublicArticleItem) {
       </template>
     </USlideover>
 
-    <!-- Main Asymmetric Feed Layout -->
-    <div class="flex flex-col lg:flex-row items-start gap-6">
-      <!-- Desktop Sticky Filter Sidebar -->
-      <div class="hidden lg:block">
+    <!-- Main Asymmetric Feed Layout (Bounded Split-Pane di Desktop lg:) -->
+    <div class="flex flex-col lg:grid lg:grid-cols-[310px_minmax(0,1fr)] lg:items-stretch lg:h-[calc(100vh-108px)] lg:min-h-[640px] lg:max-h-[860px] gap-6">
+      <!-- Desktop Bounded Filter Sidebar (Ketinggian sama persis dengan panel kanan) -->
+      <div class="hidden lg:block h-full overflow-hidden">
         <PublicFilterBar
           :overview="overview ?? null"
           :source-type="selectedSourceType"
@@ -706,23 +706,23 @@ function openDetailModal(article: PublicArticleItem) {
         />
       </div>
 
-      <!-- Right Stream / Table Area -->
-      <div class="flex-1 min-w-0 w-full space-y-4">
+      <!-- Right Stream / Table Area (Frame terkunci rata dengan sidebar, body internal scrollable) -->
+      <div class="flex-1 min-w-0 w-full h-full flex flex-col overflow-hidden saas-card rounded-2xl bg-white border border-slate-200/90 shadow-sm p-4 sm:p-5">
         <!-- Active Filter Chips Strip -->
         <div
           v-if="activeFilterChips.length > 0"
-          class="saas-card rounded-2xl px-4 py-3 flex flex-wrap items-center justify-between gap-2.5"
+          class="px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200/80 mb-3 flex flex-wrap items-center justify-between gap-2 shrink-0"
         >
-          <div class="flex flex-wrap items-center gap-2">
-            <span class="text-xs font-semibold text-slate-600">Filter Aktif:</span>
+          <div class="flex flex-wrap items-center gap-1.5">
+            <span class="text-[11px] font-bold text-slate-700">Filter Aktif:</span>
             <button
               v-for="chip in activeFilterChips"
               :key="chip.key"
               type="button"
-              class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-50/90 hover:bg-indigo-100 border border-indigo-200/80 text-xs font-semibold text-indigo-900 transition-colors"
+              class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-[11px] font-semibold text-indigo-900 transition-colors cursor-pointer"
               @click="() => { chip.clear(); }"
             >
-              <span class="w-2 h-2 rounded-full shrink-0" :class="chip.dotClass" />
+              <span class="w-1.5 h-1.5 rounded-full shrink-0" :class="chip.dotClass" />
               <span>{{ chip.label }}</span>
               <UIcon name="i-lucide-x" class="w-3 h-3 text-indigo-600" />
             </button>
@@ -730,237 +730,240 @@ function openDetailModal(article: PublicArticleItem) {
 
           <button
             type="button"
-            class="text-xs font-semibold text-indigo-700 hover:text-indigo-900 px-2 py-1 rounded-lg hover:bg-indigo-50 transition-colors"
+            class="text-[11px] font-semibold text-indigo-700 hover:text-indigo-900 hover:underline cursor-pointer"
             @click="resetAllFilters"
           >
             Reset Semua
           </button>
         </div>
 
-        <!-- Error State -->
-        <UAlert
-          v-if="articlesError"
-          color="error"
-          variant="subtle"
-          icon="i-lucide-alert-circle"
-          title="Gagal memuat linimasa fenomena ekonomi"
-          description="Terjadi kendala saat mengambil daftar fenomena dari server. Silakan muat ulang."
-        >
-          <template #actions>
-            <UButton
-              color="error"
-              variant="soft"
-              size="xs"
-              label="Muat Ulang"
-              icon="i-lucide-refresh-cw"
-              @click="() => { refreshArticles(); }"
-            />
-          </template>
-        </UAlert>
-
-        <!-- Loading Skeleton -->
-        <div v-else-if="articlesPending && !articlesResponse" class="space-y-4">
-          <div v-for="idx in 4" :key="idx" class="saas-card rounded-2xl p-6 space-y-3">
-            <div class="h-3 w-36 rounded bg-slate-200" />
-            <div class="h-5 w-4/5 rounded bg-slate-200" />
-            <div class="h-14 w-full rounded bg-slate-100" />
-          </div>
-        </div>
-
-        <!-- Empty State -->
-        <div
-          v-else-if="!articlesResponse || articlesResponse.items.length === 0"
-          class="saas-card rounded-2xl p-8 sm:p-10 text-center space-y-4"
-        >
-          <div
-            class="w-14 h-14 rounded-2xl bg-indigo-50 border border-indigo-200/80 text-indigo-600 flex items-center justify-center mx-auto"
+        <!-- Scrollable Content Pane (Hanya isi berita/tabel yang bergulir di sini) -->
+        <div class="flex-1 min-h-0 overflow-y-auto saas-scroll pr-1 sm:pr-2">
+          <!-- Error State -->
+          <UAlert
+            v-if="articlesError"
+            color="error"
+            variant="subtle"
+            icon="i-lucide-alert-circle"
+            title="Gagal memuat linimasa fenomena ekonomi"
+            description="Terjadi kendala saat mengambil daftar fenomena dari server. Silakan muat ulang."
           >
-            <UIcon name="i-solar-inbox-line-bold-duotone" class="w-7 h-7" />
-          </div>
-
-          <div class="space-y-1.5 max-w-md mx-auto">
-            <h2 class="text-lg font-extrabold text-slate-900">
-              {{
-                activeFilterCount > 0
-                  ? 'Tidak ada fenomena yang cocok dengan kombinasi filter'
-                  : `Belum ada catatan terverifikasi pada ${currentPeriodLabel}`
-              }}
-            </h2>
-            <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
-              {{
-                activeFilterCount > 0
-                  ? 'Coba longgarkan sebagian kriteria sektor KBLI, komponen pengeluaran, atau kata kunci pencarian.'
-                  : 'Anda dapat berpindah ke triwulan sebelumnya atau periode terbaru yang sudah memiliki dokumentasi terverifikasi.'
-              }}
-            </p>
-          </div>
-
-          <div class="flex flex-wrap items-center justify-center gap-2.5 pt-1">
-            <button
-              v-if="activeFilterCount > 0"
-              type="button"
-              class="btn-primary-gradient h-10 px-4 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5"
-              @click="resetAllFilters"
-            >
-              <UIcon name="i-lucide-rotate-ccw" class="w-3.5 h-3.5" />
-              <span>Hapus Semua Filter</span>
-            </button>
-
-            <button
-              type="button"
-              class="h-10 px-4 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-800 inline-flex items-center gap-1.5 transition-colors"
-              @click="() => { handlePeriodChange(previousQuarterInfo.year, previousQuarterInfo.quarter); }"
-            >
-              <UIcon name="i-lucide-arrow-left" class="w-3.5 h-3.5 text-slate-500" />
-              <span>Ke {{ previousQuarterInfo.label }}</span>
-            </button>
-
-            <button
-              v-if="latestPopulatedPeriod"
-              type="button"
-              class="btn-primary-gradient h-10 px-4 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5"
-              @click="() => { if (latestPopulatedPeriod) handlePeriodChange(latestPopulatedPeriod.year, latestPopulatedPeriod.quarter); }"
-            >
-              <UIcon name="i-solar-calendar-mark-bold-duotone" class="w-4 h-4" />
-              <span>Buka {{ latestPopulatedPeriod.label }} ({{ latestPopulatedPeriod.count }})</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Mode 1: Linimasa Stream -->
-        <div v-else-if="viewMode === 'stream'" class="timeline-spine space-y-7">
-          <section
-            v-for="group in timelineDateGroups"
-            :key="group.dateKey"
-            class="relative pl-12 space-y-3.5"
-          >
-            <!-- Date Marker Node on Spine -->
-            <div
-              class="absolute left-0 top-0.5 w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-[0_4px_12px_-2px_rgba(37,99,235,0.35)] flex flex-col items-center justify-center leading-none z-10"
-            >
-              <span class="text-sm font-extrabold tabular-nums">{{ group.dayLabel }}</span>
-            </div>
-
-            <div class="flex items-center justify-between gap-2 pt-1.5">
-              <h2 class="text-xs font-bold tracking-wide text-slate-600">
-                {{ group.dayLabel }} {{ group.monthYearLabel }}
-              </h2>
-              <span class="text-xs font-semibold text-indigo-700 tabular-nums">
-                {{ group.items.length }} Fenomena
-              </span>
-            </div>
-
-            <div class="space-y-4">
-              <PublicPhenomenonFeedCard
-                v-for="article in group.items"
-                :key="article.id"
-                :article="article"
-                @select="openDetailModal"
+            <template #actions>
+              <UButton
+                color="error"
+                variant="soft"
+                size="xs"
+                label="Muat Ulang"
+                icon="i-lucide-refresh-cw"
+                @click="() => { refreshArticles(); }"
               />
+            </template>
+          </UAlert>
+
+          <!-- Loading Skeleton -->
+          <div v-else-if="articlesPending && !articlesResponse" class="space-y-4">
+            <div v-for="idx in 4" :key="idx" class="rounded-xl border border-slate-100 p-5 space-y-3">
+              <div class="h-3 w-36 rounded bg-slate-200" />
+              <div class="h-5 w-4/5 rounded bg-slate-200" />
+              <div class="h-14 w-full rounded bg-slate-100" />
             </div>
-          </section>
-        </div>
-
-        <!-- Mode 2: Tabel Ringkas PDRB -->
-        <div v-else class="saas-card rounded-2xl overflow-hidden">
-          <div class="px-5 py-3.5 border-b border-slate-200/80 bg-slate-50/75 flex items-center justify-between gap-2">
-            <span class="text-xs font-bold text-slate-900">
-              Daftar Ringkas Fenomena Terverifikasi ({{ articlesResponse.pagination.total }})
-            </span>
-            <span class="text-xs text-slate-600">Klik judul untuk membuka detail &amp; sitasi</span>
           </div>
 
+          <!-- Empty State -->
           <div
-            class="saas-table-scroller"
-            tabindex="0"
-            role="region"
-            aria-label="Daftar Ringkas Fenomena Ekonomi Terverifikasi"
+            v-else-if="!articlesResponse || articlesResponse.items.length === 0"
+            class="p-8 sm:p-10 text-center space-y-4"
           >
-            <table class="min-w-full divide-y divide-slate-200 text-left text-xs">
-              <caption class="sr-only">
-                Daftar ringkas fenomena ekonomi terverifikasi BPS Kabupaten Tana Tidung
-              </caption>
-              <thead class="bg-slate-50 text-slate-700 font-semibold">
-                <tr>
-                  <th scope="col" class="px-4 py-3 whitespace-nowrap">Tanggal</th>
-                  <th scope="col" class="px-4 py-3 min-w-[260px]">Judul Fenomena &amp; Sumber</th>
-                  <th scope="col" class="px-4 py-3 min-w-[180px]">Lapangan Usaha (KBLI)</th>
-                  <th scope="col" class="px-4 py-3 min-w-[180px]">Sisi Pengeluaran</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-100 bg-white">
-                <tr
-                  v-for="article in articlesResponse.items"
+            <div
+              class="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-200/80 text-indigo-600 flex items-center justify-center mx-auto"
+            >
+              <UIcon name="i-solar-inbox-line-bold-duotone" class="w-6 h-6" />
+            </div>
+
+            <div class="space-y-1.5 max-w-md mx-auto">
+              <h2 class="text-base font-extrabold text-slate-900">
+                {{
+                  activeFilterCount > 0
+                    ? 'Tidak ada fenomena yang cocok dengan kombinasi filter'
+                    : `Belum ada catatan terverifikasi pada ${currentPeriodLabel}`
+                }}
+              </h2>
+              <p class="text-xs text-slate-600 leading-relaxed">
+                {{
+                  activeFilterCount > 0
+                    ? 'Coba longgarkan sebagian kriteria sektor KBLI, kelompok permintaan, atau kata kunci pencarian.'
+                    : 'Anda dapat berpindah ke triwulan sebelumnya atau periode terbaru yang sudah memiliki dokumentasi terverifikasi.'
+                }}
+              </p>
+            </div>
+
+            <div class="flex flex-wrap items-center justify-center gap-2 pt-1">
+              <button
+                v-if="activeFilterCount > 0"
+                type="button"
+                class="btn-primary-gradient h-9 px-3.5 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer"
+                @click="resetAllFilters"
+              >
+                <UIcon name="i-lucide-rotate-ccw" class="w-3.5 h-3.5" />
+                <span>Hapus Semua Filter</span>
+              </button>
+
+              <button
+                type="button"
+                class="h-9 px-3.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-800 inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+                @click="() => { handlePeriodChange(previousQuarterInfo.year, previousQuarterInfo.quarter); }"
+              >
+                <UIcon name="i-lucide-arrow-left" class="w-3.5 h-3.5 text-slate-500" />
+                <span>Ke {{ previousQuarterInfo.label }}</span>
+              </button>
+
+              <button
+                v-if="latestPopulatedPeriod"
+                type="button"
+                class="btn-primary-gradient h-9 px-3.5 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer"
+                @click="() => { if (latestPopulatedPeriod) handlePeriodChange(latestPopulatedPeriod.year, latestPopulatedPeriod.quarter); }"
+              >
+                <UIcon name="i-solar-calendar-mark-bold-duotone" class="w-4 h-4" />
+                <span>Buka {{ latestPopulatedPeriod.label }} ({{ latestPopulatedPeriod.count }})</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Mode 1: Linimasa Stream -->
+          <div v-else-if="viewMode === 'stream'" class="timeline-spine space-y-6 pt-1">
+            <section
+              v-for="group in timelineDateGroups"
+              :key="group.dateKey"
+              class="relative pl-12 space-y-3"
+            >
+              <!-- Date Marker Node on Spine -->
+              <div
+                class="absolute left-0 top-0.5 w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-sm flex flex-col items-center justify-center leading-none z-10"
+              >
+                <span class="text-sm font-extrabold tabular-nums">{{ group.dayLabel }}</span>
+              </div>
+
+              <div class="flex items-center justify-between gap-2 pt-1">
+                <h2 class="text-xs font-bold tracking-wide text-slate-600">
+                  {{ group.dayLabel }} {{ group.monthYearLabel }}
+                </h2>
+                <span class="text-xs font-semibold text-indigo-700 tabular-nums">
+                  {{ group.items.length }} Fenomena
+                </span>
+              </div>
+
+              <div class="space-y-3.5">
+                <PublicPhenomenonFeedCard
+                  v-for="article in group.items"
                   :key="article.id"
-                  class="hover:bg-indigo-50/40 cursor-pointer transition-colors"
-                  @click="openDetailModal(article)"
-                >
-                  <td class="px-4 py-3.5 align-top whitespace-nowrap tabular-nums text-slate-700 font-medium">
-                    {{ formatDateId(article.publishedAt) }}
-                    <div class="text-[11px] text-slate-600">
-                      TW {{ toRomanQuarter(article.quarter) }} {{ article.year }}
-                    </div>
-                  </td>
-                  <td class="px-4 py-3.5 align-top space-y-1">
-                    <button
-                      type="button"
-                      class="text-left font-bold text-slate-900 hover:text-indigo-700 leading-snug line-clamp-2 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 rounded"
-                      @click.stop="openDetailModal(article)"
-                    >
-                      {{ article.title }}
-                    </button>
-                    <div class="text-[11px] text-slate-600 font-medium">
-                      {{ article.sourcePortal }}
-                    </div>
-                  </td>
-                  <td class="px-4 py-3.5 align-top space-y-1.5">
-                    <div class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-800">
-                      <span
-                        class="w-2 h-2 rounded-full shrink-0"
-                        :class="getKbliClusterTheme(article.kbliCategory).accentBarClass"
-                      />
-                      <span>{{ getKbliShortCodeName(article.kbliCategory) }}</span>
-                    </div>
-                    <div>
-                      <UBadge
-                        :color="getKbliImpactBadge(article.kbliImpact).color"
-                        variant="subtle"
-                        size="xs"
+                  :article="article"
+                  @select="openDetailModal"
+                />
+              </div>
+            </section>
+          </div>
+
+          <!-- Mode 2: Tabel Ringkas -->
+          <div v-else class="rounded-xl border border-slate-200 overflow-hidden bg-white">
+            <div class="px-4 py-2.5 border-b border-slate-200/80 bg-slate-50/80 flex items-center justify-between gap-2">
+              <span class="text-xs font-bold text-slate-900">
+                Daftar Ringkas Fenomena ({{ articlesResponse.pagination.total }})
+              </span>
+              <span class="text-[11px] text-slate-600">Klik baris untuk melihat rangkuman lengkap</span>
+            </div>
+
+            <div
+              class="saas-table-scroller"
+              tabindex="0"
+              role="region"
+              aria-label="Daftar Ringkas Fenomena Ekonomi Terverifikasi"
+            >
+              <table class="min-w-full divide-y divide-slate-200 text-left text-xs">
+                <caption class="sr-only">
+                  Daftar ringkas fenomena ekonomi terverifikasi Kabupaten Tana Tidung
+                </caption>
+                <thead class="bg-slate-50 text-slate-700 font-semibold sticky top-0 z-10">
+                  <tr>
+                    <th scope="col" class="px-3.5 py-2.5 whitespace-nowrap">Tanggal</th>
+                    <th scope="col" class="px-3.5 py-2.5 min-w-[260px]">Judul Fenomena &amp; Sumber</th>
+                    <th scope="col" class="px-3.5 py-2.5 min-w-[170px]">Lapangan Usaha</th>
+                    <th scope="col" class="px-3.5 py-2.5 min-w-[170px]">Kelompok Permintaan</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 bg-white">
+                  <tr
+                    v-for="article in articlesResponse.items"
+                    :key="article.id"
+                    class="hover:bg-indigo-50/40 cursor-pointer transition-colors"
+                    @click="openDetailModal(article)"
+                  >
+                    <td class="px-3.5 py-3 align-top whitespace-nowrap tabular-nums text-slate-700 font-medium">
+                      {{ formatDateId(article.publishedAt) }}
+                      <div class="text-[11px] text-slate-600">
+                        TW {{ toRomanQuarter(article.quarter) }} {{ article.year }}
+                      </div>
+                    </td>
+                    <td class="px-3.5 py-3 align-top space-y-1">
+                      <button
+                        type="button"
+                        class="text-left font-bold text-slate-900 hover:text-indigo-700 leading-snug line-clamp-2 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 rounded"
+                        @click.stop="openDetailModal(article)"
                       >
-                        {{ getKbliImpactBadge(article.kbliImpact).shortLabel }}
-                      </UBadge>
-                    </div>
-                  </td>
-                  <td class="px-4 py-3.5 align-top space-y-1.5">
-                    <div class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-800">
-                      <span
-                        class="w-2 h-2 rounded-full shrink-0"
-                        :class="getExpenditureColorTheme(article.expenditureComponent).dotClass"
-                      />
-                      <span>{{ getExpenditureLabel(article.expenditureComponent, false) }}</span>
-                    </div>
-                    <div>
-                      <UBadge
-                        :color="getExpenditureImpactBadge(article.expenditureImpact).color"
-                        variant="subtle"
-                        size="xs"
-                      >
-                        {{ getExpenditureImpactBadge(article.expenditureImpact).shortLabel }}
-                      </UBadge>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+                        {{ article.title }}
+                      </button>
+                      <div class="text-[11px] text-slate-600 font-medium">
+                        {{ article.sourcePortal }}
+                      </div>
+                    </td>
+                    <td class="px-3.5 py-3 align-top space-y-1">
+                      <div class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-800">
+                        <span
+                          class="w-2 h-2 rounded-full shrink-0"
+                          :class="getKbliClusterTheme(article.kbliCategory).accentBarClass"
+                        />
+                        <span>{{ getKbliShortCodeName(article.kbliCategory) }}</span>
+                      </div>
+                      <div>
+                        <UBadge
+                          :color="getKbliImpactBadge(article.kbliImpact).color"
+                          variant="subtle"
+                          size="xs"
+                        >
+                          {{ getKbliImpactBadge(article.kbliImpact).shortLabel }}
+                        </UBadge>
+                      </div>
+                    </td>
+                    <td class="px-3.5 py-3 align-top space-y-1">
+                      <div class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-800">
+                        <span
+                          class="w-2 h-2 rounded-full shrink-0"
+                          :class="getExpenditureColorTheme(article.expenditureComponent).dotClass"
+                        />
+                        <span>{{ getExpenditureLabel(article.expenditureComponent, false) }}</span>
+                      </div>
+                      <div>
+                        <UBadge
+                          :color="getExpenditureImpactBadge(article.expenditureImpact).color"
+                          variant="subtle"
+                          size="xs"
+                        >
+                          {{ getExpenditureImpactBadge(article.expenditureImpact).shortLabel }}
+                        </UBadge>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
 
-        <!-- Pagination -->
+        <!-- Locked Bottom Pagination Toolbar (Rata sejajar di bagian bawah panel) -->
         <div
           v-if="articlesResponse && articlesResponse.pagination.totalPages > 1"
-          class="flex items-center justify-between gap-3 pt-2"
+          class="flex items-center justify-between gap-3 pt-3 border-t border-slate-100 shrink-0 mt-2"
         >
-          <span class="text-xs text-slate-500 tabular-nums">
+          <span class="text-xs text-slate-600 tabular-nums font-medium">
             Halaman {{ articlesResponse.pagination.page }} dari {{ articlesResponse.pagination.totalPages }}
             ({{ formatNumberId(articlesResponse.pagination.total) }} fenomena)
           </span>
@@ -971,27 +974,27 @@ function openDetailModal(article: PublicArticleItem) {
             size="sm"
           />
         </div>
+      </div>
+    </div>
 
-        <!-- BPS Verification Methodology Banner -->
-        <div
-          class="rounded-2xl bg-gradient-to-br from-indigo-50/85 via-white to-emerald-50/75 border border-indigo-200/80 p-4 sm:p-5 flex items-start gap-3.5"
-        >
-          <div
-            class="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600 to-teal-700 text-white flex items-center justify-center shrink-0 shadow-sm"
-          >
-            <UIcon name="i-solar-verified-check-bold-duotone" class="w-5 h-5" />
-          </div>
-          <div class="text-xs text-slate-600 space-y-1 leading-relaxed">
-            <div class="font-bold text-slate-900">
-              Standar Transparansi &amp; Verifikasi Fungsi Nerwilis BPS Kab. Tana Tidung
-            </div>
-            <p>
-              Seluruh catatan pada halaman ini merupakan bukti fenomena ekonomi terkurasi yang
-              diselaraskan terhadap 17 Sektor Lapangan Usaha (KBLI A–V) dan 6 Komponen Pengeluaran
-              sebagai dokumentasi pendukung penghitungan PDRB Triwulanan.
-            </p>
-          </div>
+    <!-- Metodologi & Kurasi Berita Fenomena Ekonomi -->
+    <div
+      class="rounded-2xl bg-gradient-to-br from-indigo-50/85 via-white to-emerald-50/75 border border-indigo-200/80 p-4 sm:p-5 flex items-start gap-3.5"
+    >
+      <div
+        class="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600 to-teal-700 text-white flex items-center justify-center shrink-0 shadow-sm"
+      >
+        <UIcon name="i-solar-verified-check-bold-duotone" class="w-5 h-5" />
+      </div>
+      <div class="text-xs text-slate-600 space-y-1 leading-relaxed">
+        <div class="font-bold text-slate-900">
+          Standar Kurasi Berita Fenomena Ekonomi Kabupaten Tana Tidung
         </div>
+        <p>
+          Seluruh catatan pada portal ini merupakan bukti fenomena ekonomi terkurasi yang
+          diselaraskan terhadap 17 Sektor Usaha (KBLI) dan 6 Komponen Pengeluaran
+          sebagai dokumentasi faktual pemantauan dinamika ekonomi daerah dan dampak kebijakan nasional ke Tana Tidung.
+        </p>
       </div>
     </div>
 
