@@ -108,7 +108,7 @@ describe('Export Excel (.xlsx) & CSV Resmi 10 Kolom Nerwilis', () => {
     expect(row2.getCell(2).value).toBe('Harga TBS Sawit KTT Menguat di Awal Triwulan IV');
     expect(row2.getCell(3).value).toBe('A - Pertanian, Kehutanan, dan Perikanan');
     expect(row2.getCell(4).value).toBe('Harga / Tarif Naik');
-    expect(row2.getCell(5).value).toBe('Ekspor Bersih Antar Daerah/Luar Negeri');
+    expect(row2.getCell(5).value).toBe('Net Ekspor');
     expect(row2.getCell(6).value).toBe('Volume Permintaan / Belanja Naik');
     expect(row2.getCell(7).value).toContain('Rp 2.980/kg');
     expect(row2.getCell(8).value).toEqual({

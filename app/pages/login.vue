@@ -178,48 +178,63 @@ async function handleSubmit(event: FormSubmitEvent<LoginRequestInput>) {
 
 <template>
   <div
-    class="min-h-screen bg-slate-50/80 relative flex flex-col justify-center items-center px-4 py-10 sm:px-6 text-slate-900 selection:bg-indigo-100 selection:text-indigo-900"
+    class="min-h-screen bg-slate-950 text-slate-100 relative flex flex-col justify-center items-center px-4 py-12 selection:bg-indigo-500 selection:text-white overflow-hidden"
   >
-    <main id="main-content" tabindex="-1" class="w-full max-w-[410px]">
-      <!-- Single Minimalist Modern SaaS Card -->
-      <div class="bg-white rounded-2xl border border-slate-200/90 shadow-[0_4px_24px_-8px_rgba(15,23,42,0.08)] p-6 sm:p-8 space-y-5">
+    <!-- Ambient Aurora Glow & Subtle Dot Grid Backdrop -->
+    <div class="absolute -top-32 left-1/2 -translate-x-1/2 w-[680px] h-[440px] bg-gradient-to-tr from-indigo-600/30 via-emerald-500/20 to-teal-400/20 blur-[110px] rounded-full pointer-events-none" />
+    <div class="absolute inset-0 bg-[linear-gradient(to_right,#ffffff0a_1px,transparent_1px),linear-gradient(to_bottom,#ffffff0a_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none" />
+
+    <main id="main-content" tabindex="-1" class="w-full max-w-[430px] relative z-10">
+      <!-- Ultra-Modern SaaS Command Console Workstation Card -->
+      <div
+        class="bg-slate-900/85 backdrop-blur-2xl rounded-3xl border border-white/12 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.7),0_0_80px_rgba(79,70,229,0.12)] p-6 sm:p-8 space-y-5"
+      >
         <!-- Active Session Card -->
-        <div v-if="user" class="text-center space-y-4 py-2">
-          <div class="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-700 flex items-center justify-center mx-auto">
-            <UIcon name="i-solar-check-circle-bold-duotone" class="w-6 h-6" />
+        <div v-if="user" class="text-center space-y-4 py-3">
+          <div class="w-14 h-14 rounded-2xl bg-emerald-500/20 border border-emerald-400/30 text-emerald-400 flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/20">
+            <UIcon name="i-solar-check-circle-bold-duotone" class="w-7 h-7" />
           </div>
           <div class="space-y-1">
-            <h1 class="text-base font-bold text-slate-900">Sesi Aktif Terdeteksi</h1>
-            <p class="text-xs text-slate-600">
-              Anda sudah masuk sebagai <strong class="text-slate-900">{{ user.name }}</strong>.
+            <h1 class="text-lg font-extrabold text-white">Sesi Aktif Terdeteksi</h1>
+            <p class="text-xs text-slate-300">
+              Anda terautentikasi sebagai <strong class="text-emerald-300">{{ user.name }}</strong> ({{ user.role }}).
             </p>
           </div>
           <NuxtLink
             to="/admin"
-            class="btn-primary-gradient w-full h-10 px-4 rounded-xl text-xs font-semibold inline-flex items-center justify-center gap-2 cursor-pointer"
+            class="btn-primary-gradient w-full h-11 px-5 rounded-2xl text-xs font-semibold inline-flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-indigo-600/25"
           >
             <UIcon name="i-solar-widget-5-bold-duotone" class="w-4 h-4 text-emerald-100" />
-            <span>Buka Dashboard Admin</span>
+            <span>Buka Workstation Admin</span>
             <UIcon name="i-solar-alt-arrow-right-bold-duotone" class="w-4 h-4" />
           </NuxtLink>
         </div>
 
         <!-- Normal Login Card -->
         <div v-else class="space-y-5">
-          <!-- Brand & Heading -->
-          <div class="text-center space-y-2">
+          <!-- Institutional Security Badge & Brand Header -->
+          <div class="text-center space-y-3">
             <div
-              class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 via-indigo-600 to-teal-700 text-white flex items-center justify-center shadow-xs mx-auto"
+              class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] font-bold text-emerald-300 tracking-wider uppercase"
             >
-              <UIcon name="i-solar-chart-2-bold-duotone" class="w-5 h-5" />
+              <span class="w-2 h-2 rounded-full bg-emerald-400" />
+              <span>BPS KTT • Nerwilis Secure Gateway</span>
             </div>
-            <div class="space-y-1 pt-1">
-              <h1 class="text-xl font-extrabold tracking-tight text-slate-900">
-                Masuk ke Konsol Admin
-              </h1>
-              <p class="text-xs text-slate-500">
-                Portal Fenomena Ekonomi Kab. Tana Tidung
-              </p>
+
+            <div class="flex items-center justify-center gap-3 pt-1">
+              <div
+                class="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-500 via-indigo-600 to-teal-500 text-white flex items-center justify-center shadow-lg shadow-indigo-500/30 shrink-0"
+              >
+                <UIcon name="i-solar-chart-2-bold-duotone" class="w-6 h-6" />
+              </div>
+              <div class="text-left">
+                <div class="font-extrabold text-lg text-white tracking-tight leading-tight">
+                  SIPENA <span class="text-indigo-400">KTT</span>
+                </div>
+                <div class="text-[11px] font-medium text-slate-400">
+                  Konsol Kurasi &amp; Analisis PDRB
+                </div>
+              </div>
             </div>
           </div>
 
@@ -231,6 +246,7 @@ async function handleSubmit(event: FormSubmitEvent<LoginRequestInput>) {
             icon="i-lucide-shield-alert"
             :title="oauthAlert.title"
             :description="oauthAlert.description"
+            class="text-xs"
           />
 
           <UAlert
@@ -239,6 +255,7 @@ async function handleSubmit(event: FormSubmitEvent<LoginRequestInput>) {
             variant="subtle"
             icon="i-lucide-shield-alert"
             :title="errorMessage"
+            class="text-xs"
           />
 
           <!-- Google Auth Button (Primary Single Click) -->
@@ -246,10 +263,10 @@ async function handleSubmit(event: FormSubmitEvent<LoginRequestInput>) {
             <button
               type="button"
               :disabled="!googleLoginEnabled || isRedirectingGoogle"
-              class="w-full h-10.5 px-4 rounded-xl bg-white hover:bg-slate-50/90 border border-slate-300 hover:border-slate-400 text-slate-800 text-xs font-semibold shadow-2xs hover:shadow-xs transition-all flex items-center justify-center gap-2.5 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              class="w-full h-11 px-4 rounded-xl bg-white hover:bg-slate-100 text-slate-900 text-xs font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2.5 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               @click="handleGoogleLogin"
             >
-              <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" aria-hidden="true">
+              <svg class="w-4.5 h-4.5 shrink-0" viewBox="0 0 24 24" aria-hidden="true">
                 <path
                   fill="#4285F4"
                   d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17Z"
@@ -267,24 +284,24 @@ async function handleSubmit(event: FormSubmitEvent<LoginRequestInput>) {
                   d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.62l3.99 3.14c.95-2.85 3.6-4.96 6.72-4.96Z"
                 />
               </svg>
-              <span>{{ isRedirectingGoogle ? 'Mengalihkan...' : 'Lanjutkan dengan Google' }}</span>
+              <span>{{ isRedirectingGoogle ? 'Mengalihkan ke Google...' : 'Masuk Cepat dengan Akun Google' }}</span>
             </button>
 
             <p
               v-if="providersData && !googleLoginEnabled"
-              class="text-[11px] text-amber-800 bg-amber-50/80 border border-amber-200/80 rounded-lg p-2 text-center"
+              class="text-[11px] text-amber-300 bg-amber-500/15 border border-amber-500/30 rounded-xl p-2.5 text-center"
             >
-              Google OAuth belum aktif di server.
+              Google OAuth belum aktif di server. Gunakan email &amp; kata sandi di bawah.
             </p>
           </div>
 
           <!-- Divider -->
           <div class="relative flex items-center justify-center">
             <div class="absolute inset-0 flex items-center">
-              <div class="w-full border-t border-slate-200" />
+              <div class="w-full border-t border-white/10" />
             </div>
-            <span class="relative px-3 bg-white text-[11px] font-medium text-slate-600">
-              atau masuk dengan email
+            <span class="relative px-3 bg-slate-900 text-[11px] font-medium text-slate-400">
+              atau gunakan kata sandi
             </span>
           </div>
 
@@ -293,14 +310,14 @@ async function handleSubmit(event: FormSubmitEvent<LoginRequestInput>) {
             method="post"
             :schema="LoginRequestSchema"
             :state="formState"
-            class="space-y-3"
+            class="space-y-3.5"
             @submit="handleSubmit"
           >
-            <UFormField label="Email" name="email" required>
+            <UFormField label="Alamat Email Staf" name="email" required>
               <UInput
                 v-model="formState.email"
                 type="email"
-                placeholder="nama@email.com"
+                placeholder="nama@bps.go.id"
                 icon="i-lucide-mail"
                 autocomplete="email"
                 size="sm"
@@ -312,7 +329,7 @@ async function handleSubmit(event: FormSubmitEvent<LoginRequestInput>) {
               <UInput
                 v-model="formState.password"
                 :type="showPassword ? 'text' : 'password'"
-                placeholder="Kata sandi akun"
+                placeholder="Masukkan kata sandi akun"
                 icon="i-lucide-lock"
                 autocomplete="current-password"
                 size="sm"
@@ -335,24 +352,40 @@ async function handleSubmit(event: FormSubmitEvent<LoginRequestInput>) {
             <button
               type="submit"
               :disabled="isSubmitting"
-              class="btn-primary-gradient w-full h-10 rounded-xl text-xs font-semibold inline-flex items-center justify-center gap-2 cursor-pointer pt-0.5"
+              class="btn-primary-gradient w-full h-10.5 rounded-xl text-xs font-bold inline-flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-indigo-600/30"
             >
               <UIcon v-if="isSubmitting" name="i-lucide-loader-circle" class="w-4 h-4 animate-spin" />
               <UIcon v-else name="i-solar-shield-keyhole-bold-duotone" class="w-4 h-4 text-emerald-100" />
-              <span>{{ isSubmitting ? 'Memverifikasi...' : 'Masuk' }}</span>
+              <span>{{ isSubmitting ? 'Memverifikasi Kredensial...' : 'Masuk ke Workstation' }}</span>
             </button>
           </UForm>
         </div>
 
-        <!-- Back to Public Link -->
-        <div class="pt-4 border-t border-slate-100 text-center">
-          <NuxtLink
-            to="/linimasa"
-            class="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-indigo-600 transition-colors"
-          >
-            <UIcon name="i-lucide-arrow-left" class="w-3.5 h-3.5" />
-            <span>Kembali ke Linimasa Publik</span>
-          </NuxtLink>
+        <!-- Security Trust Micro-Bar & Back Link -->
+        <div class="pt-4 border-t border-white/10 space-y-3">
+          <div class="flex items-center justify-center gap-3 text-[10px] text-slate-400 font-medium text-center">
+            <span class="inline-flex items-center gap-1">
+              <UIcon name="i-lucide-lock" class="w-3 h-3 text-emerald-400" />
+              <span>TLS / AES Encrypted</span>
+            </span>
+            <span>•</span>
+            <span class="inline-flex items-center gap-1">
+              <UIcon name="i-lucide-shield-check" class="w-3 h-3 text-indigo-400" />
+              <span>RBAC Whitelist</span>
+            </span>
+            <span>•</span>
+            <span>WITA (UTC+8)</span>
+          </div>
+
+          <div class="text-center pt-1">
+            <NuxtLink
+              to="/linimasa"
+              class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-400 hover:text-white transition-colors"
+            >
+              <UIcon name="i-lucide-arrow-left" class="w-3.5 h-3.5" />
+              <span>Kembali ke Linimasa Publik</span>
+            </NuxtLink>
+          </div>
         </div>
       </div>
     </main>

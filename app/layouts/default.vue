@@ -12,6 +12,29 @@ const mobileMenuOpen = ref(false);
 const isLandingRoute = computed(() => route.path === '/');
 const isLinimasaRoute = computed(() => route.path === '/linimasa');
 
+function handleNavClick(to: string, e?: MouseEvent) {
+  if (to.includes('#cara-kerja')) {
+    if (e) e.preventDefault();
+    mobileMenuOpen.value = false;
+    if (route.path === '/') {
+      const target = document.getElementById('cara-kerja');
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        history.replaceState(null, '', '/#cara-kerja');
+        return;
+      }
+    }
+    void router.push({ path: '/', hash: '#cara-kerja' }).then(() => {
+      setTimeout(() => {
+        const target = document.getElementById('cara-kerja');
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 150);
+    });
+  }
+}
+
 const navLinks = computed(() => [
   {
     label: 'Beranda',
@@ -147,6 +170,7 @@ onBeforeUnmount(() => {
                 ? 'bg-white text-indigo-700 font-semibold shadow-[0_1px_3px_rgba(15,23,42,0.08),0_0_0_1px_rgba(79,70,229,0.16)]'
                 : 'text-slate-600 hover:text-slate-950 hover:bg-white/60 font-medium'
             "
+            @click="(e: MouseEvent) => handleNavClick(item.to, e)"
           >
             <UIcon
               :name="item.icon"
@@ -256,6 +280,7 @@ onBeforeUnmount(() => {
                 ? 'bg-indigo-50 text-indigo-800 font-semibold border border-indigo-200/80'
                 : 'text-slate-700 hover:bg-slate-100 font-medium'
             "
+            @click="(e: MouseEvent) => handleNavClick(item.to, e)"
           >
             <UIcon
               :name="item.icon"
@@ -323,9 +348,13 @@ onBeforeUnmount(() => {
           <NuxtLink to="/linimasa" class="py-1.5 px-1 hover:text-indigo-700 transition-colors">
             Linimasa Ekonomi
           </NuxtLink>
-          <NuxtLink to="/#cara-kerja" class="py-1.5 px-1 hover:text-indigo-700 transition-colors">
+          <button
+            type="button"
+            class="py-1.5 px-1 hover:text-indigo-700 transition-colors cursor-pointer text-left"
+            @click="(e: MouseEvent) => handleNavClick('/#cara-kerja', e)"
+          >
             Metodologi
-          </NuxtLink>
+          </button>
           <NuxtLink
             :to="user ? '/admin' : '/login'"
             class="inline-flex items-center gap-1.5 px-3 py-2 min-h-9 rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-semibold transition-colors"

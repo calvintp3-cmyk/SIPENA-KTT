@@ -95,6 +95,8 @@ export const PublicArticlesQuerySchema = z.object({
     (v) => (v === '' || v === 'ALL' || v === null || v === undefined ? undefined : v),
     ImpactMacroFilterSchema.optional(),
   ),
+  from: optionalDateStr,
+  to: optionalDateStr,
   sort: z.preprocess(
     (v) => (v === '' || v === null || v === undefined ? undefined : v),
     z.enum(['newest', 'oldest', 'sector']).default('newest'),

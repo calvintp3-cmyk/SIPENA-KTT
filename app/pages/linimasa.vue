@@ -123,6 +123,8 @@ const selectedPdrbGroups = ref<string[]>(parseListParam(route.query.pdrbGroup));
 const selectedExpenditures = ref<string[]>(parseListParam(route.query.expenditure));
 const selectedSourceType = ref<string>(strParam(route.query.sourceType, 'ALL'));
 const selectedImpactMacro = ref<string>(strParam(route.query.impactMacro, 'ALL'));
+const selectedDateFrom = ref<string>(strParam(route.query.from, ''));
+const selectedDateTo = ref<string>(strParam(route.query.to, ''));
 const viewMode = ref<'stream' | 'table'>(route.query.view === 'table' ? 'table' : 'stream');
 const page = ref<number>(parsePage(route.query.page));
 
@@ -169,6 +171,8 @@ watch(
     selectedExpenditures,
     selectedSourceType,
     selectedImpactMacro,
+    selectedDateFrom,
+    selectedDateTo,
     viewMode,
     page,
   ],
@@ -182,6 +186,8 @@ watch(
     if (selectedExpenditures.value.length > 0) nextQuery.expenditure = selectedExpenditures.value.join(',');
     if (selectedSourceType.value !== 'ALL') nextQuery.sourceType = selectedSourceType.value;
     if (selectedImpactMacro.value !== 'ALL') nextQuery.impactMacro = selectedImpactMacro.value;
+    if (selectedDateFrom.value) nextQuery.from = selectedDateFrom.value;
+    if (selectedDateTo.value) nextQuery.to = selectedDateTo.value;
     if (viewMode.value === 'table') nextQuery.view = 'table';
     if (page.value > 1) nextQuery.page = String(page.value);
 
@@ -222,6 +228,8 @@ const articlesQuery = computed(() => {
   if (selectedExpenditures.value.length > 0) q.expenditure = selectedExpenditures.value.join(',');
   if (selectedSourceType.value !== 'ALL') q.sourceType = selectedSourceType.value;
   if (selectedImpactMacro.value !== 'ALL') q.impactMacro = selectedImpactMacro.value;
+  if (selectedDateFrom.value) q.from = selectedDateFrom.value;
+  if (selectedDateTo.value) q.to = selectedDateTo.value;
   return q;
 });
 
@@ -256,6 +264,34 @@ const quarterButtons: Array<{ value: PdrbQuarter; label: string; range: string }
   { value: 3, label: 'TW III', range: 'Jul–Sep' },
   { value: 4, label: 'TW IV', range: 'Okt–Des' },
 ];
+
+const QUARTER_MONTH_NAMES: Record<PdrbQuarter, { start: string; end: string }> = {
+  1: { start: 'Januari', end: 'Maret' },
+  2: { start: 'April', end: 'Juni' },
+  3: { start: 'Juli', end: 'September' },
+  4: { start: 'Oktober', end: 'Desember' },
+};
+
+const hasCustomDateRange = computed(() => Boolean(selectedDateFrom.value || selectedDateTo.value));
+
+const periodDisplayLabel = computed(() => {
+  const q = (selectedQuarter.value in QUARTER_MONTH_NAMES ? selectedQuarter.value : 1) as PdrbQuarter;
+  const m = QUARTER_MONTH_NAMES[q] ?? { start: 'Januari', end: 'Maret' };
+  return `Periode ${m.start} - ${m.end} ${selectedYear.value}`;
+});
+
+const customDateRangeLabel = computed(() => {
+  if (selectedDateFrom.value && selectedDateTo.value) {
+    return `${formatDateId(selectedDateFrom.value)} – ${formatDateId(selectedDateTo.value)}`;
+  }
+  if (selectedDateFrom.value) {
+    return `Sejak ${formatDateId(selectedDateFrom.value)}`;
+  }
+  if (selectedDateTo.value) {
+    return `Hingga ${formatDateId(selectedDateTo.value)}`;
+  }
+  return '';
+});
 
 const selectedQuarterRange = computed(
   () => quarterButtons.find((q) => q.value === selectedQuarter.value)?.range ?? '',
@@ -338,6 +374,19 @@ const activeFilterChips = computed(() => {
     });
   }
 
+  if (selectedDateFrom.value || selectedDateTo.value) {
+    chips.push({
+      key: 'dateRange',
+      label: `Rentang: ${customDateRangeLabel.value}`,
+      dotClass: 'bg-indigo-600',
+      clear: () => {
+        selectedDateFrom.value = '';
+        selectedDateTo.value = '';
+        page.value = 1;
+      },
+    });
+  }
+
   return chips;
 });
 
@@ -350,12 +399,24 @@ function resetAllFilters() {
   selectedPdrbGroups.value = [];
   selectedExpenditures.value = [];
   selectedImpactMacro.value = 'ALL';
+  selectedDateFrom.value = '';
+  selectedDateTo.value = '';
   page.value = 1;
 }
 
 function handlePeriodChange(newYear: number, newQuarter: PdrbQuarter) {
   selectedYear.value = newYear;
   selectedQuarter.value = newQuarter;
+  page.value = 1;
+}
+
+function handleDateFromUpdate(val: string) {
+  selectedDateFrom.value = val;
+  page.value = 1;
+}
+
+function handleDateToUpdate(val: string) {
+  selectedDateTo.value = val;
   page.value = 1;
 }
 
@@ -544,7 +605,7 @@ function openDetailModal(article: PublicArticleItem) {
             <div
               class="inline-flex items-center p-1 rounded-xl bg-slate-100/95 border border-slate-200/90 shadow-2xs divide-x divide-slate-200/80"
             >
-              <!-- Integrated Year Stepper & Dropdown -->
+              <!-- Integrated Year Stepper & Dropdown using Nuxt UI USelect -->
               <div class="flex items-center gap-1 pr-2.5 pl-1">
                 <button
                   type="button"
@@ -555,19 +616,19 @@ function openDetailModal(article: PublicArticleItem) {
                   <UIcon name="i-lucide-chevron-left" class="w-3.5 h-3.5" />
                 </button>
 
-                <div class="relative flex items-center">
-                  <UIcon name="i-solar-calendar-bold-duotone" class="w-3.5 h-3.5 text-indigo-600 mr-1 shrink-0" />
-                  <select
+                <div class="w-26">
+                  <USelect
                     id="linimasa-year-select"
-                    :value="selectedYear"
-                    class="bg-transparent font-bold text-xs text-slate-800 pr-3.5 focus:outline-none cursor-pointer appearance-none"
-                    @change="(e: Event) => handlePeriodChange(Number((e.target as HTMLSelectElement).value), selectedQuarter)"
-                  >
-                    <option v-for="y in availableYears" :key="y" :value="y">
-                      {{ y }}
-                    </option>
-                  </select>
-                  <UIcon name="i-lucide-chevron-down" class="w-3 h-3 text-slate-400 absolute right-0 pointer-events-none" />
+                    :model-value="selectedYear"
+                    :items="yearSelectOptions"
+                    value-key="value"
+                    label-key="label"
+                    leading-icon="i-solar-calendar-bold-duotone"
+                    size="xs"
+                    aria-label="Tahun PDRB"
+                    class="w-full font-semibold"
+                    @update:model-value="(val: unknown) => handlePeriodChange(Number(val), selectedQuarter)"
+                  />
                 </div>
 
                 <button
@@ -605,9 +666,31 @@ function openDetailModal(article: PublicArticleItem) {
               </div>
             </div>
 
-            <span class="hidden sm:inline text-xs text-slate-500 font-medium">
-              Periode {{ selectedQuarterRange }} {{ selectedYear }}
-            </span>
+            <!-- Dynamic Period Disclosure Label (State Hierarchy: Date Range Override vs Standard Quarter) -->
+            <div class="hidden sm:inline-flex items-center gap-2">
+              <span
+                v-if="!hasCustomDateRange"
+                class="text-xs text-slate-700 font-semibold"
+              >
+                {{ periodDisplayLabel }}
+              </span>
+
+              <div
+                v-else
+                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-50 border border-indigo-200/80 text-xs font-semibold text-indigo-900"
+              >
+                <UIcon name="i-solar-calendar-bold-duotone" class="w-3.5 h-3.5 text-indigo-600" />
+                <span>Rentang Khusus: {{ customDateRangeLabel }}</span>
+                <button
+                  type="button"
+                  class="ml-1 text-indigo-500 hover:text-indigo-800 cursor-pointer"
+                  title="Hapus rentang kustom & kembali ke Triwulan murni"
+                  @click="() => { selectedDateFrom = ''; selectedDateTo = ''; page = 1; }"
+                >
+                  <UIcon name="i-lucide-x" class="w-3 h-3" />
+                </button>
+              </div>
+            </div>
           </div>
 
           <!-- Right Meta & Analytics Panel Toggle -->
@@ -698,11 +781,15 @@ function openDetailModal(article: PublicArticleItem) {
           :pdrb-groups="selectedPdrbGroups"
           :expenditures="selectedExpenditures"
           :impact-macro="selectedImpactMacro"
+          :date-from="selectedDateFrom"
+          :date-to="selectedDateTo"
           :active-filter-count="activeFilterCount"
           @update:source-type="handleSourceTypeUpdate"
           @update:pdrb-groups="handlePdrbGroupsUpdate"
           @update:expenditures="handleExpendituresUpdate"
           @update:impact-macro="handleImpactMacroUpdate"
+          @update:date-from="handleDateFromUpdate"
+          @update:date-to="handleDateToUpdate"
           @reset="resetAllFilters"
         />
       </template>
@@ -718,11 +805,15 @@ function openDetailModal(article: PublicArticleItem) {
           :pdrb-groups="selectedPdrbGroups"
           :expenditures="selectedExpenditures"
           :impact-macro="selectedImpactMacro"
+          :date-from="selectedDateFrom"
+          :date-to="selectedDateTo"
           :active-filter-count="activeFilterCount"
           @update:source-type="handleSourceTypeUpdate"
           @update:pdrb-groups="handlePdrbGroupsUpdate"
           @update:expenditures="handleExpendituresUpdate"
           @update:impact-macro="handleImpactMacroUpdate"
+          @update:date-from="handleDateFromUpdate"
+          @update:date-to="handleDateToUpdate"
           @reset="resetAllFilters"
         />
       </div>

@@ -17,12 +17,16 @@ const props = withDefaults(
     pdrbGroups?: string[];
     expenditures?: string[];
     impactMacro: string;
+    dateFrom?: string;
+    dateTo?: string;
     activeFilterCount: number;
     inDrawer?: boolean;
   }>(),
   {
     pdrbGroups: () => [],
     expenditures: () => [],
+    dateFrom: '',
+    dateTo: '',
     inDrawer: false,
   },
 );
@@ -32,6 +36,8 @@ const emit = defineEmits<{
   'update:pdrbGroups': [value: string[]];
   'update:expenditures': [value: string[]];
   'update:impactMacro': [value: string];
+  'update:dateFrom': [value: string];
+  'update:dateTo': [value: string];
   reset: [];
 }>();
 
@@ -228,6 +234,54 @@ const bentoImpactItems = [
         </div>
       </div>
 
+      <!-- Filter Rentang Tanggal Rilis Kustom -->
+      <div class="space-y-2 pt-3 border-t border-slate-100">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-1.5">
+            <span class="block text-[11px] font-bold text-slate-700">
+              Rentang Tanggal
+            </span>
+            <span
+              v-if="dateFrom || dateTo"
+              class="px-1.5 py-0.2 rounded-full bg-indigo-600 text-white text-[9px] font-bold"
+            >
+              Aktif
+            </span>
+          </div>
+          <button
+            v-if="dateFrom || dateTo"
+            type="button"
+            class="text-[10px] font-semibold text-indigo-600 hover:text-indigo-800 cursor-pointer"
+            @click="() => { emit('update:dateFrom', ''); emit('update:dateTo', ''); }"
+          >
+            Reset
+          </button>
+        </div>
+
+        <div class="grid grid-cols-2 gap-1.5">
+          <div class="space-y-1">
+            <label for="filter-date-from" class="text-[10px] font-medium text-slate-500 block">Dari Tanggal</label>
+            <input
+              id="filter-date-from"
+              :value="dateFrom"
+              type="date"
+              class="w-full h-7.5 px-2 bg-slate-50 text-[11px] text-slate-800 rounded-lg border border-slate-200 focus:bg-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20"
+              @input="(e: Event) => emit('update:dateFrom', (e.target as HTMLInputElement).value)"
+            >
+          </div>
+          <div class="space-y-1">
+            <label for="filter-date-to" class="text-[10px] font-medium text-slate-500 block">Sampai Tanggal</label>
+            <input
+              id="filter-date-to"
+              :value="dateTo"
+              type="date"
+              class="w-full h-7.5 px-2 bg-slate-50 text-[11px] text-slate-800 rounded-lg border border-slate-200 focus:bg-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20"
+              @input="(e: Event) => emit('update:dateTo', (e.target as HTMLInputElement).value)"
+            >
+          </div>
+        </div>
+      </div>
+
       <!-- Sumber Berita & Liputan: Semua | Lokal | Nasional -->
       <div class="space-y-1.5 pt-3 border-t border-slate-100">
         <span class="block text-[11px] font-bold text-slate-700">
@@ -374,7 +428,7 @@ const bentoImpactItems = [
                 class="w-3.5 h-3.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer pointer-events-none shrink-0"
               >
               <span
-                class="w-4 h-4 rounded text-[9px] font-bold flex items-center justify-center shrink-0"
+                class="min-w-6 px-1 h-4.5 rounded text-[9px] font-bold flex items-center justify-center shrink-0"
                 :class="
                   pdrbGroups.includes(sector.groupCode)
                     ? 'bg-indigo-600 text-white'
@@ -454,8 +508,9 @@ const bentoImpactItems = [
                 class="w-3.5 h-3.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer pointer-events-none shrink-0"
               >
               <span
-                class="w-1.5 h-1.5 rounded-full shrink-0"
+                class="w-2 h-2 rounded-full shrink-0 shadow-xs"
                 :class="getExpenditureColorTheme(item.code).dotClass"
+                :style="{ backgroundColor: getExpenditureColorTheme(item.code).hex }"
               />
               <span class="text-[11px] truncate leading-tight block">
                 {{ item.short }}

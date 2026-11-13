@@ -35,16 +35,20 @@ const modalOpen = computed({
 });
 
 const copied = ref(false);
+const copiedLink = ref(false);
 let resetCopyTimer: ReturnType<typeof setTimeout> | null = null;
+let resetCopyLinkTimer: ReturnType<typeof setTimeout> | null = null;
 
 onBeforeUnmount(() => {
   if (resetCopyTimer) clearTimeout(resetCopyTimer);
+  if (resetCopyLinkTimer) clearTimeout(resetCopyLinkTimer);
 });
 
 watch(
   () => props.article?.id,
   () => {
     copied.value = false;
+    copiedLink.value = false;
   },
 );
 
@@ -110,6 +114,29 @@ async function handleCopyCitation() {
       description: 'Salin teks secara manual dari dialog.',
       color: 'warning',
       icon: 'i-lucide-alert-triangle',
+    });
+  }
+}
+
+async function handleCopyArticleLink() {
+  if (!props.article?.url) return;
+  try {
+    await navigator.clipboard.writeText(props.article.url);
+    copiedLink.value = true;
+    toast.add({
+      title: 'Tautan Berita Asli Disalin',
+      description: 'URL berita berhasil disalin ke clipboard.',
+      color: 'success',
+      icon: 'i-lucide-link',
+    });
+    if (resetCopyLinkTimer) clearTimeout(resetCopyLinkTimer);
+    resetCopyLinkTimer = setTimeout(() => {
+      copiedLink.value = false;
+    }, 2000);
+  } catch {
+    toast.add({
+      title: 'Gagal Menyalin Tautan',
+      color: 'warning',
     });
   }
 }
@@ -399,23 +426,39 @@ async function handleCopyCitation() {
 
     <template #footer>
       <div v-if="article" class="w-full flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
-        <a
-          v-if="hasSafeUrl"
-          :href="article.url"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="min-h-10 inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 shadow-2xs transition-colors"
-        >
-          <span>Buka Sumber Berita Asli</span>
-          <UIcon name="i-lucide-external-link" class="w-3.5 h-3.5 text-slate-500" />
-        </a>
-        <span v-else class="text-xs font-medium text-slate-600 truncate max-w-xs" :title="article.url">
-          Sumber: {{ article.url }}
-        </span>
+        <div class="flex items-center gap-2 flex-wrap">
+          <button
+            v-if="hasSafeUrl"
+            type="button"
+            class="min-h-10 inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:border-indigo-300 hover:text-indigo-800 text-xs font-semibold text-slate-700 shadow-2xs transition-colors cursor-pointer"
+            @click="handleCopyArticleLink"
+          >
+            <UIcon
+              :name="copiedLink ? 'i-lucide-check' : 'i-lucide-link'"
+              class="w-3.5 h-3.5"
+              :class="copiedLink ? 'text-emerald-600' : 'text-slate-500'"
+            />
+            <span>{{ copiedLink ? 'Tautan Disalin!' : 'Salin Link Berita Asli' }}</span>
+          </button>
+
+          <a
+            v-if="hasSafeUrl"
+            :href="article.url"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="min-h-10 inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 shadow-2xs transition-colors"
+          >
+            <span>Buka Sumber Asli</span>
+            <UIcon name="i-lucide-external-link" class="w-3.5 h-3.5 text-slate-500" />
+          </a>
+          <span v-else class="text-xs font-medium text-slate-600 truncate max-w-xs" :title="article.url">
+            Sumber: {{ article.url }}
+          </span>
+        </div>
 
         <button
           type="button"
-          class="btn-primary-gradient min-h-10 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer"
+          class="btn-primary-gradient min-h-10 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer shrink-0"
           @click="handleCopyCitation"
         >
           <UIcon :name="copied ? 'i-lucide-check' : 'i-solar-copy-bold-duotone'" class="w-4 h-4" />

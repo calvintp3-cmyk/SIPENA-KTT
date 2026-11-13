@@ -1,5 +1,5 @@
 // server/api/public/articles.get.ts
-import { and, asc, count, desc, eq, ilike, inArray, or, type SQL } from 'drizzle-orm';
+import { and, asc, count, desc, eq, gte, ilike, inArray, lte, or, type SQL } from 'drizzle-orm';
 import { defineEventHandler, setResponseHeader } from 'h3';
 import {
   ExpenditureImpactEnum,
@@ -8,6 +8,7 @@ import {
   VerificationStatusEnum,
 } from '../../../shared/enums/pdrb';
 import { PublicArticlesQuerySchema } from '../../../shared/schemas/article.schema';
+import { parseWitaDateBoundary } from '../../../shared/utils/period';
 import { db } from '../../db';
 import { articles } from '../../db/schema';
 import { escapeSqlLikePattern } from '../../services/articles/query';
@@ -26,6 +27,12 @@ export default defineEventHandler(async (event) => {
   }
   if (query.quarter !== undefined) {
     conditions.push(eq(articles.quarter, query.quarter));
+  }
+  if (query.from) {
+    conditions.push(gte(articles.publishedAt, parseWitaDateBoundary(query.from, 'start')));
+  }
+  if (query.to) {
+    conditions.push(lte(articles.publishedAt, parseWitaDateBoundary(query.to, 'end')));
   }
   if (query.kbli) {
     conditions.push(or(eq(articles.kbliCategory, query.kbli), eq(articles.secondaryKbliCategory, query.kbli))!);

@@ -260,8 +260,8 @@ export const EXPENDITURE_COMPONENT_LABELS: Record<
     official: 'Perubahan Inventori',
   },
   [ExpenditureComponentEnum.NET_EXPORT]: {
-    short: 'Ekspor Bersih Antar Daerah/Luar Negeri',
-    official: 'Ekspor Bersih Antar Daerah/Luar Negeri',
+    short: 'Net Ekspor',
+    official: 'Net Ekspor',
   },
 };
 
@@ -557,8 +557,8 @@ export const PDRB_6_EXPENDITURE_LIST: ReadonlyArray<ExpenditureComponentMeta> = 
   },
   {
     code: ExpenditureComponentEnum.NET_EXPORT,
-    short: 'Ekspor Bersih Antar Daerah/Luar Negeri',
-    official: 'Ekspor Bersih Antar Daerah/Luar Negeri',
+    short: 'Net Ekspor',
+    official: 'Net Ekspor',
     description:
       'Arus keluar komoditas unggulan KTT (batubara, CPO/TBS, perikanan, kayu) dikurangi arus masuk barang konsumsi/modal dari luar daerah.',
   },
