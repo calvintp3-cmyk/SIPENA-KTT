@@ -74,15 +74,25 @@ export default defineEventHandler(async (event) => {
       error: null,
     };
   } catch (err) {
+    const rawMsg = err instanceof Error ? err.message : String(err);
+    let friendlyError = rawMsg;
+    if (rawMsg.includes('ENOTFOUND')) {
+      friendlyError = portal.inactiveReason
+        ? `${portal.inactiveReason}`
+        : 'Domain tidak dapat dihubungi (DNS ENOTFOUND). Host kemungkinan tidak aktif atau telah dilebur.';
+    } else if (rawMsg.includes('403')) {
+      friendlyError = 'Akses Ditolak (HTTP 403 Forbidden). Web server/WAF memblokir crawler otomatis dari server.';
+    }
+
     return {
       ok: false,
       portalId: portal.id,
-      status: 0,
+      status: rawMsg.includes('403') ? 403 : 0,
       latencyMs: Date.now() - startedAt,
       isSoftBlocked: false,
       itemsFound: 0,
       resolvedUrl: targetUrl,
-      error: err instanceof Error ? err.message : String(err),
+      error: friendlyError,
     };
   }
 });

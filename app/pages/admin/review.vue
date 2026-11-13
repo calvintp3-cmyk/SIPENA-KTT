@@ -180,6 +180,10 @@ const inspectorForm = reactive({
   kbliImpact: '' as KbliImpactEnum | '',
   expenditureComponent: '' as ExpenditureComponentEnum | '',
   expenditureImpact: '' as ExpenditureImpactEnum | '',
+  secondaryKbliCategory: '' as KbliCategoryEnum | '',
+  secondaryKbliImpact: '' as KbliImpactEnum | '',
+  secondaryExpenditureComponent: '' as ExpenditureComponentEnum | '',
+  secondaryExpenditureImpact: '' as ExpenditureImpactEnum | '',
   quarter: defaultPeriod.quarter as PdrbQuarter,
   year: defaultPeriod.year,
   isEconomicPhenomenon: true,
@@ -205,6 +209,10 @@ watch(
     inspectorForm.kbliImpact = nextArt.kbliImpact ?? '';
     inspectorForm.expenditureComponent = nextArt.expenditureComponent ?? '';
     inspectorForm.expenditureImpact = nextArt.expenditureImpact ?? '';
+    inspectorForm.secondaryKbliCategory = nextArt.secondaryKbliCategory ?? '';
+    inspectorForm.secondaryKbliImpact = nextArt.secondaryKbliImpact ?? '';
+    inspectorForm.secondaryExpenditureComponent = nextArt.secondaryExpenditureComponent ?? '';
+    inspectorForm.secondaryExpenditureImpact = nextArt.secondaryExpenditureImpact ?? '';
     inspectorForm.quarter = nextArt.quarter as PdrbQuarter;
     inspectorForm.year = nextArt.year;
     inspectorForm.isEconomicPhenomenon = nextArt.isEconomicPhenomenon ?? true;
@@ -362,6 +370,33 @@ const expSelectModel = computed<string | undefined>({
   },
 });
 
+const secondaryKbliSelectModel = computed<string | undefined>({
+  get: () => (inspectorForm.secondaryKbliCategory === '' ? undefined : inspectorForm.secondaryKbliCategory),
+  set: (v: string | undefined) => {
+    inspectorForm.secondaryKbliCategory = (v as KbliCategoryEnum | undefined) ?? '';
+    if (!v) inspectorForm.secondaryKbliImpact = '';
+  },
+});
+
+const secondaryExpSelectModel = computed<string | undefined>({
+  get: () =>
+    inspectorForm.secondaryExpenditureComponent === '' ? undefined : inspectorForm.secondaryExpenditureComponent,
+  set: (v: string | undefined) => {
+    inspectorForm.secondaryExpenditureComponent = (v as ExpenditureComponentEnum | undefined) ?? '';
+    if (!v) inspectorForm.secondaryExpenditureImpact = '';
+  },
+});
+
+const secondaryKbliOptions = computed(() => [
+  { label: '— Tidak ada KBLI sekunder —', value: '' },
+  ...kbliOptions.filter((opt) => opt.value !== inspectorForm.kbliCategory),
+]);
+
+const secondaryExpOptions = computed(() => [
+  { label: '— Tidak ada pengeluaran sekunder —', value: '' },
+  ...expenditureOptions.filter((opt) => opt.value !== inspectorForm.expenditureComponent),
+]);
+
 function selectArticleForInspection(article: AdminArticleItem, incomplete = false) {
   pendingDeepLinkId.value = null;
   deepLinkedArticle.value = null;
@@ -420,6 +455,10 @@ async function submitInspectorAction(action: 'VERIFIED' | 'IGNORED' | 'DRAFT') {
         kbliImpact: inspectorForm.kbliImpact || null,
         expenditureComponent: inspectorForm.expenditureComponent || null,
         expenditureImpact: inspectorForm.expenditureImpact || null,
+        secondaryKbliCategory: inspectorForm.secondaryKbliCategory || null,
+        secondaryKbliImpact: inspectorForm.secondaryKbliImpact || null,
+        secondaryExpenditureComponent: inspectorForm.secondaryExpenditureComponent || null,
+        secondaryExpenditureImpact: inspectorForm.secondaryExpenditureImpact || null,
         quarter: inspectorForm.quarter,
         year: Number(inspectorForm.year),
         ...(nextStatus ? { verificationStatus: nextStatus } : {}),
@@ -1255,6 +1294,47 @@ const statusTabs = computed(() => {
                 >
                   {{ opt.shortLabel }}
                 </button>
+              </div>
+            </div>
+
+            <!-- Keterkaitan Sektoral Sekunder (Opsional / Inter-industry Linkage) -->
+            <div class="rounded-xl border border-slate-200/90 bg-slate-50/70 p-3.5 space-y-2.5">
+              <div class="flex items-center gap-1.5">
+                <UIcon name="i-solar-link-round-bold-duotone" class="w-4 h-4 text-indigo-600" />
+                <span class="text-xs font-bold text-slate-800">Keterkaitan Sektoral Sekunder (Opsional)</span>
+              </div>
+              <div class="space-y-2">
+                <label for="insp-sec-kbli-select" class="block text-xs font-semibold text-slate-600">
+                  KBLI Sekunder
+                </label>
+                <USelectMenu
+                  id="insp-sec-kbli-select"
+                  v-model="secondaryKbliSelectModel"
+                  :items="secondaryKbliOptions"
+                  value-key="value"
+                  label-key="label"
+                  placeholder="Pilih KBLI sekunder (opsional)..."
+                  aria-label="KBLI Sekunder"
+                  size="sm"
+                  class="w-full"
+                />
+                <div v-if="inspectorForm.secondaryKbliCategory" role="group" aria-label="Dampak KBLI Sekunder" class="grid grid-cols-2 gap-1.5 pt-1">
+                  <button
+                    v-for="opt in kbliImpactOptions"
+                    :key="opt.value"
+                    type="button"
+                    :aria-pressed="inspectorForm.secondaryKbliImpact === opt.value"
+                    class="min-h-8 px-2 py-1 rounded-lg border text-xs font-semibold text-left transition-colors cursor-pointer"
+                    :class="
+                      inspectorForm.secondaryKbliImpact === opt.value
+                        ? 'bg-indigo-600 text-white border-indigo-600 shadow-2xs'
+                        : 'bg-white text-slate-700 border-slate-200 hover:border-indigo-300'
+                    "
+                    @click="() => { inspectorForm.secondaryKbliImpact = opt.value; }"
+                  >
+                    {{ opt.shortLabel }}
+                  </button>
+                </div>
               </div>
             </div>
 

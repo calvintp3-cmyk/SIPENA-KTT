@@ -469,7 +469,13 @@ export function detectSoftBlockPage(html: string): { isSoftBlocked: boolean; rea
   const titleText = cleanText(titleMatch?.[1] ?? '');
 
   if (
-    /^(?:Just a moment\.\.\.|Attention Required!\s*\|\s*Cloudflare|Access Denied|Security Check|One more step)$/i.test(
+    /lsrecaptcha|id=["']lsrecaptcha-form["']|\/\.lsrecap\/recaptcha/i.test(raw)
+  ) {
+    return { isSoftBlocked: true, reason: 'Terdeteksi gerbang verifikasi bot LiteSpeed / reCAPTCHA.' };
+  }
+
+  if (
+    /^(?:Just a moment\.\.\.|Attention Required!\s*\|\s*Cloudflare|Access Denied|Security Check|One more step|Bot Verification)$/i.test(
       titleText,
     )
   ) {
@@ -494,7 +500,7 @@ export function detectSoftBlockPage(html: string): { isSoftBlocked: boolean; rea
   }
 
   const hasHumanVerify =
-    /Verifying you are human|Please turn JavaScript on and reload the page/i.test(raw);
+    /Verifying you are human|Verifying that you are not a robot|Please turn JavaScript on and reload the page/i.test(raw);
   if (hasHumanVerify) {
     const plainBodyWords = countWords(raw.replace(/<[^>]+>/g, ' '));
     if (plainBodyWords < 160) {

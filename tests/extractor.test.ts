@@ -378,6 +378,24 @@ describe('Scraper Extractor & Portal/RSS Parsers', () => {
     expect(blockedCheck.isSoftBlocked).toBe(true);
     expect(blockedCheck.reason).toBeTruthy();
 
+    const liteSpeedHtml = `
+      <!doctype html>
+      <html>
+        <head><title>Bot Verification</title></head>
+        <body>
+          <div class="panel">
+            <h3>Verifying that you are not a robot...</h3>
+            <form id="lsrecaptcha-form" method="POST" action="/.lsrecap/recaptcha?">
+              <div id="recaptchadiv"></div>
+            </form>
+          </div>
+        </body>
+      </html>
+    `;
+    const liteSpeedCheck = detectSoftBlockPage(liteSpeedHtml);
+    expect(liteSpeedCheck.isSoftBlocked).toBe(true);
+    expect(liteSpeedCheck.reason).toContain('LiteSpeed');
+
     const extractedBlocked = extractArticleContent(cloudflareHtml);
     expect(extractedBlocked.isSoftBlocked).toBe(true);
     expect(extractedBlocked.isValidContent).toBe(false);
@@ -455,6 +473,56 @@ describe('Scraper Extractor & Portal/RSS Parsers', () => {
     ]);
     expect(result.candidates).toHaveLength(1);
     expect(result.candidates[0]?.title).toContain('Berita Tana Tidung Segar');
+  });
+
+  it('harvestRegionalPortals secara cerdas melewati portal yang berstatus isActive === false', async () => {
+    let activeHarvested = false;
+    let inactiveHarvested = false;
+
+    await harvestRegionalPortals({
+      portals: [
+        {
+          id: 'portal-aktif',
+          label: 'Portal Aktif',
+          sourcePortal: 'aktif.example.id',
+          indexUrl: 'https://aktif.example.id/ktt',
+          allowedHosts: ['aktif.example.id'],
+          itemSelectors: ['article'],
+          isActive: true,
+        },
+        {
+          id: 'portal-nonaktif',
+          label: 'Portal Nonaktif',
+          sourcePortal: 'nonaktif.example.id',
+          indexUrl: 'https://nonaktif.example.id/ktt',
+          allowedHosts: ['nonaktif.example.id'],
+          itemSelectors: ['article'],
+          isActive: false,
+          inactiveReason: 'Domain mati',
+        },
+      ],
+      fetchFn: async (url) => {
+        if (url.includes('aktif.example.id')) activeHarvested = true;
+        if (url.includes('nonaktif.example.id')) inactiveHarvested = true;
+        return { finalUrl: url, body: '<article></article>' };
+      },
+    });
+
+    expect(activeHarvested).toBe(true);
+    expect(inactiveHarvested).toBe(false);
+
+    // Pastikan konfigurasi portal regional SIPENA KTT memiliki Benuanta dengan search feed pertama
+    const benuanta = REGIONAL_PORTALS.find((p) => p.id === 'benuanta');
+    expect(benuanta).toBeDefined();
+    expect(benuanta?.feedUrls?.[0]).toBe('https://benuanta.co.id/feed/?s=tana+tidung');
+
+    // Pastikan portal yang domainnya mati ditandai isActive: false
+    const disbun = REGIONAL_PORTALS.find((p) => p.id === 'disbun-kaltara');
+    expect(disbun?.isActive).toBe(false);
+    const focus = REGIONAL_PORTALS.find((p) => p.id === 'focus-borneo');
+    expect(focus?.isActive).toBe(false);
+    const prokaltara = REGIONAL_PORTALS.find((p) => p.id === 'pro-kaltara');
+    expect(prokaltara?.isActive).toBe(false);
   });
 });
 

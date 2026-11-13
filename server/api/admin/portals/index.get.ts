@@ -88,6 +88,8 @@ export default defineEventHandler(async (event) => {
       recentErrorsCount: errStats?.count ?? 0,
       lastErrorMessage: errStats?.lastMessage ?? null,
       lastErrorAt: errStats?.lastAt ?? null,
+      isActive: cfg.isActive !== false,
+      inactiveReason: cfg.inactiveReason ?? null,
     };
   });
 

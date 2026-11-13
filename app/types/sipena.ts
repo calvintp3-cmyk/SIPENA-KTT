@@ -237,6 +237,8 @@ export interface PortalDirectoryItem {
   recentErrorsCount: number;
   lastErrorMessage: string | null;
   lastErrorAt: string | null;
+  isActive?: boolean;
+  inactiveReason?: string | null;
 }
 
 export interface AdminPortalsResponse {

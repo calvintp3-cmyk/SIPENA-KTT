@@ -40,6 +40,8 @@ export interface RegionalPortalConfig {
   itemSelectors: ReadonlyArray<string>;
   paginationPattern?: PaginationPattern;
   maxPages?: number;
+  isActive?: boolean;
+  inactiveReason?: string;
 }
 
 export function buildPaginatedPortalUrl(
@@ -146,10 +148,10 @@ export const REGIONAL_PORTALS: ReadonlyArray<RegionalPortalConfig> = [
     sourcePortal: 'benuanta.co.id',
     indexUrl: 'https://benuanta.co.id/?s=tana+tidung',
     feedUrls: [
-      'https://benuanta.co.id/topic/berita-ktt/feed/',
-      'https://benuanta.co.id/category/tana-tidung/feed/',
-      'https://benuanta.co.id/category/pemkab-tana-tidung/feed/',
       'https://benuanta.co.id/feed/?s=tana+tidung',
+      'https://benuanta.co.id/category/tana-tidung/feed/',
+      'https://benuanta.co.id/topic/berita-ktt/feed/',
+      'https://benuanta.co.id/category/pemkab-tana-tidung/feed/',
     ],
     additionalIndexUrls: [
       'https://benuanta.co.id/topic/berita-ktt/',
@@ -228,6 +230,8 @@ export const REGIONAL_PORTALS: ReadonlyArray<RegionalPortalConfig> = [
     allowedHosts: ['disbun.kaltaraprov.go.id'],
     paginationPattern: 'SLASH_PAGE',
     maxPages: 5,
+    isActive: false,
+    inactiveReason: 'Subdomain DNS dinonaktifkan oleh Diskominfo Kaltara (getaddrinfo ENOTFOUND).',
     itemSelectors: [
       'article',
       '.post',
@@ -260,6 +264,8 @@ export const REGIONAL_PORTALS: ReadonlyArray<RegionalPortalConfig> = [
     allowedHosts: ['focusborneo.com', 'www.focusborneo.com'],
     paginationPattern: 'SLASH_PAGE',
     maxPages: 5,
+    isActive: false,
+    inactiveReason: 'Domain web tidak aktif / expired (DNS ENOTFOUND).',
     itemSelectors: [
       'article',
       '.jeg_post',
@@ -291,6 +297,8 @@ export const REGIONAL_PORTALS: ReadonlyArray<RegionalPortalConfig> = [
     allowedHosts: ['prokaltara.jawapos.com'],
     paginationPattern: 'QUERY_PAGE',
     maxPages: 5,
+    isActive: false,
+    inactiveReason: 'Subdomain dilebur oleh Jawa Pos Group ke Radar Tarakan (radartarakan.jawapos.com).',
     itemSelectors: [
       'article',
       '.latest__item',
@@ -817,6 +825,7 @@ export async function harvestRegionalPortals(
     concurrency,
     async (portal) => {
       if (signal?.aborted) return;
+      if (portal.isActive === false) return;
       portalsChecked += 1;
 
       let portalFoundCount = 0;

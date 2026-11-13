@@ -23,7 +23,7 @@ const {
 });
 
 const searchQuery = ref('');
-const healthFilter = ref<'all' | 'error' | 'healthy'>('all');
+const healthFilter = ref<'all' | 'error' | 'healthy' | 'inactive'>('all');
 const pingingIds = ref<Set<string>>(new Set());
 const pingResults = ref<Record<string, PortalPingResult>>({});
 
@@ -31,8 +31,9 @@ const filteredPortals = computed<PortalDirectoryItem[]>(() => {
   const list = portalsData.value?.portals ?? [];
   const q = searchQuery.value.trim().toLowerCase();
   return list.filter((p: PortalDirectoryItem) => {
-    if (healthFilter.value === 'error' && p.recentErrorsCount === 0) return false;
-    if (healthFilter.value === 'healthy' && p.recentErrorsCount > 0) return false;
+    if (healthFilter.value === 'inactive' && p.isActive !== false) return false;
+    if (healthFilter.value === 'error' && (p.recentErrorsCount === 0 || p.isActive === false)) return false;
+    if (healthFilter.value === 'healthy' && (p.recentErrorsCount > 0 || p.isActive === false)) return false;
     if (!q) return true;
     return (
       p.label.toLowerCase().includes(q) ||
@@ -104,6 +105,13 @@ const summaryStats = computed(() => {
 });
 
 function portalHealthMeta(portal: PortalDirectoryItem) {
+  if (portal.isActive === false) {
+    return {
+      label: 'Non-Aktif / Dilebur',
+      classes: 'bg-slate-100 text-slate-700 border-slate-300',
+      dotClass: 'bg-slate-500',
+    };
+  }
   if (portal.recentErrorsCount > 0) {
     return {
       label: `${portal.recentErrorsCount} Error Terbaru`,
@@ -352,6 +360,7 @@ const lastRunBadge = computed(() =>
                 { id: 'all', label: 'Semua' },
                 { id: 'healthy', label: 'Sehat' },
                 { id: 'error', label: 'Bermasalah' },
+                { id: 'inactive', label: 'Non-Aktif' },
               ] as const"
               :key="tab.id"
               type="button"
@@ -476,6 +485,18 @@ const lastRunBadge = computed(() =>
               </div>
             </div>
 
+            <!-- Inactive Notice if marked inactive -->
+            <div
+              v-if="portal.isActive === false && portal.inactiveReason"
+              class="rounded-xl border border-slate-200 bg-slate-50/90 px-3 py-2 text-xs text-slate-700 flex items-start gap-2"
+            >
+              <UIcon name="i-solar-info-circle-line-duotone" class="w-4 h-4 text-slate-500 shrink-0 mt-0.5" />
+              <div class="leading-relaxed">
+                <span class="font-semibold text-slate-800">Status Non-Aktif:</span>
+                {{ portal.inactiveReason }}
+              </div>
+            </div>
+
             <!-- Live Ping Result Pill if Tested -->
             <div
               v-if="pingResults[portal.id]"
@@ -495,7 +516,7 @@ const lastRunBadge = computed(() =>
                   Uji Feed OK (HTTP {{ pingResults[portal.id]!.status }}) • {{ pingResults[portal.id]!.itemsFound }} artikel ditemukan
                 </span>
                 <span v-else>
-                  {{ pingResults[portal.id]!.isSoftBlocked ? 'Soft-block terdeteksi' : (pingResults[portal.id]!.error || 'Koneksi bermasalah') }}
+                  {{ pingResults[portal.id]!.isSoftBlocked ? `Soft-block: ${pingResults[portal.id]!.error || 'Anti-bot aktif'}` : (pingResults[portal.id]!.error || 'Koneksi bermasalah') }}
                 </span>
               </span>
               <span class="text-[11px] font-bold tabular-nums">
