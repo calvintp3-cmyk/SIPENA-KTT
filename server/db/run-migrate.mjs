@@ -1,19 +1,20 @@
 // server/db/run-migrate.mjs
-import { drizzle } from 'drizzle-orm/node-postgres';
-import { migrate } from 'drizzle-orm/node-postgres/migrator';
 import pg from 'pg';
 import dotenv from 'dotenv';
 dotenv.config();
 
 const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
-const db = drizzle(pool);
 
 try {
-  await migrate(db, { migrationsFolder: 'server/db/migrations' });
-  console.log('MIGRATION_SUCCESS');
+  const schemas = await pool.query(`SELECT table_schema, table_name FROM information_schema.tables WHERE table_name LIKE '%migration%'`);
+  console.log('MIGRATION TABLES:', schemas.rows);
+
+  for (const row of schemas.rows) {
+    const data = await pool.query(`SELECT * FROM "${row.table_schema}"."${row.table_name}" ORDER BY created_at ASC`);
+    console.log(`DATA IN ${row.table_schema}.${row.table_name}:`, data.rows);
+  }
 } catch (err) {
-  console.error('MIGRATION_FAILED:', err);
-  process.exit(1);
+  console.error('ERROR:', err);
 } finally {
   await pool.end();
 }
