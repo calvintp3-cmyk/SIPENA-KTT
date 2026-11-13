@@ -6,6 +6,7 @@ import { BatchArticleActionSchema } from '../../../../shared/schemas/article.sch
 import { db } from '../../../db';
 import { articles } from '../../../db/schema';
 import { getMissingVerificationFields } from '../../../services/articles/query';
+import { invalidateOverviewCache } from '../../../utils/overview-cache';
 import { parseBodyWithSchema } from '../../../utils/request';
 import { requireAdminSession } from '../../../utils/session';
 
@@ -103,6 +104,7 @@ export default defineEventHandler(async (event) => {
       .where(inArray(articles.id, validIds));
   }
 
+  invalidateOverviewCache();
   return {
     action: body.action,
     updatedCount: validIds.length,

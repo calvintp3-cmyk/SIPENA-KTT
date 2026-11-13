@@ -19,6 +19,7 @@ import {
 } from '../../../shared/utils/period';
 import { db } from '../../db';
 import { articles } from '../../db/schema';
+import { getCachedOverview, setCachedOverview } from '../../utils/overview-cache';
 import { parseQueryWithSchema } from '../../utils/request';
 
 export default defineEventHandler(async (event) => {
@@ -27,6 +28,12 @@ export default defineEventHandler(async (event) => {
 
   const targetYear = query.year ?? currentPeriod.year;
   const targetQuarter = (query.quarter ?? currentPeriod.quarter) as PdrbQuarter;
+
+  const cached = getCachedOverview(targetYear, targetQuarter);
+  if (cached) {
+    return cached;
+  }
+
   const prevPeriod = getPreviousQuarterYear(targetQuarter, targetYear);
 
   const verifiedEconomicFilter = and(
@@ -235,7 +242,7 @@ export default defineEventHandler(async (event) => {
     (a, b) => b.year - a.year || b.quarter - a.quarter,
   );
 
-  return {
+  const responseData = {
     period: {
       year: targetYear,
       quarter: targetQuarter,
@@ -270,4 +277,7 @@ export default defineEventHandler(async (event) => {
       : null,
     availablePeriods,
   };
+
+  setCachedOverview(targetYear, targetQuarter, responseData);
+  return responseData;
 });

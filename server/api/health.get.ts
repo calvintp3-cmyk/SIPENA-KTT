@@ -8,11 +8,17 @@ export default defineEventHandler(async () => {
   try {
     await db.execute(sql`SELECT 1`);
     const latencyMs = Date.now() - startMs;
+    const mem = process.memoryUsage();
     return {
       status: 'ok',
       service: 'sipena-ktt',
       timestamp: new Date().toISOString(),
       uptimeSeconds: Math.round(process.uptime()),
+      memoryMb: {
+        rss: Math.round(mem.rss / (1024 * 1024)),
+        heapUsed: Math.round(mem.heapUsed / (1024 * 1024)),
+        heapTotal: Math.round(mem.heapTotal / (1024 * 1024)),
+      },
       db: {
         connected: true,
         latencyMs,

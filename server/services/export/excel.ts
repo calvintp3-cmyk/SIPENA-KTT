@@ -44,17 +44,42 @@ export type ExportRowTuple = [
 
 const COLUMN_WIDTHS = [18, 42, 34, 24, 32, 28, 55, 40, 18, 18] as const;
 
+export function sanitizeExcelCellValue(rawValue: string): string {
+  if (typeof rawValue !== 'string') return rawValue;
+  if (/^[\s]*[=+\-@]/.test(rawValue)) {
+    return `'${rawValue}`;
+  }
+  return rawValue;
+}
+
 export function formatArticleExportRow(article: ArticleRecord): ExportRowTuple {
-  const kbliLabel = article.kbliCategory
+  let kbliLabel = article.kbliCategory
     ? KBLI_CATEGORY_META[article.kbliCategory]?.fullLabel ?? article.kbliCategory
     : '-';
+  if (article.secondaryKbliCategory && article.secondaryKbliCategory !== article.kbliCategory) {
+    const secLabel =
+      KBLI_CATEGORY_META[article.secondaryKbliCategory]?.fullLabel ?? article.secondaryKbliCategory;
+    kbliLabel = `${kbliLabel} (Sekunder: ${secLabel})`;
+  }
+
   const kbliImpactLabel = article.kbliImpact
     ? KBLI_IMPACT_LABELS[article.kbliImpact] ?? article.kbliImpact
     : '-';
-  const expComponentLabel = article.expenditureComponent
+
+  let expComponentLabel = article.expenditureComponent
     ? EXPENDITURE_COMPONENT_LABELS[article.expenditureComponent]?.short ??
       article.expenditureComponent
     : '-';
+  if (
+    article.secondaryExpenditureComponent &&
+    article.secondaryExpenditureComponent !== article.expenditureComponent
+  ) {
+    const secExp =
+      EXPENDITURE_COMPONENT_LABELS[article.secondaryExpenditureComponent]?.short ??
+      article.secondaryExpenditureComponent;
+    expComponentLabel = `${expComponentLabel} (Sekunder: ${secExp})`;
+  }
+
   const expImpactLabel = article.expenditureImpact
     ? EXPENDITURE_IMPACT_LABELS[article.expenditureImpact] ?? article.expenditureImpact
     : '-';
@@ -123,7 +148,8 @@ export async function generateArticlesExcelBuffer(
 
   for (const article of rows) {
     const tuple = formatArticleExportRow(article);
-    const addedRow = sheet.addRow([...tuple]);
+    const sanitizedTuple = tuple.map((val) => sanitizeExcelCellValue(val));
+    const addedRow = sheet.addRow(sanitizedTuple);
 
     addedRow.eachCell((cell, colNumber) => {
       cell.font = {

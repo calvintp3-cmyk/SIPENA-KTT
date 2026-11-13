@@ -10,7 +10,7 @@ import {
 } from '../../../../shared/enums/pdrb';
 import { getQuarterFromDateWita, getWitaDateParts, formatDateTimeWita } from '../../../../shared/utils/period';
 import { MultiLlmRouter } from '../../../services/llm/router';
-import { extractArticleContent } from '../../../services/scraper/extractor';
+import { extractArticleContent, normalizeToFullPageArticleUrl } from '../../../services/scraper/extractor';
 import { parseBodyWithSchema } from '../../../utils/request';
 import { requireAdminSession } from '../../../utils/session';
 import { safeFetchText } from '../../../utils/ssrf';
@@ -24,10 +24,11 @@ export default defineEventHandler(async (event) => {
   const body = await parseBodyWithSchema(event, ExtractUrlRequestSchema);
 
   let html = '';
-  let finalUrl = body.url;
+  const fetchUrl = normalizeToFullPageArticleUrl(body.url);
+  let finalUrl = fetchUrl;
 
   try {
-    const fetchRes = await safeFetchText(body.url, { timeoutMs: 12_000 });
+    const fetchRes = await safeFetchText(fetchUrl, { timeoutMs: 12_000 });
     html = fetchRes.body;
     finalUrl = fetchRes.finalUrl;
   } catch (err) {
@@ -65,6 +66,10 @@ export default defineEventHandler(async (event) => {
   let kbliImpact = KbliImpactEnum.INCREASE_NTB;
   let expenditureComponent = ExpenditureComponentEnum.PK_RT;
   let expenditureImpact = ExpenditureImpactEnum.INCREASE_REAL;
+  let secondaryKbliCategory: KbliCategoryEnum | null = null;
+  let secondaryKbliImpact: KbliImpactEnum | null = null;
+  let secondaryExpenditureComponent: ExpenditureComponentEnum | null = null;
+  let secondaryExpenditureImpact: ExpenditureImpactEnum | null = null;
   let confidence: number | null = null;
   let llmModelUsed: string | null = null;
 
@@ -87,6 +92,19 @@ export default defineEventHandler(async (event) => {
       kbliImpact = (cls.kbli_impact as KbliImpactEnum) || kbliImpact;
       expenditureComponent = (cls.expenditure_component as ExpenditureComponentEnum) || expenditureComponent;
       expenditureImpact = (cls.expenditure_impact as ExpenditureImpactEnum) || expenditureImpact;
+
+      const rawSecKbli = cls.secondary_kbli_category as KbliCategoryEnum | null | undefined;
+      if (rawSecKbli && rawSecKbli !== kbliCategory) {
+        secondaryKbliCategory = rawSecKbli;
+        secondaryKbliImpact = (cls.secondary_kbli_impact as KbliImpactEnum) || null;
+      }
+
+      const rawSecExp = cls.secondary_expenditure_component as ExpenditureComponentEnum | null | undefined;
+      if (rawSecExp && rawSecExp !== expenditureComponent) {
+        secondaryExpenditureComponent = rawSecExp;
+        secondaryExpenditureImpact = (cls.secondary_expenditure_impact as ExpenditureImpactEnum) || null;
+      }
+
       confidence = typeof cls.confidence === 'number' ? cls.confidence : null;
       llmModelUsed = result.modelUsed;
     }
@@ -105,8 +123,12 @@ export default defineEventHandler(async (event) => {
     summary: aiSummary,
     kbliCategory,
     kbliImpact,
+    secondaryKbliCategory,
+    secondaryKbliImpact,
     expenditureComponent,
     expenditureImpact,
+    secondaryExpenditureComponent,
+    secondaryExpenditureImpact,
     confidence,
     llmModelUsed,
   };

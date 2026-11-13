@@ -10,6 +10,7 @@ import { getQuarterFromDateWita, WITA_UTC_OFFSET } from '../../../../shared/util
 import { db } from '../../../db';
 import { articles } from '../../../db/schema';
 import { countWords } from '../../../services/scraper/extractor';
+import { invalidateOverviewCache } from '../../../utils/overview-cache';
 import { parseBodyWithSchema } from '../../../utils/request';
 import { requireAdminSession } from '../../../utils/session';
 import { hashNormalizedUrl } from '../../../utils/url-hash';
@@ -63,8 +64,26 @@ export default defineEventHandler(async (event) => {
         summary: body.summary,
         kbliCategory: body.kbliCategory,
         kbliImpact: body.kbliImpact,
+        secondaryKbliCategory:
+          body.secondaryKbliCategory && body.secondaryKbliCategory !== body.kbliCategory
+            ? body.secondaryKbliCategory
+            : null,
+        secondaryKbliImpact:
+          body.secondaryKbliCategory && body.secondaryKbliCategory !== body.kbliCategory
+            ? (body.secondaryKbliImpact ?? null)
+            : null,
         expenditureComponent: body.expenditureComponent,
         expenditureImpact: body.expenditureImpact,
+        secondaryExpenditureComponent:
+          body.secondaryExpenditureComponent &&
+          body.secondaryExpenditureComponent !== body.expenditureComponent
+            ? body.secondaryExpenditureComponent
+            : null,
+        secondaryExpenditureImpact:
+          body.secondaryExpenditureComponent &&
+          body.secondaryExpenditureComponent !== body.expenditureComponent
+            ? (body.secondaryExpenditureImpact ?? null)
+            : null,
         llmModel: null,
         llmStatus: LlmStatusEnum.SKIPPED_MANUAL,
         llmError: null,
@@ -76,6 +95,7 @@ export default defineEventHandler(async (event) => {
       })
       .returning();
 
+    invalidateOverviewCache();
     setResponseStatus(event, 201);
     return { item: created };
   } catch (err) {

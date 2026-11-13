@@ -75,3 +75,4 @@ if __name__ == '__main__':
     for it in items[:15]:
         expl = ' '.join(it['explanation_parts'])[:60].replace('\n', ' ')
         print(f"[{it['code']}] {it['title']} -> {expl}...")
+

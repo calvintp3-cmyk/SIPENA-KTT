@@ -272,6 +272,18 @@ export function mapClassificationToPersistence(
     };
   }
 
+  const isSecKbliDistinct =
+    Boolean(classification.secondary_kbli_category) &&
+    classification.secondary_kbli_category !== classification.kbli_category;
+  const secondaryKbliCategory = isSecKbliDistinct ? classification.secondary_kbli_category : null;
+  const secondaryKbliImpact = isSecKbliDistinct ? (classification.secondary_kbli_impact ?? null) : null;
+
+  const isSecExpDistinct =
+    Boolean(classification.secondary_expenditure_component) &&
+    classification.secondary_expenditure_component !== classification.expenditure_component;
+  const secondaryExpenditureComponent = isSecExpDistinct ? classification.secondary_expenditure_component : null;
+  const secondaryExpenditureImpact = isSecExpDistinct ? (classification.secondary_expenditure_impact ?? null) : null;
+
   return {
     geographicScope: classification.geographic_scope,
     isEconomicPhenomenon: true,
@@ -280,10 +292,10 @@ export function mapClassificationToPersistence(
     kbliImpact: classification.kbli_impact,
     expenditureComponent: classification.expenditure_component,
     expenditureImpact: classification.expenditure_impact,
-    secondaryKbliCategory: classification.secondary_kbli_category ?? null,
-    secondaryKbliImpact: classification.secondary_kbli_impact ?? null,
-    secondaryExpenditureComponent: classification.secondary_expenditure_component ?? null,
-    secondaryExpenditureImpact: classification.secondary_expenditure_impact ?? null,
+    secondaryKbliCategory,
+    secondaryKbliImpact,
+    secondaryExpenditureComponent,
+    secondaryExpenditureImpact,
     quarter: classification.quarter,
     year: classification.year,
     llmModel,

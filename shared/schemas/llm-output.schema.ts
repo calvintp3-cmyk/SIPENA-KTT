@@ -122,12 +122,27 @@ export const LlmClassificationRawSchema = z
           message: 'secondary_kbli_impact wajib terisi bila secondary_kbli_category diisi.',
         });
       }
+      if (!data.secondary_kbli_category && data.secondary_kbli_impact) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['secondary_kbli_impact'],
+          message: 'secondary_kbli_impact harus null bila secondary_kbli_category tidak diisi.',
+        });
+      }
       if (data.secondary_expenditure_component && !data.secondary_expenditure_impact) {
         ctx.addIssue({
           code: 'custom',
           path: ['secondary_expenditure_impact'],
           message:
             'secondary_expenditure_impact wajib terisi bila secondary_expenditure_component diisi.',
+        });
+      }
+      if (!data.secondary_expenditure_component && data.secondary_expenditure_impact) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['secondary_expenditure_impact'],
+          message:
+            'secondary_expenditure_impact harus null bila secondary_expenditure_component tidak diisi.',
         });
       }
     } else {

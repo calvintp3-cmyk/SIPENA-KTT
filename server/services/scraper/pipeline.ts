@@ -24,6 +24,7 @@ import {
   type SafeFetchOptions,
 } from '../../utils/ssrf';
 import { extractHostnameLabel, hashNormalizedUrl, isSafeHttpUrl } from '../../utils/url-hash';
+import { invalidateOverviewCache } from '../../utils/overview-cache';
 import { mapClassificationToPersistence } from '../llm/classifier';
 import { GeminiClassificationWorker, type GeminiWorkerOptions } from '../llm/gemini-client';
 import { embedTextsWithGemini, MultiLlmRouter, type MultiLlmRouterOptions } from '../llm/router';
@@ -1234,6 +1235,9 @@ async function executeLockedScrapePipeline(
     }
 
     await persistLogSnapshot(finalStatus, true);
+    if (articlesInserted > 0) {
+      invalidateOverviewCache();
+    }
 
     return {
       logId,

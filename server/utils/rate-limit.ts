@@ -4,6 +4,7 @@ import { getRequestHeader, type H3Event } from 'h3';
 const WINDOW_MS = 15 * 60 * 1000; // 15 menit (docs/prd.md §6.3)
 const MAX_ATTEMPTS = 10;
 const CLEANUP_INTERVAL_BUCKETS = 250;
+const MAX_TRACKED_BUCKETS = 5_000;
 
 interface RateLimitBucket {
   timestamps: number[];
@@ -23,6 +24,17 @@ function pruneStaleBuckets(now: number): void {
       loginAttemptsByIp.delete(key);
     } else {
       bucket.timestamps = fresh;
+    }
+  }
+
+  // Cap kapasitas memori: buang entri tertua bila diserang jutaan IP acak
+  if (loginAttemptsByIp.size > MAX_TRACKED_BUCKETS) {
+    const excess = loginAttemptsByIp.size - MAX_TRACKED_BUCKETS;
+    let evicted = 0;
+    for (const key of loginAttemptsByIp.keys()) {
+      loginAttemptsByIp.delete(key);
+      evicted += 1;
+      if (evicted >= excess) break;
     }
   }
 }
