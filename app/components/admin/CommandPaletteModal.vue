@@ -35,23 +35,23 @@ const routeItems = computed<PaletteRouteItem[]>(() => {
     {
       to: '/admin',
       label: 'Dashboard & Gap Sektoral',
-      section: 'Analitik & Sintesis PDRB',
+      section: 'Analitik & Rangkuman Ekonomi',
       icon: 'i-solar-widget-4-bold-duotone',
       keywords: 'dashboard gap radar heatmap kbli 17 sektor',
     },
     {
       to: '/admin/trends',
-      label: 'Tren & Komparasi (q-to-q / y-on-y)',
-      section: 'Analitik & Sintesis PDRB',
+      label: 'Tren & Komparasi Antar-Waktu',
+      section: 'Analitik & Rangkuman Ekonomi',
       icon: 'i-solar-graph-new-up-bold-duotone',
-      keywords: 'tren komparasi qoq yoy grafik historis 8 triwulan',
+      keywords: 'tren komparasi grafik historis 8 triwulan',
     },
     {
       to: '/admin/synthesis',
-      label: 'Sintesis Narasi PDRB',
-      section: 'Analitik & Sintesis PDRB',
+      label: 'Sintesis Fenomena',
+      section: 'Analitik & Rangkuman Ekonomi',
       icon: 'i-solar-magic-stick-3-bold-duotone',
-      keywords: 'sintesis narasi brs gemini cerebras mistral nim groq openrouter multi llm export docx pdf',
+      keywords: 'sintesis narasi fenomena rangkuman multi llm export docx',
     },
     {
       to: '/admin/review',
@@ -84,10 +84,10 @@ const routeItems = computed<PaletteRouteItem[]>(() => {
     },
     {
       to: '/admin/taxonomy',
-      label: 'Kamus & Taksonomi PDRB',
+      label: 'Kamus & Taksonomi Sektor',
       section: 'Sumber Berita & Taksonomi',
       icon: 'i-solar-book-bookmark-bold-duotone',
-      keywords: 'kamus taksonomi kbli 17 sektor 6 pengeluaran ntb deflator',
+      keywords: 'kamus taksonomi kbli 17 sektor 6 pengeluaran',
     },
     {
       to: '/admin/scrapers',

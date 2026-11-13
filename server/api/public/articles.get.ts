@@ -30,15 +30,22 @@ export default defineEventHandler(async (event) => {
   if (query.kbli) {
     conditions.push(eq(articles.kbliCategory, query.kbli));
   } else if (query.pdrbGroup) {
-    const groupCodes = resolvePdrbGroupCodes(query.pdrbGroup);
-    if (groupCodes.length === 1) {
-      conditions.push(eq(articles.kbliCategory, groupCodes[0]!));
-    } else if (groupCodes.length > 1) {
-      conditions.push(inArray(articles.kbliCategory, groupCodes));
+    const rawGroups = query.pdrbGroup.split(',').map((s) => s.trim()).filter(Boolean);
+    const allGroupCodes = rawGroups.flatMap((grp) => resolvePdrbGroupCodes(grp));
+    const uniqueCodes = Array.from(new Set(allGroupCodes));
+    if (uniqueCodes.length === 1) {
+      conditions.push(eq(articles.kbliCategory, uniqueCodes[0]!));
+    } else if (uniqueCodes.length > 1) {
+      conditions.push(inArray(articles.kbliCategory, uniqueCodes));
     }
   }
   if (query.expenditure) {
-    conditions.push(eq(articles.expenditureComponent, query.expenditure));
+    const rawExp = query.expenditure.split(',').map((s) => s.trim()).filter(Boolean);
+    if (rawExp.length === 1) {
+      conditions.push(eq(articles.expenditureComponent, rawExp[0] as any));
+    } else if (rawExp.length > 1) {
+      conditions.push(inArray(articles.expenditureComponent, rawExp as any));
+    }
   }
   if (query.sourceType) {
     conditions.push(eq(articles.sourceType, query.sourceType));

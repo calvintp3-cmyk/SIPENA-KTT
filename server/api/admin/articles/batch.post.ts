@@ -28,6 +28,30 @@ export default defineEventHandler(async (event) => {
     };
   }
 
+  if (body.action === 'RECLASSIFY') {
+    const targetIds = selectedRows.map((row) => row.id);
+    const updatePayload: Record<string, unknown> = {};
+
+    if (body.kbliCategory) updatePayload.kbliCategory = body.kbliCategory;
+    if (body.kbliImpact) updatePayload.kbliImpact = body.kbliImpact;
+    if (body.expenditureComponent) updatePayload.expenditureComponent = body.expenditureComponent;
+    if (body.expenditureImpact) updatePayload.expenditureImpact = body.expenditureImpact;
+
+    if (Object.keys(updatePayload).length > 0) {
+      await db
+        .update(articles)
+        .set(updatePayload)
+        .where(inArray(articles.id, targetIds));
+    }
+
+    return {
+      action: body.action,
+      updatedCount: targetIds.length,
+      updatedIds: targetIds,
+      incompleteItems: [],
+    };
+  }
+
   if (body.action === 'IGNORE') {
     const targetIds = selectedRows.map((row) => row.id);
     await db

@@ -3,7 +3,9 @@
 import {
   ArticleSourceTypeEnum,
   PDRB_17_SECTORS,
+  PDRB_6_EXPENDITURE_LIST,
   type ExpenditureComponentEnum,
+  type ExpenditureComponentMeta,
   type KbliCategoryEnum,
 } from '#shared/enums/pdrb';
 import {
@@ -105,26 +107,29 @@ function strParam(raw: unknown, fallback = 'ALL'): string {
   return fallback;
 }
 
+function parseListParam(raw: unknown): string[] {
+  if (typeof raw === 'string' && raw.trim().length > 0 && raw.trim() !== 'ALL') {
+    return raw.split(',').map((s) => s.trim()).filter(Boolean);
+  }
+  if (Array.isArray(raw)) {
+    return raw.map((s) => String(s).trim()).filter(Boolean);
+  }
+  return [];
+}
+
 const selectedYear = ref<number>(parseYear(route.query.year));
 const selectedQuarter = ref<PdrbQuarter>(parseQuarter(route.query.quarter));
-const selectedPdrbGroup = ref<string>(strParam(route.query.pdrbGroup, 'ALL'));
-const selectedKbli = ref<string>(strParam(route.query.kbli, 'ALL'));
-const selectedExpenditure = ref<string>(strParam(route.query.expenditure, 'ALL'));
+const selectedPdrbGroups = ref<string[]>(parseListParam(route.query.pdrbGroup));
+const selectedExpenditures = ref<string[]>(parseListParam(route.query.expenditure));
 const selectedSourceType = ref<string>(strParam(route.query.sourceType, 'ALL'));
 const selectedImpactMacro = ref<string>(strParam(route.query.impactMacro, 'ALL'));
 const viewMode = ref<'stream' | 'table'>(route.query.view === 'table' ? 'table' : 'stream');
 const page = ref<number>(parsePage(route.query.page));
 
-const showAnalyticsPanel = ref<boolean>(true);
+const showAnalyticsPanel = ref<boolean>(false);
 const mobileFiltersOpen = ref<boolean>(false);
 const detailModalOpen = ref<boolean>(false);
 const selectedArticle = ref<PublicArticleItem | null>(null);
-
-if (selectedKbli.value !== 'ALL') {
-  const synced = applyKbliSelection(selectedKbli.value);
-  selectedKbli.value = synced.kbli;
-  selectedPdrbGroup.value = synced.pdrbGroup;
-}
 
 const initialSearchQ = typeof route.query.q === 'string' ? route.query.q : '';
 searchInput.value = initialSearchQ;
@@ -160,9 +165,8 @@ watch(
     selectedYear,
     selectedQuarter,
     debouncedSearch,
-    selectedPdrbGroup,
-    selectedKbli,
-    selectedExpenditure,
+    selectedPdrbGroups,
+    selectedExpenditures,
     selectedSourceType,
     selectedImpactMacro,
     viewMode,
@@ -174,9 +178,8 @@ watch(
       quarter: String(selectedQuarter.value),
     };
     if (debouncedSearch.value) nextQuery.q = debouncedSearch.value;
-    if (selectedKbli.value !== 'ALL') nextQuery.kbli = selectedKbli.value;
-    else if (selectedPdrbGroup.value !== 'ALL') nextQuery.pdrbGroup = selectedPdrbGroup.value;
-    if (selectedExpenditure.value !== 'ALL') nextQuery.expenditure = selectedExpenditure.value;
+    if (selectedPdrbGroups.value.length > 0) nextQuery.pdrbGroup = selectedPdrbGroups.value.join(',');
+    if (selectedExpenditures.value.length > 0) nextQuery.expenditure = selectedExpenditures.value.join(',');
     if (selectedSourceType.value !== 'ALL') nextQuery.sourceType = selectedSourceType.value;
     if (selectedImpactMacro.value !== 'ALL') nextQuery.impactMacro = selectedImpactMacro.value;
     if (viewMode.value === 'table') nextQuery.view = 'table';
@@ -215,9 +218,8 @@ const articlesQuery = computed(() => {
     limit: 20,
   };
   if (debouncedSearch.value) q.q = debouncedSearch.value;
-  if (selectedKbli.value !== 'ALL') q.kbli = selectedKbli.value;
-  else if (selectedPdrbGroup.value !== 'ALL') q.pdrbGroup = selectedPdrbGroup.value;
-  if (selectedExpenditure.value !== 'ALL') q.expenditure = selectedExpenditure.value;
+  if (selectedPdrbGroups.value.length > 0) q.pdrbGroup = selectedPdrbGroups.value.join(',');
+  if (selectedExpenditures.value.length > 0) q.expenditure = selectedExpenditures.value.join(',');
   if (selectedSourceType.value !== 'ALL') q.sourceType = selectedSourceType.value;
   if (selectedImpactMacro.value !== 'ALL') q.impactMacro = selectedImpactMacro.value;
   return q;
@@ -288,7 +290,7 @@ const activeFilterChips = computed(() => {
       key: 'sourceType',
       label:
         selectedSourceType.value === ArticleSourceTypeEnum.REGIONAL
-          ? 'Sumber: Lokal KTT'
+          ? 'Sumber: Lokal'
           : 'Sumber: Nasional',
       dotClass: 'bg-emerald-600',
       clear: () => {
@@ -297,40 +299,33 @@ const activeFilterChips = computed(() => {
       },
     });
   }
-  if (selectedKbli.value !== 'ALL') {
+
+  for (const groupCode of selectedPdrbGroups.value) {
+    const sector = PDRB_17_SECTORS.find((s) => s.groupCode === groupCode);
     chips.push({
-      key: 'kbli',
-      label: `KBLI: ${getKbliShortCodeName(selectedKbli.value as KbliCategoryEnum)}`,
-      dotClass: getKbliClusterTheme(selectedKbli.value).accentBarClass,
+      key: `pdrb-${groupCode}`,
+      label: `Sektor ${groupCode}: ${sector?.shortName ?? groupCode}`,
+      dotClass: getKbliClusterTheme(groupCode).accentBarClass,
       clear: () => {
-        selectedKbli.value = 'ALL';
-        selectedPdrbGroup.value = 'ALL';
-        page.value = 1;
-      },
-    });
-  } else if (selectedPdrbGroup.value !== 'ALL') {
-    const sector = PDRB_17_SECTORS.find((s) => s.groupCode === selectedPdrbGroup.value);
-    chips.push({
-      key: 'pdrbGroup',
-      label: `Sektor: ${selectedPdrbGroup.value} - ${sector?.shortName ?? selectedPdrbGroup.value}`,
-      dotClass: getKbliClusterTheme(selectedPdrbGroup.value).accentBarClass,
-      clear: () => {
-        selectedPdrbGroup.value = 'ALL';
+        selectedPdrbGroups.value = selectedPdrbGroups.value.filter((c: string) => c !== groupCode);
         page.value = 1;
       },
     });
   }
-  if (selectedExpenditure.value !== 'ALL') {
+
+  for (const expCode of selectedExpenditures.value) {
+    const item = PDRB_6_EXPENDITURE_LIST.find((e: ExpenditureComponentMeta) => e.code === expCode);
     chips.push({
-      key: 'expenditure',
-      label: `Pengeluaran: ${getExpenditureLabel(selectedExpenditure.value as ExpenditureComponentEnum, false)}`,
-      dotClass: getExpenditureColorTheme(selectedExpenditure.value).dotClass,
+      key: `exp-${expCode}`,
+      label: `Pengeluaran: ${item?.short ?? expCode}`,
+      dotClass: getExpenditureColorTheme(expCode).dotClass,
       clear: () => {
-        selectedExpenditure.value = 'ALL';
+        selectedExpenditures.value = selectedExpenditures.value.filter((c: string) => c !== expCode);
         page.value = 1;
       },
     });
   }
+
   if (selectedImpactMacro.value !== 'ALL') {
     chips.push({
       key: 'impactMacro',
@@ -352,9 +347,8 @@ function resetAllFilters() {
   searchInput.value = '';
   debouncedSearch.value = '';
   selectedSourceType.value = 'ALL';
-  selectedPdrbGroup.value = 'ALL';
-  selectedKbli.value = 'ALL';
-  selectedExpenditure.value = 'ALL';
+  selectedPdrbGroups.value = [];
+  selectedExpenditures.value = [];
   selectedImpactMacro.value = 'ALL';
   page.value = 1;
 }
@@ -365,22 +359,24 @@ function handlePeriodChange(newYear: number, newQuarter: PdrbQuarter) {
   page.value = 1;
 }
 
-function handlePdrbGroupUpdate(val: string) {
-  const next = applyPdrbGroupSelection(val);
-  selectedKbli.value = next.kbli;
-  selectedPdrbGroup.value = next.pdrbGroup;
+function handlePdrbGroupsUpdate(val: string[]) {
+  selectedPdrbGroups.value = val;
+  page.value = 1;
+}
+
+function handleExpendituresUpdate(val: string[]) {
+  selectedExpenditures.value = val;
   page.value = 1;
 }
 
 function handleKbliChartUpdate(val: string) {
   const next = applyKbliSelection(val);
-  selectedKbli.value = next.kbli;
-  selectedPdrbGroup.value = next.pdrbGroup;
+  selectedPdrbGroups.value = [next.pdrbGroup];
   page.value = 1;
 }
 
-function handleExpenditureUpdate(val: string) {
-  selectedExpenditure.value = val;
+function handleExpenditureChartUpdate(val: string) {
+  selectedExpenditures.value = [val];
   page.value = 1;
 }
 
@@ -539,52 +535,77 @@ function openDetailModal(article: PublicArticleItem) {
           </div>
         </div>
 
-        <!-- Period Control Bar -->
+        <!-- Period Control Bar: Unified Period Switcher Capsule -->
         <div
           class="pt-4 border-t border-slate-200/80 flex flex-wrap items-center justify-between gap-3"
         >
-          <div class="flex flex-wrap items-center gap-2.5">
-            <!-- USelect Tahun (Zero Raw HTML select) -->
-            <div class="w-36">
-              <label for="linimasa-year-select" class="sr-only">Pilih Tahun Periode</label>
-              <USelect
-                id="linimasa-year-select"
-                :model-value="selectedYear"
-                :items="yearSelectOptions"
-                value-key="value"
-                label-key="label"
-                leading-icon="i-solar-calendar-bold-duotone"
-                size="sm"
-                class="w-full"
-                @update:model-value="(val: unknown) => { if (typeof val === 'number') handlePeriodChange(val, selectedQuarter); }"
-              />
-            </div>
-
-            <!-- Segmented Control Triwulan -->
+          <div class="flex flex-wrap items-center gap-3">
+            <!-- Unified Period Switcher Capsule (Tahun & Triwulan Rapi Terpadu) -->
             <div
-              role="group"
-              aria-label="Pilih Triwulan PDRB"
-              class="inline-flex items-center gap-1 p-1 rounded-xl bg-slate-100/95 border border-slate-200/90"
+              class="inline-flex items-center p-1 rounded-xl bg-slate-100/95 border border-slate-200/90 shadow-2xs divide-x divide-slate-200/80"
             >
-              <button
-                v-for="qBtn in quarterButtons"
-                :key="qBtn.value"
-                type="button"
-                :aria-pressed="selectedQuarter === qBtn.value"
-                class="min-h-8 px-3 py-1 rounded-lg text-xs transition-colors tabular-nums cursor-pointer"
-                :class="
-                  selectedQuarter === qBtn.value
-                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold shadow-xs'
-                    : 'text-slate-600 hover:text-slate-950 font-medium'
-                "
-                :title="`${qBtn.label} (${qBtn.range})`"
-                @click="() => { handlePeriodChange(selectedYear, qBtn.value); }"
+              <!-- Integrated Year Stepper & Dropdown -->
+              <div class="flex items-center gap-1 pr-2.5 pl-1">
+                <button
+                  type="button"
+                  aria-label="Tahun Sebelumnya"
+                  class="w-6 h-6 rounded-md flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-white transition-colors cursor-pointer"
+                  @click="handlePeriodChange(selectedYear - 1, selectedQuarter)"
+                >
+                  <UIcon name="i-lucide-chevron-left" class="w-3.5 h-3.5" />
+                </button>
+
+                <div class="relative flex items-center">
+                  <UIcon name="i-solar-calendar-bold-duotone" class="w-3.5 h-3.5 text-indigo-600 mr-1 shrink-0" />
+                  <select
+                    id="linimasa-year-select"
+                    :value="selectedYear"
+                    class="bg-transparent font-bold text-xs text-slate-800 pr-3.5 focus:outline-none cursor-pointer appearance-none"
+                    @change="(e: Event) => handlePeriodChange(Number((e.target as HTMLSelectElement).value), selectedQuarter)"
+                  >
+                    <option v-for="y in availableYears" :key="y" :value="y">
+                      {{ y }}
+                    </option>
+                  </select>
+                  <UIcon name="i-lucide-chevron-down" class="w-3 h-3 text-slate-400 absolute right-0 pointer-events-none" />
+                </div>
+
+                <button
+                  type="button"
+                  aria-label="Tahun Berikutnya"
+                  class="w-6 h-6 rounded-md flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-white transition-colors cursor-pointer"
+                  @click="handlePeriodChange(selectedYear + 1, selectedQuarter)"
+                >
+                  <UIcon name="i-lucide-chevron-right" class="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              <!-- Segmented Control Triwulan -->
+              <div
+                role="group"
+                aria-label="Pilih Triwulan"
+                class="inline-flex items-center gap-1 pl-2.5"
               >
-                {{ qBtn.label }}
-              </button>
+                <button
+                  v-for="qBtn in quarterButtons"
+                  :key="qBtn.value"
+                  type="button"
+                  :aria-pressed="selectedQuarter === qBtn.value"
+                  class="min-h-7 px-2.5 py-1 rounded-lg text-xs transition-colors tabular-nums cursor-pointer"
+                  :class="
+                    selectedQuarter === qBtn.value
+                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold shadow-xs'
+                      : 'text-slate-600 hover:text-slate-950 font-medium'
+                  "
+                  :title="`${qBtn.label} (${qBtn.range})`"
+                  @click="() => { handlePeriodChange(selectedYear, qBtn.value); }"
+                >
+                  {{ qBtn.label }}
+                </button>
+              </div>
             </div>
 
-            <span class="hidden sm:inline text-xs text-slate-600 font-medium">
+            <span class="hidden sm:inline text-xs text-slate-500 font-medium">
               Periode {{ selectedQuarterRange }} {{ selectedYear }}
             </span>
           </div>
@@ -606,8 +627,8 @@ function openDetailModal(article: PublicArticleItem) {
               "
               @click="() => { showAnalyticsPanel = !showAnalyticsPanel; }"
             >
-              <UIcon name="i-solar-pie-chart-2-bold-duotone" class="w-4 h-4" />
-              <span>{{ showAnalyticsPanel ? 'Sembunyikan Statistik' : 'Tampilkan Statistik' }}</span>
+              <UIcon name="i-solar-pie-chart-2-bold-duotone" class="w-4 h-4 text-indigo-600" />
+              <span>{{ showAnalyticsPanel ? 'Tutup Statistik' : 'Lihat Statistik' }}</span>
             </button>
           </div>
         </div>
@@ -652,12 +673,12 @@ function openDetailModal(article: PublicArticleItem) {
       <PublicKpiSnapshotGrid :overview="overview ?? null" :pending="overviewPending" />
       <PublicSectorDistributionCharts
         :overview="overview ?? null"
-        :selected-kbli="selectedKbli"
-        :selected-pdrb-group="selectedPdrbGroup"
-        :selected-expenditure="selectedExpenditure"
+        :selected-kbli="selectedPdrbGroups[0] ?? 'ALL'"
+        :selected-pdrb-group="selectedPdrbGroups[0] ?? 'ALL'"
+        :selected-expenditure="selectedExpenditures[0] ?? 'ALL'"
         :pending="overviewPending"
         @update:kbli="handleKbliChartUpdate"
-        @update:expenditure="handleExpenditureUpdate"
+        @update:expenditure="handleExpenditureChartUpdate"
       />
     </div>
 
@@ -674,13 +695,13 @@ function openDetailModal(article: PublicArticleItem) {
           in-drawer
           :overview="overview ?? null"
           :source-type="selectedSourceType"
-          :pdrb-group="selectedPdrbGroup"
-          :expenditure="selectedExpenditure"
+          :pdrb-groups="selectedPdrbGroups"
+          :expenditures="selectedExpenditures"
           :impact-macro="selectedImpactMacro"
           :active-filter-count="activeFilterCount"
           @update:source-type="handleSourceTypeUpdate"
-          @update:pdrb-group="handlePdrbGroupUpdate"
-          @update:expenditure="handleExpenditureUpdate"
+          @update:pdrb-groups="handlePdrbGroupsUpdate"
+          @update:expenditures="handleExpendituresUpdate"
           @update:impact-macro="handleImpactMacroUpdate"
           @reset="resetAllFilters"
         />
@@ -694,13 +715,13 @@ function openDetailModal(article: PublicArticleItem) {
         <PublicFilterBar
           :overview="overview ?? null"
           :source-type="selectedSourceType"
-          :pdrb-group="selectedPdrbGroup"
-          :expenditure="selectedExpenditure"
+          :pdrb-groups="selectedPdrbGroups"
+          :expenditures="selectedExpenditures"
           :impact-macro="selectedImpactMacro"
           :active-filter-count="activeFilterCount"
           @update:source-type="handleSourceTypeUpdate"
-          @update:pdrb-group="handlePdrbGroupUpdate"
-          @update:expenditure="handleExpenditureUpdate"
+          @update:pdrb-groups="handlePdrbGroupsUpdate"
+          @update:expenditures="handleExpendituresUpdate"
           @update:impact-macro="handleImpactMacroUpdate"
           @reset="resetAllFilters"
         />

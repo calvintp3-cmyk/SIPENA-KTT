@@ -8,28 +8,29 @@ import {
 import type {
   Pdrb17DistributionItem,
   PublicOverviewResponse,
-  SelectOptionItem,
 } from '~/types/sipena';
 
 const props = withDefaults(
   defineProps<{
     overview: PublicOverviewResponse | null;
     sourceType: string;
-    pdrbGroup: string;
-    expenditure: string;
+    pdrbGroups?: string[];
+    expenditures?: string[];
     impactMacro: string;
     activeFilterCount: number;
     inDrawer?: boolean;
   }>(),
   {
+    pdrbGroups: () => [],
+    expenditures: () => [],
     inDrawer: false,
   },
 );
 
 const emit = defineEmits<{
   'update:sourceType': [value: string];
-  'update:pdrbGroup': [value: string];
-  'update:expenditure': [value: string];
+  'update:pdrbGroups': [value: string[]];
+  'update:expenditures': [value: string[]];
   'update:impactMacro': [value: string];
   reset: [];
 }>();
@@ -37,12 +38,7 @@ const emit = defineEmits<{
 const { searchInput } = usePublicPortalState();
 const { getExpenditureColorTheme } = usePdrbLabels();
 
-const kbliSelectId = computed(() =>
-  props.inDrawer ? 'filter-kbli-select-mobile' : 'filter-kbli-select-desktop',
-);
-const kbliLabelId = computed(() =>
-  props.inDrawer ? 'filter-kbli-label-mobile' : 'filter-kbli-label-desktop',
-);
+const sectorSearchQuery = ref('');
 
 const totalInPeriod = computed(() => props.overview?.kpi.totalVerified ?? 0);
 
@@ -60,17 +56,15 @@ const sectorOptions = computed<Pdrb17DistributionItem[]>(() => {
   }));
 });
 
-const pdrbSelectItems = computed<SelectOptionItem<string>[]>(() => [
-  { label: `Semua Sektor Lapangan Usaha (${totalInPeriod.value})`, value: 'ALL' },
-  ...sectorOptions.value.map((sector: Pdrb17DistributionItem) => ({
-    label: `${sector.groupCode} • ${sector.shortName} (${sector.count})`,
-    value: sector.groupCode,
-  })),
-]);
-
-const selectedPdrbModel = computed<string>({
-  get: () => props.pdrbGroup,
-  set: (val: string) => emit('update:pdrbGroup', val),
+const filteredSectors = computed(() => {
+  const q = sectorSearchQuery.value.trim().toLowerCase();
+  if (!q) return sectorOptions.value;
+  return sectorOptions.value.filter(
+    (s: Pdrb17DistributionItem) =>
+      s.groupCode.toLowerCase().includes(q) ||
+      s.shortName.toLowerCase().includes(q) ||
+      s.officialName.toLowerCase().includes(q),
+  );
 });
 
 const expenditureCountMap = computed(() => {
@@ -81,10 +75,45 @@ const expenditureCountMap = computed(() => {
   return map;
 });
 
+function togglePdrbGroup(code: string) {
+  const current = new Set(props.pdrbGroups);
+  if (current.has(code)) {
+    current.delete(code);
+  } else {
+    current.add(code);
+  }
+  emit('update:pdrbGroups', Array.from(current));
+}
+
+function selectAllPdrbGroups() {
+  emit(
+    'update:pdrbGroups',
+    sectorOptions.value.map((s: Pdrb17DistributionItem) => s.groupCode),
+  );
+}
+
+function clearPdrbGroups() {
+  emit('update:pdrbGroups', []);
+}
+
+function toggleExpenditure(code: string) {
+  const current = new Set(props.expenditures);
+  if (current.has(code)) {
+    current.delete(code);
+  } else {
+    current.add(code);
+  }
+  emit('update:expenditures', Array.from(current));
+}
+
+function clearExpenditures() {
+  emit('update:expenditures', []);
+}
+
 const sourceButtons = [
-  { value: 'ALL', label: 'Semua Sumber' },
-  { value: ArticleSourceTypeEnum.REGIONAL, label: 'Lokal KTT' },
-  { value: ArticleSourceTypeEnum.NATIONAL, label: 'Dampak Nasional' },
+  { value: 'ALL', label: 'Semua' },
+  { value: ArticleSourceTypeEnum.REGIONAL, label: 'Lokal' },
+  { value: ArticleSourceTypeEnum.NATIONAL, label: 'Nasional' },
 ];
 
 const bentoImpactItems = [
@@ -199,7 +228,7 @@ const bentoImpactItems = [
         </div>
       </div>
 
-      <!-- Sumber Berita & Liputan -->
+      <!-- Sumber Berita & Liputan: Semua | Lokal | Nasional -->
       <div class="space-y-1.5 pt-3 border-t border-slate-100">
         <span class="block text-[11px] font-bold text-slate-700">
           Cakupan Sumber
@@ -273,70 +302,176 @@ const bentoImpactItems = [
         </div>
       </div>
 
-      <!-- Sektor Lapangan Usaha -->
-      <div class="space-y-1.5 pt-3 border-t border-slate-100">
-        <label
-          :id="kbliLabelId"
-          :for="kbliSelectId"
-          class="block text-[11px] font-bold text-slate-700"
+      <!-- Sektor Lapangan Usaha (Multi-Select Checklist Terbuka) -->
+      <div class="space-y-2 pt-3 border-t border-slate-100">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-1.5">
+            <span class="block text-[11px] font-bold text-slate-700">
+              Lapangan Usaha
+            </span>
+            <span
+              v-if="pdrbGroups.length > 0"
+              class="px-1.5 py-0.2 rounded-full bg-indigo-600 text-white text-[9px] font-bold tabular-nums"
+            >
+              {{ pdrbGroups.length }}
+            </span>
+          </div>
+          <button
+            v-if="pdrbGroups.length > 0"
+            type="button"
+            class="text-[10px] font-semibold text-indigo-600 hover:text-indigo-800 cursor-pointer"
+            @click="clearPdrbGroups"
+          >
+            Reset
+          </button>
+        </div>
+
+        <!-- Mini Search Sektor -->
+        <div class="relative">
+          <UIcon
+            name="i-solar-magnifer-line-duotone"
+            class="w-3 h-3 absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+          />
+          <input
+            v-model="sectorSearchQuery"
+            type="search"
+            placeholder="Saring sektor A-U..."
+            class="w-full h-6.5 pl-6 pr-5 bg-slate-50 text-[11px] text-slate-800 placeholder:text-slate-400 rounded-md border border-slate-200 focus:bg-white focus:border-indigo-400 focus:outline-none"
+          >
+          <button
+            v-if="sectorSearchQuery"
+            type="button"
+            class="absolute right-1 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700"
+            @click="sectorSearchQuery = ''"
+          >
+            <UIcon name="i-lucide-x" class="w-2.5 h-2.5" />
+          </button>
+        </div>
+
+        <!-- Checklist List Container (Max Height with scroll) -->
+        <div
+          role="group"
+          aria-label="Daftar Checklist Lapangan Usaha"
+          class="max-h-52 overflow-y-auto saas-scroll space-y-1 pr-1 border border-slate-100 rounded-xl p-1 bg-slate-50/50"
         >
-          Sektor Lapangan Usaha (KBLI)
-        </label>
-        <USelectMenu
-          :id="kbliSelectId"
-          v-model="selectedPdrbModel"
-          :items="pdrbSelectItems"
-          value-key="value"
-          label-key="label"
-          :aria-labelledby="kbliLabelId"
-          placeholder="Pilih sektor usaha..."
-          :search-input="{ placeholder: 'Cari nama sektor...' }"
-          leading-icon="i-solar-buildings-2-bold-duotone"
-          size="sm"
-          class="w-full"
-        />
+          <button
+            v-for="sector in filteredSectors"
+            :key="sector.groupCode"
+            type="button"
+            class="w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-left transition-colors cursor-pointer group"
+            :class="
+              pdrbGroups.includes(sector.groupCode)
+                ? 'bg-white font-semibold text-indigo-900 shadow-2xs border border-indigo-200/80'
+                : 'hover:bg-white text-slate-700 font-normal'
+            "
+            @click="togglePdrbGroup(sector.groupCode)"
+          >
+            <div class="flex items-center gap-2 min-w-0 flex-1 pr-1.5">
+              <input
+                type="checkbox"
+                tabindex="-1"
+                :checked="pdrbGroups.includes(sector.groupCode)"
+                class="w-3.5 h-3.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer pointer-events-none shrink-0"
+              >
+              <span
+                class="w-4 h-4 rounded text-[9px] font-bold flex items-center justify-center shrink-0"
+                :class="
+                  pdrbGroups.includes(sector.groupCode)
+                    ? 'bg-indigo-600 text-white'
+                    : 'bg-slate-200 text-slate-700'
+                "
+              >
+                {{ sector.groupCode }}
+              </span>
+              <span class="text-[11px] truncate leading-tight block">
+                {{ sector.shortName }}
+              </span>
+            </div>
+
+            <span
+              class="text-[10px] tabular-nums font-semibold shrink-0"
+              :class="
+                sector.count > 0
+                  ? pdrbGroups.includes(sector.groupCode)
+                    ? 'text-indigo-700'
+                    : 'text-slate-700 font-bold'
+                  : 'text-slate-400'
+              "
+            >
+              {{ sector.count }}
+            </span>
+          </button>
+        </div>
       </div>
 
-      <!-- Kelompok Permintaan & Pengeluaran -->
-      <div class="space-y-1.5 pt-3 border-t border-slate-100">
-        <span class="block text-[11px] font-bold text-slate-700">
-          Kelompok Permintaan
-        </span>
-        <div role="group" aria-label="Filter Kelompok Permintaan" class="flex flex-col gap-1">
+      <!-- Kelompok Permintaan & Pengeluaran (Multi-Select Checklist Terbuka) -->
+      <div class="space-y-2 pt-3 border-t border-slate-100">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-1.5">
+            <span class="block text-[11px] font-bold text-slate-700">
+              Kelompok Pengeluaran
+            </span>
+            <span
+              v-if="expenditures.length > 0"
+              class="px-1.5 py-0.2 rounded-full bg-indigo-600 text-white text-[9px] font-bold tabular-nums"
+            >
+              {{ expenditures.length }}
+            </span>
+          </div>
           <button
+            v-if="expenditures.length > 0"
             type="button"
-            :aria-pressed="expenditure === 'ALL'"
-            class="w-full h-8 flex items-center justify-between px-2.5 rounded-lg text-[11px] transition-colors cursor-pointer"
-            :class="
-              expenditure === 'ALL'
-                ? 'bg-indigo-50 text-indigo-900 font-bold border border-indigo-200'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium'
-            "
-            @click="() => { emit('update:expenditure', 'ALL'); }"
+            class="text-[10px] font-semibold text-indigo-600 hover:text-indigo-800 cursor-pointer"
+            @click="clearExpenditures"
           >
-            <span class="truncate">Semua Kelompok</span>
-            <span class="text-[10px] tabular-nums font-semibold">{{ totalInPeriod }}</span>
+            Reset
           </button>
+        </div>
 
+        <div
+          role="group"
+          aria-label="Filter Kelompok Pengeluaran"
+          class="space-y-1 border border-slate-100 rounded-xl p-1 bg-slate-50/50"
+        >
           <button
             v-for="item in PDRB_6_EXPENDITURE_LIST"
             :key="item.code"
             type="button"
-            :aria-pressed="expenditure === item.code"
-            class="w-full h-8 flex items-center justify-between px-2.5 rounded-lg text-[11px] transition-colors cursor-pointer"
+            class="w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-left transition-colors cursor-pointer group"
             :class="
-              expenditure === item.code
-                ? 'bg-indigo-50 text-indigo-900 font-bold border border-indigo-200'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium'
+              expenditures.includes(item.code)
+                ? 'bg-white font-semibold text-indigo-900 shadow-2xs border border-indigo-200/80'
+                : 'hover:bg-white text-slate-700 font-normal'
             "
             :title="item.official"
-            @click="() => { emit('update:expenditure', expenditure === item.code ? 'ALL' : item.code); }"
+            @click="toggleExpenditure(item.code)"
           >
-            <span class="inline-flex items-center gap-1.5 truncate pr-2">
-              <span class="w-1.5 h-1.5 rounded-full shrink-0" :class="getExpenditureColorTheme(item.code).dotClass" />
-              <span class="truncate">{{ item.short }}</span>
-            </span>
-            <span class="text-[10px] tabular-nums font-semibold text-slate-500">
+            <div class="flex items-center gap-2 min-w-0 flex-1 pr-1.5">
+              <input
+                type="checkbox"
+                tabindex="-1"
+                :checked="expenditures.includes(item.code)"
+                class="w-3.5 h-3.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer pointer-events-none shrink-0"
+              >
+              <span
+                class="w-1.5 h-1.5 rounded-full shrink-0"
+                :class="getExpenditureColorTheme(item.code).dotClass"
+              />
+              <span class="text-[11px] truncate leading-tight block">
+                {{ item.short }}
+              </span>
+            </div>
+
+            <span
+              class="text-[10px] tabular-nums font-semibold shrink-0"
+              :class="
+                (expenditureCountMap.get(item.code) ?? 0) > 0
+                  ? expenditures.includes(item.code)
+                    ? 'text-indigo-700'
+                    : 'text-slate-700 font-bold'
+                  : 'text-slate-400'
+              "
+            >
               {{ expenditureCountMap.get(item.code) ?? 0 }}
             </span>
           </button>

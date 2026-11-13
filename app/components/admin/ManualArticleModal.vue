@@ -76,8 +76,70 @@ const formState = reactive<CreateManualArticleInput>({
 });
 
 const isSubmitting = ref(false);
+const isExtractingUrl = ref(false);
 const submitError = ref<string | null>(null);
 const ignoreNextDateQuarterSync = ref(false);
+
+async function handleExtractFromUrl() {
+  const url = formState.url.trim();
+  if (!url || !url.startsWith('http')) {
+    toast.add({
+      title: 'URL Belum Lengkap',
+      description: 'Masukkan URL berita berawalan http:// atau https:// terlebih dahulu.',
+      color: 'warning',
+      icon: 'i-lucide-alert-triangle',
+    });
+    return;
+  }
+
+  isExtractingUrl.value = true;
+  submitError.value = null;
+
+  try {
+    const res = await $fetch<{
+      url: string;
+      sourcePortal: string;
+      title: string;
+      snippetText: string;
+      publishedAt: string;
+      year: number;
+      quarter: 1 | 2 | 3 | 4;
+      summary: string;
+      kbliCategory: KbliCategoryEnum;
+      kbliImpact: KbliImpactEnum;
+      expenditureComponent: ExpenditureComponentEnum;
+      expenditureImpact: ExpenditureImpactEnum;
+    }>('/api/admin/articles/extract-url', {
+      method: 'POST',
+      body: { url },
+      credentials: 'include',
+    });
+
+    formState.title = res.title;
+    formState.sourcePortal = res.sourcePortal;
+    formState.publishedAt = res.publishedAt;
+    formState.year = res.year;
+    formState.quarter = res.quarter;
+    formState.snippetText = res.snippetText;
+    formState.summary = res.summary;
+    formState.kbliCategory = res.kbliCategory;
+    formState.kbliImpact = res.kbliImpact;
+    formState.expenditureComponent = res.expenditureComponent;
+    formState.expenditureImpact = res.expenditureImpact;
+
+    toast.add({
+      title: 'Berhasil Ekstrak Konten & Analisis AI',
+      description: `Judul terisi: ${res.title.slice(0, 48)}...`,
+      color: 'success',
+      icon: 'i-lucide-sparkles',
+    });
+  } catch (err: unknown) {
+    const fetchErr = err as { data?: { message?: string } };
+    submitError.value = fetchErr.data?.message || 'Gagal mengekstrak berita dari URL tersebut.';
+  } finally {
+    isExtractingUrl.value = false;
+  }
+}
 
 function resetForm() {
   const period = getCurrentQuarterYearWita();
@@ -181,25 +243,49 @@ async function handleSubmit(event: FormSubmitEvent<CreateManualArticleInput>) {
         class="space-y-4"
         @submit="handleSubmit"
       >
-        <UFormField label="Judul Berita / Fenomena" name="title" required>
-          <UInput
-            v-model="formState.title"
-            placeholder="Mis. Realisasi Proyek Infrastruktur Jalan Tideng Pale Triwulan IV"
-            class="w-full"
-          />
-        </UFormField>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <UFormField label="URL Sumber atau Referensi Surat/Dokumen" name="url" required>
+        <div class="space-y-1">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-slate-700">URL Sumber Berita atau Referensi Surat</span>
+            <button
+              v-if="formState.url.startsWith('http')"
+              type="button"
+              :disabled="isExtractingUrl"
+              class="text-xs font-bold text-indigo-700 hover:text-indigo-900 inline-flex items-center gap-1 cursor-pointer disabled:opacity-50"
+              @click="handleExtractFromUrl"
+            >
+              <UIcon :name="isExtractingUrl ? 'i-lucide-loader-circle' : 'i-lucide-sparkles'" class="w-3.5 h-3.5" :class="isExtractingUrl ? 'animate-spin' : 'text-indigo-600'" />
+              <span>{{ isExtractingUrl ? 'Mengekstrak...' : 'Tarik & Analisis AI Otomatis' }}</span>
+            </button>
+          </div>
+          <div class="flex gap-2">
             <UInput
               v-model="formState.url"
-              placeholder="https://... atau Surat BPS No. 123/2026"
+              placeholder="https://... atau Surat Keputusan No. 123/2026"
+              class="flex-1"
+            />
+            <button
+              type="button"
+              :disabled="!formState.url.startsWith('http') || isExtractingUrl"
+              class="min-h-9 px-3 rounded-lg border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 text-xs font-bold text-indigo-800 inline-flex items-center gap-1.5 transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shrink-0"
+              @click="handleExtractFromUrl"
+            >
+              <UIcon :name="isExtractingUrl ? 'i-lucide-loader-circle' : 'i-solar-magic-stick-3-bold-duotone'" class="w-4 h-4" :class="isExtractingUrl ? 'animate-spin' : ''" />
+              <span>{{ isExtractingUrl ? 'Ekstrak...' : 'Tarik AI' }}</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <UFormField label="Judul Berita / Fenomena" name="title" required class="sm:col-span-2">
+            <UInput
+              v-model="formState.title"
+              placeholder="Mis. Realisasi Proyek Infrastruktur Jalan Tideng Pale Triwulan IV"
               class="w-full"
             />
           </UFormField>
 
-          <UFormField label="Nama Sumber / Portal" name="sourcePortal" required>
-            <UInput v-model="formState.sourcePortal" placeholder="Input Manual" class="w-full" />
+          <UFormField label="Nama Sumber / Portal" name="sourcePortal" required class="sm:col-span-2">
+            <UInput v-model="formState.sourcePortal" placeholder="Input Manual atau nama portal" class="w-full" />
           </UFormField>
         </div>
 

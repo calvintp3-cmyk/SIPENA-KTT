@@ -24,7 +24,9 @@ const { selectedYear, selectedQuarter, shortPeriodLabel } = useAdminPeriod();
 const { isExporting, downloadExport } = useExcelExport();
 const {
   kbliOptions,
+  kbliImpactOptions,
   expenditureOptions,
+  expenditureImpactOptions,
   quarterOptions,
   verificationStatusOptions,
   getKbliShortCodeName,
@@ -461,7 +463,116 @@ async function confirmDelete() {
   }
 }
 
+const selectedMap = ref<Record<string, boolean>>({});
+const selectedIds = computed(() =>
+  Object.entries(selectedMap.value)
+    .filter(([, checked]) => checked)
+    .map(([id]) => id),
+);
+
+const isAllSelected = computed(() => {
+  const items = archiveData.value?.items ?? [];
+  if (items.length === 0) return false;
+  return items.every((item) => selectedMap.value[item.id]);
+});
+
+function toggleSelectAll() {
+  const items = archiveData.value?.items ?? [];
+  if (isAllSelected.value) {
+    selectedMap.value = {};
+  } else {
+    const next: Record<string, boolean> = {};
+    for (const item of items) {
+      next[item.id] = true;
+    }
+    selectedMap.value = next;
+  }
+}
+
+function clearSelection() {
+  selectedMap.value = {};
+}
+
+// Bulk Re-classify state
+const reclassifyModalOpen = ref(false);
+const isReclassifying = ref(false);
+const bulkKbli = ref<string>('KEEP');
+const bulkKbliImpact = ref<string>('KEEP');
+const bulkExpenditure = ref<string>('KEEP');
+const bulkExpenditureImpact = ref<string>('KEEP');
+
+async function handleBulkReclassify() {
+  if (isReclassifying.value || selectedIds.value.length === 0) return;
+  isReclassifying.value = true;
+
+  try {
+    const payload: Record<string, unknown> = {
+      ids: selectedIds.value,
+      action: 'RECLASSIFY',
+    };
+    if (bulkKbli.value !== 'KEEP') payload.kbliCategory = bulkKbli.value;
+    if (bulkKbliImpact.value !== 'KEEP') payload.kbliImpact = bulkKbliImpact.value;
+    if (bulkExpenditure.value !== 'KEEP') payload.expenditureComponent = bulkExpenditure.value;
+    if (bulkExpenditureImpact.value !== 'KEEP') payload.expenditureImpact = bulkExpenditureImpact.value;
+
+    await $fetch('/api/admin/articles/batch', {
+      method: 'POST',
+      body: payload,
+      credentials: 'include',
+    });
+
+    toast.add({
+      title: 'Klasifikasi Massal Berhasil',
+      description: `${selectedIds.value.length} artikel berhasil diperbarui klasifikasinya.`,
+      color: 'success',
+      icon: 'i-lucide-check-circle-2',
+    });
+
+    reclassifyModalOpen.value = false;
+    clearSelection();
+    await refresh();
+  } catch (err: unknown) {
+    const fetchErr = err as { data?: { message?: string } };
+    toast.add({
+      title: 'Gagal Mengubah Klasifikasi',
+      description: fetchErr.data?.message || 'Terjadi kesalahan sistem.',
+      color: 'error',
+      icon: 'i-lucide-alert-circle',
+    });
+  } finally {
+    isReclassifying.value = false;
+  }
+}
+
+async function handleBulkAction(action: 'VERIFY' | 'IGNORE') {
+  if (selectedIds.value.length === 0) return;
+  try {
+    const res = await $fetch<{ updatedCount: number }>('/api/admin/articles/batch', {
+      method: 'POST',
+      body: { ids: selectedIds.value, action },
+      credentials: 'include',
+    });
+    toast.add({
+      title: action === 'VERIFY' ? 'Verifikasi Massal Berhasil' : 'Abaikan Massal Berhasil',
+      description: `${res.updatedCount} artikel berhasil diperbarui statusnya.`,
+      color: 'success',
+      icon: 'i-lucide-check-circle-2',
+    });
+    clearSelection();
+    await refresh();
+  } catch (err: unknown) {
+    const fetchErr = err as { data?: { message?: string } };
+    toast.add({
+      title: 'Gagal Menjalankan Aksi',
+      description: fetchErr.data?.message || 'Terjadi kesalahan sistem.',
+      color: 'error',
+      icon: 'i-lucide-alert-circle',
+    });
+  }
+}
+
 const columns: TableColumn<AdminArticleItem>[] = [
+  { id: 'select', header: '' },
   { id: 'publishedAt', header: 'Waktu Rilis' },
   { id: 'title', header: 'Judul Berita & Sumber' },
   { id: 'kbli', header: 'KBLI & Dampak' },
@@ -499,7 +610,7 @@ const columns: TableColumn<AdminArticleItem>[] = [
           @click="() => { manualModalOpen = true; }"
         >
           <UIcon name="i-solar-add-circle-bold-duotone" class="w-4 h-4 text-indigo-600" />
-          <span>Tambah Berita Manual</span>
+          <span>Tambah Berita / Tarik URL</span>
         </button>
 
         <UDropdownMenu :items="exportMenuItems">
@@ -936,6 +1047,23 @@ const columns: TableColumn<AdminArticleItem>[] = [
           :loading="pending"
           empty="Tidak ada arsip berita yang sesuai dengan kriteria filter."
         >
+          <template #select-header>
+            <input
+              type="checkbox"
+              :checked="isAllSelected"
+              class="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+              @change="toggleSelectAll"
+            >
+          </template>
+
+          <template #select-cell="{ row }">
+            <input
+              v-model="selectedMap[row.original.id]"
+              type="checkbox"
+              class="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+            >
+          </template>
+
           <template #publishedAt-cell="{ row }">
             <div class="text-xs font-medium tabular-nums text-slate-800 whitespace-nowrap">
               {{ formatDateId(row.original.publishedAt) }}
@@ -1066,6 +1194,126 @@ const columns: TableColumn<AdminArticleItem>[] = [
         </UTable>
       </div>
     </div>
+
+    <!-- Floating Selection Batch Bar -->
+    <div
+      v-if="selectedIds.length > 0"
+      class="fixed bottom-6 left-1/2 -translate-x-1/2 z-30 bg-slate-900 text-white rounded-2xl shadow-xl border border-slate-700/80 px-4 py-2.5 flex flex-wrap items-center gap-3 transition-all"
+    >
+      <span class="text-xs font-bold tabular-nums">
+        {{ selectedIds.length }} Berita Dipilih
+      </span>
+
+      <div class="flex items-center gap-2">
+        <button
+          type="button"
+          class="min-h-8 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white inline-flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
+          @click="() => { reclassifyModalOpen = true; }"
+        >
+          <UIcon name="i-solar-magic-stick-3-bold-duotone" class="w-3.5 h-3.5" />
+          <span>Ubah Klasifikasi</span>
+        </button>
+
+        <button
+          type="button"
+          class="min-h-8 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs font-semibold text-white inline-flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
+          @click="() => { void handleBulkAction('VERIFY'); }"
+        >
+          <UIcon name="i-lucide-check" class="w-3.5 h-3.5" />
+          <span>Verifikasi</span>
+        </button>
+
+        <button
+          type="button"
+          class="min-h-8 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-300 inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+          @click="() => { void handleBulkAction('IGNORE'); }"
+        >
+          <span>Abaikan</span>
+        </button>
+
+        <button
+          type="button"
+          class="min-h-8 px-2.5 rounded-xl text-xs font-medium text-slate-400 hover:text-white cursor-pointer"
+          @click="clearSelection"
+        >
+          Batal
+        </button>
+      </div>
+    </div>
+
+    <!-- Modal Bulk Re-classify -->
+    <UModal
+      v-model:open="reclassifyModalOpen"
+      title="Ubah Klasifikasi Massal"
+      :description="`Tetapkan kategori baru untuk ${selectedIds.length} berita terpilih sekaligus.`"
+    >
+      <template #body>
+        <div class="space-y-4 text-xs">
+          <div class="space-y-1.5">
+            <label class="font-bold text-slate-700">Kategori Lapangan Usaha (KBLI)</label>
+            <select
+              v-model="bulkKbli"
+              class="w-full h-9 px-3 rounded-xl border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:border-indigo-500"
+            >
+              <option value="KEEP">(Tetap / Jangan Ubah KBLI)</option>
+              <option v-for="item in kbliOptions" :key="item.value" :value="item.value">
+                {{ item.label }}
+              </option>
+            </select>
+          </div>
+
+          <div class="space-y-1.5">
+            <label class="font-bold text-slate-700">Arah Dampak Aktivitas</label>
+            <select
+              v-model="bulkKbliImpact"
+              class="w-full h-9 px-3 rounded-xl border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:border-indigo-500"
+            >
+              <option value="KEEP">(Tetap / Jangan Ubah Dampak)</option>
+              <option v-for="item in kbliImpactOptions" :key="item.value" :value="item.value">
+                {{ item.label }}
+              </option>
+            </select>
+          </div>
+
+          <div class="space-y-1.5">
+            <label class="font-bold text-slate-700">Komponen Pengeluaran</label>
+            <select
+              v-model="bulkExpenditure"
+              class="w-full h-9 px-3 rounded-xl border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:border-indigo-500"
+            >
+              <option value="KEEP">(Tetap / Jangan Ubah Pengeluaran)</option>
+              <option v-for="item in expenditureOptions" :key="item.value" :value="item.value">
+                {{ item.label }}
+              </option>
+            </select>
+          </div>
+
+          <div class="space-y-1.5">
+            <label class="font-bold text-slate-700">Arah Dampak Pengeluaran</label>
+            <select
+              v-model="bulkExpenditureImpact"
+              class="w-full h-9 px-3 rounded-xl border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:border-indigo-500"
+            >
+              <option value="KEEP">(Tetap / Jangan Ubah Dampak)</option>
+              <option v-for="item in expenditureImpactOptions" :key="item.value" :value="item.value">
+                {{ item.label }}
+              </option>
+            </select>
+          </div>
+        </div>
+      </template>
+
+      <template #footer>
+        <div class="w-full flex justify-end gap-2">
+          <UButton color="neutral" variant="ghost" @click="reclassifyModalOpen = false">
+            Batal
+          </UButton>
+          <UButton color="primary" :loading="isReclassifying" @click="handleBulkReclassify">
+            Terapkan ke {{ selectedIds.length }} Berita
+          </UButton>
+        </div>
+      </template>
+    </UModal>
 
     <!-- Pagination -->
     <div

@@ -98,13 +98,13 @@ onBeforeUnmount(() => {
       Lewati ke konten utama
     </a>
 
-    <!-- Floating Frosted Glass Header -->
+    <!-- Full-Width Docked 100% Solid Header (No Ghosting, Crisp Freeze Panes) -->
     <header
-      class="sticky top-0 z-40 px-3 sm:px-6 pt-2.5 pb-1.5 pointer-events-none"
+      class="sticky top-0 z-40 w-full bg-white border-b border-slate-200/90 shadow-2xs"
       style="view-transition-name: sipena-public-header"
     >
       <div
-        class="pointer-events-auto max-w-7xl mx-auto h-14 px-3.5 sm:px-5 rounded-2xl bg-white/90 backdrop-blur-xl border border-slate-200/85 shadow-[0_8px_28px_-12px_rgba(15,23,42,0.12),0_1px_0_rgba(255,255,255,0.92)_inset] flex items-center justify-between gap-3"
+        class="max-w-7xl mx-auto h-14 px-4 sm:px-6 flex items-center justify-between gap-3"
       >
         <!-- Brand Lockup -->
         <NuxtLink to="/" class="flex items-center gap-2.5 group shrink-0 rounded-xl py-1">

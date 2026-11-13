@@ -65,7 +65,7 @@ const navGroups = computed<NavGroup[]>(() => {
 
   return [
     {
-      title: 'Analitik & Sintesis PDRB',
+      title: 'Analitik & Rangkuman Ekonomi',
       items: [
         {
           label: 'Dashboard & Gap Sektoral',
@@ -79,7 +79,7 @@ const navGroups = computed<NavGroup[]>(() => {
           icon: 'i-solar-graph-new-up-bold-duotone',
         },
         {
-          label: 'Sintesis Narasi PDRB',
+          label: 'Sintesis Fenomena',
           to: '/admin/synthesis',
           icon: 'i-solar-magic-stick-3-bold-duotone',
         },
@@ -116,7 +116,7 @@ const navGroups = computed<NavGroup[]>(() => {
           icon: 'i-solar-tag-price-bold-duotone',
         },
         {
-          label: 'Kamus & Taksonomi PDRB',
+          label: 'Kamus & Taksonomi Sektor',
           to: '/admin/taxonomy',
           icon: 'i-solar-book-bookmark-bold-duotone',
         },

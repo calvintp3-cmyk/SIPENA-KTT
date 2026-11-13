@@ -77,9 +77,12 @@ export const PublicArticlesQuerySchema = z.object({
   kbli: optionalEnum(KbliCategoryEnum),
   pdrbGroup: z.preprocess(
     (v) => (v === '' || v === 'ALL' || v === null || v === undefined ? undefined : String(v).trim()),
-    z.string().max(16).optional(),
+    z.string().max(250).optional(),
   ),
-  expenditure: optionalEnum(ExpenditureComponentEnum),
+  expenditure: z.preprocess(
+    (v) => (v === '' || v === 'ALL' || v === null || v === undefined ? undefined : String(v).trim()),
+    z.string().max(250).optional(),
+  ),
   sourceType: z.preprocess(
     (v) => (v === '' || v === 'ALL' || v === null || v === undefined ? undefined : v),
     z.enum(ArticleSourceTypeEnum).optional(),
@@ -302,7 +305,11 @@ export const UpdateArticleReviewSchema = z
 
 export const BatchArticleActionSchema = z.object({
   ids: z.array(z.uuid('ID artikel harus berupa UUID valid')).min(1).max(100),
-  action: z.enum(['VERIFY', 'IGNORE']),
+  action: z.enum(['VERIFY', 'IGNORE', 'RECLASSIFY']),
+  kbliCategory: optionalEnum(KbliCategoryEnum),
+  kbliImpact: optionalEnum(KbliImpactEnum),
+  expenditureComponent: optionalEnum(ExpenditureComponentEnum),
+  expenditureImpact: optionalEnum(ExpenditureImpactEnum),
 });
 
 export const TriggerScraperSchema = z.object({
