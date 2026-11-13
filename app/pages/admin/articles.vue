@@ -1305,10 +1305,10 @@ const columns: TableColumn<AdminArticleItem>[] = [
 
       <template #footer>
         <div class="w-full flex justify-end gap-2">
-          <UButton color="neutral" variant="ghost" @click="reclassifyModalOpen = false">
+          <UButton color="neutral" variant="ghost" @click="() => { reclassifyModalOpen = false; }">
             Batal
           </UButton>
-          <UButton color="primary" :loading="isReclassifying" @click="handleBulkReclassify">
+          <UButton color="primary" :loading="isReclassifying" @click="() => { void handleBulkReclassify(); }">
             Terapkan ke {{ selectedIds.length }} Berita
           </UButton>
         </div>
