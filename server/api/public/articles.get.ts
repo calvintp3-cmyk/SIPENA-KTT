@@ -1,6 +1,6 @@
 // server/api/public/articles.get.ts
 import { and, asc, count, desc, eq, ilike, inArray, or, type SQL } from 'drizzle-orm';
-import { defineEventHandler } from 'h3';
+import { defineEventHandler, setResponseHeader } from 'h3';
 import {
   ExpenditureImpactEnum,
   KbliImpactEnum,
@@ -147,6 +147,9 @@ export default defineEventHandler(async (event) => {
 
   const total = Number(countRow?.total ?? 0);
   const totalPages = Math.max(1, Math.ceil(total / query.limit));
+
+  setResponseHeader(event, 'Cache-Control', 'public, max-age=10, stale-while-revalidate=30');
+  setResponseHeader(event, 'Vary', 'Accept-Encoding');
 
   return {
     items,

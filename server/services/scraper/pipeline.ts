@@ -1600,6 +1600,9 @@ async function executeLockedRetryLlmBatch(
             : ScraperRunStatusEnum.FAILED;
 
     await persistRetrySnapshot(finalStatus, true);
+    if (succeededCount > 0) {
+      invalidateOverviewCache();
+    }
 
     return {
       logId,

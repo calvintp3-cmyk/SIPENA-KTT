@@ -1,6 +1,6 @@
 // server/api/public/overview.get.ts
 import { and, count, desc, eq, max } from 'drizzle-orm';
-import { defineEventHandler } from 'h3';
+import { defineEventHandler, setResponseHeader } from 'h3';
 import {
   ArticleSourceTypeEnum,
   EXPENDITURE_COMPONENT_LABELS,
@@ -31,6 +31,8 @@ export default defineEventHandler(async (event) => {
 
   const cached = getCachedOverview(targetYear, targetQuarter);
   if (cached) {
+    setResponseHeader(event, 'Cache-Control', 'public, max-age=15, stale-while-revalidate=45');
+    setResponseHeader(event, 'Vary', 'Accept-Encoding');
     return cached;
   }
 
@@ -279,5 +281,7 @@ export default defineEventHandler(async (event) => {
   };
 
   setCachedOverview(targetYear, targetQuarter, responseData);
+  setResponseHeader(event, 'Cache-Control', 'public, max-age=15, stale-while-revalidate=45');
+  setResponseHeader(event, 'Vary', 'Accept-Encoding');
   return responseData;
 });

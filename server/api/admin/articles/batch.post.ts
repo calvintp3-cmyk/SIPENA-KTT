@@ -37,10 +37,33 @@ export default defineEventHandler(async (event) => {
     if (body.kbliImpact) updatePayload.kbliImpact = body.kbliImpact;
     if (body.expenditureComponent) updatePayload.expenditureComponent = body.expenditureComponent;
     if (body.expenditureImpact) updatePayload.expenditureImpact = body.expenditureImpact;
-    if (body.secondaryKbliCategory !== undefined) updatePayload.secondaryKbliCategory = body.secondaryKbliCategory;
-    if (body.secondaryKbliImpact !== undefined) updatePayload.secondaryKbliImpact = body.secondaryKbliImpact;
-    if (body.secondaryExpenditureComponent !== undefined) updatePayload.secondaryExpenditureComponent = body.secondaryExpenditureComponent;
-    if (body.secondaryExpenditureImpact !== undefined) updatePayload.secondaryExpenditureImpact = body.secondaryExpenditureImpact;
+
+    // Normalisasi anti-duplikasi sektor/komponen sekunder
+    if (body.secondaryKbliCategory !== undefined) {
+      const isDuplicate = body.kbliCategory
+        ? body.secondaryKbliCategory === body.kbliCategory
+        : false;
+      updatePayload.secondaryKbliCategory = isDuplicate ? null : body.secondaryKbliCategory;
+      if (isDuplicate) {
+        updatePayload.secondaryKbliImpact = null;
+      }
+    }
+    if (body.secondaryKbliImpact !== undefined && !updatePayload.secondaryKbliImpact) {
+      updatePayload.secondaryKbliImpact = body.secondaryKbliImpact;
+    }
+
+    if (body.secondaryExpenditureComponent !== undefined) {
+      const isDuplicate = body.expenditureComponent
+        ? body.secondaryExpenditureComponent === body.expenditureComponent
+        : false;
+      updatePayload.secondaryExpenditureComponent = isDuplicate ? null : body.secondaryExpenditureComponent;
+      if (isDuplicate) {
+        updatePayload.secondaryExpenditureImpact = null;
+      }
+    }
+    if (body.secondaryExpenditureImpact !== undefined && !updatePayload.secondaryExpenditureImpact) {
+      updatePayload.secondaryExpenditureImpact = body.secondaryExpenditureImpact;
+    }
 
     if (Object.keys(updatePayload).length > 0) {
       await db
@@ -49,6 +72,7 @@ export default defineEventHandler(async (event) => {
         .where(inArray(articles.id, targetIds));
     }
 
+    invalidateOverviewCache();
     return {
       action: body.action,
       updatedCount: targetIds.length,
@@ -68,6 +92,7 @@ export default defineEventHandler(async (event) => {
       })
       .where(inArray(articles.id, targetIds));
 
+    invalidateOverviewCache();
     return {
       action: body.action,
       updatedCount: targetIds.length,

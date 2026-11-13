@@ -2,8 +2,9 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { UserRoleEnum } from '#shared/enums/pdrb';
 import { isAdminApiPath } from '#server/utils/admin-path';
+import { isCsrfSafeRequest } from '#server/middleware/02-admin-auth';
 import { verifyCronSecret } from '#server/utils/cron-secret';
-import { hashPassword, verifyPassword } from '#server/utils/password';
+import { DUMMY_SCRYPT_HASH, hashPassword, verifyPassword } from '#server/utils/password';
 import {
   __clearAllRateLimitsForTest,
   checkLoginRateLimit,
@@ -192,6 +193,73 @@ describe('SSRF Guard, URL Hash, Auth Security & Rate Limit', () => {
 
     expect(sleeps).toEqual([1_000]);
     resetHostRateLimitsForTest();
+  });
+
+  it('DUMMY_SCRYPT_HASH memblokir serangan timing user enumeration dengan komputasi scrypt konstan', () => {
+    const startDummy = Date.now();
+    const dummyResult = verifyPassword('admin123', DUMMY_SCRYPT_HASH);
+    const durationDummy = Date.now() - startDummy;
+
+    expect(dummyResult).toBe(false);
+    expect(durationDummy).toBeGreaterThanOrEqual(10); // scryptSync N=16384 pasti membutuhkan CPU time > 10ms
+
+    const realHash = hashPassword('realPassword123');
+    const startReal = Date.now();
+    const realResult = verifyPassword('wrongPassword', realHash);
+    const durationReal = Date.now() - startReal;
+
+    expect(realResult).toBe(false);
+    // Selisih durasi antara dummy scrypt dan real scrypt harus sangat kecil (di bawah 100ms)
+    expect(Math.abs(durationDummy - durationReal)).toBeLessThan(100);
+  });
+
+  it('isCsrfSafeRequest memblokir mutasi lintas situs (Sec-Fetch-Site: cross-site & Origin mismatch)', () => {
+    const makeEvent = (method: string, headers: Record<string, string> = {}) => {
+      const lowerHeaders: Record<string, string> = {};
+      for (const [k, v] of Object.entries(headers)) {
+        lowerHeaders[k.toLowerCase()] = v;
+      }
+      return {
+        method,
+        node: {
+          req: {
+            method,
+            headers: lowerHeaders,
+          },
+        },
+      } as any;
+    };
+
+    // 1. Safe read methods selalu diizinkan
+    expect(isCsrfSafeRequest(makeEvent('GET'))).toBe(true);
+    expect(isCsrfSafeRequest(makeEvent('HEAD'))).toBe(true);
+
+    // 2. Sec-Fetch-Site = cross-site pada POST wajib ditolak
+    const crossSiteEvent = makeEvent('POST', {
+      'sec-fetch-site': 'cross-site',
+    });
+    expect(isCsrfSafeRequest(crossSiteEvent)).toBe(false);
+
+    // 3. Same-origin pada POST diizinkan
+    const sameOriginEvent = makeEvent('POST', {
+      'sec-fetch-site': 'same-origin',
+      host: 'sipena-ktt.kaltara.bps.go.id',
+      origin: 'https://sipena-ktt.kaltara.bps.go.id',
+    });
+    expect(isCsrfSafeRequest(sameOriginEvent)).toBe(true);
+
+    // 4. Origin beda domain pada production wajib ditolak
+    const foreignOriginEvent = makeEvent('DELETE', {
+      host: 'sipena-ktt.kaltara.bps.go.id',
+      origin: 'https://evil-attacker-site.com',
+    });
+    const prevEnv = process.env.NODE_ENV;
+    process.env.NODE_ENV = 'production';
+    try {
+      expect(isCsrfSafeRequest(foreignOriginEvent)).toBe(false);
+    } finally {
+      process.env.NODE_ENV = prevEnv;
+    }
   });
 });
 

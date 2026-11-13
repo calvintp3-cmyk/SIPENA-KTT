@@ -15,6 +15,14 @@ const SCRYPT_PARAMS = {
 export const OAUTH_ONLY_PASSWORD_MARKER = 'oauth2:google_only';
 
 /**
+ * Hash dummy 64-byte Scrypt untuk mitigasi side-channel timing attack (user enumeration) pada login.
+ * Memastikan branch user yang tidak ditemukan tetap mengeksekusi scryptSync dengan durasi konstan.
+ */
+export const DUMMY_SCRYPT_HASH =
+  'scrypt$0123456789abcdef0123456789abcdef$0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+
+
+/**
  * Memeriksa apakah nilai `password_hash` merepresentasikan kata sandi lokal Scrypt yang aktif.
  */
 export function hasLocalPasswordHash(storedHash: string | null | undefined): boolean {

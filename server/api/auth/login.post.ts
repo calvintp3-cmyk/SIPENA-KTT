@@ -4,7 +4,7 @@ import { createError, defineEventHandler, setResponseHeader } from 'h3';
 import { LoginRequestSchema } from '../../../shared/schemas/auth.schema';
 import { db } from '../../db';
 import { users } from '../../db/schema';
-import { verifyPassword } from '../../utils/password';
+import { DUMMY_SCRYPT_HASH, verifyPassword } from '../../utils/password';
 import {
   checkLoginRateLimit,
   getClientIp,
@@ -42,7 +42,12 @@ export default defineEventHandler(async (event) => {
     .where(sql`lower(${users.email}) = ${body.email}`)
     .limit(1);
 
-  if (!user || !user.isActive || !verifyPassword(body.password, user.passwordHash)) {
+  // Evaluasi scrypt selalu dieksekusi bahkan jika akun tidak terdaftar (constant-time defense against timing attacks)
+  const passwordValid = user && user.isActive
+    ? verifyPassword(body.password, user.passwordHash)
+    : verifyPassword(body.password, DUMMY_SCRYPT_HASH);
+
+  if (!user || !user.isActive || !passwordValid) {
     throw createError({
       statusCode: 401,
       statusMessage: 'Unauthorized',

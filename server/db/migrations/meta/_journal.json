@@ -43,6 +43,13 @@
       "when": 1794548661925,
       "tag": "0005_gigantic_anita_blake",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1794577111319,
+      "tag": "0006_mixed_speed",
+      "breakpoints": true
     }
   ]
 }

@@ -1,0 +1,1 @@
+ALTER TABLE "users" ADD CONSTRAINT "users_token_version_chk" CHECK ("users"."token_version" >= 1);

@@ -5,6 +5,7 @@ import { db } from '../../../db';
 import { articles } from '../../../db/schema';
 import { getValidatedUuidParam } from '../../../utils/request';
 import { requireAdminSession } from '../../../utils/session';
+import { invalidateOverviewCache } from '../../../utils/overview-cache';
 
 export default defineEventHandler(async (event) => {
   await requireAdminSession(event);
@@ -23,6 +24,7 @@ export default defineEventHandler(async (event) => {
     });
   }
 
+  invalidateOverviewCache();
   return { ok: true, id: deleted.id };
 });
 

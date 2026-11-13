@@ -36,6 +36,8 @@ export default defineEventHandler(async (event) => {
 
   const stamp = buildExportTimestampStamp();
   setResponseHeader(event, 'Cache-Control', 'no-store');
+  setResponseHeader(event, 'X-Export-Rows-Count', String(rows.length));
+  setResponseHeader(event, 'X-Export-Truncated', rows.length >= MAX_EXPORT_ROWS ? 'true' : 'false');
 
   if (query.format === 'csv') {
     const csv = generateArticlesCsvString(rows);

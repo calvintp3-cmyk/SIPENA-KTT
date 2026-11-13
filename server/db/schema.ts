@@ -97,6 +97,7 @@ export const users = pgTable(
   (t) => [
     uniqueIndex('users_email_uidx').on(sql`lower(${t.email})`),
     index('users_is_active_idx').on(t.isActive),
+    check('users_token_version_chk', sql`${t.tokenVersion} >= 1`),
   ],
 );
 
