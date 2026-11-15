@@ -253,7 +253,7 @@ const availableYears = computed<number[]>(() => {
 
 const yearSelectOptions = computed<SelectOptionItem<number>[]>(() =>
   availableYears.value.map((y: number) => ({
-    label: `Tahun ${y}`,
+    label: `${y}`,
     value: y,
   })),
 );
@@ -605,40 +605,20 @@ function openDetailModal(article: PublicArticleItem) {
             <div
               class="inline-flex items-center p-1 rounded-xl bg-slate-100/95 border border-slate-200/90 shadow-2xs divide-x divide-slate-200/80"
             >
-              <!-- Integrated Year Stepper & Dropdown using Nuxt UI USelect -->
-              <div class="flex items-center gap-1 pr-2.5 pl-1">
-                <button
-                  type="button"
-                  aria-label="Tahun Sebelumnya"
-                  class="w-6 h-6 rounded-md flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-white transition-colors cursor-pointer"
-                  @click="handlePeriodChange(selectedYear - 1, selectedQuarter)"
-                >
-                  <UIcon name="i-lucide-chevron-left" class="w-3.5 h-3.5" />
-                </button>
-
-                <div class="w-26">
-                  <USelect
-                    id="linimasa-year-select"
-                    :model-value="selectedYear"
-                    :items="yearSelectOptions"
-                    value-key="value"
-                    label-key="label"
-                    leading-icon="i-solar-calendar-bold-duotone"
-                    size="xs"
-                    aria-label="Tahun PDRB"
-                    class="w-full font-semibold font-mono"
-                    @update:model-value="(val: unknown) => handlePeriodChange(Number(val), selectedQuarter)"
-                  />
-                </div>
-
-                <button
-                  type="button"
-                  aria-label="Tahun Berikutnya"
-                  class="w-6 h-6 rounded-md flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-white transition-colors cursor-pointer"
-                  @click="handlePeriodChange(selectedYear + 1, selectedQuarter)"
-                >
-                  <UIcon name="i-lucide-chevron-right" class="w-3.5 h-3.5" />
-                </button>
+              <!-- Integrated Year Dropdown using Nuxt UI USelect -->
+              <div class="pr-2 pl-1.5 py-0.5">
+                <USelect
+                  id="linimasa-year-select"
+                  :model-value="selectedYear"
+                  :items="yearSelectOptions"
+                  value-key="value"
+                  label-key="label"
+                  leading-icon="i-solar-calendar-bold-duotone"
+                  size="xs"
+                  aria-label="Tahun PDRB"
+                  class="w-24 font-bold font-mono text-slate-800"
+                  @update:model-value="(val: unknown) => handlePeriodChange(Number(val), selectedQuarter)"
+                />
               </div>
 
               <!-- Segmented Control Triwulan -->

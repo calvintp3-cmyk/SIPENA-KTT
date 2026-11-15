@@ -692,7 +692,7 @@ const statusTabs = computed(() => {
 </script>
 
 <template>
-  <div class="space-y-5 pb-20">
+  <div class="space-y-4 pb-4">
     <!-- Page Header & Filter Bar -->
     <div class="space-y-4">
       <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
@@ -856,32 +856,32 @@ const statusTabs = computed(() => {
       </template>
     </UAlert>
 
-    <!-- ASYMMETRIC 7/5 WORKBENCH -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-      <!-- LEFT 7: QUEUE CARDS -->
-      <div class="lg:col-span-7 space-y-3">
+    <!-- ASYMMETRIC 7/5 WORKBENCH WITH UNIFIED FIXED VIEWPORT HEIGHT -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch lg:h-[calc(100vh-235px)] lg:min-h-[580px]">
+      <!-- LEFT 7: QUEUE CARDS (Contained with internal scroll) -->
+      <div class="lg:col-span-7 h-full flex flex-col min-h-0">
         <!-- Bulk Selection Header -->
-        <div class="flex items-center justify-between px-1 text-xs text-slate-600">
+        <div class="flex items-center justify-between px-1 pb-2 text-xs text-slate-600 shrink-0">
           <label class="inline-flex items-center gap-2 min-h-8 font-semibold hover:text-slate-900 cursor-pointer">
             <input
               type="checkbox"
               :checked="allVisibleChecked"
               aria-label="Pilih semua artikel pada halaman ini"
-              class="w-4 h-4 rounded border-slate-300 text-indigo-600 cursor-pointer"
+              class="w-4 h-4 rounded border-slate-300 text-blue-700 cursor-pointer"
               @change="() => { toggleSelectAllVisible(); }"
             >
             <span>Pilih semua di halaman ({{ currentRows.length }})</span>
           </label>
 
-          <span v-if="reviewData" class="text-xs font-medium text-slate-600 tabular-nums">
+          <span v-if="reviewData" class="text-xs font-medium text-slate-600 font-mono tabular-nums">
             Hal {{ reviewData.pagination.page }}/{{ reviewData.pagination.totalPages }} •
             {{ reviewData.pagination.total }} artikel
           </span>
         </div>
 
         <!-- Skeletons -->
-        <div v-if="pending && !reviewData" class="space-y-3">
-          <div v-for="i in 4" :key="i" class="saas-card rounded-2xl p-4 space-y-2.5">
+        <div v-if="pending && !reviewData" class="flex-1 overflow-y-auto saas-scroll space-y-3 pr-1.5">
+          <div v-for="i in 4" :key="i" class="saas-card rounded-xl p-4 space-y-2.5">
             <div class="h-3 w-40 rounded bg-slate-200" />
             <div class="h-5 w-4/5 rounded bg-slate-200" />
             <div class="h-10 w-full rounded bg-slate-100" />
@@ -889,11 +889,11 @@ const statusTabs = computed(() => {
         </div>
 
         <!-- Empty Queue -->
-        <div v-else-if="!currentRows.length" class="saas-card rounded-2xl py-12 px-6 text-center space-y-2.5">
-          <div class="w-12 h-12 rounded-2xl bg-slate-100 text-slate-500 flex items-center justify-center mx-auto">
+        <div v-else-if="!currentRows.length" class="saas-card rounded-xl py-12 px-6 text-center space-y-2.5 flex-1 flex flex-col items-center justify-center">
+          <div class="w-12 h-12 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center mx-auto">
             <UIcon name="i-solar-inbox-in-bold-duotone" class="w-6 h-6" />
           </div>
-          <div class="text-sm font-bold text-slate-900">
+          <div class="text-sm font-bold text-slate-900 font-display">
             Tidak ada artikel pada tab {{ activeStatus }}
           </div>
           <p class="text-xs text-slate-600 text-pretty">
@@ -901,15 +901,15 @@ const statusTabs = computed(() => {
           </p>
         </div>
 
-        <!-- Queue Card List -->
-        <div v-else class="space-y-3">
+        <!-- Queue Card List (Scrollable) -->
+        <div v-else class="flex-1 min-h-0 overflow-y-auto saas-scroll pr-1.5 space-y-3">
           <article
             v-for="art in currentRows"
             :key="art.id"
-            class="saas-card rounded-2xl p-4 transition-colors relative"
+            class="saas-card rounded-xl p-4 transition-colors relative"
             :class="
               inspectedArticle?.id === art.id
-                ? 'ring-2 ring-indigo-500 border-indigo-400 shadow-[0_8px_24px_-10px_rgba(37,99,235,0.28)]'
+                ? 'ring-2 ring-blue-600 border-blue-400 shadow-[0_8px_24px_-10px_rgba(29,78,216,0.28)]'
                 : 'saas-card-interactive'
             "
           >
@@ -919,7 +919,7 @@ const statusTabs = computed(() => {
                   type="checkbox"
                   :checked="Boolean(selectedMap[art.id])"
                   :aria-label="`Pilih ${art.title}`"
-                  class="rounded border-slate-300 text-indigo-600 w-4 h-4 cursor-pointer"
+                  class="rounded border-slate-300 text-blue-700 w-4 h-4 cursor-pointer"
                   @change="() => { toggleRowSelection(art.id); }"
                 >
               </div>
@@ -932,7 +932,7 @@ const statusTabs = computed(() => {
                     <span aria-hidden="true">•</span>
                     <span class="truncate max-w-[150px] font-medium">{{ art.sourcePortal }}</span>
                     <span aria-hidden="true">•</span>
-                    <span class="px-2 py-0.5 rounded-full bg-indigo-50/70 border border-indigo-200/70 text-indigo-800 text-[11px] font-semibold">
+                    <span class="px-2 py-0.5 rounded-full bg-blue-50/70 border border-blue-200/70 text-blue-800 text-[11px] font-semibold font-mono">
                       TW {{ toRomanQuarter(art.quarter) }} {{ art.year }}
                     </span>
                   </div>
@@ -968,10 +968,10 @@ const statusTabs = computed(() => {
                 </div>
 
                 <!-- Title (stretched card button for accessible selection) -->
-                <h2 class="text-sm font-bold text-slate-900 leading-snug">
+                <h2 class="text-sm font-bold text-slate-900 leading-snug font-display">
                   <button
                     type="button"
-                    class="w-full text-left line-clamp-2 hover:text-indigo-700 transition-colors rounded cursor-pointer after:content-[''] after:absolute after:inset-0 after:z-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600"
+                    class="w-full text-left line-clamp-2 hover:text-blue-700 transition-colors rounded cursor-pointer after:content-[''] after:absolute after:inset-0 after:z-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600"
                     @click="() => { selectArticleForInspection(art); }"
                   >
                     {{ art.title }}
@@ -1041,38 +1041,43 @@ const statusTabs = computed(() => {
               </div>
             </div>
           </article>
+        </div>
 
-          <!-- Pagination -->
-          <div
-            v-if="reviewData && reviewData.pagination.total > PAGE_LIMIT"
-            class="flex justify-center pt-3"
-          >
-            <UPagination
-              v-model:page="page"
-              :total="reviewData.pagination.total"
-              :items-per-page="PAGE_LIMIT"
-            />
-          </div>
+        <!-- Pinned Pagination at bottom of Queue Column -->
+        <div
+          v-if="reviewData && reviewData.pagination.total > PAGE_LIMIT"
+          class="pt-2 border-t border-slate-200/80 flex items-center justify-between shrink-0 mt-2 text-xs text-slate-600 font-mono"
+        >
+          <span>Halaman {{ page }} dari {{ reviewData.pagination.totalPages }}</span>
+          <UPagination
+            v-model:page="page"
+            :total="reviewData.pagination.total"
+            :items-per-page="PAGE_LIMIT"
+            size="xs"
+          />
         </div>
       </div>
 
-      <!-- RIGHT 5: STICKY DESKTOP INSPECTOR -->
+      <!-- RIGHT 5: DESKTOP INSPECTOR (Same Fixed Viewport Height) -->
       <aside
         aria-label="Panel Inspeksi & Kurasi Artikel"
-        class="hidden lg:block lg:col-span-5 lg:sticky lg:top-[84px]"
+        class="hidden lg:flex lg:col-span-5 h-full min-h-0 flex-col"
       >
         <div
           v-if="!inspectedArticle"
-          class="saas-card rounded-2xl p-8 text-center text-xs text-slate-500"
+          class="saas-card rounded-xl p-8 text-center text-xs text-slate-500 h-full flex flex-col items-center justify-center space-y-2.5"
         >
-          Pilih salah satu artikel di daftar sebelah kiri untuk mulai mengurasi.
+          <div class="w-12 h-12 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center">
+            <UIcon name="i-solar-checklist-minimalistic-bold-duotone" class="w-6 h-6" />
+          </div>
+          <span class="font-medium text-slate-600 font-display">Pilih salah satu artikel di daftar sebelah kiri untuk mulai mengurasi.</span>
         </div>
 
         <div
           v-else
-          class="saas-card rounded-2xl overflow-hidden flex flex-col max-h-[calc(100vh-104px)]"
+          class="saas-card rounded-xl overflow-hidden flex flex-col h-full"
         >
-          <!-- Inspector Header -->
+          <!-- Inspector Header (Fixed) -->
           <div class="px-4 py-3 border-b border-slate-200/80 bg-slate-50/70 flex items-center justify-between gap-2">
             <div class="flex flex-wrap items-center gap-1.5">
               <UBadge
@@ -1118,7 +1123,7 @@ const statusTabs = computed(() => {
               :href="inspectedArticle.url"
               target="_blank"
               rel="noopener noreferrer"
-              class="inline-flex items-center gap-1 min-h-8 px-2.5 py-1 rounded-lg border border-slate-200 bg-white hover:border-indigo-300 hover:bg-indigo-50/40 text-xs font-semibold text-indigo-700 shrink-0 transition-colors"
+              class="inline-flex items-center gap-1 min-h-8 px-2.5 py-1 rounded-lg border border-slate-200 bg-white hover:border-blue-300 hover:bg-blue-50/40 text-xs font-semibold text-blue-700 shrink-0 transition-colors"
             >
               <span>Sumber</span>
               <UIcon name="i-lucide-external-link" class="w-3 h-3" />
@@ -1127,7 +1132,7 @@ const statusTabs = computed(() => {
 
           <!-- Scrollable Inspector Body -->
           <div class="flex-1 overflow-y-auto saas-scroll p-4 space-y-4">
-            <div class="text-xs font-medium text-slate-600 flex items-center justify-between tabular-nums">
+            <div class="text-xs font-medium text-slate-600 flex items-center justify-between font-mono tabular-nums">
               <span class="font-semibold text-slate-700">{{ inspectedArticle.sourcePortal }}</span>
               <span>{{ formatDateTimeWita(inspectedArticle.publishedAt) }}</span>
             </div>
@@ -1157,7 +1162,7 @@ const statusTabs = computed(() => {
               <div
                 role="group"
                 aria-label="Relevansi Fenomena Ekonomi"
-                class="col-span-2 grid grid-cols-2 p-1 bg-slate-100 rounded-xl border border-slate-200/90 gap-1"
+                class="col-span-2 grid grid-cols-2 p-1 bg-slate-100 rounded-xl border border-slate-200/90 gap-1 font-display"
               >
                 <button
                   type="button"
@@ -1190,7 +1195,7 @@ const statusTabs = computed(() => {
 
             <!-- Editable Title -->
             <div class="space-y-1">
-              <label for="insp-title" class="text-xs font-semibold text-slate-600">
+              <label for="insp-title" class="text-xs font-semibold text-slate-700 font-display">
                 Judul Berita
               </label>
               <UInput id="insp-title" v-model="inspectorForm.title" size="sm" class="w-full" />
@@ -1199,13 +1204,13 @@ const statusTabs = computed(() => {
             <!-- Editable Summary + Kembalikan Teks AI -->
             <div class="space-y-1">
               <div class="flex items-center justify-between gap-2">
-                <label for="insp-summary" class="text-xs font-semibold text-slate-600">
+                <label for="insp-summary" class="text-xs font-semibold text-slate-700 font-display">
                   Ringkasan Publik (Min. 10 Karakter)
                 </label>
                 <button
                   v-if="canRestoreAiSummary"
                   type="button"
-                  class="inline-flex items-center gap-1 min-h-8 px-2 rounded-lg text-xs font-semibold text-indigo-700 hover:bg-indigo-50 transition-colors cursor-pointer"
+                  class="inline-flex items-center gap-1 min-h-8 px-2 rounded-lg text-xs font-semibold text-blue-700 hover:bg-blue-50 transition-colors cursor-pointer"
                   @click="() => { restoreAiSummary(); }"
                 >
                   <UIcon name="i-lucide-rotate-ccw" class="w-3 h-3" />
@@ -1217,7 +1222,7 @@ const statusTabs = computed(() => {
                 v-model="inspectorForm.summary"
                 :rows="3"
                 placeholder="Ringkasan faktual 2–3 kalimat..."
-                class="w-full"
+                class="w-full text-xs"
               />
               <p
                 v-if="highlightIncomplete && inspectorForm.summary.trim().length < 10"
@@ -1228,8 +1233,8 @@ const statusTabs = computed(() => {
             </div>
 
             <!-- Sisi Lapangan Usaha (KBLI + Concise 2x2 Grid) -->
-            <div class="rounded-xl border border-indigo-200/70 bg-indigo-50/35 p-3.5 space-y-2.5">
-              <label for="insp-kbli-select" class="block text-xs font-bold text-indigo-900">
+            <div class="rounded-xl border border-blue-200/70 bg-blue-50/35 p-3.5 space-y-2.5">
+              <label for="insp-kbli-select" class="block text-xs font-bold text-blue-900 font-display">
                 1. Lapangan Usaha (KBLI A–V)
               </label>
               <USelectMenu
@@ -1243,7 +1248,7 @@ const statusTabs = computed(() => {
                 size="sm"
                 class="w-full"
               />
-              <div role="group" aria-label="Dampak Lapangan Usaha" class="grid grid-cols-2 gap-1.5">
+              <div role="group" aria-label="Dampak Lapangan Usaha" class="grid grid-cols-2 gap-1.5 font-mono">
                 <button
                   v-for="opt in kbliImpactOptions"
                   :key="opt.value"
@@ -1252,8 +1257,8 @@ const statusTabs = computed(() => {
                   class="min-h-8 px-2.5 py-1.5 rounded-lg border text-xs font-semibold text-left transition-colors cursor-pointer"
                   :class="
                     inspectorForm.kbliImpact === opt.value
-                      ? 'bg-indigo-600 text-white border-indigo-600 shadow-2xs'
-                      : 'bg-white text-slate-700 border-slate-200 hover:border-indigo-300'
+                      ? 'bg-blue-700 text-white border-blue-700 shadow-2xs'
+                      : 'bg-white text-slate-700 border-slate-200 hover:border-blue-300'
                   "
                   @click="() => { inspectorForm.kbliImpact = opt.value; }"
                 >
@@ -1264,7 +1269,7 @@ const statusTabs = computed(() => {
 
             <!-- Sisi Pengeluaran (Component + Concise 2x2 Grid) -->
             <div class="rounded-xl border border-emerald-200/70 bg-emerald-50/35 p-3.5 space-y-2.5">
-              <label for="insp-exp-select" class="block text-xs font-bold text-emerald-900">
+              <label for="insp-exp-select" class="block text-xs font-bold text-emerald-900 font-display">
                 2. Komponen Pengeluaran PDRB
               </label>
               <USelect
@@ -1278,7 +1283,7 @@ const statusTabs = computed(() => {
                 size="sm"
                 class="w-full"
               />
-              <div role="group" aria-label="Dampak Pengeluaran" class="grid grid-cols-2 gap-1.5">
+              <div role="group" aria-label="Dampak Pengeluaran" class="grid grid-cols-2 gap-1.5 font-mono">
                 <button
                   v-for="opt in expenditureImpactOptions"
                   :key="opt.value"
@@ -1300,8 +1305,8 @@ const statusTabs = computed(() => {
             <!-- Keterkaitan Sektoral Sekunder (Opsional / Inter-industry Linkage) -->
             <div class="rounded-xl border border-slate-200/90 bg-slate-50/70 p-3.5 space-y-2.5">
               <div class="flex items-center gap-1.5">
-                <UIcon name="i-solar-link-round-bold-duotone" class="w-4 h-4 text-indigo-600" />
-                <span class="text-xs font-bold text-slate-800">Keterkaitan Sektoral Sekunder (Opsional)</span>
+                <UIcon name="i-solar-link-round-bold-duotone" class="w-4 h-4 text-blue-700" />
+                <span class="text-xs font-bold text-slate-800 font-display">Keterkaitan Sektoral Sekunder (Opsional)</span>
               </div>
               <div class="space-y-2">
                 <label for="insp-sec-kbli-select" class="block text-xs font-semibold text-slate-600">
@@ -1318,7 +1323,7 @@ const statusTabs = computed(() => {
                   size="sm"
                   class="w-full"
                 />
-                <div v-if="inspectorForm.secondaryKbliCategory" role="group" aria-label="Dampak KBLI Sekunder" class="grid grid-cols-2 gap-1.5 pt-1">
+                <div v-if="inspectorForm.secondaryKbliCategory" role="group" aria-label="Dampak KBLI Sekunder" class="grid grid-cols-2 gap-1.5 pt-1 font-mono">
                   <button
                     v-for="opt in kbliImpactOptions"
                     :key="opt.value"
@@ -1327,8 +1332,8 @@ const statusTabs = computed(() => {
                     class="min-h-8 px-2 py-1 rounded-lg border text-xs font-semibold text-left transition-colors cursor-pointer"
                     :class="
                       inspectorForm.secondaryKbliImpact === opt.value
-                        ? 'bg-indigo-600 text-white border-indigo-600 shadow-2xs'
-                        : 'bg-white text-slate-700 border-slate-200 hover:border-indigo-300'
+                        ? 'bg-blue-700 text-white border-blue-700 shadow-2xs'
+                        : 'bg-white text-slate-700 border-slate-200 hover:border-blue-300'
                     "
                     @click="() => { inspectorForm.secondaryKbliImpact = opt.value; }"
                   >
@@ -1415,7 +1420,7 @@ const statusTabs = computed(() => {
                 <button
                   type="button"
                   :disabled="inspectorSubmitting !== null"
-                  class="min-h-9 px-3 rounded-lg border border-slate-200 bg-white hover:border-indigo-300 text-xs font-semibold text-slate-900 disabled:opacity-50 transition-colors cursor-pointer"
+                  class="min-h-9 px-3 rounded-lg border border-slate-200 bg-white hover:border-blue-300 text-xs font-semibold text-slate-900 disabled:opacity-50 transition-colors cursor-pointer"
                   @click="() => { void submitInspectorAction('DRAFT'); }"
                 >
                   Simpan Draft
@@ -1423,7 +1428,7 @@ const statusTabs = computed(() => {
                 <button
                   type="button"
                   :disabled="inspectorSubmitting !== null"
-                  class="btn-primary-gradient min-h-9 px-3.5 rounded-lg text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer"
+                  class="btn-primary-gradient min-h-9 px-3.5 rounded-lg text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer font-display"
                   @click="() => { void submitInspectorAction('VERIFIED'); }"
                 >
                   <UIcon name="i-solar-check-circle-bold-duotone" class="w-4 h-4 text-emerald-200" />
@@ -1439,7 +1444,7 @@ const statusTabs = computed(() => {
     <!-- Floating Batch Action Bar (Synced with Collapsible Sidebar Width) -->
     <div
       v-if="selectedIds.length > 0"
-      class="fixed bottom-5 left-1/2 -translate-x-1/2 z-30 bg-slate-900 text-white rounded-2xl shadow-[0_20px_50px_rgba(15,23,42,0.38)] border border-indigo-400/25 px-4 py-2.5 flex flex-wrap items-center gap-3 transition-[left] duration-200"
+      class="fixed bottom-5 left-1/2 -translate-x-1/2 z-30 bg-slate-900 text-white rounded-2xl shadow-[0_20px_50px_rgba(15,23,42,0.38)] border border-blue-400/25 px-4 py-2.5 flex flex-wrap items-center gap-3 transition-[left] duration-200 font-display"
       :class="isSidebarCollapsed ? 'lg:left-[calc(50%+2.5rem)]' : 'lg:left-[calc(50%+8rem)]'"
     >
       <span class="text-xs font-bold tabular-nums">

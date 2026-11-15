@@ -232,33 +232,33 @@ const capabilityBento = [
 
 <template>
   <div class="pb-16">
-    <!-- SECTION 1: MIDNIGHT COBALT–EMERALD HERO -->
+    <!-- SECTION 1: EXECUTIVE HERO (Light Canvas Aura with Deep Sapphire Anchor) -->
     <section
       aria-label="Pengenalan Portal Intelijen Ekonomi SIPENA KTT"
-      class="hero-mesh-dark relative overflow-hidden border-b border-slate-800/80"
+      class="bg-slate-50/70 canvas-aurora-light relative overflow-hidden border-b border-slate-200/80"
     >
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-20 sm:pt-14 sm:pb-24 relative z-10">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-16 sm:pt-14 sm:pb-20 relative z-10">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 items-center">
           <!-- Left Editorial Column -->
           <div class="lg:col-span-7 space-y-6 hero-entrance">
             <div
-              class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-xs font-semibold text-emerald-200"
+              class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50 border border-blue-200/80 text-xs font-semibold text-blue-700 font-mono shadow-2xs"
             >
-              <span class="w-2 h-2 rounded-full bg-emerald-400" />
+              <span class="w-2 h-2 rounded-full bg-blue-600" />
               <span>BPS Kabupaten Tana Tidung • Fungsi Nerwilis</span>
             </div>
 
             <div class="space-y-4">
               <h1
-                class="text-3xl sm:text-4xl lg:text-[46px] font-extrabold tracking-tight text-white leading-[1.12]"
+                class="text-3xl sm:text-4xl lg:text-[46px] font-extrabold tracking-tight text-slate-900 leading-[1.14] font-display"
               >
                 Satu Portal Intelijen
-                <span class="block text-emerald-300">
+                <span class="block text-blue-700">
                   Dinamika Ekonomi Tana Tidung
                 </span>
               </h1>
 
-              <p class="text-sm sm:text-base text-slate-200 leading-relaxed max-w-2xl">
+              <p class="text-sm sm:text-base text-slate-600 leading-relaxed max-w-2xl">
                 Rekam jejak dinamika sektor usaha, pergerakan harga, dan aktivitas ekonomi
                 Kabupaten Tana Tidung secara terkurasi dan transparan.
               </p>
@@ -267,7 +267,7 @@ const capabilityBento = [
             <div class="flex flex-wrap items-center gap-3 pt-1">
               <NuxtLink
                 to="/linimasa"
-                class="btn-primary-gradient h-11 px-6 rounded-xl text-sm font-semibold inline-flex items-center gap-2"
+                class="btn-primary-gradient h-11 px-6 rounded-xl text-sm font-semibold inline-flex items-center gap-2 font-display"
               >
                 <span>Jelajahi Linimasa Ekonomi</span>
                 <UIcon name="i-solar-arrow-right-bold-duotone" class="w-4 h-4" />
@@ -275,17 +275,17 @@ const capabilityBento = [
 
               <NuxtLink
                 to="/#cara-kerja"
-                class="h-11 px-5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/20 text-white text-sm font-semibold inline-flex items-center gap-2 transition-colors backdrop-blur-md"
+                class="h-11 px-5 rounded-xl bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 text-sm font-semibold inline-flex items-center gap-2 transition-colors shadow-2xs font-display"
               >
-                <UIcon name="i-solar-layers-minimalistic-bold-duotone" class="w-4 h-4 text-sky-300" />
+                <UIcon name="i-solar-layers-minimalistic-bold-duotone" class="w-4 h-4 text-blue-700" />
                 <span>Pelajari Metodologi</span>
               </NuxtLink>
 
               <NuxtLink
                 :to="user ? '/admin' : '/login'"
-                class="h-11 px-4 rounded-xl text-xs font-semibold text-slate-300 hover:text-white inline-flex items-center gap-1.5 transition-colors"
+                class="h-11 px-4 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 inline-flex items-center gap-1.5 transition-colors font-display"
               >
-                <UIcon name="i-solar-shield-keyhole-bold-duotone" class="w-4 h-4 text-emerald-300" />
+                <UIcon name="i-solar-shield-keyhole-bold-duotone" class="w-4 h-4 text-blue-700" />
                 <span>{{ user ? 'Buka Workstation' : 'Akses Tim Nerwilis' }}</span>
               </NuxtLink>
             </div>
@@ -294,45 +294,45 @@ const capabilityBento = [
           <!-- Right Live API Snapshot Bento -->
           <div class="lg:col-span-5 hero-entrance hero-entrance-delayed">
             <div
-              class="rounded-2xl bg-slate-900/75 backdrop-blur-xl border border-white/15 p-5 sm:p-6 shadow-[0_28px_60px_-15px_rgba(0,0,0,0.55)] space-y-5 text-white"
+              class="saas-card rounded-2xl p-5 sm:p-6 shadow-md border border-slate-200/90 bg-white space-y-5 text-slate-900"
             >
-              <div class="flex items-center justify-between gap-2 pb-3.5 border-b border-white/10">
+              <div class="flex items-center justify-between gap-2 pb-3.5 border-b border-slate-100">
                 <div class="flex items-center gap-2">
                   <div
-                    class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500/30 to-emerald-500/30 border border-white/15 flex items-center justify-center"
+                    class="w-8 h-8 rounded-lg bg-blue-50 border border-blue-200/80 text-blue-700 flex items-center justify-center shrink-0"
                   >
-                    <UIcon name="i-solar-pulse-2-bold-duotone" class="w-4 h-4 text-emerald-300" />
+                    <UIcon name="i-solar-pulse-2-bold-duotone" class="w-4 h-4" />
                   </div>
                   <div>
-                    <div class="text-xs font-bold text-white">Ringkasan Data Live</div>
-                    <div class="text-[11px] text-slate-400">Terhubung ke arsip terverifikasi</div>
+                    <div class="text-xs font-bold text-slate-900 font-display">Ringkasan Data Live</div>
+                    <div class="text-[11px] text-slate-500">Terhubung ke arsip terverifikasi</div>
                   </div>
                 </div>
 
                 <span
-                  class="px-2.5 py-1 rounded-full bg-indigo-500/20 border border-indigo-400/30 text-indigo-200 text-[11px] font-semibold tabular-nums"
+                  class="px-2.5 py-1 rounded-full bg-blue-50 border border-blue-200/80 text-blue-700 text-[11px] font-bold font-mono tabular-nums"
                 >
                   {{ snapshotPeriodLabel }}
                 </span>
               </div>
 
               <div class="grid grid-cols-2 gap-3">
-                <div class="rounded-xl bg-white/[0.05] border border-white/10 p-3.5 space-y-1">
-                  <div class="text-[11px] font-medium text-slate-400">Fenomena Valid</div>
-                  <div class="text-2xl sm:text-3xl font-extrabold text-white tabular-nums">
+                <div class="rounded-xl bg-slate-50/90 border border-slate-200/80 p-3.5 space-y-1">
+                  <div class="text-[11px] font-medium text-slate-500">Fenomena Valid</div>
+                  <div class="text-2xl sm:text-3xl font-extrabold text-slate-900 font-mono tabular-nums">
                     {{ formatNumberId(activeOverview?.kpi.totalVerified ?? 0) }}
                   </div>
-                  <div class="text-[11px] text-emerald-300 font-medium">
+                  <div class="text-[11px] text-emerald-700 font-semibold font-display">
                     Terverifikasi Nerwilis
                   </div>
                 </div>
 
-                <div class="rounded-xl bg-white/[0.05] border border-white/10 p-3.5 space-y-1">
-                  <div class="text-[11px] font-medium text-slate-400">Sinyal Peningkatan Aktivitas</div>
-                  <div class="text-2xl sm:text-3xl font-extrabold text-emerald-300 tabular-nums">
+                <div class="rounded-xl bg-slate-50/90 border border-slate-200/80 p-3.5 space-y-1">
+                  <div class="text-[11px] font-medium text-slate-500">Sinyal Peningkatan Aktivitas</div>
+                  <div class="text-2xl sm:text-3xl font-extrabold text-blue-700 font-mono tabular-nums">
                     {{ activeOverview?.kpi.expansionStats.positiveRealPercent ?? 0 }}%
                   </div>
-                  <div class="text-[11px] text-slate-300 tabular-nums">
+                  <div class="text-[11px] text-slate-600 font-mono tabular-nums">
                     {{ formatNumberId(activeOverview?.kpi.expansionStats.expansionCount ?? 0) }} berita aktivitas naik
                   </div>
                 </div>
@@ -340,8 +340,8 @@ const capabilityBento = [
 
               <div class="space-y-2.5">
                 <div class="flex items-center justify-between text-[11px]">
-                  <span class="font-semibold text-slate-300">Sektor KBLI Teraktif ({{ snapshotPeriodLabel }})</span>
-                  <span class="text-slate-400">Proporsi bukti</span>
+                  <span class="font-semibold text-slate-700 font-display">Sektor KBLI Teraktif ({{ snapshotPeriodLabel }})</span>
+                  <span class="text-slate-500 font-mono">Proporsi bukti</span>
                 </div>
 
                 <div v-if="topSectors.length > 0" class="space-y-2.5">
@@ -351,15 +351,15 @@ const capabilityBento = [
                     class="space-y-1"
                   >
                     <div class="flex items-center justify-between gap-2 text-xs">
-                      <span class="text-slate-200 font-medium truncate">
-                        <span class="font-bold text-white mr-1">{{ sector.code }} -</span>
+                      <span class="text-slate-800 font-medium truncate">
+                        <span class="font-bold text-slate-900 mr-1 font-mono">{{ sector.code }} -</span>
                         {{ sector.name }}
                       </span>
-                      <span class="text-slate-300 font-semibold tabular-nums shrink-0">
+                      <span class="text-slate-700 font-semibold font-mono tabular-nums shrink-0">
                         {{ sector.count }} ({{ sector.percentage }}%)
                       </span>
                     </div>
-                    <div class="h-2 w-full rounded-full bg-white/10 overflow-hidden">
+                    <div class="h-2 w-full rounded-full bg-slate-100 overflow-hidden">
                       <div
                         class="h-full rounded-full transition-[width] duration-500"
                         :style="{
@@ -368,6 +368,21 @@ const capabilityBento = [
                         }"
                       />
                     </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="pt-2">
+                <NuxtLink
+                  to="/linimasa"
+                  class="w-full min-h-10 px-4 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-xs font-semibold text-slate-800 inline-flex items-center justify-center gap-1.5 transition-colors border border-slate-200/80 font-display"
+                >
+                  <span>Buka Eksplorasi &amp; Grafik Interaktif</span>
+                  <UIcon name="i-lucide-arrow-up-right" class="w-3.5 h-3.5 text-slate-500" />
+                </NuxtLink>
+              </div>
+            </div>
+          </div>
                   </div>
                 </div>
 
@@ -652,16 +667,19 @@ const capabilityBento = [
       </div>
     </section>
 
-    <!-- SECTION 5: BOTTOM CTA BANNER -->
+    <!-- SECTION 5: BOTTOM CTA BANNER (Executive Slate-900 High-Contrast Card) -->
     <section
       aria-label="Ajakan Eksplorasi Portal Publik"
       class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6"
     >
       <div
-        class="rounded-3xl hero-mesh-dark p-7 sm:p-10 text-white flex flex-col lg:flex-row lg:items-center justify-between gap-6 border border-slate-800 shadow-[0_24px_60px_-20px_rgba(15,23,42,0.45)]"
+        class="rounded-2xl bg-slate-900 p-7 sm:p-10 text-white flex flex-col lg:flex-row lg:items-center justify-between gap-6 border border-slate-800 shadow-[0_20px_50px_-15px_rgba(15,23,42,0.4)] relative overflow-hidden"
       >
-        <div class="space-y-2 max-w-2xl">
-          <h2 class="text-xl sm:text-2xl font-extrabold tracking-tight">
+        <!-- Subtle internal ambient aura -->
+        <div class="absolute -right-10 -bottom-10 w-64 h-64 rounded-full bg-blue-600/15 blur-3xl pointer-events-none" />
+
+        <div class="space-y-2 max-w-2xl relative z-10">
+          <h2 class="text-xl sm:text-2xl font-extrabold tracking-tight text-white font-display">
             Siap Menelusuri Pergerakan Ekonomi Kabupaten Tana Tidung per Sektor?
           </h2>
           <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
@@ -670,10 +688,10 @@ const capabilityBento = [
           </p>
         </div>
 
-        <div class="flex flex-wrap items-center gap-3 shrink-0">
+        <div class="flex flex-wrap items-center gap-3 shrink-0 relative z-10">
           <NuxtLink
             to="/linimasa"
-            class="btn-primary-gradient h-11 px-6 rounded-xl text-sm font-semibold inline-flex items-center gap-2"
+            class="btn-primary-gradient h-11 px-6 rounded-xl text-sm font-semibold inline-flex items-center gap-2 font-display"
           >
             <span>Buka Linimasa Lengkap</span>
             <UIcon name="i-solar-arrow-right-bold-duotone" class="w-4 h-4" />

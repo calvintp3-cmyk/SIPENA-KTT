@@ -98,11 +98,17 @@ const NOISE_PARAGRAPH_PATTERNS: RegExp[] = [
   /^simak\s+juga\s*:/i,
   /^lihat\s+juga\s*:/i,
   /^artikel\s+ini\s+telah\s+tayang/i,
-  /^(penulis|editor|reporter|pewarta|foto|ilustrasi|sumber|copyright)\s*:/i,
-  /^halaman\s+selanjutnya$/i,
+  /^(penulis|editor|reporter|pewarta|foto|dok|dokumen|ilustrasi|grafis|sumber|copyright)\s*[:/]/i,
+  /^\(?(?:foto|dok|dokumen|ilustrasi|grafis|sumber)\s*[:/]/i,
+  /^halaman\s+(?:selanjutnya|\d+)\s*$/i,
   /^loading\.\.\.$/i,
   /^follow\s+berita\s+/i,
   /^dapatkan\s+informasi\s+/i,
+  /^\s*\(?(?:tribunkaltara|korankaltara|radartarakan|benuanta|antara|jawapos)\.com\)?\s*$/i,
+  /^baca\s+selengkapnya\b/i,
+  /^simak\s+video\b/i,
+  /^tonton\s+video\b/i,
+  /^klik\s+(?:di\s+sini|tautan|link)\b/i,
 ];
 
 function cleanText(text: string): string {
@@ -702,9 +708,13 @@ export function extractArticleContent(
     }
   }
 
-  // Prioritaskan JSON-LD articleBody bila tersedia dan memenuhi ambang kata valid (>= 30 kata)
+  // Prioritaskan hasil yang memiliki kelengkapan kata paling utuh dan bersih.
+  // Gunakan JSON-LD hanya bila DOM tidak valid ATAU JSON-LD memiliki jumlah kata lebih banyak
+  // daripada DOM hasil ekstraksi paragraf artikel.
   const finalResult =
-    jsonLdResult && (jsonLdResult.isValidContent || jsonLdResult.wordCount > domResult.wordCount)
+    jsonLdResult &&
+    jsonLdResult.isValidContent &&
+    (!domResult.isValidContent || jsonLdResult.wordCount > domResult.wordCount)
       ? jsonLdResult
       : domResult;
 

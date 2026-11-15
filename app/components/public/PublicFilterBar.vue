@@ -156,6 +156,25 @@ const bentoImpactItems = [
     dotClass: 'bg-sky-600',
   },
 ];
+
+function setQuickDateRange(days: number) {
+  const now = new Date();
+  const past = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const toStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+  const fromStr = `${past.getFullYear()}-${pad(past.getMonth() + 1)}-${pad(past.getDate())}`;
+  emit('update:dateFrom', fromStr);
+  emit('update:dateTo', toStr);
+}
+
+function setThisMonthRange() {
+  const now = new Date();
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const fromStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-01`;
+  const toStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+  emit('update:dateFrom', fromStr);
+  emit('update:dateTo', toStr);
+}
 </script>
 
 <template>
@@ -234,16 +253,16 @@ const bentoImpactItems = [
         </div>
       </div>
 
-      <!-- Filter Rentang Tanggal Rilis Kustom -->
+      <!-- Filter Rentang Tanggal Rilis Kustom (Nuxt UI + Quick Presets) -->
       <div class="space-y-2 pt-3 border-t border-slate-100">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-1.5">
-            <span class="block text-[11px] font-bold text-slate-700">
+            <span class="block text-[11px] font-bold text-slate-700 font-display">
               Rentang Tanggal
             </span>
             <span
               v-if="dateFrom || dateTo"
-              class="px-1.5 py-0.2 rounded-full bg-blue-700 text-white text-[9px] font-bold"
+              class="px-1.5 py-0.2 rounded-full bg-blue-700 text-white text-[9px] font-bold font-mono"
             >
               Aktif
             </span>
@@ -251,33 +270,62 @@ const bentoImpactItems = [
           <button
             v-if="dateFrom || dateTo"
             type="button"
-            class="text-[10px] font-semibold text-blue-700 hover:text-blue-900 cursor-pointer"
+            class="text-[10px] font-semibold text-blue-700 hover:text-blue-900 cursor-pointer font-display"
             @click="() => { emit('update:dateFrom', ''); emit('update:dateTo', ''); }"
           >
             Reset
           </button>
         </div>
 
+        <!-- Quick Preset Chips using Tailwind & Nuxt UI -->
+        <div class="grid grid-cols-3 gap-1 text-[10px] font-mono">
+          <button
+            type="button"
+            class="px-1.5 py-1 rounded-md bg-slate-100 hover:bg-blue-50 hover:text-blue-700 text-slate-600 border border-slate-200/80 transition-colors cursor-pointer text-center font-medium"
+            @click="setQuickDateRange(7)"
+          >
+            7 Hari
+          </button>
+          <button
+            type="button"
+            class="px-1.5 py-1 rounded-md bg-slate-100 hover:bg-blue-50 hover:text-blue-700 text-slate-600 border border-slate-200/80 transition-colors cursor-pointer text-center font-medium"
+            @click="setQuickDateRange(30)"
+          >
+            30 Hari
+          </button>
+          <button
+            type="button"
+            class="px-1.5 py-1 rounded-md bg-slate-100 hover:bg-blue-50 hover:text-blue-700 text-slate-600 border border-slate-200/80 transition-colors cursor-pointer text-center font-medium"
+            @click="setThisMonthRange"
+          >
+            Bulan Ini
+          </button>
+        </div>
+
         <div class="grid grid-cols-2 gap-1.5">
           <div class="space-y-1">
             <label for="filter-date-from" class="text-[10px] font-medium text-slate-500 block">Dari Tanggal</label>
-            <input
+            <UInput
               id="filter-date-from"
-              :value="dateFrom"
+              :model-value="dateFrom"
               type="date"
-              class="w-full h-7.5 px-2 bg-slate-50 text-[11px] text-slate-800 rounded-lg border border-slate-200 focus:bg-white focus:border-blue-600 focus:ring-1 focus:ring-blue-600/20"
-              @input="(e: Event) => emit('update:dateFrom', (e.target as HTMLInputElement).value)"
-            >
+              size="xs"
+              leading-icon="i-solar-calendar-linear"
+              class="w-full font-mono text-[11px]"
+              @update:model-value="(val: string) => emit('update:dateFrom', val)"
+            />
           </div>
           <div class="space-y-1">
             <label for="filter-date-to" class="text-[10px] font-medium text-slate-500 block">Sampai Tanggal</label>
-            <input
+            <UInput
               id="filter-date-to"
-              :value="dateTo"
+              :model-value="dateTo"
               type="date"
-              class="w-full h-7.5 px-2 bg-slate-50 text-[11px] text-slate-800 rounded-lg border border-slate-200 focus:bg-white focus:border-blue-600 focus:ring-1 focus:ring-blue-600/20"
-              @input="(e: Event) => emit('update:dateTo', (e.target as HTMLInputElement).value)"
-            >
+              size="xs"
+              leading-icon="i-solar-calendar-linear"
+              class="w-full font-mono text-[11px]"
+              @update:model-value="(val: string) => emit('update:dateTo', val)"
+            />
           </div>
         </div>
       </div>
