@@ -527,6 +527,8 @@ async function executeLockedScrapePipeline(
             fetchFn,
             now,
             lookbackDays,
+            startDate: params.startDate ? new Date(params.startDate) : undefined,
+            endDate: params.endDate ? new Date(params.endDate) : undefined,
             timeoutMs: fetchTimeoutMs,
             concurrency: fetchConcurrency,
             signal: pipelineController.signal,

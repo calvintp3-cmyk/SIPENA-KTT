@@ -423,9 +423,38 @@ export function normalizeToFullPageArticleUrl(rawUrl: string): string {
   try {
     const parsed = new URL(rawUrl);
     const host = parsed.hostname.toLowerCase();
+    // Tribun Network: ?page=all
     if (host === 'tribunnews.com' || host.endsWith('.tribunnews.com')) {
       if (parsed.searchParams.get('page') !== 'all') {
         parsed.searchParams.set('page', 'all');
+        return parsed.toString();
+      }
+    }
+    // Detik Network (detikFinance, detikNews, dll.): ?single=1
+    if (host === 'detik.com' || host.endsWith('.detik.com')) {
+      if (parsed.searchParams.get('single') !== '1') {
+        parsed.searchParams.set('single', '1');
+        return parsed.toString();
+      }
+    }
+    // Kompas: ?page=all
+    if (host === 'kompas.com' || host.endsWith('.kompas.com')) {
+      if (parsed.searchParams.get('page') !== 'all') {
+        parsed.searchParams.set('page', 'all');
+        return parsed.toString();
+      }
+    }
+    // Tempo: ?page=all
+    if (host === 'tempo.co' || host.endsWith('.tempo.co')) {
+      if (parsed.searchParams.get('page') !== 'all') {
+        parsed.searchParams.set('page', 'all');
+        return parsed.toString();
+      }
+    }
+    // Sindonews: ?showpage=all
+    if (host === 'sindonews.com' || host.endsWith('.sindonews.com')) {
+      if (parsed.searchParams.get('showpage') !== 'all') {
+        parsed.searchParams.set('showpage', 'all');
         return parsed.toString();
       }
     }

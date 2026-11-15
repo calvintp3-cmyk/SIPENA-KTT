@@ -52,10 +52,28 @@ export interface ActiveKeywordTarget {
   defaultExpenditureComponent?: ExpenditureComponentEnum | null;
 }
 
-export function buildGoogleNewsRssUrl(keyword: string): string {
+export function buildGoogleNewsRssUrl(
+  keyword: string,
+  options?: { startDate?: Date | string; endDate?: Date | string },
+): string {
   const cleaned = keyword.trim().replace(/\s+/g, ' ');
+  let query = cleaned;
+  if (options?.startDate && options?.endDate) {
+    const startStr =
+      options.startDate instanceof Date
+        ? options.startDate.toISOString().slice(0, 10)
+        : String(options.startDate).slice(0, 10);
+    const endStr =
+      options.endDate instanceof Date
+        ? options.endDate.toISOString().slice(0, 10)
+        : String(options.endDate).slice(0, 10);
+    query = `${cleaned} after:${startStr} before:${endStr}`;
+  } else {
+    query = `${cleaned} when:7d`;
+  }
+
   const params = new URLSearchParams({
-    q: `${cleaned} when:7d`,
+    q: query,
     hl: 'id',
     gl: 'ID',
     ceid: 'ID:id',
@@ -192,7 +210,13 @@ export function extractRedirectTargetFromGoogleHtml(html: string): string | null
 export function parseBingNewsRss(
   xml: string,
   keywordTarget: ActiveKeywordTarget,
-  options?: { now?: Date; lookbackDays?: number; maxItems?: number },
+  options?: {
+    now?: Date;
+    lookbackDays?: number;
+    maxItems?: number;
+    startDate?: Date;
+    endDate?: Date;
+  },
 ): DiscoveredArticleCandidate[] {
   const now = options?.now ?? new Date();
   const cutoff = getWitaLookbackCutoff(now, options?.lookbackDays ?? DEFAULT_LOOKBACK_DAYS);
@@ -220,7 +244,9 @@ export function parseBingNewsRss(
     if (title.length < 15) return;
 
     const publishedHint = parseIndonesianDateTime(rawPubDate, now);
-    if (!isWithinLookbackWindow(publishedHint, cutoff)) return;
+    if (options?.startDate && publishedHint && publishedHint < options.startDate) return;
+    if (options?.endDate && publishedHint && publishedHint > options.endDate) return;
+    if (!options?.startDate && !isWithinLookbackWindow(publishedHint, cutoff)) return;
 
     const { normalizedUrl, urlHash } = hashNormalizedUrl(directUrl);
     if (seenHashes.has(urlHash)) return;
@@ -260,7 +286,13 @@ export function parseBingNewsRss(
 export function parseGoogleNewsRss(
   xml: string,
   keywordTarget: ActiveKeywordTarget,
-  options?: { now?: Date; lookbackDays?: number; maxItems?: number },
+  options?: {
+    now?: Date;
+    lookbackDays?: number;
+    maxItems?: number;
+    startDate?: Date;
+    endDate?: Date;
+  },
 ): DiscoveredArticleCandidate[] {
   const now = options?.now ?? new Date();
   const cutoff = getWitaLookbackCutoff(now, options?.lookbackDays ?? DEFAULT_LOOKBACK_DAYS);
@@ -287,7 +319,9 @@ export function parseGoogleNewsRss(
     if (title.length < 15) return;
 
     const publishedHint = parseIndonesianDateTime(rawPubDate, now);
-    if (!isWithinLookbackWindow(publishedHint, cutoff)) return;
+    if (options?.startDate && publishedHint && publishedHint < options.startDate) return;
+    if (options?.endDate && publishedHint && publishedHint > options.endDate) return;
+    if (!options?.startDate && !isWithinLookbackWindow(publishedHint, cutoff)) return;
 
     const { normalizedUrl, urlHash } = hashNormalizedUrl(rawLink);
     if (seenHashes.has(urlHash)) return;
@@ -330,6 +364,8 @@ export interface NationalHarvestOptions {
   fetchFn?: (url: string, options?: SafeFetchOptions) => Promise<{ finalUrl: string; body: string }>;
   now?: Date;
   lookbackDays?: number;
+  startDate?: Date;
+  endDate?: Date;
   maxItemsPerKeyword?: number;
   timeoutMs?: number;
   concurrency?: number;
@@ -543,7 +579,10 @@ export async function harvestNationalKeywords(
       keywordsChecked += 1;
 
       const bingRssUrl = buildBingNewsRssUrl(kw.keyword);
-      const googleRssUrl = buildGoogleNewsRssUrl(kw.keyword);
+      const googleRssUrl = buildGoogleNewsRssUrl(kw.keyword, {
+        startDate: options.startDate,
+        endDate: options.endDate,
+      });
       const requestOpts: SafeFetchOptions = {
         timeoutMs,
         maxBytes: 1024 * 1024,
@@ -564,6 +603,8 @@ export async function harvestNationalKeywords(
         const bingItems = parseBingNewsRss(bingOutcome.value.body, kw, {
           now,
           lookbackDays,
+          startDate: options.startDate,
+          endDate: options.endDate,
           maxItems: maxItemsPerKeyword,
         });
         for (const item of bingItems) {
@@ -576,6 +617,8 @@ export async function harvestNationalKeywords(
         const googleItems = parseGoogleNewsRss(googleOutcome.value.body, kw, {
           now,
           lookbackDays,
+          startDate: options.startDate,
+          endDate: options.endDate,
           maxItems: maxItemsPerKeyword,
         });
         for (const item of googleItems) {
