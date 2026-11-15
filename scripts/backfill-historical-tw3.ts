@@ -44,6 +44,7 @@ async function main() {
       startDate,
       endDate,
       maxArticlesPerRun: maxArticles,
+      fetchTimeoutMs: 14_000,
       maxDurationMs: 25 * 60 * 1000, // 25 minutes
       ...runtimeOpts,
     });

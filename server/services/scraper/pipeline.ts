@@ -682,8 +682,11 @@ async function executeLockedScrapePipeline(
 
           try {
             const normalizedFetchUrl = normalizeToFullPageArticleUrl(candidate.url);
+            const wrapperTimeout = isGoogleWrapperHost(candidate.url)
+              ? Math.max(fetchTimeoutMs, 14_000)
+              : fetchTimeoutMs;
             let fetched = await fetchFn(normalizedFetchUrl, {
-              timeoutMs: fetchTimeoutMs,
+              timeoutMs: wrapperTimeout,
               maxBytes: 2 * 1024 * 1024,
               userAgent: DEFAULT_BROWSER_USER_AGENT,
               headers: DEFAULT_BROWSER_HEADERS,
@@ -707,7 +710,7 @@ async function executeLockedScrapePipeline(
                 }
                 if (hasRemainingBudget(300)) {
                   externalTarget = await decodeGoogleNewsUrlFromHtml(fetched.body, {
-                    timeoutMs: fetchTimeoutMs,
+                    timeoutMs: Math.max(fetchTimeoutMs, 14_000),
                     signal: pipelineController.signal,
                   });
                 }
