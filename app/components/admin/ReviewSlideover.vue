@@ -381,13 +381,15 @@ async function submitUpdate(action: 'VERIFIED' | 'IGNORED' | 'DRAFT') {
               {{ snippetWordCount }} kata
             </span>
           </div>
-          <div
-            role="region"
+          <UTextarea
+            id="slideover-snippet-textarea"
+            :model-value="article.snippetText"
+            readonly
+            :rows="8"
             aria-labelledby="slideover-snippet-label"
-            class="max-h-48 overflow-y-auto saas-scroll rounded-xl bg-slate-50 border border-slate-200/90 p-3 text-sm leading-relaxed text-slate-800 whitespace-pre-line"
-          >
-            {{ article.snippetText }}
-          </div>
+            class="w-full text-xs"
+            :ui="{ base: 'bg-slate-50/90 text-slate-700 leading-relaxed resize-y' }"
+          />
         </div>
 
         <!-- Ringkasan Berita -->
@@ -416,9 +418,10 @@ async function submitUpdate(action: 'VERIFIED' | 'IGNORED' | 'DRAFT') {
             <UTextarea
               id="slideover-summary-textarea"
               v-model="form.summary"
-              :rows="3"
+              :rows="6"
               placeholder="Tuliskan ringkasan 2–3 kalimat padat mengenai fenomena ekonomi daerah..."
-              class="w-full"
+              class="w-full text-xs"
+              :ui="{ base: 'leading-relaxed resize-y' }"
             />
           </UFormField>
         </div>

@@ -856,31 +856,40 @@ const statusTabs = computed(() => {
       </template>
     </UAlert>
 
+    <!-- WORKBENCH HEADER ROW (Aligned above equal-height split columns) -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-center">
+      <div class="lg:col-span-7 flex items-center justify-between px-1 text-xs text-slate-600">
+        <label class="inline-flex items-center gap-2 min-h-7 font-semibold hover:text-slate-900 cursor-pointer">
+          <input
+            type="checkbox"
+            :checked="allVisibleChecked"
+            aria-label="Pilih semua artikel pada halaman ini"
+            class="w-4 h-4 rounded border-slate-300 text-blue-700 cursor-pointer"
+            @change="() => { toggleSelectAllVisible(); }"
+          >
+          <span>Pilih semua di halaman ({{ currentRows.length }})</span>
+        </label>
+
+        <span v-if="reviewData" class="text-xs font-medium text-slate-600 font-mono tabular-nums">
+          Hal {{ reviewData.pagination.page }}/{{ reviewData.pagination.totalPages }} •
+          {{ reviewData.pagination.total }} artikel
+        </span>
+      </div>
+
+      <div class="hidden lg:flex lg:col-span-5 items-center justify-between px-1 text-xs text-slate-500">
+        <span class="font-semibold text-slate-700 font-display">Panel Inspeksi &amp; Hasil LLM</span>
+        <span class="font-mono text-[11px] text-slate-500">
+          {{ inspectedArticle ? `ID #${inspectedArticle.id}` : 'Siap mengurasi' }}
+        </span>
+      </div>
+    </div>
+
     <!-- ASYMMETRIC 7/5 WORKBENCH WITH UNIFIED FIXED VIEWPORT HEIGHT -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch lg:h-[calc(100vh-235px)] lg:min-h-[580px]">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch lg:h-[calc(100vh-265px)] lg:min-h-[540px]">
       <!-- LEFT 7: QUEUE CARDS (Contained with internal scroll) -->
       <div class="lg:col-span-7 h-full flex flex-col min-h-0">
-        <!-- Bulk Selection Header -->
-        <div class="flex items-center justify-between px-1 pb-2 text-xs text-slate-600 shrink-0">
-          <label class="inline-flex items-center gap-2 min-h-8 font-semibold hover:text-slate-900 cursor-pointer">
-            <input
-              type="checkbox"
-              :checked="allVisibleChecked"
-              aria-label="Pilih semua artikel pada halaman ini"
-              class="w-4 h-4 rounded border-slate-300 text-blue-700 cursor-pointer"
-              @change="() => { toggleSelectAllVisible(); }"
-            >
-            <span>Pilih semua di halaman ({{ currentRows.length }})</span>
-          </label>
-
-          <span v-if="reviewData" class="text-xs font-medium text-slate-600 font-mono tabular-nums">
-            Hal {{ reviewData.pagination.page }}/{{ reviewData.pagination.totalPages }} •
-            {{ reviewData.pagination.total }} artikel
-          </span>
-        </div>
-
         <!-- Skeletons -->
-        <div v-if="pending && !reviewData" class="flex-1 overflow-y-auto saas-scroll space-y-3 pr-1.5">
+        <div v-if="pending && !reviewData" class="flex-1 min-h-0 overflow-y-auto saas-scroll space-y-3 pr-1.5">
           <div v-for="i in 4" :key="i" class="saas-card rounded-xl p-4 space-y-2.5">
             <div class="h-3 w-40 rounded bg-slate-200" />
             <div class="h-5 w-4/5 rounded bg-slate-200" />
@@ -1220,9 +1229,10 @@ const statusTabs = computed(() => {
               <UTextarea
                 id="insp-summary"
                 v-model="inspectorForm.summary"
-                :rows="3"
+                :rows="6"
                 placeholder="Ringkasan faktual 2–3 kalimat..."
                 class="w-full text-xs"
+                :ui="{ base: 'leading-relaxed resize-y' }"
               />
               <p
                 v-if="highlightIncomplete && inspectorForm.summary.trim().length < 10"
@@ -1378,14 +1388,17 @@ const statusTabs = computed(() => {
 
             <!-- Cuplikan Sumber Asli -->
             <div class="space-y-1">
-              <span class="block text-xs font-semibold text-slate-600">
+              <label for="insp-snippet-source" class="block text-xs font-semibold text-slate-600 font-display">
                 Cuplikan Teks Asli (Referensi Verifikasi)
-              </span>
-              <div
-                class="max-h-32 overflow-y-auto saas-scroll rounded-xl bg-slate-50 border border-slate-200 p-3 text-xs text-slate-700 leading-relaxed whitespace-pre-line"
-              >
-                {{ inspectedArticle.snippetText }}
-              </div>
+              </label>
+              <UTextarea
+                id="insp-snippet-source"
+                :model-value="inspectedArticle.snippetText"
+                readonly
+                :rows="8"
+                class="w-full text-xs"
+                :ui="{ base: 'bg-slate-50/90 text-slate-700 leading-relaxed resize-y' }"
+              />
             </div>
           </div>
 
