@@ -546,6 +546,45 @@ function findArticleBodyInJsonLd($: CheerioAPI): string | null {
   return null;
 }
 
+/**
+ * Mengekstrak teks lengkap artikel dari variabel inline script `var rawText = "..."`
+ * yang disediakan oleh CMS Tribun Network untuk keyword brand safety. Variabel ini memuat
+ * SELURUH teks artikel dari halaman 1 sampai halaman terakhir dalam satu string utuh.
+ */
+function findTribunRawTextInScripts($: CheerioAPI): string | null {
+  const scripts = $('script:not([src])');
+  for (let i = 0; i < scripts.length; i += 1) {
+    const content = scripts.eq(i).html() || '';
+    if (!content.includes('var rawText =')) continue;
+
+    const match = /var\s+rawText\s*=\s*"([^"]+)";/s.exec(content);
+    if (!match || !match[1]) continue;
+
+    try {
+      // Unescape unicode escape sequences seperti \u00a0, \/, dll.
+      const unescaped = JSON.parse(`"${match[1]}"`) as string;
+      // Bersihkan pengantar ringkasan berita, iklan, dan metadata penulis
+      const cleaned = unescaped
+        .replace(/^Ringkasan\s+Berita\s*:.*?(?=(?:TRIBUNKALTARA|[A-Z]{3,}\.COM|[A-Z\s,–-]+-))/is, '')
+        .replace(/Baca\s+juga\s*:[^\r\n]*/gi, '')
+        .replace(/Rekomendasi\s+Untuk\s+Anda|ADVERTISEMENT|SCROLL\s+TO\s+CONTINUE\s+WITH\s+CONTENT/gi, '')
+        .replace(/Penulis\s*:[^\r\n]*/gi, '')
+        .replace(/Editor\s*:[^\r\n]*/gi, '')
+        .replace(/\(\*\)/g, '')
+        .replace(/\u00a0/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      if (countWords(cleaned) >= EXTRACTOR_MIN_VALID_WORDS) {
+        return cleaned;
+      }
+    } catch {
+      // Abaikan jika parsing gagal
+    }
+  }
+  return null;
+}
+
 function extractNextFullPageUrl(
   $: CheerioAPI,
   baseUrl?: string | null,
@@ -627,6 +666,11 @@ export function extractArticleContent(
   }
 
   const nextFullPageUrl = extractNextFullPageUrl($, baseUrl, canonicalUrl);
+  const rawScriptBody = findTribunRawTextInScripts($);
+  const rawScriptResult = rawScriptBody
+    ? accumulateParagraphsToThreshold(rawScriptBody.split(/\r?\n+/))
+    : null;
+
   const jsonLdArticleBody = findArticleBodyInJsonLd($);
   const jsonLdResult = jsonLdArticleBody
     ? accumulateParagraphsToThreshold(jsonLdArticleBody.split(/\r?\n+/))
@@ -709,14 +753,16 @@ export function extractArticleContent(
   }
 
   // Prioritaskan hasil yang memiliki kelengkapan kata paling utuh dan bersih.
-  // Gunakan JSON-LD hanya bila DOM tidak valid ATAU JSON-LD memiliki jumlah kata lebih banyak
-  // daripada DOM hasil ekstraksi paragraf artikel.
-  const finalResult =
-    jsonLdResult &&
-    jsonLdResult.isValidContent &&
-    (!domResult.isValidContent || jsonLdResult.wordCount > domResult.wordCount)
-      ? jsonLdResult
-      : domResult;
+  // 1. Script inline rawText Tribun (multi-page utuh) bila tersedia dan valid
+  // 2. JSON-LD bila valid dan lebih kaya dari DOM
+  // 3. DOM paragraf artikel
+  let finalResult = domResult;
+  if (jsonLdResult && jsonLdResult.isValidContent && (!finalResult.isValidContent || jsonLdResult.wordCount > finalResult.wordCount)) {
+    finalResult = jsonLdResult;
+  }
+  if (rawScriptResult && rawScriptResult.isValidContent && (!finalResult.isValidContent || rawScriptResult.wordCount > finalResult.wordCount)) {
+    finalResult = rawScriptResult;
+  }
 
   return {
     title,
