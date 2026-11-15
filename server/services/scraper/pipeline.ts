@@ -80,9 +80,12 @@ export interface RunScrapePipelineParams {
   mode?: ScrapeRunMode;
   triggeredBy?: string | null;
   now?: Date;
+  startDate?: Date;
+  endDate?: Date;
   lookbackDays?: number;
   maxDurationMs?: number;
   maxArticlesPerRun?: number;
+  googleDecodeCap?: number;
   fetchTimeoutMs?: number;
   fetchConcurrency?: number;
   enableGdeltMacro?: boolean;
@@ -403,13 +406,21 @@ async function executeLockedScrapePipeline(
   const mode: ScrapeRunMode = params.mode ?? 'ALL';
   const now = params.now ?? new Date();
   const lookbackDays = params.lookbackDays ?? DEFAULT_LOOKBACK_DAYS;
+  const cutoffDate = params.startDate
+    ? new Date(params.startDate)
+    : getWitaLookbackCutoff(now, lookbackDays);
+  const endDate = params.endDate ? new Date(params.endDate) : null;
   const fetchFn = params.fetchFn ?? safeFetchText;
   const fetchTimeoutMs = params.fetchTimeoutMs ?? DEFAULT_FETCH_TIMEOUT_MS;
   const fetchConcurrency = params.fetchConcurrency ?? DEFAULT_FETCH_CONCURRENCY;
   const maxDurationMs = Math.max(50, params.maxDurationMs ?? DEFAULT_MAX_RUN_DURATION_MS);
-  const maxArticlesPerRun = getEffectiveMaxArticlesPerRun(params.maxArticlesPerRun);
+  const maxArticlesPerRun =
+    params.maxArticlesPerRun !== undefined && Number.isFinite(params.maxArticlesPerRun) && params.maxArticlesPerRun > 0
+      ? Math.floor(params.maxArticlesPerRun)
+      : getEffectiveMaxArticlesPerRun();
+  const effectiveGoogleDecodeCap =
+    params.googleDecodeCap ?? Math.max(DEFAULT_GOOGLE_NEWS_DECODE_CAP_PER_RUN, maxArticlesPerRun);
   const deadlineAtMs = startedAtMs + maxDurationMs;
-  const cutoffDate = getWitaLookbackCutoff(now, lookbackDays);
 
   const pipelineController = new AbortController();
   let timedOut = false;
@@ -497,6 +508,8 @@ async function executeLockedScrapePipeline(
             portals: params.portals,
             fetchFn,
             now,
+            startDate: params.startDate,
+            endDate: params.endDate,
             lookbackDays,
             timeoutMs: fetchTimeoutMs,
             concurrency: fetchConcurrency,
@@ -647,7 +660,7 @@ async function executeLockedScrapePipeline(
               return;
             }
             const publishedAt = candidate.publishedHint ?? now;
-            if (!isWithinLookbackWindow(publishedAt, cutoffDate)) {
+            if (!isWithinLookbackWindow(publishedAt, cutoffDate, endDate)) {
               articlesDeduplicated += 1;
               return;
             }
@@ -684,7 +697,7 @@ async function executeLockedScrapePipeline(
               if (
                 !externalTarget &&
                 extractGoogleNewsDecodeParams(fetched.body) &&
-                googleDecodeAttempts < DEFAULT_GOOGLE_NEWS_DECODE_CAP_PER_RUN &&
+                googleDecodeAttempts < effectiveGoogleDecodeCap &&
                 hasRemainingBudget(600)
               ) {
                 const attemptIdx = googleDecodeAttempts;
@@ -786,7 +799,7 @@ async function executeLockedScrapePipeline(
 
             const publishedAt = extracted.publishedAt ?? candidate.publishedHint ?? now;
 
-            if (extracted.publishedAt && !isWithinLookbackWindow(extracted.publishedAt, cutoffDate)) {
+            if (extracted.publishedAt && !isWithinLookbackWindow(extracted.publishedAt, cutoffDate, endDate)) {
               articlesDeduplicated += 1;
               return;
             }
@@ -997,6 +1010,9 @@ async function executeLockedScrapePipeline(
       readyForLlm,
       phaseDConcurrency,
       async (item, idx) => {
+        if (idx > 0 && !legacyWorker) {
+          await new Promise((r) => setTimeout(r, 400));
+        }
         const defaultPeriod = getQuarterFromDateWita(item.publishedAt);
         const publishedAtWita = formatDateTimeWita(item.publishedAt);
         const budgetExhausted = !hasRemainingBudget(20);

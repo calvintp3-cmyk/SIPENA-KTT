@@ -14,7 +14,8 @@
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
     "db:seed": "tsx server/db/seed.ts",
-    "db:archive-nonktt": "tsx server/db/archive-nonktt.ts"
+    "db:archive-nonktt": "tsx server/db/archive-nonktt.ts",
+    "scrape:backfill": "tsx scripts/backfill-historical-tw3.ts"
   },
   "dependencies": {
     "@google/genai": "^3.1.0",

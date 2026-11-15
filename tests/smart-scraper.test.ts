@@ -449,5 +449,44 @@ describe('Smart Scraper Filters, Dedup, Google News Decoder & Geo-Gate', () => {
     expect(gdeltHarvest).toHaveLength(1);
     expect(gdeltHarvest[0]?.sourcePortal).toBe('antaranews.com');
   });
+
+  it('mendukung penyaringan rentang tanggal historis (startDate dan endDate) pada parseRegionalPortalIndex & parseRegionalRssFeed', () => {
+    const htmlSample = `
+      <div>
+        <article>
+          <h2><a href="/tana-tidung/berita-agustus-2026">Realisasi Investasi PMTB Tana Tidung Agustus 2026 Naik Signifikan</a></h2>
+          <time datetime="2026-08-15T08:00:00+08:00">15 Agustus 2026</time>
+        </article>
+        <article>
+          <h2><a href="/tana-tidung/berita-november-2026">Panen Padi Sesayap Hilir November 2026 Melimpah</a></h2>
+          <time datetime="2026-11-05T09:00:00+08:00">5 November 2026</time>
+        </article>
+        <article>
+          <h2><a href="/tana-tidung/berita-januari-2026">Berita Lama Januari 2026 di Luar Jendela Triwulan III</a></h2>
+          <time datetime="2026-01-10T10:00:00+08:00">10 Januari 2026</time>
+        </article>
+      </div>
+    `;
+
+    // Uji rentang TW III 2026 murni (1 Juli 2026 s.d. 30 September 2026)
+    const tw3Candidates = parseRegionalPortalIndex(htmlSample, BENUANTA_PORTAL, {
+      startDate: new Date('2026-07-01T00:00:00+08:00'),
+      endDate: new Date('2026-09-30T23:59:59+08:00'),
+    });
+
+    expect(tw3Candidates).toHaveLength(1);
+    expect(tw3Candidates[0]?.title).toContain('Realisasi Investasi PMTB');
+
+    // Uji rentang diperluas (1 Juli 2026 s.d. 14 November 2026)
+    const extendedCandidates = parseRegionalPortalIndex(htmlSample, BENUANTA_PORTAL, {
+      startDate: new Date('2026-07-01T00:00:00+08:00'),
+      endDate: new Date('2026-11-14T23:59:59+08:00'),
+    });
+
+    expect(extendedCandidates).toHaveLength(2);
+    expect(extendedCandidates.some(c => c.title.includes('Realisasi Investasi PMTB'))).toBe(true);
+    expect(extendedCandidates.some(c => c.title.includes('Panen Padi Sesayap Hilir'))).toBe(true);
+    expect(extendedCandidates.some(c => c.title.includes('Berita Lama Januari'))).toBe(false);
+  });
 });
 

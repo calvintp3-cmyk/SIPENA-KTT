@@ -20,6 +20,11 @@ export default defineEventHandler(async (event) => {
       runType: ScraperRunTypeEnum.MANUAL,
       mode: body.mode,
       triggeredBy: adminUser.id,
+      startDate: body.startDate ? new Date(body.startDate) : undefined,
+      endDate: body.endDate ? new Date(body.endDate) : undefined,
+      lookbackDays: body.lookbackDays,
+      maxArticlesPerRun: body.maxArticles,
+      maxDurationMs: body.maxDurationMinutes ? body.maxDurationMinutes * 60 * 1000 : undefined,
       ...buildScraperPipelineRuntimeOptions(runtimeCfg),
     });
 

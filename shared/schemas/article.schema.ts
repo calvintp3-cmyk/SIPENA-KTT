@@ -328,6 +328,11 @@ export const BatchArticleActionSchema = z.object({
 
 export const TriggerScraperSchema = z.object({
   mode: z.enum(['ALL', 'REGIONAL_ONLY', 'NATIONAL_ONLY']).default('ALL'),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
+  lookbackDays: z.coerce.number().int().positive().optional(),
+  maxArticles: z.coerce.number().int().positive().max(1000).optional(),
+  maxDurationMinutes: z.coerce.number().int().positive().max(120).optional(),
 });
 
 export const ScraperLogsQuerySchema = z.object({

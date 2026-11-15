@@ -40,7 +40,7 @@ function toPositiveIntOrUndefined(value: number | string | undefined): number | 
  * String kosong diubah ke `undefined` agar fallback ke `process.env` tetap berjalan bila belum diset.
  */
 export function buildRouterEnvFromRuntimeConfig(
-  cfg: RuntimeLlmAndScraperConfigLike,
+  cfg: RuntimeLlmAndScraperConfigLike = {},
 ): RouterEnvConfig {
   return {
     geminiApiKey: nonEmptyOrUndefined(cfg.geminiApiKey),
@@ -64,7 +64,9 @@ export function buildRouterEnvFromRuntimeConfig(
 /**
  * Membangun opsi runtime pipeline & router secara konsisten untuk API routes dan Nitro tasks.
  */
-export function buildScraperPipelineRuntimeOptions(cfg: RuntimeLlmAndScraperConfigLike): {
+export function buildScraperPipelineRuntimeOptions(
+  cfg: RuntimeLlmAndScraperConfigLike = {},
+): {
   maxArticlesPerRun?: number;
   enableGdeltMacro?: boolean;
   routerOptions: MultiLlmRouterOptions;

@@ -114,6 +114,7 @@ export const REGIONAL_PORTALS: ReadonlyArray<RegionalPortalConfig> = [
     allowedHosts: ['kaltara.tribunnews.com'],
     paginationPattern: 'QUERY_PAGE',
     maxPages: 5,
+    googleNewsFallbackQuery: 'site:kaltara.tribunnews.com "tana tidung"',
     itemSelectors: [
       'div.mr140, div.pos_abs.hlover',
       'ul.lsi li.p1520',
@@ -162,6 +163,7 @@ export const REGIONAL_PORTALS: ReadonlyArray<RegionalPortalConfig> = [
     allowedHosts: ['benuanta.co.id', 'www.benuanta.co.id'],
     paginationPattern: 'QUERY_PAGED',
     maxPages: 5,
+    googleNewsFallbackQuery: 'site:benuanta.co.id "tana tidung"',
     itemSelectors: [
       'article',
       '.jeg_post',
@@ -178,6 +180,7 @@ export const REGIONAL_PORTALS: ReadonlyArray<RegionalPortalConfig> = [
     allowedHosts: ['radartarakan.jawapos.com'],
     paginationPattern: 'QUERY_PAGE',
     maxPages: 5,
+    googleNewsFallbackQuery: 'site:radartarakan.jawapos.com "tana tidung"',
     itemSelectors: [
       'div.ui-card a[href]',
       'a[href*="/tana-tidung/"]',
@@ -252,6 +255,7 @@ export const REGIONAL_PORTALS: ReadonlyArray<RegionalPortalConfig> = [
     allowedHosts: ['kaltara.antaranews.com'],
     paginationPattern: 'QUERY_PAGE',
     maxPages: 5,
+    googleNewsFallbackQuery: 'site:kaltara.antaranews.com "tana tidung"',
     itemSelectors: [
       'article',
       '.simple-post',
@@ -405,12 +409,21 @@ export function getWitaLookbackCutoff(
   return new Date(`${year}-${pad2(month)}-${pad2(day)}T00:00:00.000${WITA_UTC_OFFSET}`);
 }
 
+export function formatYmd(d: Date): string {
+  const { year, month, day } = getWitaDateParts(d);
+  return `${year}-${pad2(month)}-${pad2(day)}`;
+}
+
 export function isWithinLookbackWindow(
   publishedDate: Date | null | undefined,
   cutoffDate: Date,
+  endDate?: Date | null,
 ): boolean {
   if (!publishedDate) return true;
-  return publishedDate.getTime() >= cutoffDate.getTime();
+  const t = publishedDate.getTime();
+  if (t < cutoffDate.getTime()) return false;
+  if (endDate && t > endDate.getTime()) return false;
+  return true;
 }
 
 function isLikelyPortalArticleUrl(rawUrl: string, portal: RegionalPortalConfig): boolean {
@@ -525,10 +538,18 @@ function resolveAnchorCandidate(
 export function parseRegionalRssFeed(
   xml: string,
   portal: RegionalPortalConfig,
-  options?: { now?: Date; lookbackDays?: number; maxItems?: number; feedUrl?: string },
+  options?: {
+    now?: Date;
+    startDate?: Date;
+    endDate?: Date;
+    lookbackDays?: number;
+    maxItems?: number;
+    feedUrl?: string;
+  },
 ): DiscoveredArticleCandidate[] {
   const now = options?.now ?? new Date();
-  const cutoff = getWitaLookbackCutoff(now, options?.lookbackDays ?? DEFAULT_LOOKBACK_DAYS);
+  const cutoff = options?.startDate ?? getWitaLookbackCutoff(now, options?.lookbackDays ?? DEFAULT_LOOKBACK_DAYS);
+  const endDate = options?.endDate ?? null;
   const maxItems = options?.maxItems ?? DEFAULT_REGIONAL_MAX_ITEMS;
   const isSearchFeed = Boolean(options?.feedUrl && /[?&]s=/i.test(options.feedUrl));
 
@@ -555,7 +576,7 @@ export function parseRegionalRssFeed(
     if (isOtherRegencyArticleWithoutKtt(rawLink, title)) return;
 
     const publishedHint = parseIndonesianDateTime(rawPubDate, now);
-    if (!isWithinLookbackWindow(publishedHint, cutoff)) return;
+    if (!isWithinLookbackWindow(publishedHint, cutoff, endDate)) return;
 
     // Ekstrak paragraf dari HTML CDATA `<content:encoded>` atau `<description>`
     const htmlPayload = rawEncoded || rawDesc;
@@ -610,6 +631,8 @@ export function parseRegionalPortalIndex(
   portal: RegionalPortalConfig,
   options?: {
     now?: Date;
+    startDate?: Date;
+    endDate?: Date;
     lookbackDays?: number;
     maxItems?: number;
     baseUrl?: string;
@@ -617,7 +640,8 @@ export function parseRegionalPortalIndex(
   },
 ): DiscoveredArticleCandidate[] {
   const now = options?.now ?? new Date();
-  const cutoff = getWitaLookbackCutoff(now, options?.lookbackDays ?? DEFAULT_LOOKBACK_DAYS);
+  const cutoff = options?.startDate ?? getWitaLookbackCutoff(now, options?.lookbackDays ?? DEFAULT_LOOKBACK_DAYS);
+  const endDate = options?.endDate ?? null;
   const maxItems = options?.maxItems ?? DEFAULT_REGIONAL_MAX_ITEMS;
   const baseUrl = options?.baseUrl ?? portal.indexUrl;
 
@@ -648,8 +672,10 @@ export function parseRegionalPortalIndex(
     }
 
     const publishedHint = parseIndonesianDateTime(rawDateStr, now);
-    if (!isWithinLookbackWindow(publishedHint, cutoff)) {
-      options?.onCutoffReached?.();
+    if (!isWithinLookbackWindow(publishedHint, cutoff, endDate)) {
+      if (publishedHint && publishedHint.getTime() < cutoff.getTime()) {
+        options?.onCutoffReached?.();
+      }
       return false;
     }
 
@@ -795,6 +821,8 @@ export interface RegionalHarvestOptions {
   portals?: ReadonlyArray<RegionalPortalConfig>;
   fetchFn?: (url: string, options?: SafeFetchOptions) => Promise<{ finalUrl: string; body: string }>;
   now?: Date;
+  startDate?: Date;
+  endDate?: Date;
   lookbackDays?: number;
   maxItemsPerPortal?: number;
   maxPagesPerPortal?: number;
@@ -815,6 +843,9 @@ export async function harvestRegionalPortals(
   const fetchFn = options.fetchFn ?? safeFetchText;
   const now = options.now ?? new Date();
   const lookbackDays = options.lookbackDays ?? DEFAULT_LOOKBACK_DAYS;
+  const cutoff = options.startDate ?? getWitaLookbackCutoff(now, lookbackDays);
+  const endDate = options.endDate ?? null;
+  const isHistoricalMode = Boolean(options.startDate);
   const maxItemsPerPortal = options.maxItemsPerPortal ?? DEFAULT_REGIONAL_MAX_ITEMS;
   const timeoutMs = options.timeoutMs ?? DEFAULT_FETCH_TIMEOUT_MS;
   const concurrency = options.concurrency ?? DEFAULT_SCRAPER_CONCURRENCY;
@@ -854,6 +885,8 @@ export async function harvestRegionalPortals(
 
           const feedCandidates = parseRegionalRssFeed(response.body, portal, {
             now,
+            startDate: options.startDate,
+            endDate: options.endDate,
             lookbackDays,
             maxItems: maxItemsPerPortal - portalFoundCount,
             feedUrl,
@@ -917,6 +950,8 @@ export async function harvestRegionalPortals(
             let reachedCutoff = false;
             const portalCandidates = parseRegionalPortalIndex(response.body, portal, {
               now,
+              startDate: options.startDate,
+              endDate: options.endDate,
               lookbackDays,
               maxItems: maxItemsPerPortal - portalFoundCount,
               baseUrl: currentUrl,
@@ -954,15 +989,22 @@ export async function harvestRegionalPortals(
         }
       }
 
-      // 3. Fallback Jalur Google News RSS jika portal mengalami error akses (Firewall 403 / Cloudflare)
-      // atau jika portal belum menghasilkan kandidat dari jalur direct HTML/feed
-      if (
-        portal.googleNewsFallbackQuery &&
-        (portalFoundCount === 0 || portalErrors.length > 0) &&
-        !signal?.aborted
-      ) {
+      // 3. Fallback / Historical Jalur Google News RSS
+      // Dijalankan jika:
+      // a. Mode historis aktif (options.startDate ada)
+      // b. Portal mengalami error akses (Firewall 403 / Cloudflare)
+      // c. Portal belum menghasilkan kandidat dari jalur direct HTML/feed
+      const shouldQueryGoogleNews =
+        Boolean(portal.googleNewsFallbackQuery) &&
+        !signal?.aborted &&
+        (isHistoricalMode || portalFoundCount === 0 || portalErrors.length > 0);
+
+      if (shouldQueryGoogleNews && portal.googleNewsFallbackQuery) {
         try {
-          const gNewsUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(portal.googleNewsFallbackQuery)}&hl=id&gl=ID&ceid=ID:id`;
+          const gNewsQuery = isHistoricalMode
+            ? `${portal.googleNewsFallbackQuery} after:${formatYmd(cutoff)} before:${formatYmd(endDate || now)}`
+            : portal.googleNewsFallbackQuery;
+          const gNewsUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(gNewsQuery)}&hl=id&gl=ID&ceid=ID:id`;
           const gNewsResp = await fetchFn(gNewsUrl, {
             timeoutMs,
             maxBytes: 1024 * 1024,
@@ -991,6 +1033,8 @@ export async function harvestRegionalPortals(
             if (!isValidCandidateTitle(cleanTitle)) return;
 
             const publishedHint = parseIndonesianDateTime(rawPubDate, now);
+            if (!isWithinLookbackWindow(publishedHint, cutoff, endDate)) return;
+
             const { normalizedUrl, urlHash } = hashNormalizedUrl(rawLink);
 
             if (!globalSeenHashes.has(urlHash)) {
@@ -1004,7 +1048,9 @@ export async function harvestRegionalPortals(
                 sourceType: ArticleSourceTypeEnum.REGIONAL,
                 publishedHint,
                 keywordId: null,
-                matchedKeyword: 'Google News Fallback: ' + portal.label,
+                matchedKeyword: isHistoricalMode
+                  ? 'Google News Archive: ' + portal.label
+                  : 'Google News Fallback: ' + portal.label,
                 fallbackDescription: `Berita ${portal.label} melalui Google News sindikasi.`,
               });
               portalFoundCount += 1;
