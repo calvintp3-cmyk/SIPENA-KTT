@@ -62,6 +62,7 @@ async function main() {
   const filterArg = args.find((a) => a.startsWith('--filter='));
   const dryRun = args.includes('--dry-run');
   const forceAll = args.includes('--force');
+  const unclassifiedOnly = args.includes('--unclassified-only');
 
   const limit = limitArg ? Number(limitArg.split('=')[1]) : null;
   const concurrency = concurrencyArg ? Math.max(1, Math.min(6, Number(concurrencyArg.split('=')[1]))) : 3;
@@ -72,7 +73,7 @@ async function main() {
   console.log('='.repeat(75));
   console.log(`Mode               : ${dryRun ? 'DRY RUN (Hanya Preview)' : 'LIVE UPDATE DATABASE'}`);
   console.log(`Paralelisme / Worker: ${concurrency} concurrent worker(s)`);
-  console.log(`Strategi Resume    : ${forceAll ? 'FORCE ALL (Proses ulang semua)' : 'SMART RESUME (Lewati artikel yang baru selesai < 2 jam)'}`);
+  console.log(`Strategi Resume    : ${unclassifiedOnly ? 'HANYA ARTIKEL BELUM TERKLASIFIKASI (NULL)' : forceAll ? 'FORCE ALL (Proses ulang semua)' : 'SMART RESUME (Lewati artikel yang baru selesai < 2 jam)'}`);
   if (filterKeyword) console.log(`Filter Kata Kunci  : "${filterKeyword}"`);
   if (limit) console.log(`Limit Artikel      : ${limit}`);
   console.log(`Waktu Mulai        : ${new Date().toLocaleString('id-ID')}`);
@@ -96,10 +97,21 @@ async function main() {
     FROM articles 
   `;
   const queryParams: any[] = [];
+  const whereClauses: string[] = [];
+
+  if (unclassifiedOnly) {
+    whereClauses.push(`is_economic_phenomenon IS NULL`);
+  }
+
   if (filterKeyword) {
     queryParams.push(`%${filterKeyword}%`);
-    query += ` WHERE title ILIKE $1 OR snippet_text ILIKE $1 `;
+    whereClauses.push(`(title ILIKE $${queryParams.length} OR snippet_text ILIKE $${queryParams.length})`);
   }
+
+  if (whereClauses.length > 0) {
+    query += ` WHERE ` + whereClauses.join(' AND ');
+  }
+
   query += ` ORDER BY published_at DESC `;
   if (limit) {
     queryParams.push(limit);
