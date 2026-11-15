@@ -397,7 +397,7 @@ function buildExportParams(format: 'xlsx' | 'csv') {
     portal: filters.portal === 'ALL' ? undefined : filters.portal,
     status: filters.status === 'ALL' ? undefined : filters.status,
     llmStatus: filters.llmStatus === 'ALL' ? undefined : filters.llmStatus,
-    isEconomic: filters.isEconomic === 'ALL' ? undefined : filters.isEconomic,
+    isEconomic: 'true',
     from: filters.from || undefined,
     to: filters.to || undefined,
   };
@@ -406,14 +406,14 @@ function buildExportParams(format: 'xlsx' | 'csv') {
 const exportMenuItems = computed<DropdownMenuItem[][]>(() => [
   [
     {
-      label: 'Unduh Excel (.xlsx — 10 Kolom Baku)',
+      label: 'Excel (.xlsx)',
       icon: 'i-lucide-file-spreadsheet',
       onSelect: () => {
         void downloadExport(buildExportParams('xlsx'));
       },
     },
     {
-      label: 'Unduh CSV (.csv — UTF-8 BOM)',
+      label: 'CSV (.csv)',
       icon: 'i-lucide-file-text',
       onSelect: () => {
         void downloadExport(buildExportParams('csv'));

@@ -1,5 +1,5 @@
 // server/api/admin/articles/export.get.ts
-import { desc } from 'drizzle-orm';
+import { and, desc, eq } from 'drizzle-orm';
 import { defineEventHandler, setResponseHeader } from 'h3';
 import { ExportArticlesQuerySchema } from '../../../../shared/schemas/article.schema';
 import { getWitaDateParts } from '../../../../shared/utils/period';
@@ -25,7 +25,10 @@ function buildExportTimestampStamp(): string {
 export default defineEventHandler(async (event) => {
   await requireAdminSession(event);
   const query = parseQueryWithSchema(event, ExportArticlesQuerySchema);
-  const whereClause = buildAdminArticleFilters(query);
+  const baseFilter = buildAdminArticleFilters(query);
+  const whereClause = baseFilter
+    ? and(baseFilter, eq(articles.isEconomicPhenomenon, true))
+    : eq(articles.isEconomicPhenomenon, true);
 
   const rows = await db
     .select()

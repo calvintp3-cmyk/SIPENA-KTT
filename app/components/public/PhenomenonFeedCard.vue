@@ -301,9 +301,10 @@ async function copyCitation() {
           <span
             class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full border text-[11px] font-semibold shrink-0"
             :class="kbliImpactToneClass"
+            :title="kbliImpactMeta.label"
           >
             <UIcon :name="kbliImpactMeta.icon" class="w-3 h-3" />
-            <span>{{ kbliImpactMeta.label }}</span>
+            <span>{{ kbliImpactMeta.shortLabel }}</span>
           </span>
         </div>
         <!-- Sektor Sekunder jika ada -->
@@ -319,8 +320,9 @@ async function copyCitation() {
             v-if="article.secondaryKbliImpact"
             class="text-[10px] px-2 py-0.5 rounded-full font-semibold border shrink-0"
             :class="secondaryKbliImpactToneClass"
+            :title="secondaryKbliImpactMeta.label"
           >
-            {{ secondaryKbliImpactMeta.label }}
+            {{ secondaryKbliImpactMeta.shortLabel }}
           </span>
         </div>
       </div>

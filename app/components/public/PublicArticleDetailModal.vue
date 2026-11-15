@@ -225,12 +225,6 @@ async function handleCopyArticleLink() {
               <span class="text-xs font-bold text-slate-600">
                 1. Lapangan Usaha (Produksi)
               </span>
-              <span
-                class="px-2 py-0.5 rounded-full text-[10px] font-semibold border"
-                :class="clusterTheme.pillClass"
-              >
-                {{ clusterTheme.label }}
-              </span>
             </div>
             <div class="font-bold text-sm text-slate-900 leading-snug">
               {{ getKbliLabel(article.kbliCategory, true) }}
@@ -242,8 +236,9 @@ async function handleCopyArticleLink() {
                 variant="subtle"
                 size="xs"
                 :icon="kbliImpactBadge.icon"
+                :title="kbliImpactBadge.label"
               >
-                {{ kbliImpactBadge.label }}
+                {{ kbliImpactBadge.shortLabel }}
               </UBadge>
             </div>
             <div
@@ -271,8 +266,9 @@ async function handleCopyArticleLink() {
                 variant="subtle"
                 size="xs"
                 :icon="expImpactBadge.icon"
+                :title="expImpactBadge.label"
               >
-                {{ expImpactBadge.label }}
+                {{ expImpactBadge.shortLabel }}
               </UBadge>
             </div>
             <div
@@ -304,8 +300,8 @@ async function handleCopyArticleLink() {
               <span class="font-bold text-slate-900">{{ getKbliLabel(article.secondaryKbliCategory, true) }}</span>
               <div v-if="article.secondaryKbliImpact" class="flex items-center gap-1.5 mt-0.5">
                 <span class="text-[11px] text-slate-500">Dampak:</span>
-                <UBadge :color="secondaryKbliImpactBadge.color" variant="subtle" size="xs" :icon="secondaryKbliImpactBadge.icon">
-                  {{ secondaryKbliImpactBadge.label }}
+                <UBadge :color="secondaryKbliImpactBadge.color" variant="subtle" size="xs" :icon="secondaryKbliImpactBadge.icon" :title="secondaryKbliImpactBadge.label">
+                  {{ secondaryKbliImpactBadge.shortLabel }}
                 </UBadge>
               </div>
             </div>
@@ -317,8 +313,8 @@ async function handleCopyArticleLink() {
               <span class="font-bold text-slate-900">{{ getExpenditureLabel(article.secondaryExpenditureComponent, true) }}</span>
               <div v-if="article.secondaryExpenditureImpact" class="flex items-center gap-1.5 mt-0.5">
                 <span class="text-[11px] text-slate-500">Dampak:</span>
-                <UBadge :color="secondaryExpImpactBadge.color" variant="subtle" size="xs" :icon="secondaryExpImpactBadge.icon">
-                  {{ secondaryExpImpactBadge.label }}
+                <UBadge :color="secondaryExpImpactBadge.color" variant="subtle" size="xs" :icon="secondaryExpImpactBadge.icon" :title="secondaryExpImpactBadge.label">
+                  {{ secondaryExpImpactBadge.shortLabel }}
                 </UBadge>
               </div>
             </div>
