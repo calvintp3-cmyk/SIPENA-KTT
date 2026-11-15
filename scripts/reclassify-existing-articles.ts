@@ -9,7 +9,7 @@ import {
 import { buildScraperPipelineRuntimeOptions } from '../server/utils/llm-config';
 import { safeFetchText } from '../server/utils/ssrf';
 import { extractArticleContent } from '../server/services/scraper/extractor';
-import { determineQuarterAndYearFromWita } from '../shared/utils/period';
+import { getQuarterFromDateWita } from '../shared/utils/period';
 import { VerificationStatusEnum } from '../shared/enums/pdrb';
 
 interface ArticleRow {
@@ -114,7 +114,7 @@ async function main() {
 
     const pubWita = new Date(row.published_at.getTime() + 8 * 3600_000);
     const publishedAtWitaStr = pubWita.toISOString().replace('T', ' ').slice(0, 19) + ' WITA';
-    const period = determineQuarterAndYearFromWita(row.published_at);
+    const period = getQuarterFromDateWita(row.published_at);
 
     const classificationInput = {
       title: row.title,
