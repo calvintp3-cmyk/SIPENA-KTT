@@ -31,7 +31,7 @@ async function main() {
     ? Number(maxArg.split('=')[1])
     : isPilot
       ? 15
-      : 250;
+      : 500;
 
   const concurrency = concurrencyArg
     ? Math.max(1, Math.min(6, Number(concurrencyArg.split('=')[1])))
