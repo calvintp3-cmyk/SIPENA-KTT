@@ -195,12 +195,12 @@ async function handleCopyArticleLink() {
       <div v-if="article" class="space-y-5">
         <!-- Eyebrow & Judul -->
         <div class="space-y-1.5">
-          <div class="inline-flex items-center gap-2 text-xs font-bold text-indigo-700">
+          <div class="inline-flex items-center gap-2 text-xs font-bold text-blue-700 font-mono">
             <span>TW {{ toRomanQuarter(article.quarter) }} {{ article.year }}</span>
             <span class="text-slate-400">•</span>
-            <span>Konsolidasi PDRB Kabupaten Tana Tidung</span>
+            <span class="font-sans font-semibold text-slate-600">Konsolidasi PDRB Kabupaten Tana Tidung</span>
           </div>
-          <h2 class="text-lg sm:text-[21px] font-extrabold text-slate-900 leading-snug tracking-tight">
+          <h2 class="text-lg sm:text-[21px] font-extrabold text-slate-900 leading-snug tracking-tight font-display">
             {{ article.title }}
           </h2>
         </div>
@@ -287,18 +287,18 @@ async function handleCopyArticleLink() {
         <!-- Keterkaitan Sektoral Sekunder (Jika teridentifikasi) -->
         <div
           v-if="article.secondaryKbliCategory || article.secondaryExpenditureComponent"
-          class="p-4 rounded-2xl bg-slate-50 border border-slate-200/90 space-y-3"
+          class="p-4 rounded-xl bg-slate-50 border border-slate-200/90 space-y-3"
         >
           <div class="flex items-center gap-2">
-            <UIcon name="i-solar-link-round-bold-duotone" class="w-4 h-4 text-indigo-600" />
-            <span class="text-xs font-bold text-slate-800">
+            <UIcon name="i-solar-link-round-bold-duotone" class="w-4 h-4 text-blue-700" />
+            <span class="text-xs font-bold text-slate-800 font-display">
               Keterkaitan Sektoral Sekunder (Inter-Industry Linkage)
             </span>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
             <div
               v-if="article.secondaryKbliCategory"
-              class="p-3 rounded-xl bg-white border border-slate-200 flex flex-col gap-1.5"
+              class="p-3 rounded-lg bg-white border border-slate-200 flex flex-col gap-1.5"
             >
               <span class="text-[11px] font-semibold text-slate-500">Sektor Sekunder (KBLI)</span>
               <span class="font-bold text-slate-900">{{ getKbliLabel(article.secondaryKbliCategory, true) }}</span>
@@ -311,7 +311,7 @@ async function handleCopyArticleLink() {
             </div>
             <div
               v-if="article.secondaryExpenditureComponent"
-              class="p-3 rounded-xl bg-white border border-slate-200 flex flex-col gap-1.5"
+              class="p-3 rounded-lg bg-white border border-slate-200 flex flex-col gap-1.5"
             >
               <span class="text-[11px] font-semibold text-slate-500">Pengeluaran Sekunder</span>
               <span class="font-bold text-slate-900">{{ getExpenditureLabel(article.secondaryExpenditureComponent, true) }}</span>
@@ -328,23 +328,23 @@ async function handleCopyArticleLink() {
         <!-- Jembatan Konkordansi KBLI 4-Generasi (2009 -> 2025) -->
         <div
           v-if="kbliBridge"
-          class="p-4 rounded-2xl bg-indigo-50/50 border border-indigo-200/90 space-y-3"
+          class="p-4 rounded-xl bg-blue-50/50 border border-blue-200/90 space-y-3"
         >
           <div class="flex items-center justify-between gap-2">
             <div class="flex items-center gap-2">
-              <UIcon name="i-solar-route-bold-duotone" class="w-4 h-4 text-indigo-700" />
-              <span class="text-xs font-bold text-indigo-950">
+              <UIcon name="i-solar-route-bold-duotone" class="w-4 h-4 text-blue-700" />
+              <span class="text-xs font-bold text-slate-900 font-display">
                 Jembatan Konkordansi KBLI 4-Generasi (BPS RI)
               </span>
             </div>
-            <span class="text-[10px] bg-indigo-100 text-indigo-800 font-bold px-2 py-0.5 rounded-full">
+            <span class="text-[10px] bg-blue-100 text-blue-800 font-bold px-2 py-0.5 rounded-md font-mono">
               {{ kbliBridge.pdrbSector }}
             </span>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-            <div class="p-2.5 rounded-xl bg-white border border-indigo-200/80 shadow-2xs">
-              <div class="text-[10px] font-bold text-indigo-700 uppercase tracking-wider mb-1">
+            <div class="p-2.5 rounded-lg bg-white border border-blue-200/80 shadow-2xs">
+              <div class="text-[10px] font-bold text-blue-700 uppercase tracking-wider mb-1 font-mono">
                 KBLI 2025 (Terkini)
               </div>
               <div class="font-bold text-slate-900">
@@ -355,8 +355,8 @@ async function handleCopyArticleLink() {
               </div>
             </div>
 
-            <div class="p-2.5 rounded-xl bg-white/90 border border-slate-200 shadow-2xs">
-              <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+            <div class="p-2.5 rounded-lg bg-white/90 border border-slate-200 shadow-2xs">
+              <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 font-mono">
                 KBLI 2020 (Transisi)
               </div>
               <div class="font-bold text-slate-800">
@@ -367,8 +367,8 @@ async function handleCopyArticleLink() {
               </div>
             </div>
 
-            <div class="p-2.5 rounded-xl bg-white/80 border border-slate-200">
-              <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+            <div class="p-2.5 rounded-lg bg-white/80 border border-slate-200">
+              <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 font-mono">
                 KBLI 2015
               </div>
               <div class="font-bold text-slate-800">
@@ -379,8 +379,8 @@ async function handleCopyArticleLink() {
               </div>
             </div>
 
-            <div class="p-2.5 rounded-xl bg-white/80 border border-slate-200">
-              <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+            <div class="p-2.5 rounded-lg bg-white/80 border border-slate-200">
+              <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 font-mono">
                 KBLI 2009 (Awal)
               </div>
               <div class="font-bold text-slate-800">
@@ -392,23 +392,23 @@ async function handleCopyArticleLink() {
             </div>
           </div>
 
-          <div class="text-[11px] text-slate-600 bg-white/70 p-2.5 rounded-xl border border-indigo-100 leading-relaxed">
-            <span class="font-bold text-indigo-900">Catatan Perubahan Struktur BPS: </span>
+          <div class="text-[11px] text-slate-600 bg-white/70 p-2.5 rounded-lg border border-blue-100 leading-relaxed">
+            <span class="font-bold text-blue-900">Catatan Perubahan Struktur BPS: </span>
             {{ kbliBridge.changeNotes }}
           </div>
         </div>
 
         <!-- Keterangan Validasi Nerwilis -->
         <div
-          class="p-4 rounded-2xl bg-gradient-to-br from-indigo-50/80 via-white to-emerald-50/75 border border-indigo-200/80 flex items-start gap-3.5"
+          class="p-4 rounded-xl bg-slate-50 border border-slate-200/90 flex items-start gap-3.5"
         >
           <div
-            class="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600 to-teal-700 text-white flex items-center justify-center shrink-0 mt-0.5 shadow-sm"
+            class="w-9 h-9 rounded-lg bg-blue-700 text-white flex items-center justify-center shrink-0 mt-0.5 shadow-xs"
           >
-            <UIcon name="i-solar-shield-check-bold-duotone" class="w-5 h-5" />
+            <UIcon name="i-solar-shield-check-bold-duotone" class="w-5 h-5 text-white" />
           </div>
           <div class="flex-1 flex flex-col gap-1 text-xs text-slate-700">
-            <span class="text-xs font-bold text-indigo-950">
+            <span class="text-xs font-bold text-slate-900 font-display">
               Validasi Metodologi Nerwilis BPS Kab. Tana Tidung
             </span>
             <p class="leading-relaxed">
@@ -416,7 +416,7 @@ async function handleCopyArticleLink() {
               kerangka dua sisi PDRB (Lapangan Usaha &amp; Pengeluaran) sebagai bukti pendukung penyusunan
               angka PDRB Triwulan {{ toRomanQuarter(article.quarter) }} {{ article.year }}.
             </p>
-            <span class="text-[11px] font-medium text-indigo-800 mt-0.5 tabular-nums">
+            <span class="text-[11px] font-medium text-blue-800 mt-0.5 font-mono tabular-nums">
               Referensi Arsip: #{{ article.id.slice(0, 8).toUpperCase() }} • {{ formatDateTimeWita(article.publishedAt) }}
             </span>
           </div>
@@ -430,7 +430,7 @@ async function handleCopyArticleLink() {
           <button
             v-if="hasSafeUrl"
             type="button"
-            class="min-h-10 inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:border-indigo-300 hover:text-indigo-800 text-xs font-semibold text-slate-700 shadow-2xs transition-colors cursor-pointer"
+            class="min-h-10 inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:border-blue-300 hover:text-blue-800 text-xs font-semibold text-slate-700 shadow-2xs transition-colors cursor-pointer"
             @click="handleCopyArticleLink"
           >
             <UIcon

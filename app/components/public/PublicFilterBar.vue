@@ -462,12 +462,12 @@ const bentoImpactItems = [
       <div class="space-y-2 pt-3 border-t border-slate-100">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-1.5">
-            <span class="block text-[11px] font-bold text-slate-700">
+            <span class="block text-[11px] font-bold text-slate-700 font-display">
               Kelompok Pengeluaran
             </span>
             <span
               v-if="expenditures.length > 0"
-              class="px-1.5 py-0.2 rounded-full bg-indigo-600 text-white text-[9px] font-bold tabular-nums"
+              class="px-1.5 py-0.2 rounded-full bg-blue-700 text-white text-[9px] font-bold font-mono tabular-nums"
             >
               {{ expenditures.length }}
             </span>
@@ -475,7 +475,7 @@ const bentoImpactItems = [
           <button
             v-if="expenditures.length > 0"
             type="button"
-            class="text-[10px] font-semibold text-indigo-600 hover:text-indigo-800 cursor-pointer"
+            class="text-[10px] font-semibold text-blue-700 hover:text-blue-900 cursor-pointer font-display"
             @click="clearExpenditures"
           >
             Reset
@@ -494,7 +494,7 @@ const bentoImpactItems = [
             class="w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-left transition-colors cursor-pointer group"
             :class="
               expenditures.includes(item.code)
-                ? 'bg-white font-semibold text-indigo-900 shadow-2xs border border-indigo-200/80'
+                ? 'bg-white font-semibold text-blue-900 shadow-2xs border border-blue-200/80'
                 : 'hover:bg-white text-slate-700 font-normal'
             "
             :title="item.official"
@@ -505,7 +505,7 @@ const bentoImpactItems = [
                 type="checkbox"
                 tabindex="-1"
                 :checked="expenditures.includes(item.code)"
-                class="w-3.5 h-3.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer pointer-events-none shrink-0"
+                class="w-3.5 h-3.5 rounded border-slate-300 text-blue-700 focus:ring-blue-500 cursor-pointer pointer-events-none shrink-0"
               >
               <span
                 class="w-2 h-2 rounded-full shrink-0 shadow-xs"
@@ -518,11 +518,11 @@ const bentoImpactItems = [
             </div>
 
             <span
-              class="text-[10px] tabular-nums font-semibold shrink-0"
+              class="text-[10px] tabular-nums font-semibold shrink-0 font-mono"
               :class="
                 (expenditureCountMap.get(item.code) ?? 0) > 0
                   ? expenditures.includes(item.code)
-                    ? 'text-indigo-700'
+                    ? 'text-blue-700 font-bold'
                     : 'text-slate-700 font-bold'
                   : 'text-slate-400'
               "

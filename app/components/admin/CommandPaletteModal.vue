@@ -223,8 +223,8 @@ async function handleSubmitEnter() {
     <template #content>
       <div class="bg-white flex flex-col max-h-[80vh]">
         <!-- Search Header -->
-        <div class="px-4 py-3.5 border-b border-slate-200 flex items-center gap-3 focus-within:border-indigo-500">
-          <UIcon name="i-solar-magnifer-line-duotone" class="w-4 h-4 text-indigo-600 shrink-0" />
+        <div class="px-4 py-3.5 border-b border-slate-200 flex items-center gap-3 focus-within:border-blue-500">
+          <UIcon name="i-solar-magnifer-line-duotone" class="w-4 h-4 text-blue-700 shrink-0" />
           <label for="admin-command-palette-input" class="sr-only">
             Cari halaman atau fenomena ekonomi
           </label>
@@ -239,7 +239,7 @@ async function handleSubmitEnter() {
           >
           <button
             type="button"
-            class="min-h-8 text-[11px] font-semibold px-2.5 py-0.5 rounded-md border border-slate-200 bg-slate-50 text-slate-600 hover:text-slate-900 shrink-0 cursor-pointer"
+            class="min-h-8 text-[11px] font-semibold px-2.5 py-0.5 rounded-md border border-slate-200 bg-slate-50 text-slate-600 hover:text-slate-900 shrink-0 cursor-pointer font-mono"
             @click="() => { modalOpen = false; }"
           >
             ESC
@@ -250,33 +250,33 @@ async function handleSubmitEnter() {
         <div class="flex-1 overflow-y-auto saas-scroll p-3 space-y-4">
           <!-- Routes Section -->
           <div v-if="filteredRoutes.length > 0" class="space-y-1">
-            <div class="px-2 py-1 text-[11px] font-semibold tracking-wide text-slate-600">
+            <div class="px-2 py-1 text-[11px] font-semibold tracking-wide text-slate-500 uppercase font-mono">
               Menu Workstation
             </div>
             <button
               v-for="item in filteredRoutes"
               :key="item.to"
               type="button"
-              class="w-full flex items-center justify-between gap-3 px-2.5 py-2 rounded-xl text-left hover:bg-indigo-50/50 border border-transparent hover:border-indigo-200/70 transition-colors cursor-pointer"
+              class="w-full flex items-center justify-between gap-3 px-2.5 py-2 rounded-xl text-left hover:bg-blue-50/50 border border-transparent hover:border-blue-200/70 transition-colors cursor-pointer"
               @click="() => { void goToRoute(item.to); }"
             >
               <div class="flex items-center gap-2.5 min-w-0">
-                <div class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-100 flex items-center justify-center shrink-0">
+                <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-700 border border-blue-100 flex items-center justify-center shrink-0">
                   <UIcon :name="item.icon" class="w-4 h-4" />
                 </div>
                 <div class="min-w-0">
-                  <div class="text-xs font-semibold text-slate-900 truncate">{{ item.label }}</div>
-                  <div class="text-[11px] text-slate-600 truncate">{{ item.section }}</div>
+                  <div class="text-xs font-semibold text-slate-900 truncate font-display">{{ item.label }}</div>
+                  <div class="text-[11px] text-slate-500 truncate">{{ item.section }}</div>
                 </div>
               </div>
               <div class="flex items-center gap-2 shrink-0">
                 <span
                   v-if="item.badge"
-                  class="px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200 text-[11px] font-bold tabular-nums"
+                  class="px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200 text-[11px] font-bold font-mono tabular-nums"
                 >
                   {{ item.badge }}
                 </span>
-                <UIcon name="i-lucide-corner-down-left" class="w-3.5 h-3.5 text-slate-500" />
+                <UIcon name="i-lucide-corner-down-left" class="w-3.5 h-3.5 text-slate-400" />
               </div>
             </button>
           </div>
@@ -284,10 +284,10 @@ async function handleSubmitEnter() {
           <!-- Articles Section -->
           <div v-if="query.trim().length >= 2" class="space-y-1 pt-2 border-t border-slate-100">
             <div class="px-2 py-1 flex items-center justify-between">
-              <span class="text-[11px] font-semibold tracking-wide text-slate-600">
+              <span class="text-[11px] font-semibold tracking-wide text-slate-500 uppercase font-mono">
                 Hasil Fenomena Ekonomi
               </span>
-              <span v-if="searchingArticles" class="text-xs font-semibold text-indigo-600">
+              <span v-if="searchingArticles" class="text-xs font-semibold text-blue-700 font-mono">
                 Mencari...
               </span>
             </div>
@@ -303,20 +303,20 @@ async function handleSubmitEnter() {
               v-for="art in matchedArticles"
               :key="art.id"
               type="button"
-              class="w-full flex items-start justify-between gap-3 px-2.5 py-2.5 rounded-xl text-left hover:bg-indigo-50/45 border border-transparent hover:border-indigo-200/70 transition-colors cursor-pointer"
+              class="w-full flex items-start justify-between gap-3 px-2.5 py-2.5 rounded-xl text-left hover:bg-blue-50/45 border border-transparent hover:border-blue-200/70 transition-colors cursor-pointer"
               @click="() => { void openArticleInReview(art); }"
             >
               <div class="min-w-0 space-y-1">
-                <div class="text-xs font-semibold text-slate-900 line-clamp-1">
+                <div class="text-xs font-semibold text-slate-900 line-clamp-1 font-display">
                   {{ art.title }}
                 </div>
-                <div class="flex flex-wrap items-center gap-1.5 text-[11px] text-slate-600 tabular-nums">
+                <div class="flex flex-wrap items-center gap-1.5 text-[11px] text-slate-600 font-mono tabular-nums">
                   <span>{{ formatDateId(art.publishedAt) }}</span>
                   <span>•</span>
                   <span>{{ art.sourcePortal }}</span>
                   <span>•</span>
                   <span>TW {{ toRomanQuarter(art.quarter) }} {{ art.year }}</span>
-                  <span v-if="art.kbliCategory" class="text-indigo-700 font-semibold">• KBLI {{ art.kbliCategory }}</span>
+                  <span v-if="art.kbliCategory" class="text-blue-700 font-bold">• KBLI {{ art.kbliCategory }}</span>
                 </div>
               </div>
               <UBadge
@@ -332,7 +332,7 @@ async function handleSubmitEnter() {
             <button
               v-if="matchedArticles.length > 0"
               type="button"
-              class="w-full mt-1 px-2.5 py-2 rounded-xl text-xs font-semibold text-indigo-700 hover:bg-indigo-50 flex items-center justify-between cursor-pointer"
+              class="w-full mt-1 px-2.5 py-2 rounded-xl text-xs font-semibold text-blue-700 hover:bg-blue-50 flex items-center justify-between cursor-pointer font-display"
               @click="() => { void goToRoute(`/admin/articles?q=${encodeURIComponent(query.trim())}`); }"
             >
               <span>Buka semua hasil "{{ query.trim() }}" di Bank Data</span>

@@ -399,7 +399,7 @@ async function submitUpdate(action: 'VERIFIED' | 'IGNORED' | 'DRAFT') {
             <button
               v-if="canRestoreInitialSummary"
               type="button"
-              class="inline-flex items-center gap-1 min-h-8 px-1.5 rounded-lg text-xs font-semibold text-indigo-700 hover:text-indigo-900 hover:bg-indigo-50 cursor-pointer"
+              class="inline-flex items-center gap-1 min-h-8 px-1.5 rounded-lg text-xs font-semibold text-blue-700 hover:text-blue-900 hover:bg-blue-50 cursor-pointer"
               @click="() => { restoreInitialSummary(); }"
             >
               <UIcon name="i-lucide-rotate-ccw" class="w-3 h-3" />
@@ -426,8 +426,8 @@ async function submitUpdate(action: 'VERIFIED' | 'IGNORED' | 'DRAFT') {
         <!-- Grid Klasifikasi Dua Sisi PDRB -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
           <!-- Sisi Lapangan Usaha -->
-          <div class="rounded-xl border border-indigo-200/70 bg-indigo-50/35 p-3.5 space-y-3">
-            <div class="text-xs font-bold text-indigo-900">
+          <div class="rounded-xl border border-blue-200/70 bg-blue-50/35 p-3.5 space-y-3">
+            <div class="text-xs font-bold text-blue-900 font-display">
               1. Sisi Lapangan Usaha (KBLI)
             </div>
 
@@ -503,8 +503,8 @@ async function submitUpdate(action: 'VERIFIED' | 'IGNORED' | 'DRAFT') {
         <!-- Sektor & Dampak Sekunder (Opsional / Inter-industry Linkage) -->
         <div class="rounded-xl border border-slate-200/90 bg-slate-50/70 p-3.5 space-y-3">
           <div class="flex items-center gap-2">
-            <UIcon name="i-solar-link-round-bold-duotone" class="w-4 h-4 text-indigo-600" />
-            <span class="text-xs font-bold text-slate-800">Keterkaitan Sektoral Sekunder (Opsional)</span>
+            <UIcon name="i-solar-link-round-bold-duotone" class="w-4 h-4 text-blue-700" />
+            <span class="text-xs font-bold text-slate-800 font-display">Keterkaitan Sektoral Sekunder (Opsional)</span>
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <UFormField label="KBLI Sekunder">

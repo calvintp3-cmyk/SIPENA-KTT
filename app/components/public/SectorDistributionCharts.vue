@@ -238,10 +238,10 @@ function handleExpenditureChartClick(params: unknown) {
         <button
           v-if="selectedKbli && selectedKbli !== 'ALL'"
           type="button"
-          class="min-h-8 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-800 border border-indigo-200 hover:bg-indigo-100 cursor-pointer"
+          class="min-h-8 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-800 border border-blue-200 hover:bg-blue-100 cursor-pointer font-mono"
           @click="() => { emit('update:kbli', 'ALL'); }"
         >
-          <UIcon name="i-lucide-x" class="w-3 h-3" />
+          <UIcon name="i-lucide-x" class="w-3 h-3 text-blue-700" />
           <span>KBLI {{ selectedKbli }}</span>
         </button>
       </div>
@@ -264,11 +264,11 @@ function handleExpenditureChartClick(params: unknown) {
             :key="item.code"
             type="button"
             :aria-pressed="isKbliCodeActive(item.code)"
-            class="min-h-8 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border transition-colors tabular-nums cursor-pointer"
+            class="min-h-8 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border transition-colors font-mono tabular-nums cursor-pointer"
             :class="
               isKbliCodeActive(item.code)
-                ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
-                : 'bg-white text-slate-700 border-slate-200 hover:border-indigo-300'
+                ? 'bg-blue-700 text-white border-blue-700 shadow-xs'
+                : 'bg-white text-slate-700 border-slate-200 hover:border-blue-300'
             "
             @click="() => { toggleKbliFilter(item.code); }"
           >
@@ -292,7 +292,7 @@ function handleExpenditureChartClick(params: unknown) {
             <UIcon name="i-solar-pie-chart-2-bold-duotone" class="w-4 h-4" />
           </div>
           <div>
-            <h2 class="text-sm font-bold text-slate-900">
+            <h2 class="text-sm font-bold text-slate-900 font-display">
               Sebaran Komponen PDRB Pengeluaran
             </h2>
             <p class="text-[11px] text-slate-600">
@@ -303,7 +303,7 @@ function handleExpenditureChartClick(params: unknown) {
         <button
           v-if="selectedExpenditure && selectedExpenditure !== 'ALL'"
           type="button"
-          class="min-h-8 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100 cursor-pointer"
+          class="min-h-8 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100 cursor-pointer font-mono"
           @click="() => { emit('update:expenditure', 'ALL'); }"
         >
           <UIcon name="i-lucide-x" class="w-3 h-3" />
@@ -334,7 +334,7 @@ function handleExpenditureChartClick(params: unknown) {
               class="w-full min-h-9 flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-xl text-xs border transition-colors text-left cursor-pointer"
               :class="
                 selectedExpenditure === item.code
-                  ? 'bg-indigo-50/90 border-indigo-300 text-indigo-950 font-semibold'
+                  ? 'bg-blue-50/90 border-blue-300 text-blue-950 font-semibold'
                   : 'bg-white border-slate-200/80 hover:border-slate-300 text-slate-700 font-medium'
               "
               @click="() => { toggleExpenditureFilter(item.code); }"

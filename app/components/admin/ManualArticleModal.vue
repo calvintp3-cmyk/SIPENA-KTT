@@ -283,10 +283,10 @@ async function handleSubmit(event: FormSubmitEvent<CreateManualArticleInput>) {
               v-if="formState.url.startsWith('http')"
               type="button"
               :disabled="isExtractingUrl"
-              class="text-xs font-bold text-indigo-700 hover:text-indigo-900 inline-flex items-center gap-1 cursor-pointer disabled:opacity-50"
+              class="text-xs font-bold text-blue-700 hover:text-blue-900 inline-flex items-center gap-1 cursor-pointer disabled:opacity-50 font-display"
               @click="handleExtractFromUrl"
             >
-              <UIcon :name="isExtractingUrl ? 'i-lucide-loader-circle' : 'i-lucide-sparkles'" class="w-3.5 h-3.5" :class="isExtractingUrl ? 'animate-spin' : 'text-indigo-600'" />
+              <UIcon :name="isExtractingUrl ? 'i-lucide-loader-circle' : 'i-lucide-sparkles'" class="w-3.5 h-3.5" :class="isExtractingUrl ? 'animate-spin' : 'text-blue-600'" />
               <span>{{ isExtractingUrl ? 'Mengekstrak...' : 'Tarik & Analisis AI Otomatis' }}</span>
             </button>
           </div>
@@ -294,12 +294,12 @@ async function handleSubmit(event: FormSubmitEvent<CreateManualArticleInput>) {
             <UInput
               v-model="formState.url"
               placeholder="https://... atau Surat Keputusan No. 123/2026"
-              class="flex-1"
+              class="flex-1 font-mono text-xs"
             />
             <button
               type="button"
               :disabled="!formState.url.startsWith('http') || isExtractingUrl"
-              class="min-h-9 px-3 rounded-lg border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 text-xs font-bold text-indigo-800 inline-flex items-center gap-1.5 transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shrink-0"
+              class="min-h-9 px-3 rounded-lg border border-blue-200 bg-blue-50 hover:bg-blue-100 text-xs font-bold text-blue-800 inline-flex items-center gap-1.5 transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shrink-0"
               @click="handleExtractFromUrl"
             >
               <UIcon :name="isExtractingUrl ? 'i-lucide-loader-circle' : 'i-solar-magic-stick-3-bold-duotone'" class="w-4 h-4" :class="isExtractingUrl ? 'animate-spin' : ''" />
@@ -406,8 +406,8 @@ async function handleSubmit(event: FormSubmitEvent<CreateManualArticleInput>) {
         <!-- Sektor & Dampak Sekunder (Opsional / Inter-industry Linkage) -->
         <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200/80 space-y-3">
           <div class="flex items-center gap-2">
-            <UIcon name="i-solar-link-round-bold-duotone" class="w-4 h-4 text-indigo-600" />
-            <span class="text-xs font-bold text-slate-800">Sektor Sekunder (Opsional — Keterkaitan Sektoral)</span>
+            <UIcon name="i-solar-link-round-bold-duotone" class="w-4 h-4 text-blue-700" />
+            <span class="text-xs font-bold text-slate-800 font-display">Sektor Sekunder (Opsional — Keterkaitan Sektoral)</span>
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <UFormField label="KBLI Sekunder" name="secondaryKbliCategory">

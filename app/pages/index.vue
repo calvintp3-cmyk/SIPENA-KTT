@@ -432,12 +432,12 @@ const capabilityBento = [
     >
       <div class="max-w-2xl space-y-2.5">
         <div
-          class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-200/80 text-indigo-700 text-xs font-semibold"
+          class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-200/80 text-blue-700 text-xs font-semibold font-mono"
         >
           <UIcon name="i-solar-layers-minimalistic-bold-duotone" class="w-3.5 h-3.5" />
           <span>Arsitektur &amp; Metodologi Kerja</span>
         </div>
-        <h2 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-slate-900 leading-tight">
+        <h2 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-slate-900 leading-tight font-display">
           Dari Pemberitaan Daerah Menjadi Peta Fenomena Ekonomi Terstruktur
         </h2>
         <p class="text-sm text-slate-600 leading-relaxed">
@@ -450,7 +450,7 @@ const capabilityBento = [
         <article
           v-for="card in capabilityBento"
           :key="card.title"
-          class="group rounded-3xl border bg-gradient-to-br p-6 sm:p-7 flex flex-col justify-between gap-6 shadow-[0_8px_24px_-14px_rgba(15,23,42,0.08)] hover:shadow-[0_20px_45px_-15px_rgba(15,23,42,0.12)] hover:-translate-y-1 transition-all duration-300 relative overflow-hidden"
+          class="group rounded-2xl border bg-gradient-to-br p-6 sm:p-7 flex flex-col justify-between gap-6 shadow-[0_4px_20px_-4px_rgba(15,23,42,0.06)] hover:shadow-[0_20px_45px_-12px_rgba(15,23,42,0.12)] hover:-translate-y-1 transition-all duration-300 relative overflow-hidden"
           :class="[card.span, card.accentBg]"
         >
           <!-- Subtle decorative radial background accent -->
@@ -458,11 +458,11 @@ const capabilityBento = [
 
           <div class="space-y-4 relative z-10">
             <div class="flex items-start justify-between gap-4">
-              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold tracking-wide bg-white/80 border border-slate-200/70" :class="card.eyebrowClass">
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold tracking-wide bg-white/80 border border-slate-200/70 font-mono" :class="card.eyebrowClass">
                 {{ card.eyebrow }}
               </span>
               <div
-                class="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-md group-hover:scale-105 transition-transform duration-300"
+                class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform duration-300"
                 :class="card.iconBox"
               >
                 <UIcon :name="card.icon" class="w-6 h-6" />
@@ -470,7 +470,7 @@ const capabilityBento = [
             </div>
 
             <div class="space-y-2">
-              <h3 class="text-lg sm:text-xl font-extrabold tracking-tight text-slate-900 leading-snug">
+              <h3 class="text-lg sm:text-xl font-extrabold tracking-tight text-slate-900 leading-snug font-display">
                 {{ card.title }}
               </h3>
               <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
@@ -483,9 +483,9 @@ const capabilityBento = [
             <span
               v-for="tag in card.tags"
               :key="tag"
-              class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-white/95 border border-slate-200/90 text-xs font-semibold text-slate-700 shadow-2xs"
+              class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white/95 border border-slate-200/90 text-xs font-semibold text-slate-700 shadow-2xs"
             >
-              <span class="w-1.5 h-1.5 rounded-full bg-indigo-500" />
+              <span class="w-1.5 h-1.5 rounded-full bg-blue-600" />
               <span>{{ tag }}</span>
             </span>
           </div>
@@ -580,10 +580,10 @@ const capabilityBento = [
               </span>
             </div>
 
-            <h3 class="text-base font-extrabold text-slate-900 leading-snug line-clamp-2">
+            <h3 class="text-base font-extrabold text-slate-900 leading-snug line-clamp-2 font-display">
               <button
                 type="button"
-                class="text-left group-hover:text-indigo-700 transition-colors cursor-pointer after:content-[''] after:absolute after:inset-0 after:rounded-3xl focus-visible:outline-none focus-visible:after:ring-2 focus-visible:after:ring-indigo-600 focus-visible:after:ring-offset-2"
+                class="text-left group-hover:text-blue-700 transition-colors cursor-pointer after:content-[''] after:absolute after:inset-0 after:rounded-2xl focus-visible:outline-none focus-visible:after:ring-2 focus-visible:after:ring-blue-600 focus-visible:after:ring-offset-2"
                 @click="openPreviewModal(art)"
               >
                 {{ art.title }}
@@ -613,7 +613,7 @@ const capabilityBento = [
               >
                 {{ getKbliImpactBadge(art.kbliImpact).shortLabel }}
               </UBadge>
-              <UIcon name="i-lucide-arrow-up-right" class="w-3.5 h-3.5 text-slate-400 group-hover:text-indigo-600 transition-colors" />
+              <UIcon name="i-lucide-arrow-up-right" class="w-3.5 h-3.5 text-slate-400 group-hover:text-blue-700 transition-colors" />
             </div>
           </div>
         </article>
@@ -624,7 +624,7 @@ const capabilityBento = [
         class="saas-card rounded-2xl p-8 text-center space-y-3"
       >
         <div
-          class="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-200/80 text-indigo-700 flex items-center justify-center mx-auto"
+          class="w-12 h-12 rounded-xl bg-blue-50 border border-blue-200/80 text-blue-700 flex items-center justify-center mx-auto"
         >
           <UIcon name="i-solar-archive-minimalistic-bold-duotone" class="w-6 h-6" />
         </div>
