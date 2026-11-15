@@ -50,6 +50,7 @@ import {
 } from './national';
 import {
   DEFAULT_LOOKBACK_DAYS,
+  DEFAULT_REGIONAL_MAX_ITEMS,
   getWitaLookbackCutoff,
   harvestRegionalPortals,
   isWithinLookbackWindow,
