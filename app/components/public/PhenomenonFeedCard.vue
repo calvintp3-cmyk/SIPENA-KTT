@@ -264,7 +264,7 @@ async function copyCitation() {
                     <UIcon name="i-solar-route-bold-duotone" class="w-3.5 h-3.5 text-indigo-600" />
                     Jembatan Konkordansi 4-Generasi
                   </span>
-                  <span class="text-[10px] bg-indigo-100 text-indigo-800 font-bold px-1.5 py-0.5 rounded">BPS KTT</span>
+                  <span class="text-xs bg-indigo-100 text-indigo-800 font-bold px-1.5 py-0.5 rounded">BPS KTT</span>
                 </div>
                 <div class="space-y-1.5 text-[11px]">
                   <div class="flex items-start gap-1.5 bg-indigo-50/70 p-1.5 rounded-lg border border-indigo-100">
@@ -284,7 +284,7 @@ async function copyCitation() {
                     <span class="text-slate-700">{{ kbliBridge.code2009 }} • {{ kbliBridge.title2009 }}</span>
                   </div>
                 </div>
-                <div class="text-[10px] text-slate-500 pt-1 border-t border-slate-100 leading-tight">
+                <div class="text-xs text-slate-500 pt-1 border-t border-slate-100 leading-tight">
                   {{ kbliBridge.changeNotes }}
                 </div>
               </div>
@@ -317,7 +317,7 @@ async function copyCitation() {
           </span>
           <span
             v-if="article.secondaryKbliImpact"
-            class="text-[10px] px-2 py-0.5 rounded-full font-semibold border shrink-0"
+            class="text-xs px-2 py-0.5 rounded-full font-semibold border shrink-0"
             :class="secondaryKbliImpactToneClass"
           >
             {{ secondaryKbliImpactMeta.label }}
@@ -357,7 +357,7 @@ async function copyCitation() {
           </span>
           <span
             v-if="article.secondaryExpenditureImpact"
-            class="text-[10px] px-2 py-0.5 rounded-full font-semibold border shrink-0"
+            class="text-xs px-2 py-0.5 rounded-full font-semibold border shrink-0"
             :class="secondaryExpImpactToneClass"
           >
             {{ secondaryExpImpactMeta.shortLabel }}

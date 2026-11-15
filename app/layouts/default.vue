@@ -143,7 +143,7 @@ onBeforeUnmount(() => {
                 <span class="text-indigo-700">KTT</span>
               </span>
               <span
-                class="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200/80"
+                class="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200/80"
               >
                 Nerwilis
               </span>
@@ -285,7 +285,7 @@ onBeforeUnmount(() => {
             <UIcon
               :name="item.icon"
               class="w-5 h-5 shrink-0"
-              :class="item.active ? 'text-indigo-600' : 'text-slate-400'"
+              :class="item.active ? 'text-indigo-600' : 'text-slate-600'"
             />
             <span>{{ item.label }}</span>
           </NuxtLink>

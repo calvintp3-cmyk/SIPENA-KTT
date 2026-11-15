@@ -292,7 +292,7 @@ const lastRunBadge = computed(() =>
           <span class="text-xs font-semibold text-slate-600">
             Eksekusi Crawler Terakhir
           </span>
-          <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 border border-amber-200/80 flex items-center justify-center shrink-0">
+          <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-800 border border-amber-200/80 flex items-center justify-center shrink-0">
             <UIcon name="i-solar-clock-circle-bold-duotone" class="w-4 h-4" />
           </div>
         </div>

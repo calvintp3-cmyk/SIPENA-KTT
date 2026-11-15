@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Workbench Review Harian & Monitor Multi-LLM — SIPENA KTT Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Instrument+Sans:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,500;0,6..72,600;1,6..72,500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .workbench-split {
+      display: grid;
+      grid-template-columns: 380px minmax(0, 1fr);
+      gap: 18px;
+      align-items: start;
+    }
+    .queue-item {
+      padding: 13px 15px;
+      border-bottom: 1px solid var(--border-subtle);
+      cursor: pointer;
+      transition: background 0.14s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .queue-item:hover {
+      background: var(--bg-subtle);
+    }
+    .queue-item.active {
+      background: var(--cobalt-surface);
+      border-left: 3px solid var(--cobalt-600);
+    }
+    .slot-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+    }
+    @media (max-width: 1180px) {
+      .workbench-split {
+        grid-template-columns: 1fr;
+      }
+      .slot-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+    @media (max-width: 640px) {
+      .slot-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+  <script src="../shared/data.js"></script>
+  <script src="app.js"></script>
+</head>
+<body>
+  <div id="proto-bar-mount"></div>
+
+  <div class="admin-layout">
+    <div id="sidebar-mount"></div>
+
+    <main class="admin-main">
+      <!-- Top Workspace Bar -->
+      <header class="workspace-topbar">
+        <div class="topbar-title-area">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span class="section-label">KURASI AI &amp; OPERASIONAL SISTEM</span>
+            <span style="color:var(--ink-faint);">·</span>
+            <span class="font-mono text-muted" style="font-size:0.75rem;">23 Antrean Pending · 5 Slot Multi-LLM Aktif</span>
+          </div>
+          <h1 class="heading-lg" style="font-size:1.55rem;">Workbench Review Harian &amp; Monitor Multi-LLM</h1>
+        </div>
+
+        <div class="topbar-controls">
+          <div style="display:flex; align-items:center; gap:6px; font-size:0.78rem; color:var(--ink-secondary); background:var(--bg-subtle); padding:6px 12px; border-radius:8px; border:1px solid var(--border-subtle);">
+            <span>Shortcut Kurasi:</span>
+            <span class="kbd">J</span><span class="kbd">K</span><span>Navigasi</span>
+            <span class="kbd">A</span><span>Setujui</span>
+            <span class="kbd">E</span><span>Edit</span>
+            <span class="kbd">S</span><span>Lewati</span>
+          </div>
+          <a href="#scrapers" class="btn btn-secondary btn-sm">Monitor 5 Slot LLM ↓</a>
+        </div>
+      </header>
+
+      <!-- SECTION 1: Split-Pane 2-Column Workbench Review Harian -->
+      <section class="workbench-split" aria-label="Workbench Review Harian">
+        <!-- Left Pane: Queue List (23 Pending Items) -->
+        <div class="card" style="overflow:hidden;">
+          <div class="card-header" style="background:var(--bg-subtle);">
+            <div>
+              <div class="section-label">ANTREAN VERIFIKASI HARIAN</div>
+              <h2 class="heading-md" style="margin-top:2px;">23 Berita Menunggu Review</h2>
+            </div>
+            <span class="nav-badge cobalt" id="queue-counter-badge">23 Pending</span>
+          </div>
+
+          <div style="padding:10px 14px; border-bottom:1px solid var(--border-subtle); display:flex; gap:6px;">
+            <button class="btn btn-subtle btn-sm" style="flex:1;">Semua (23)</button>
+            <button class="btn btn-ghost btn-sm" style="flex:1;">Confidence &lt;75% (4)</button>
+          </div>
+
+          <div id="workbench-queue-list"></div>
+        </div>
+
+        <!-- Right Pane: Dual-Dimension Inspector & Editor -->
+        <div class="card" id="workbench-inspector-pane">
+          <div class="card-header" style="background:var(--bg-subtle);">
+            <div>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span class="section-label" style="color:var(--cobalt-600);">INSPEKTOR KLASIFIKASI AI</span>
+                <span class="font-mono text-muted" style="font-size:0.75rem;" id="wb-meta-id">#0001 · 14 Okt 2026</span>
+              </div>
+              <h2 class="heading-md" style="font-size:1.2rem; margin-top:4px;" id="wb-title">
+                Harga TBS Sawit di Tana Tidung Menguat di Awal Triwulan IV
+              </h2>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span class="kbli-badge"><span class="kbli-code" id="wb-model">gemini-3.8-flash</span><span id="wb-conf">94% Conf</span></span>
+            </div>
+          </div>
+
+          <div class="card-body" style="display:flex; flex-direction:column; gap:20px;">
+            <!-- Highlighted Article Excerpt -->
+            <div>
+              <div class="section-label" style="margin-bottom:6px;">Kutipan Bukti Artikel &amp; Entitas Terdeteksi</div>
+              <div class="well-subtle" style="font-size:0.92rem; line-height:1.65; color:var(--ink-primary);" id="wb-summary">
+                “Harga pembelian <mark style="background:#FEF3C7; padding:1px 4px; border-radius:3px;">tandan buah segar (TBS) kelapa sawit</mark> di tingkat petani naik sekitar <mark style="background:#DCFCE7; padding:1px 4px; border-radius:3px;">9 persen dibanding akhir September</mark> seiring kenaikan harga CPO dan lancarnya pengangkutan dari kebun menuju pabrik.”
+              </div>
+            </div>
+
+            <!-- Two-Column Mapping Inspector (Lapangan Usaha vs Pengeluaran) -->
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+              <!-- Side 1: Lapangan Usaha (KBLI 2025) -->
+              <div class="well-subtle" style="background:var(--surface-card); display:flex; flex-direction:column; gap:12px;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <span class="section-label">1 · Sisi Lapangan Usaha (KBLI 2025)</span>
+                  <span class="kbli-code" id="wb-kbli-pill">Kategori A</span>
+                </div>
+
+                <div>
+                  <label class="text-secondary" style="font-size:0.78rem; font-weight:600; display:block; margin-bottom:4px;">Pilih Kategori KBLI (22 → 17 Sektor PDRB)</label>
+                  <select id="wb-select-kbli" class="select-ctrl" style="width:100%;">
+                    <option value="A">A · Pertanian, Kehutanan, dan Perikanan</option>
+                    <option value="B">B · Pertambangan dan Penggalian</option>
+                    <option value="C">C · Industri Pengolahan</option>
+                    <option value="F">F · Konstruksi</option>
+                    <option value="G">G · Perdagangan Besar dan Eceran</option>
+                    <option value="H">H · Transportasi dan Penyimpanan</option>
+                    <option value="P">P · Administrasi Pemerintahan</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="text-secondary" style="font-size:0.78rem; font-weight:600; display:block; margin-bottom:6px;">Dimensi &amp; Arah Dampak Sektor</label>
+                  <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;" id="wb-kbli-impact-group"></div>
+                </div>
+              </div>
+
+              <!-- Side 2: Komponen Pengeluaran -->
+              <div class="well-subtle" style="background:var(--surface-card); display:flex; flex-direction:column; gap:12px;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <span class="section-label">2 · Sisi Komponen Pengeluaran</span>
+                  <span class="exp-badge" id="wb-exp-pill">NET_EXPORT</span>
+                </div>
+
+                <div>
+                  <label class="text-secondary" style="font-size:0.78rem; font-weight:600; display:block; margin-bottom:4px;">Pilih Komponen Pengeluaran (6 Komponen)</label>
+                  <select id="wb-select-exp" class="select-ctrl" style="width:100%;">
+                    <option value="PMTB">PMTB · Pembentukan Modal Tetap Bruto</option>
+                    <option value="PK_P">PK_P · Konsumsi Pemerintah</option>
+                    <option value="NET_EXPORT">NET_EXPORT · Ekspor Bersih</option>
+                    <option value="PK_RT">PK_RT · Konsumsi Rumah Tangga</option>
+                    <option value="INVENTORY_CHANGE">INVENTORY_CHANGE · Perubahan Inventori</option>
+                    <option value="PK_LNPRT">PK_LNPRT · Konsumsi LNPRT</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="text-secondary" style="font-size:0.78rem; font-weight:600; display:block; margin-bottom:6px;">Dimensi &amp; Arah Dampak Pengeluaran</label>
+                  <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;" id="wb-exp-impact-group"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Analyst Note Input -->
+            <div>
+              <label for="wb-note" class="section-label" style="display:block; margin-bottom:6px;">Catatan Verifikasi Statistisi / Analis Bappeda</label>
+              <input
+                type="text"
+                id="wb-note"
+                class="input-search"
+                style="width:100%;"
+                value="Kenaikan TBS sawit 9% relevan sebagai pendorong harga/deflator subsektor perkebunan dan nilai ekspor komoditas daerah."
+              />
+            </div>
+          </div>
+
+          <div class="card-footer" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <button class="btn btn-ghost btn-sm" onclick="triggerDecision('SKIP')">
+                <span>Lewati / Bukan Fenomena</span>
+                <span class="kbd">S</span>
+              </button>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px;">
+              <button class="btn btn-secondary" onclick="triggerDecision('EDIT')">
+                <span>Simpan Koreksi Manual</span>
+                <span class="kbd">E</span>
+              </button>
+              <button class="btn btn-primary" onclick="triggerDecision('APPROVE')">
+                <span>Setujui &amp; Masuk Linimasa</span>
+                <span class="kbd" style="background:rgba(255,255,255,0.2); color:#FFF; border-color:transparent;">A</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 2: Monitor 5 Slot Multi-LLM & Scraper Engine (/admin/scrapers) -->
+      <section class="card" id="scrapers">
+        <div class="card-header">
+          <div>
+            <div class="section-label">SISTEM EKSTRAKSI OTOMATIS · FAILOVER ROTATION</div>
+            <h2 class="heading-md" style="margin-top:2px;">Monitor 5 Slot Multi-LLM &amp; Antrean Scraper Portal Berita</h2>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span class="nav-badge warn">3 Rate-Limit Terdeteksi (Auto-Failover Aktif)</span>
+            <button class="btn btn-secondary btn-sm" onclick="alert('Memicu sinkronisasi RSS & Crawler pada 6 portal berita Kalimantan Utara')">
+              Jalankan Scraper Sekarang
+            </button>
+          </div>
+        </div>
+
+        <div class="card-body" style="display:flex; flex-direction:column; gap:16px;">
+          <div class="slot-grid" id="llm-slots-grid"></div>
+        </div>
+      </section>
+
+      <!-- SECTION 3: Component States & Interactive Craft Gallery -->
+      <section class="card" id="portal">
+        <div class="card-header">
+          <div>
+            <div class="section-label">SPESIFIKASI KOMPONEN &amp; INTERACTION STATES</div>
+            <h2 class="heading-md" style="margin-top:2px;">Galeri Komponen, Dual-Dimension Badges &amp; Edge States</h2>
+          </div>
+        </div>
+        <div class="card-body" style="display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:16px;">
+          <!-- State 1: Dual-Dimension Badges -->
+          <div class="well-subtle" style="display:flex; flex-direction:column; gap:10px;">
+            <div class="section-label">1 · Dual-Dimension Impact Pills</div>
+            <div style="display:flex; flex-wrap:wrap; gap:8px;" id="gallery-badges"></div>
+            <p class="text-muted" style="font-size:0.76rem;">
+              Membedakan Volume Riil (lingkaran panah + emerald/crimson) dari Harga/Deflator (belah ketupat + ochre/deep sky).
+            </p>
+          </div>
+
+          <!-- State 2: Low Confidence Review Warning State -->
+          <div class="well-subtle" style="border-color:var(--price-up-border); background:var(--price-up-bg); display:flex; flex-direction:column; gap:8px;">
+            <div class="section-label" style="color:var(--price-up-text);">2 · State Keyakinan Rendah (&lt;65%)</div>
+            <div style="font-weight:600; font-size:0.86rem; color:var(--ink-primary);">
+              Perlu Konfirmasi Analis Manual (Confidence 58%)
+            </div>
+            <p style="font-size:0.78rem; color:var(--ink-secondary);">
+              Artikel dari <code>groq:llama-3.1-8b</code> ditandai kuning-ochre agar statistisi memeriksa apakah penurunan panen berdampak pada Volume NTB atau Harga.
+            </p>
+          </div>
+
+          <!-- State 3: Empty / Sector Data Gap State -->
+          <div class="well-subtle" style="border-style:dashed; border-color:var(--vol-down-border); background:#FFF9FA; display:flex; flex-direction:column; gap:8px;">
+            <div class="section-label" style="color:var(--vol-down-text);">3 · State Sektor Data Gap (—)</div>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span class="kbli-badge"><span class="kbli-code">J,K · M · Q</span><span>Belum Ada Berita</span></span>
+              <span class="font-mono" style="font-weight:700; color:var(--vol-down-text);">—</span>
+            </div>
+            <p style="font-size:0.78rem; color:var(--ink-secondary);">
+              Ditampilkan sebagai tanda pisah <code>—</code> (bukan <code>0%</code>) supaya tidak disalahartikan sebagai pertumbuhan 0%.
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    document.getElementById('proto-bar-mount').innerHTML = window.SIPENA_UI.renderProtoBar('detail.html');
+    document.getElementById('sidebar-mount').innerHTML = window.SIPENA_UI.renderAdminSidebar('Review Harian');
+
+    const S = window.SIPENA;
+    const queueArticles = S.articles;
+    let activeIdx = 0;
+
+    function renderQueue() {
+      const list = document.getElementById('workbench-queue-list');
+      list.innerHTML = queueArticles.map((a, idx) => {
+        const confPct = Math.round(a.confidence * 100);
+        const lowConf = confPct < 70;
+        return `
+          <div class="queue-item ${idx === activeIdx ? 'active' : ''}" onclick="selectQueueItem(${idx})">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span class="font-mono text-muted" style="font-size:0.73rem;">${a.date} · ${a.portal}</span>
+              <span class="font-mono" style="font-size:0.72rem; font-weight:600; color:${lowConf ? 'var(--price-up-text)' : 'var(--cobalt-600)'};">
+                ${confPct}% conf
+              </span>
+            </div>
+            <div style="font-weight:600; font-size:0.86rem; line-height:1.35; color:var(--ink-primary);">
+              ${a.title}
+            </div>
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:6px; margin-top:2px;">
+              <span class="kbli-badge"><span class="kbli-code">${a.kbli}</span><span>${a.exp}</span></span>
+              ${window.SIPENA_UI.renderImpactBadge(a.impactKbli)}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function selectQueueItem(idx) {
+      activeIdx = idx;
+      const a = queueArticles[idx];
+      document.getElementById('wb-meta-id').textContent = `#${String(a.id).padStart(4, '0')} · ${a.date} · ${a.portal}`;
+      document.getElementById('wb-title').textContent = a.title;
+      document.getElementById('wb-summary').textContent = `“${a.summary}”`;
+      document.getElementById('wb-model').textContent = a.model;
+      document.getElementById('wb-conf').textContent = `${Math.round(a.confidence * 100)}% Conf`;
+      document.getElementById('wb-kbli-pill').textContent = `Kategori ${a.kbli}`;
+      document.getElementById('wb-exp-pill').textContent = a.exp;
+      document.getElementById('wb-select-kbli').value = a.kbli;
+      document.getElementById('wb-select-exp').value = a.exp;
+      renderQueue();
+    }
+
+    function triggerDecision(action) {
+      const nextIdx = (activeIdx + 1) % queueArticles.length;
+      selectQueueItem(nextIdx);
+    }
+
+    /* Render Impact Selector Pills in Inspector */
+    const impactCodes = ['INCREASE_NTB', 'DECREASE_NTB', 'INCREASE_PRICE', 'DECREASE_PRICE'];
+    document.getElementById('wb-kbli-impact-group').innerHTML = impactCodes.map(c => `
+      <div style="padding:4px;">${window.SIPENA_UI.renderImpactBadge(c)}</div>
+    `).join('');
+    document.getElementById('wb-exp-impact-group').innerHTML = [
+      'INCREASE_REAL', 'DECREASE_REAL', 'INCREASE_DEFLATOR', 'DECREASE_PRICE'
+    ].map(c => `
+      <div style="padding:4px;">${window.SIPENA_UI.renderImpactBadge(c)}</div>
+    `).join('');
+
+    /* Render 5 Multi-LLM Provider Slots */
+    document.getElementById('llm-slots-grid').innerHTML = S.providerSlots.map(slot => {
+      const isStandby = slot.calls === 0;
+      const hasRateLimit = slot.limited >= 9;
+      return `
+        <div class="well-subtle" style="background:var(--surface-card); display:flex; flex-direction:column; justify-content:space-between; gap:10px; border-color:${hasRateLimit ? 'var(--price-up-border)' : 'var(--border-subtle)'};">
+          <div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+              <span class="kbli-code">Slot #${slot.priority} · ${slot.provider}</span>
+              <span style="font-size:0.72rem; font-weight:600; color:${isStandby ? 'var(--ink-muted)' : (hasRateLimit ? 'var(--price-up-text)' : 'var(--vol-up-text)')};">
+                ${isStandby ? '○ Standby' : (hasRateLimit ? '▲ Rate-Limited' : '● Healthy')}
+              </span>
+            </div>
+            <div class="font-mono" style="font-weight:600; font-size:0.8rem; color:var(--ink-primary); word-break:break-all;">
+              ${slot.model}
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:0.74rem; padding-top:8px; border-top:1px solid var(--border-subtle);">
+            <div>
+              <div class="text-muted">Success Rate</div>
+              <div class="font-mono" style="font-weight:600;">${isStandby ? '—' : slot.success + '%'}</div>
+            </div>
+            <div>
+              <div class="text-muted">Calls / 429</div>
+              <div class="font-mono" style="font-weight:600;">${slot.calls} / <span style="color:${slot.limited > 5 ? 'var(--vol-down-text)' : 'inherit'};">${slot.limited}</span></div>
+            </div>
+            <div style="grid-column:span 2;">
+              <div class="text-muted">Kuota RPM · Token Terpakai</div>
+              <div class="font-mono">${slot.rpm} RPM · ${(slot.tokens / 1000).toFixed(0)}k tok</div>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    /* Gallery Badges */
+    document.getElementById('gallery-badges').innerHTML = impactCodes.map(c => window.SIPENA_UI.renderImpactBadge(c)).join('');
+
+    /* Keyboard shortcuts J/K/A/S */
+    window.addEventListener('keydown', e => {
+      if (['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
+      if (e.key.toLowerCase() === 'j') selectQueueItem((activeIdx + 1) % queueArticles.length);
+      if (e.key.toLowerCase() === 'k') selectQueueItem((activeIdx - 1 + queueArticles.length) % queueArticles.length);
+      if (e.key.toLowerCase() === 'a') triggerDecision('APPROVE');
+      if (e.key.toLowerCase() === 's') triggerDecision('SKIP');
+    });
+
+    renderQueue();
+  </script>
+</body>
+</html>

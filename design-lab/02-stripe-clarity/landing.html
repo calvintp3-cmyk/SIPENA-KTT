@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SIPENA KTT — Sistem Pemantauan Fenomena Ekonomi Kabupaten Tana Tidung</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Instrument+Sans:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,500;0,6..72,600;1,6..72,500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .hero-split {
+      display: grid;
+      grid-template-columns: 1.05fr 1.25fr;
+      gap: 36px;
+      align-items: center;
+      padding: 44px 0 36px;
+    }
+    .bento-capabilities {
+      display: grid;
+      grid-template-columns: 1.35fr 1fr;
+      gap: 20px;
+    }
+    .phenomena-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+    .live-preview-window {
+      background: var(--surface-card);
+      border: 1px solid var(--border-strong);
+      border-radius: 14px;
+      box-shadow: var(--shadow-float);
+      overflow: hidden;
+    }
+    .window-bar {
+      background: var(--bg-subtle);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    @media (max-width: 980px) {
+      .hero-split, .bento-capabilities, .phenomena-grid {
+        grid-template-columns: 1fr;
+      }
+      .hero-split {
+        padding: 24px 0;
+        gap: 24px;
+      }
+    }
+  </style>
+  <script src="../shared/data.js"></script>
+  <script src="app.js"></script>
+</head>
+<body>
+  <div id="proto-bar-mount"></div>
+
+  <!-- Sticky Institutional Navigation -->
+  <header class="public-nav">
+    <div class="public-nav-inner">
+      <a href="landing.html" class="brand-mark">
+        <div class="brand-emblem">S</div>
+        <div>
+          <div class="brand-text-title">SIPENA KTT</div>
+          <div class="brand-text-sub">Pemantauan Fenomena Ekonomi Daerah</div>
+        </div>
+      </a>
+
+      <nav class="public-nav-links" style="display:flex; align-items:center; gap:20px; font-size:0.88rem; font-weight:500; color:var(--ink-secondary);">
+        <a href="linimasa.html" style="color:var(--ink-primary);">Linimasa Publik</a>
+        <a href="charts.html">Distribusi 17 Sektor</a>
+        <a href="charts.html#matrix">Matriks PDRB 17×6</a>
+        <a href="index.html">Metodologi KBLI 2025</a>
+      </nav>
+
+      <div style="display:flex; align-items:center; gap:8px;">
+        <a href="linimasa.html" class="btn btn-secondary btn-sm">Eksplorasi Data</a>
+        <a href="dashboard.html" class="btn btn-primary btn-sm">Masuk Ruang Analis →</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container" style="padding-bottom:72px; display:flex; flex-direction:column; gap:48px;">
+    <!-- HERO SECTION: Persuade with Real Interactive Product Surface -->
+    <section class="hero-split">
+      <div style="display:flex; flex-direction:column; gap:20px;">
+        <div style="display:inline-flex; align-items:center; gap:8px; width:fit-content; padding:4px 12px; border-radius:9999px; background:var(--surface-card); border:1px solid var(--border-strong); box-shadow:var(--shadow-pill); font-size:0.78rem;">
+          <span style="color:var(--vol-up-text); font-weight:700;">● TW IV 2026</span>
+          <span style="color:var(--ink-muted);">|</span>
+          <span class="text-secondary">48 Berita Terverifikasi · 14/17 Sektor Terisi</span>
+        </div>
+
+        <h1 class="heading-xl">
+          Intelijen Fenomena Ekonomi Regional untuk Penyusunan Narasi PDRB yang Presisi.
+        </h1>
+
+        <p class="text-secondary" style="font-size:1.03rem; line-height:1.62;">
+          SIPENA mengumpulkan berita lokal Kalimantan Utara dan memetakannya secara terstruktur ke dalam <strong>22 Kategori KBLI 2025 (17 Sektor PDRB)</strong> serta <strong>6 Komponen Pengeluaran</strong>, memisahkan sinyal <em>Volume Riil (NTB)</em> dari perubahan <em>Harga (Deflator)</em>.
+        </p>
+
+        <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; padding-top:4px;">
+          <a href="linimasa.html" class="btn btn-primary" style="padding:10px 18px; font-size:0.92rem;">
+            Jelajahi Linimasa TW IV 2026 →
+          </a>
+          <a href="dashboard.html" class="btn btn-secondary" style="padding:10px 18px; font-size:0.92rem;">
+            Buka Dashboard Analis
+          </a>
+        </div>
+
+        <div class="well-subtle" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin-top:4px;">
+          <div>
+            <div class="font-display" style="font-size:1.5rem; font-weight:600; color:var(--ink-primary);">22 → 17</div>
+            <div class="text-muted" style="font-size:0.76rem;">Kategori KBLI 2025 ke Sektor PDRB</div>
+          </div>
+          <div>
+            <div class="font-display" style="font-size:1.5rem; font-weight:600; color:var(--ink-primary);">6 Komponen</div>
+            <div class="text-muted" style="font-size:0.76rem;">PK-RT hingga Ekspor Neto</div>
+          </div>
+          <div>
+            <div class="font-display" style="font-size:1.5rem; font-weight:600; color:var(--cobalt-600);">58%</div>
+            <div class="text-muted" style="font-size:0.76rem;">Berita Bernada Ekspansi Volume</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Interactive Product Preview Window -->
+      <div class="live-preview-window">
+        <div class="window-bar">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font-weight:600; font-size:0.82rem; color:var(--ink-primary);">Matriks Konkordansi Fenomena · TW IV 2026</span>
+          </div>
+          <div class="segmented-pill" id="hero-dim-tabs">
+            <button type="button" class="active" data-filter="ALL">Semua (48)</button>
+            <button type="button" data-filter="VOLUME">Volume Riil (35)</button>
+            <button type="button" data-filter="PRICE">Harga/Deflator (13)</button>
+          </div>
+        </div>
+
+        <div style="padding:18px 20px; display:flex; flex-direction:column; gap:14px;">
+          <!-- Mini Allocation Strip -->
+          <div>
+            <div style="display:flex; justify-content:space-between; font-size:0.76rem; margin-bottom:6px;">
+              <span class="text-secondary" style="font-weight:600;">Distribusi Komponen Pengeluaran (TW IV 2026)</span>
+              <span class="font-mono text-muted">Dominan: PMTB (31%) &amp; PK-P (23%)</span>
+            </div>
+            <div style="display:flex; height:10px; border-radius:999px; overflow:hidden; gap:2px; background:var(--bg-well);">
+              <div style="width:31.2%; background:#1D4ED8;" title="PMTB: 15 berita"></div>
+              <div style="width:22.9%; background:#3B82F6;" title="PK-P: 11 berita"></div>
+              <div style="width:20.8%; background:#047857;" title="Ekspor Bersih: 10 berita"></div>
+              <div style="width:18.7%; background:#B45309;" title="PK-RT: 9 berita"></div>
+              <div style="width:4.2%; background:#64748B;" title="Inventori: 2 berita"></div>
+              <div style="width:2.2%; background:#94A3B8;" title="PK-LNPRT: 1 berita"></div>
+            </div>
+          </div>
+
+          <!-- Interactive Live Rows inside Hero -->
+          <div id="hero-live-rows" style="display:flex; flex-direction:column; gap:8px;"></div>
+
+          <div style="display:flex; justify-content:space-between; align-items:center; padding-top:6px; border-top:1px solid var(--border-subtle); font-size:0.76rem; color:var(--ink-muted);">
+            <span>Klik baris fenomena untuk membuka <strong>Inspector Dua Sisi PDRB</strong></span>
+            <a href="table.html" style="color:var(--cobalt-600); font-weight:600;">Lihat Semua 48 Berita →</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ASYMMETRIC BENTO CAPABILITIES -->
+    <section>
+      <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:18px; flex-wrap:wrap; gap:12px;">
+        <div>
+          <div class="section-label">ARSITEKTUR ANALITIK DUA SISI</div>
+          <h2 class="heading-lg" style="margin-top:4px;">Dirancang untuk Kejelasan Eksekutif &amp; Ketelitian Statistik</h2>
+        </div>
+        <span class="text-muted" style="font-size:0.84rem;">Pembaruan terakhir: 14 Nov 2026, 06:42 WITA</span>
+      </div>
+
+      <div class="bento-capabilities">
+        <!-- Left Wide Card: Dual-Side Mapping -->
+        <div class="card" style="padding:26px; display:flex; flex-direction:column; justify-content:space-between; gap:18px;">
+          <div>
+            <div class="section-label" style="color:var(--cobalt-600);">PEMETAAN GANDA OTOMATIS + VERIFIKASI ANALIS</div>
+            <h3 class="heading-md" style="font-size:1.25rem; margin-top:4px; margin-bottom:8px;">
+              Satu Berita, Dua Sudut Pandang PDRB Sekaligus
+            </h3>
+            <p class="text-secondary" style="font-size:0.9rem;">
+              Setiap artikel berita lokal tidak hanya diberi label topik tunggal, melainkan diekstraksi dampaknya terhadap <strong>Sisi Produksi (Lapangan Usaha A–V)</strong> dan <strong>Sisi Pengeluaran (PK-RT s.d. Ekspor Neto)</strong>.
+            </p>
+          </div>
+
+          <div class="well-subtle" style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+            <div style="background:var(--surface-card); padding:14px; border-radius:8px; border:1px solid var(--border-subtle);">
+              <div class="section-label" style="margin-bottom:6px;">Sisi Lapangan Usaha</div>
+              <div style="margin-bottom:8px;">
+                <span class="kbli-badge"><span class="kbli-code">F</span><span>Konstruksi</span></span>
+              </div>
+              <div id="cap-badge-1"></div>
+              <p class="text-muted" style="font-size:0.76rem; margin-top:8px;">Pengerjaan struktur gedung Puspem tahap II menyerap 120 tenaga kerja lokal.</p>
+            </div>
+            <div style="background:var(--surface-card); padding:14px; border-radius:8px; border:1px solid var(--border-subtle);">
+              <div class="section-label" style="margin-bottom:6px;">Sisi Pengeluaran</div>
+              <div style="margin-bottom:8px;">
+                <span class="exp-badge">PMTB · Modal Tetap Bruto</span>
+              </div>
+              <div id="cap-badge-2"></div>
+              <p class="text-muted" style="font-size:0.76rem; margin-top:8px;">Belanja modal konstruksi fisik pemerintah daerah pada Triwulan IV.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Card: Sector Coverage & Data Gap Warning -->
+        <div class="card" style="padding:26px; display:flex; flex-direction:column; justify-content:space-between; gap:16px;">
+          <div>
+            <div class="section-label" style="color:var(--vol-down-text);">DETEKSI DINI DATA GAP SEKTORAL</div>
+            <h3 class="heading-md" style="font-size:1.2rem; margin-top:4px; margin-bottom:8px;">
+              Kelengkapan 14 dari 17 Sektor PDRB
+            </h3>
+            <p class="text-secondary" style="font-size:0.88rem;">
+              Memudahkan tim penyusun PDRB mengenali sektor yang belum memiliki liputan fenomena berita pada triwulan berjalan untuk ditindaklanjuti melalui survei atau konfirmasi OPD.
+            </p>
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <div class="well" style="display:flex; justify-content:space-between; align-items:center;">
+              <span class="kbli-badge"><span class="kbli-code">J,K</span><span>Informasi dan Komunikasi</span></span>
+              <span class="font-mono" style="color:var(--vol-down-text); font-weight:600; font-size:0.8rem;">— (Data Gap)</span>
+            </div>
+            <div class="well" style="display:flex; justify-content:space-between; align-items:center;">
+              <span class="kbli-badge"><span class="kbli-code">M</span><span>Aktivitas Real Estat</span></span>
+              <span class="font-mono" style="color:var(--vol-down-text); font-weight:600; font-size:0.8rem;">— (Data Gap)</span>
+            </div>
+            <div class="well" style="display:flex; justify-content:space-between; align-items:center;">
+              <span class="kbli-badge"><span class="kbli-code">Q</span><span>Pendidikan</span></span>
+              <span class="font-mono" style="color:var(--vol-down-text); font-weight:600; font-size:0.8rem;">— (Data Gap)</span>
+            </div>
+          </div>
+
+          <a href="dashboard.html" style="font-size:0.84rem; font-weight:600; color:var(--cobalt-600);">
+            Lihat Matriks Kelengkapan 17 Sektor →
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- RECENT VERIFIED PHENOMENA (CLICKABLE CARDS) -->
+    <section>
+      <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:18px; flex-wrap:wrap; gap:12px;">
+        <div>
+          <div class="section-label">SOROTAN TRIWULAN IV 2026</div>
+          <h2 class="heading-lg" style="margin-top:4px;">Cuplikan Fenomena Ekonomi Terverifikasi</h2>
+        </div>
+        <a href="linimasa.html" class="btn btn-secondary btn-sm">Buka Linimasa Lengkap (48 Berita) →</a>
+      </div>
+
+      <div class="phenomena-grid" id="landing-phenomena-grid"></div>
+    </section>
+  </main>
+
+  <!-- Slide-over Inspector Drawer -->
+  <div class="drawer-backdrop" id="inspector-backdrop" onclick="window.SIPENA_UI.closeArticleDrawer()"></div>
+  <aside class="slide-drawer" id="inspector-drawer" aria-label="Detail Fenomena Ekonomi">
+    <div class="drawer-header">
+      <div>
+        <div class="section-label">INSPECTOR FENOMENA</div>
+        <div style="font-weight:600; font-size:0.95rem;">Pemetaan Dua Sisi PDRB</div>
+      </div>
+      <button class="btn btn-secondary btn-sm" onclick="window.SIPENA_UI.closeArticleDrawer()">Tutup ✕</button>
+    </div>
+    <div class="drawer-body" id="inspector-body"></div>
+    <div class="drawer-footer">
+      <a href="linimasa.html" class="btn btn-secondary btn-sm">Buka di Linimasa</a>
+      <a href="detail.html" class="btn btn-primary btn-sm">Buka di Workbench Kurasi →</a>
+    </div>
+  </aside>
+
+  <script>
+    document.getElementById('proto-bar-mount').innerHTML = window.SIPENA_UI.renderProtoBar('landing.html');
+    document.getElementById('cap-badge-1').innerHTML = window.SIPENA_UI.renderImpactBadge('INCREASE_NTB');
+    document.getElementById('cap-badge-2').innerHTML = window.SIPENA_UI.renderImpactBadge('INCREASE_REAL');
+
+    function renderHeroRows(filterMode) {
+      const articles = window.SIPENA.articles.filter(a => {
+        if (filterMode === 'VOLUME') return a.impactKbli.includes('NTB');
+        if (filterMode === 'PRICE') return a.impactKbli.includes('PRICE');
+        return true;
+      }).slice(0, 4);
+
+      const container = document.getElementById('hero-live-rows');
+      container.innerHTML = articles.map(a => `
+        <div onclick="window.SIPENA_UI.openArticleDrawer(${a.id})" class="well-subtle" style="padding:11px 14px; cursor:pointer; display:flex; align-items:center; justify-content:space-between; gap:12px; background:var(--surface-card); transition:border-color 0.15s ease;">
+          <div style="min-width:0; flex:1;">
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:3px;">
+              <span class="kbli-code">${a.kbli}</span>
+              <span style="font-weight:600; font-size:0.84rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${a.title}</span>
+            </div>
+            <div class="text-muted" style="font-size:0.75rem;">${a.portal} · ${a.date} · Komponen: <strong>${a.exp}</strong></div>
+          </div>
+          <div style="flex-shrink:0;">
+            ${window.SIPENA_UI.renderImpactBadge(a.impactKbli)}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    renderHeroRows('ALL');
+
+    document.querySelectorAll('#hero-dim-tabs button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#hero-dim-tabs button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        renderHeroRows(btn.dataset.filter);
+      });
+    });
+
+    const grid = document.getElementById('landing-phenomena-grid');
+    grid.innerHTML = window.SIPENA.articles.map(a => `
+      <article onclick="window.SIPENA_UI.openArticleDrawer(${a.id})" class="card card-interactive" style="padding:20px; cursor:pointer; display:flex; flex-direction:column; justify-content:space-between; gap:14px;">
+        <div>
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:10px;">
+            ${window.SIPENA_UI.renderScopeBadge(a.scope)}
+            <span class="font-mono text-muted" style="font-size:0.74rem;">${a.date} · ${a.portal}</span>
+          </div>
+          <h3 class="heading-md" style="font-size:1rem; line-height:1.38; margin-bottom:8px;">${a.title}</h3>
+          <p class="text-secondary" style="font-size:0.84rem; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;">
+            ${a.summary}
+          </p>
+        </div>
+        <div style="padding-top:12px; border-top:1px solid var(--border-subtle); display:flex; flex-direction:column; gap:8px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:6px; flex-wrap:wrap;">
+            <span class="kbli-badge"><span class="kbli-code">${a.kbli}</span><span>${a.kbliName.slice(0, 22)}${a.kbliName.length > 22 ? '…' : ''}</span></span>
+            ${window.SIPENA_UI.renderImpactBadge(a.impactKbli)}
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.75rem; color:var(--ink-muted);">
+            <span>Pengeluaran: <strong class="font-mono">${a.exp}</strong></span>
+            <span style="color:var(--cobalt-600); font-weight:600;">Inspeksi →</span>
+          </div>
+        </div>
+      </article>
+    `).join('');
+  </script>
+</body>
+</html>

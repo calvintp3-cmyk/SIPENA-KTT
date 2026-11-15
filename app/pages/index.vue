@@ -153,8 +153,8 @@ onMounted(() => {
 
 const taxonomyPillars = [
   {
-    metric: '17 Kategori KBLI',
-    caption: 'Memetakan seluruh 22 huruf KBLI 2025 (A–V) Lapangan Usaha resmi BPS',
+    metric: '22 Kategori → 17 Sektor',
+    caption: 'Setiap fenomena dipetakan ke 22 Kategori KBLI 2025 (A–V), lalu dikelompokkan ke 17 Sektor PDRB resmi BPS',
     icon: 'i-solar-buildings-2-bold-duotone',
     badgeClass: 'bg-blue-50 text-blue-700 border-blue-200/80',
   },
@@ -220,7 +220,7 @@ const capabilityBento = [
     eyebrow: '04 • Intelijen Sektor & Rangkuman Analitis',
     title: 'Deteksi Sektor Kosong, Tren Periodik & Ikhtisar Narasi',
     description:
-      'Memantau sebaran bukti fenomena pada 17 sektor usaha, menelusuri tren dinamika antar-triwulan dan antar-tahun, serta menyusun rangkuman analitis terstruktur.',
+      'Memantau sebaran bukti fenomena pada 17 Sektor PDRB, menelusuri tren dinamika antar-triwulan dan antar-tahun, serta menyusun rangkuman analitis terstruktur.',
     icon: 'i-solar-document-add-bold-duotone',
     accentBg: 'from-violet-50/90 to-indigo-50/40 border-violet-200/80',
     iconBox: 'bg-violet-600 text-white shadow-violet-600/25',
@@ -328,12 +328,22 @@ const capabilityBento = [
                 </div>
 
                 <div class="rounded-xl bg-white/[0.05] border border-white/10 p-3.5 space-y-1">
-                  <div class="text-[11px] font-medium text-slate-400">Sinyal Peningkatan Aktivitas</div>
-                  <div class="text-2xl sm:text-3xl font-extrabold text-emerald-300 tabular-nums">
-                    {{ activeOverview?.kpi.expansionStats.positiveRealPercent ?? 0 }}%
+                  <div class="text-xs font-medium text-slate-300">Berita Bernada Ekspansi Volume</div>
+                  <div class="text-2xl sm:text-3xl font-extrabold text-white tabular-nums">
+                    <template v-if="activeOverview && activeOverview.kpi.totalVerified > 0">
+                      {{ activeOverview.kpi.expansionStats.positiveRealPercent }}%
+                    </template>
+                    <template v-else>—</template>
                   </div>
-                  <div class="text-[11px] text-slate-300 tabular-nums">
-                    {{ formatNumberId(activeOverview?.kpi.expansionStats.expansionCount ?? 0) }} berita aktivitas naik
+                  <div class="text-xs text-slate-300 tabular-nums">
+                    <template v-if="activeOverview && activeOverview.kpi.totalVerified > 0">
+                      {{ formatNumberId(activeOverview.kpi.expansionStats.expansionCount) }} dari
+                      {{ formatNumberId(activeOverview.kpi.totalVerified) }} berita terverifikasi
+                    </template>
+                    <template v-else>Belum ada berita terverifikasi</template>
+                  </div>
+                  <div class="text-xs text-slate-400 leading-snug">
+                    Proporsi berita, bukan angka PDRB resmi.
                   </div>
                 </div>
               </div>
@@ -665,7 +675,7 @@ const capabilityBento = [
             Siap Menelusuri Pergerakan Ekonomi Kabupaten Tana Tidung per Sektor?
           </h2>
           <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
-            Saring laporan berita berdasarkan 17 Kategori KBLI, 6 Komponen Pengeluaran, arah dampak
+            Saring laporan berita berdasarkan 17 Sektor PDRB, 6 Komponen Pengeluaran, arah dampak
             riil/harga, maupun tampilan grafik interaktif.
           </p>
         </div>

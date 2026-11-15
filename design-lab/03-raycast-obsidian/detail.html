@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Workbench Review Harian & Monitor 5 Slot AI (/admin/review) | SIPENA KTT</title>
+  <link rel="stylesheet" href="./styles.css" />
+  <style>
+    /* Split-Pane Daily Review Workbench */
+    .review-split-workbench {
+      display: grid;
+      grid-template-columns: 380px minmax(0, 1fr);
+      min-height: 540px;
+      margin-bottom: 24px;
+      overflow: hidden;
+    }
+    @media (max-width: 1080px) {
+      .review-split-workbench { grid-template-columns: 1fr; }
+    }
+    .queue-pane {
+      border-right: 1px solid var(--border-default);
+      background: var(--bg-workspace);
+      display: flex;
+      flex-direction: column;
+    }
+    .queue-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .queue-item {
+      padding: 12px 14px;
+      border-radius: var(--radius-md);
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-default);
+      cursor: pointer;
+      transition: all 0.12s ease;
+    }
+    .queue-item:hover {
+      background: var(--bg-hover);
+    }
+    .queue-item.active {
+      background: var(--bg-active);
+      border-color: var(--accent-jade-border);
+      box-shadow: var(--specular-top);
+    }
+    .inspector-pane {
+      background: var(--bg-elevated);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .inspector-body {
+      padding: 22px 26px;
+    }
+    .inspector-action-bar {
+      padding: 14px 26px;
+      background: var(--bg-recessed);
+      border-top: 1px solid var(--border-default);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .form-grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-top: 16px;
+    }
+    @media (max-width: 720px) {
+      .form-grid-2 { grid-template-columns: 1fr; }
+    }
+    .field-box {
+      padding: 14px;
+      background: var(--bg-workspace);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-md);
+    }
+    .field-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--ink-muted);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .select-full {
+      width: 100%;
+      height: 34px;
+      padding: 0 10px;
+      border-radius: var(--radius-sm);
+      background: var(--bg-canvas);
+      border: 1px solid var(--border-strong);
+      color: var(--ink-primary);
+      font-size: 12.5px;
+      font-weight: 500;
+      margin-bottom: 10px;
+    }
+    .select-full:focus {
+      outline: none;
+      border-color: var(--accent-jade);
+    }
+  </style>
+</head>
+<body>
+  <div id="proto-strip-mount"></div>
+
+  <div class="workbench-shell">
+    <div id="rail-mount"></div>
+
+    <div class="workspace-main">
+      <div id="topbar-mount"></div>
+
+      <main class="workspace-body">
+        <!-- Section 1 Header: Daily Review Workbench -->
+        <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:16px;flex-wrap:wrap;">
+          <div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+              <span class="font-mono" style="font-size:11.5px;color:var(--accent-jade);font-weight:600;">HIGH-VELOCITY CURATION WORKBENCH</span>
+              <span style="color:var(--border-strong);">·</span>
+              <span class="font-mono" style="font-size:11.5px;color:var(--sig-price);">23 Antrean Pending Hari Ini</span>
+            </div>
+            <h1 class="font-display" style="font-size:24px;font-weight:700;color:var(--ink-primary);">
+              Review Harian Split-Pane &amp; Verifikasi KBLI 2025
+            </h1>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <span style="font-size:12px;color:var(--ink-muted);">Navigasi Keyboard:</span>
+            <span class="kbd-group"><kbd>J</kbd><kbd>K</kbd></span>
+            <span style="font-size:12px;color:var(--ink-secondary);">Pilih Berita</span>
+            <span style="color:var(--border-strong);">·</span>
+            <kbd>A</kbd><span style="font-size:12px;color:var(--ink-secondary);">Setujui</span>
+            <kbd>S</kbd><span style="font-size:12px;color:var(--ink-secondary);">Lewati</span>
+            <kbd>X</kbd><span style="font-size:12px;color:var(--ink-secondary);">Tolak</span>
+          </div>
+        </div>
+
+        <!-- Split-Pane Workbench -->
+        <section class="surface-card-elevated review-split-workbench" aria-label="Meja Kerja Kurasi Split-Pane">
+          <!-- Left Queue Pane -->
+          <div class="queue-pane">
+            <div class="panel-header" style="background:var(--bg-recessed);">
+              <div>
+                <h2 class="panel-title">Antrean Review (23)</h2>
+                <p class="panel-subtitle">Diurutkan berdasarkan confidence AI</p>
+              </div>
+              <span class="rail-badge jade" id="queue-progress-badge">1 / 23</span>
+            </div>
+
+            <div class="queue-list" id="review-queue-list"></div>
+          </div>
+
+          <!-- Right Inspector & Override Pane -->
+          <div class="inspector-pane" id="review-inspector-pane"></div>
+        </section>
+
+        <!-- Section 2: 5-Slot Multi-LLM Router & Scraper Monitor (/admin/scrapers) -->
+        <section class="surface-card-elevated" id="scrapers" style="margin-bottom:24px;">
+          <div class="panel-header">
+            <div>
+              <h2 class="panel-title">
+                <span>Monitor Orkestrasi 5 Slot Multi-LLM &amp; Rate-Limit Failover (/admin/scrapers)</span>
+                <span class="rail-badge rose">3 Rate-Limited</span>
+              </h2>
+              <p class="panel-subtitle">Rotasi otomatis antrean ekstraksi JSON KBLI ketika kuota RPM/TPM tercapai pada provider utama</p>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <button type="button" class="btn btn-secondary" style="height:28px;font-size:12px;" onclick="triggerCrawlToast()">
+                <span>Jalankan Crawl Manual</span>
+                <kbd>⌘R</kbd>
+              </button>
+            </div>
+          </div>
+
+          <div class="data-table-wrap">
+            <table class="data-table" aria-label="Tabel 5 Slot Provider Multi-LLM">
+              <thead>
+                <tr>
+                  <th>Prioritas</th>
+                  <th>Provider &amp; Model Identifier</th>
+                  <th>Batas Kuota (RPM / TPM)</th>
+                  <th>Total Panggilan</th>
+                  <th>Tingkat Sukses</th>
+                  <th>429 Rate-Limited</th>
+                  <th>Konsumsi Token</th>
+                  <th>Status Slot</th>
+                </tr>
+              </thead>
+              <tbody id="llm-slots-tbody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Section 3: Interactive Component States & Micro-Craft Specimen Gallery -->
+        <section class="surface-card" style="padding:22px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
+            <div>
+              <h2 class="font-display" style="font-size:16px;font-weight:600;">Spesimen Komponen, Keycaps &amp; Interactive States</h2>
+              <p style="font-size:12px;color:var(--ink-muted);">Standar komponen UI untuk arah desain <code>03-raycast-obsidian</code></p>
+            </div>
+            <span class="font-mono" style="font-size:11.5px;color:var(--accent-jade);">WCAG AAA/AA Dark Surface Calibrated</span>
+          </div>
+
+          <div style="display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));gap:16px;">
+            <!-- Buttons & Keycaps -->
+            <div style="padding:14px;background:var(--bg-workspace);border:1px solid var(--border-default);border-radius:var(--radius-md);">
+              <div style="font-size:11px;color:var(--ink-muted);text-transform:uppercase;margin-bottom:10px;">Buttons &amp; Raycast Keycaps</div>
+              <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
+                <button type="button" class="btn btn-primary">Primary CTA <kbd style="background:rgba(4,47,46,0.25);border-color:rgba(4,47,46,0.4);color:#042F2E;box-shadow:none;">↵</kbd></button>
+                <button type="button" class="btn btn-secondary">Secondary <kbd>⌘K</kbd></button>
+                <button type="button" class="btn btn-danger">Tolak <kbd>X</kbd></button>
+              </div>
+              <div style="font-size:11.5px;color:var(--ink-secondary);">
+                Tombol utama memakai permukaan <code>#14B8A6</code> dengan teks gelap <code>#042F2E</code> (kontras 8.4:1).
+              </div>
+            </div>
+
+            <!-- Dual PDRB Signal Badges -->
+            <div style="padding:14px;background:var(--bg-workspace);border:1px solid var(--border-default);border-radius:var(--radius-md);">
+              <div style="font-size:11px;color:var(--ink-muted);text-transform:uppercase;margin-bottom:10px;">Dualitas Sinyal Volume vs Harga</div>
+              <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
+                <span class="signal-badge vol-up">↑ Volume Naik (NTB/Riil)</span>
+                <span class="signal-badge vol-down">↓ Volume Turun / Gap</span>
+                <span class="signal-badge price-up">◆ Harga / Deflator</span>
+              </div>
+              <div style="font-size:11.5px;color:var(--ink-secondary);">
+                Tidak pernah mengandalkan warna saja: selalu menggabungkan bentuk simbol (panah vs belah ketupat) + label eksplisit.
+              </div>
+            </div>
+
+            <!-- Empty / Error / Loading Feedback States -->
+            <div style="padding:14px;background:var(--bg-workspace);border:1px solid var(--border-default);border-radius:var(--radius-md);">
+              <div style="font-size:11px;color:var(--ink-muted);text-transform:uppercase;margin-bottom:10px;">Data Gap &amp; System States</div>
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:rgba(251,113,133,0.06);border:1px dashed var(--sig-vol-down-border);border-radius:var(--radius-xs);margin-bottom:8px;">
+                <span style="font-size:12px;color:var(--sig-vol-down);font-weight:600;">Sektor J,K · M · Q (Belum Ada Berita)</span>
+                <span class="font-mono" style="font-weight:700;color:var(--sig-vol-down);">—</span>
+              </div>
+              <div style="font-size:11.5px;color:var(--ink-secondary);" id="crawl-status-msg">
+                Status Worker: <strong>Idle</strong> · Antrean berikutnya pukul 12:00 WITA.
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script src="../shared/data.js"></script>
+  <script src="./command-palette.js"></script>
+  <script>
+    document.getElementById('proto-strip-mount').innerHTML = window.SIPENA_UI.renderProtoStrip('detail');
+    document.getElementById('rail-mount').innerHTML = window.SIPENA_UI.renderAdminRail('Review Harian');
+    document.getElementById('topbar-mount').innerHTML = window.SIPENA_UI.renderTopCommandBar('Kurasi & Repositori', 'Workbench Review Harian & Monitor AI');
+
+    const queueItems = window.SIPENA.articles;
+    let activeQueueIdx = 0;
+
+    function renderReviewWorkbench() {
+      const listEl = document.getElementById('review-queue-list');
+      document.getElementById('queue-progress-badge').textContent = `${activeQueueIdx + 1} / 23`;
+
+      listEl.innerHTML = queueItems.map((item, idx) => {
+        const isAct = idx === activeQueueIdx;
+        const conf = Math.round(item.confidence * 100);
+        const confCol = conf >= 85 ? 'var(--sig-vol-up)' : (conf >= 75 ? 'var(--sig-price)' : 'var(--sig-vol-down)');
+        return `
+          <div class="queue-item ${isAct ? 'active' : ''}" onclick="selectQueueIdx(${idx})">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;">
+              <div style="display:flex;align-items:center;gap:6px;">
+                <span class="kbli-chip ${isAct ? 'jade' : ''}" style="height:20px;font-size:10.5px;">${item.kbli}</span>
+                <span class="font-mono" style="font-size:11px;color:var(--ink-muted);">${item.portal}</span>
+              </div>
+              <span class="font-mono" style="font-size:11px;font-weight:700;color:${confCol};">${conf}% AI</span>
+            </div>
+            <div style="font-weight:600;color:var(--ink-primary);font-size:13px;line-height:1.35;margin-bottom:6px;">
+              ${item.title}
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--ink-muted);">
+              <span class="font-mono">${item.date}</span>
+              <span class="font-mono">${item.exp}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      const cur = queueItems[activeQueueIdx];
+      const inspectorEl = document.getElementById('review-inspector-pane');
+      inspectorEl.innerHTML = `
+        <div class="inspector-body">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding-bottom:14px;margin-bottom:16px;border-bottom:1px solid var(--border-default);flex-wrap:wrap;">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span class="kbli-chip jade">CANDIDATE #0${cur.id}</span>
+              <span class="font-mono" style="font-size:12px;color:var(--ink-secondary);">${cur.portal} · ${cur.date}</span>
+              <span class="font-mono" style="font-size:11px;color:var(--ink-muted);">(${cur.scope})</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span class="font-mono" style="font-size:11.5px;color:var(--ink-muted);">Diekstrak oleh <strong style="color:var(--ink-primary);">${cur.model}</strong></span>
+              <span class="rail-badge jade">Confidence ${Math.round(cur.confidence * 100)}%</span>
+            </div>
+          </div>
+
+          <h2 class="font-display" style="font-size:20px;font-weight:700;line-height:1.3;color:var(--ink-primary);margin-bottom:12px;">
+            ${cur.title}
+          </h2>
+
+          <div style="padding:14px 16px;background:var(--bg-canvas);border:1px solid var(--border-default);border-radius:var(--radius-md);margin-bottom:16px;">
+            <div style="font-size:11px;font-family:var(--font-mono);color:var(--accent-jade);margin-bottom:6px;">RINGKASAN EKSTRAKSI AI &amp; BUKTI KALIMAT</div>
+            <p class="prose-reading" style="font-size:13.5px;color:var(--ink-primary);">
+              "${cur.summary}"
+            </p>
+          </div>
+
+          <!-- Interactive Dual Classification Editor -->
+          <div class="form-grid-2">
+            <!-- Left Box: Lapangan Usaha KBLI -->
+            <div class="field-box">
+              <div class="field-label">
+                <span>1. Sektor Lapangan Usaha (KBLI 2025)</span>
+                <kbd>1</kbd>
+              </div>
+              <select class="select-full" aria-label="Pilih Kategori KBLI">
+                ${window.SIPENA.sectors.map(s => `
+                  <option value="${s.group}" ${s.group === cur.kbli ? 'selected' : ''}>
+                    [${s.group}] ${s.name}
+                  </option>
+                `).join('')}
+              </select>
+
+              <div class="field-label" style="margin-top:6px;">
+                <span>Arah Dampak Sisi Lapangan Usaha</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                ${window.SIPENA_UI.renderSignalBadge(cur.impactKbli)}
+                <span style="font-size:11.5px;color:var(--ink-muted);">NTB (Volume) vs Harga</span>
+              </div>
+            </div>
+
+            <!-- Right Box: Komponen Pengeluaran -->
+            <div class="field-box">
+              <div class="field-label">
+                <span>2. Komponen Pengeluaran PDRB</span>
+                <kbd>2</kbd>
+              </div>
+              <select class="select-full" aria-label="Pilih Komponen Pengeluaran">
+                ${window.SIPENA.expenditure.map(e => `
+                  <option value="${e.code}" ${e.code === cur.exp ? 'selected' : ''}>
+                    [${e.short}] ${e.label}
+                  </option>
+                `).join('')}
+              </select>
+
+              <div class="field-label" style="margin-top:6px;">
+                <span>Arah Dampak Sisi Pengeluaran</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                ${window.SIPENA_UI.renderSignalBadge(cur.impactExp)}
+                <span style="font-size:11.5px;color:var(--ink-muted);">Riil (Volume) vs Deflator</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="inspector-action-bar">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <button type="button" class="btn btn-danger" onclick="advanceQueue('REJECTED')">
+              <span>Tolak (Bukan Fenomena PDRB)</span>
+              <kbd style="background:transparent;border-color:rgba(251,113,133,0.4);color:var(--sig-vol-down);">X</kbd>
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="advanceQueue('SKIPPED')">
+              <span>Lewati ke Antrean Berikutnya</span>
+              <kbd>S</kbd>
+            </button>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span id="review-feedback-msg" class="font-mono" style="font-size:11.5px;color:var(--accent-jade);"></span>
+            <button type="button" class="btn btn-primary" onclick="advanceQueue('APPROVED')">
+              <span>Setujui &amp; Simpan ke Matriks TW IV</span>
+              <kbd style="background:rgba(4,47,46,0.25);border-color:rgba(4,47,46,0.4);color:#042F2E;box-shadow:none;">A</kbd>
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    window.selectQueueIdx = function(idx) {
+      activeQueueIdx = idx;
+      renderReviewWorkbench();
+    };
+
+    window.advanceQueue = function(action) {
+      const msg = document.getElementById('review-feedback-msg');
+      if (msg) msg.textContent = `✓ #0${queueItems[activeQueueIdx].id} ${action}`;
+      setTimeout(() => {
+        activeQueueIdx = (activeQueueIdx + 1) % queueItems.length;
+        renderReviewWorkbench();
+      }, 220);
+    };
+
+    renderReviewWorkbench();
+
+    /* Render 5 Multi-LLM Provider Slots Table */
+    const slotsTbody = document.getElementById('llm-slots-tbody');
+    slotsTbody.innerHTML = window.SIPENA.providerSlots.map(s => {
+      const isStandby = s.calls === 0;
+      const statusBadge = isStandby
+        ? `<span class="rail-badge">STANDBY FALLBACK</span>`
+        : (s.limited > 10
+            ? `<span class="rail-badge rose">THROTTLED (${s.limited}× 429)</span>`
+            : `<span class="rail-badge jade">HEALTHY · ACTIVE</span>`);
+
+      return `
+        <tr>
+          <td class="font-mono" style="font-weight:700;color:var(--ink-primary);">Slot #${s.priority}</td>
+          <td>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span class="kbli-chip ${s.priority === 1 ? 'jade' : ''}">${s.provider}</span>
+              <code class="font-mono" style="color:var(--ink-primary);font-weight:600;">${s.model}</code>
+            </div>
+          </td>
+          <td class="font-mono" style="font-size:12px;">
+            ${s.rpm} RPM · ${s.tpm > 0 ? (s.tpm / 1000) + 'k TPM' : 'Dynamic'}
+          </td>
+          <td class="font-mono" style="font-weight:600;color:var(--ink-primary);">${s.calls} call</td>
+          <td>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div style="width:64px;height:6px;background:var(--chart-track);border-radius:3px;overflow:hidden;">
+                <div style="width:${s.success}%;height:100%;background:${s.success >= 95 ? 'var(--sig-vol-up)' : 'var(--sig-price)'};"></div>
+              </div>
+              <span class="font-mono" style="font-size:12px;color:var(--ink-primary);">${isStandby ? '—' : s.success + '%'}</span>
+            </div>
+          </td>
+          <td class="font-mono" style="color:${s.limited > 5 ? 'var(--sig-vol-down)' : 'var(--ink-muted)'};font-weight:600;">
+            ${s.limited > 0 ? s.limited + ' kejadian' : '0'}
+          </td>
+          <td class="font-mono" style="font-size:12px;">
+            ${s.tokens > 0 ? (s.tokens / 1000000).toFixed(2) + 'M tok' : '—'}
+          </td>
+          <td>${statusBadge}</td>
+        </tr>
+      `;
+    }).join('');
+
+    window.triggerCrawlToast = function() {
+      const el = document.getElementById('crawl-status-msg');
+      if (el) el.innerHTML = `<span style="color:var(--accent-jade);font-weight:600;">✓ Crawl job dikirim ke antrean worker (Slot #1 gemini-3.8-flash aktif).</span>`;
+    };
+  </script>
+</body>
+</html>

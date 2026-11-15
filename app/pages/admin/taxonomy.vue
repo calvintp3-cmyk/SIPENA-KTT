@@ -203,7 +203,7 @@ const expenditureImpactRows: Array<{
           Kamus &amp; Taksonomi PDRB Dua Sisi
         </h1>
         <p class="text-xs sm:text-sm text-slate-600 mt-0.5">
-          Panduan baku pemetaan 22 huruf KBLI 2025 (A–V) ke dalam 17 Kategori Lapangan Usaha, 6
+          Panduan baku pemetaan 22 huruf KBLI 2025 (A–V) ke dalam 17 Sektor PDRB, 6
           Komponen Pengeluaran, dan matriks arah dampak ADHK/ADHB Kabupaten Tana Tidung.
         </p>
       </div>
@@ -251,7 +251,7 @@ const expenditureImpactRows: Array<{
           17
         </div>
         <div>
-          <div class="text-xs sm:text-sm font-bold text-slate-900">17 Kategori PDRB Lapangan Usaha</div>
+          <div class="text-xs sm:text-sm font-bold text-slate-900">17 Sektor PDRB</div>
           <p class="text-xs text-slate-600 mt-0.5 leading-relaxed">
             Memetakan 22 huruf KBLI 2025 (A–V, PerBPS No. 7/2025): <strong>J &amp; K</strong> masuk
             Informasi &amp; Komunikasi; <strong>N &amp; O</strong> masuk Jasa Perusahaan;
@@ -327,7 +327,7 @@ const expenditureImpactRows: Array<{
         <button
           v-for="tab in [
             { id: 'all', label: 'Semua' },
-            { id: 'kbli', label: '17 Sektor KBLI' },
+            { id: 'kbli', label: '17 Sektor PDRB' },
             { id: 'expenditure', label: '6 Pengeluaran' },
             { id: 'impact', label: 'Matriks Dampak' },
           ] as const"
@@ -351,7 +351,7 @@ const expenditureImpactRows: Array<{
     <section v-if="activeTab === 'all' || activeTab === 'kbli'" class="space-y-3">
       <div class="flex flex-wrap items-center justify-between gap-2">
         <h2 class="text-base font-extrabold text-slate-900">
-          A. 17 Kategori PDRB Lapangan Usaha (KBLI 2025 • 22 Huruf A–V)
+          A. 17 Sektor PDRB (dari 22 Kategori KBLI 2025 • Huruf A–V)
         </h2>
         <div class="flex items-center gap-2 text-xs tabular-nums text-slate-600">
           <span

@@ -143,7 +143,7 @@ async function copyEntryCitation(entry: KbliConcordanceEntry) {
             <p class="text-[11px] text-slate-600">Pilih versi dan kategori untuk melihat padanan kode & judul di ketiga edisi lainnya.</p>
           </div>
         </div>
-        <span class="text-[10px] bg-indigo-100 text-indigo-800 font-extrabold px-2 py-0.5 rounded-full border border-indigo-200">
+        <span class="text-xs bg-indigo-100 text-indigo-800 font-extrabold px-2 py-0.5 rounded-full border border-indigo-200">
           Engine Konversi Aktif
         </span>
       </div>
@@ -187,7 +187,7 @@ async function copyEntryCitation(entry: KbliConcordanceEntry) {
           class="p-3 rounded-xl border transition-all"
           :class="m.isCurrent ? 'bg-indigo-600 text-white border-indigo-700 shadow-sm' : 'bg-white text-slate-800 border-slate-200/90'"
         >
-          <div class="text-[10px] font-bold uppercase tracking-wider mb-1" :class="m.isCurrent ? 'text-indigo-200' : 'text-slate-500'">
+          <div class="text-xs font-bold uppercase tracking-wider mb-1" :class="m.isCurrent ? 'text-indigo-200' : 'text-slate-500'">
             KBLI {{ m.version }} {{ m.isCurrent ? '(Sumber)' : '' }}
           </div>
           <div class="text-base font-extrabold mb-0.5">
@@ -262,7 +262,7 @@ async function copyEntryCitation(entry: KbliConcordanceEntry) {
             Matriks Konkordansi Lapangan Usaha KBLI 2009, 2015, 2020, dan 2025 BPS RI
           </caption>
           <thead>
-            <tr class="bg-slate-50 border-b border-slate-200 text-slate-700 font-bold uppercase tracking-wider text-[10px]">
+            <tr class="bg-slate-50 border-b border-slate-200 text-slate-700 font-bold uppercase tracking-wider text-xs">
               <th scope="col" class="py-3 px-4 w-48">KBLI 2025 (Terkini)</th>
               <th scope="col" class="py-3 px-3 w-40">KBLI 2020</th>
               <th scope="col" class="py-3 px-3 w-36">KBLI 2015</th>
@@ -294,7 +294,7 @@ async function copyEntryCitation(entry: KbliConcordanceEntry) {
               <td class="py-3.5 px-3 align-top">
                 <div class="flex items-start gap-1.5">
                   <span
-                    class="inline-flex items-center justify-center px-1.5 py-0.5 rounded text-[10px] font-bold shrink-0 border"
+                    class="inline-flex items-center justify-center px-1.5 py-0.5 rounded text-xs font-bold shrink-0 border"
                     :class="entry.code_2025 !== entry.code_2020 ? 'bg-amber-100 text-amber-900 border-amber-300' : 'bg-slate-100 text-slate-700 border-slate-200'"
                   >
                     {{ entry.code_2020 }}
@@ -308,7 +308,7 @@ async function copyEntryCitation(entry: KbliConcordanceEntry) {
               <!-- 2015 -->
               <td class="py-3.5 px-3 align-top">
                 <div class="flex items-start gap-1.5">
-                  <span class="inline-flex items-center justify-center px-1.5 py-0.5 rounded text-[10px] font-bold shrink-0 bg-slate-100 text-slate-700 border border-slate-200">
+                  <span class="inline-flex items-center justify-center px-1.5 py-0.5 rounded text-xs font-bold shrink-0 bg-slate-100 text-slate-700 border border-slate-200">
                     {{ entry.code_2015 }}
                   </span>
                   <span class="text-slate-600 leading-snug">
@@ -320,7 +320,7 @@ async function copyEntryCitation(entry: KbliConcordanceEntry) {
               <!-- 2009 -->
               <td class="py-3.5 px-3 align-top">
                 <div class="flex items-start gap-1.5">
-                  <span class="inline-flex items-center justify-center px-1.5 py-0.5 rounded text-[10px] font-bold shrink-0 bg-slate-100 text-slate-700 border border-slate-200">
+                  <span class="inline-flex items-center justify-center px-1.5 py-0.5 rounded text-xs font-bold shrink-0 bg-slate-100 text-slate-700 border border-slate-200">
                     {{ entry.code_2009 }}
                   </span>
                   <span class="text-slate-600 leading-snug">

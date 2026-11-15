@@ -197,7 +197,7 @@ async function handleSubmit(event: FormSubmitEvent<LoginRequestInput>) {
           <div class="space-y-1">
             <h1 class="text-lg font-extrabold text-white">Sesi Aktif Terdeteksi</h1>
             <p class="text-xs text-slate-300">
-              Anda terautentikasi sebagai <strong class="text-emerald-300">{{ user.name }}</strong> ({{ user.role }}).
+              Anda terautentikasi sebagai <strong class="text-emerald-300">{{ user.name }}</strong> ({{ user.role === 'ADMIN' ? 'Administrator' : 'Operator Kurasi' }}).
             </p>
           </div>
           <NuxtLink
@@ -215,7 +215,7 @@ async function handleSubmit(event: FormSubmitEvent<LoginRequestInput>) {
           <!-- Institutional Security Badge & Brand Header -->
           <div class="text-center space-y-3">
             <div
-              class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] font-bold text-emerald-300 tracking-wider uppercase"
+              class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-bold text-emerald-300 tracking-wider uppercase"
             >
               <span class="w-2 h-2 rounded-full bg-emerald-400" />
               <span>BPS KTT • Nerwilis Secure Gateway</span>
@@ -363,7 +363,7 @@ async function handleSubmit(event: FormSubmitEvent<LoginRequestInput>) {
 
         <!-- Security Trust Micro-Bar & Back Link -->
         <div class="pt-4 border-t border-white/10 space-y-3">
-          <div class="flex items-center justify-center gap-3 text-[10px] text-slate-400 font-medium text-center">
+          <div class="flex items-center justify-center gap-3 text-xs text-slate-400 font-medium text-center">
             <span class="inline-flex items-center gap-1">
               <UIcon name="i-lucide-lock" class="w-3 h-3 text-emerald-400" />
               <span>TLS / AES Encrypted</span>

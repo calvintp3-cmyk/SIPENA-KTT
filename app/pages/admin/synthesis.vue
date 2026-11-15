@@ -908,7 +908,7 @@ const manualModalOpen = ref(false);
               "
               @click="() => { requestDimensionChange('kbli'); }"
             >
-              17 KBLI
+              17 Sektor PDRB
             </button>
             <button
               type="button"
@@ -935,7 +935,7 @@ const manualModalOpen = ref(false);
               Target Sektor / Komponen ({{ shortPeriodLabel }})
             </label>
             <span
-              class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border"
+              class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold border"
               :class="
                 dimension === 'kbli'
                   ? getKbliClusterTheme(targetCode).pillClass
@@ -1092,7 +1092,7 @@ const manualModalOpen = ref(false);
                 >
                   <span class="flex items-center justify-between gap-2">
                     <span
-                      class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold tabular-nums"
+                      class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold tabular-nums"
                       :class="
                         citationIndexByArticleId.get(art.id)
                           ? 'bg-indigo-600 text-white'

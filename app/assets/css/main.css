@@ -1,32 +1,170 @@
-/* app/assets/css/main.css */
+/* app/assets/css/main.css
+ * SIPENA KTT — Super Premium Modern SaaS (Raycast Daylight & Obsidian Workstation)
+ * Central Design Tokens & Bespoke Component Craft
+ */
 @import "tailwindcss";
 @import "@nuxt/ui";
 
-@theme {
-  /* Layer 1: Unified Single-Font System (Friendly, crisp Inter everywhere) */
-  --font-sans: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+:root {
+  /* ========================================================================
+     RAYCAST DAYLIGHT SCALE (Default Light Mode — Tactile Alabaster & Pure White)
+     ======================================================================== */
+  --font-sans: "Plus Jakarta Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
 
-  /* Layer 2: Cobalt-Emerald Luminous SaaS Semantic Tokens (WCAG 2.1 AA Compliant) */
-  --color-canvas: #F4F7FC;
-  --color-surface: #FFFFFF;
-  --color-surface-elevated: #FAFBFD;
-  --color-surface-subtle: #EDF2FA;
-  --color-border-hairline: #E2E8F0;
-  --color-ink-obsidian: #0F172A;
-  --color-ink-primary: #0F172A;
-  --color-ink-secondary: #334155;
-  --color-ink-muted: #64748B;
-  --color-brand-primary: #2563EB;
-  --color-brand-indigo: #4F46E5;
-  --color-brand-emerald: #047857;
-  --color-brand-teal: #0F766E;
+  /* Surface & Canvas Hierarchy */
+  --bg-canvas: #F1F3F7;        /* Brushed Alabaster Rail & Recessed Area */
+  --bg-workspace: #F7F8FA;     /* Daylight Workspace Stage */
+  --bg-elevated: #FFFFFF;      /* Pure White Workstation Panel */
+  --bg-recessed: #ECEFF4;      /* Recessed Control Track & Table Header */
+  --bg-hover: #E6EAF2;         /* Interactive Hover Surface */
+  --bg-active: #FFFFFF;        /* Raised Active Tab/Pill */
+  --bg-row-selected: #EBF7F5;  /* Table Row Selection Tint */
+  --bg-glass: rgba(255, 255, 255, 0.88);
+
+  /* Borders & Specular Elevation */
+  --border-subtle: #E5E9F0;
+  --border-default: #DCE1EB;
+  --border-strong: #C6CFDE;
+  --border-focus: rgba(13, 148, 136, 0.45);
+  --specular-top: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 1px 2px rgba(15, 23, 42, 0.04);
+  --specular-card: inset 0 1px 0 #FFFFFF, 0 1px 3px rgba(15, 23, 42, 0.05), 0 6px 18px -4px rgba(15, 23, 42, 0.04);
+  --shadow-modal: 0 24px 60px -8px rgba(15, 23, 42, 0.18), 0 4px 16px rgba(15, 23, 42, 0.07), 0 0 0 1px #C6CFDE;
+
+  /* Ink Hierarchy (WCAG AAA/AA Calibrated) */
+  --ink-primary: #0D121C;      /* Deep Obsidian Ink (18.2:1) */
+  --ink-secondary: #475467;    /* Slate Graphite (7.5:1) */
+  --ink-muted: #667085;        /* Technical Muted Slate (4.8:1) */
+
+  /* Primary Accent — Raycast Deep Teal */
+  --accent-teal: #0D9488;
+  --accent-teal-solid: #0F766E;
+  --accent-teal-hover: #115E59;
+  --accent-teal-ink: #FFFFFF;
+  --accent-teal-subtle: rgba(13, 148, 136, 0.09);
+  --accent-teal-border: rgba(13, 148, 136, 0.32);
+
+  /* Spektrum 6 Komponen Pengeluaran PDRB (Warna Sektoral Resmi) */
+  --exp-pmtb: #0D9488;
+  --exp-pk-p: #0284C7;
+  --exp-net-export: #059669;
+  --exp-pk-rt: #6366F1;
+  --exp-inventory: #D97706;
+  --exp-pk-lnprt: #E11D48;
+
+  /* Sinyal Dualitas PDRB (Volume vs Harga) */
+  --sig-vol-up: #047857;
+  --sig-vol-up-bg: #ECFDF5;
+  --sig-vol-up-border: #A7F3D0;
+
+  --sig-vol-down: #BE123C;
+  --sig-vol-down-bg: #FFF1F2;
+  --sig-vol-down-border: #FECDD3;
+
+  --sig-price: #B45309;
+  --sig-price-bg: #FFFBEB;
+  --sig-price-border: #FDE68A;
+
+  --sig-macro: #0369A1;
+  --sig-macro-bg: #F0F9FF;
+  --sig-macro-border: #BAE6FD;
+
+  /* Keycap Badges 3D */
+  --kbd-bg: linear-gradient(180deg, #FFFFFF 0%, #F3F5F8 100%);
+  --kbd-border: #C6CFDE;
+  --kbd-shadow: 0 1px 0 #B6C0D0, inset 0 1px 0 #FFFFFF;
+
+  /* Chart & Grid */
+  --chart-grid: #E2E7F0;
+  --chart-track: #E9EDF4;
+  --chart-dot-fill: #FFFFFF;
+}
+
+/* ========================================================================
+   OBSIDIAN CARBON SCALE (Dark Mode Toggle via [data-theme="dark"] or html.dark)
+   ======================================================================== */
+html.dark,
+html[data-theme="dark"] {
+  --bg-canvas: #0A0C0E;
+  --bg-workspace: #111418;
+  --bg-elevated: #161A20;
+  --bg-recessed: #12161B;
+  --bg-hover: #1C2129;
+  --bg-active: #202734;
+  --bg-row-selected: #1C2430;
+  --bg-glass: rgba(17, 20, 24, 0.88);
+
+  --border-subtle: #1A1F27;
+  --border-default: #222730;
+  --border-strong: #2E3542;
+  --border-focus: rgba(45, 212, 191, 0.45);
+  --specular-top: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  --specular-card: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 4px 20px -2px rgba(0, 0, 0, 0.45);
+  --shadow-modal: inset 0 1px 0 rgba(255, 255, 255, 0.09), 0 24px 60px rgba(0, 0, 0, 0.75), 0 0 0 1px #2E3542;
+
+  --ink-primary: #F3F5F8;
+  --ink-secondary: #A2ABB8;
+  --ink-muted: #758091;
+
+  --accent-teal: #2DD4BF;
+  --accent-teal-solid: #14B8A6;
+  --accent-teal-hover: #2DD4BF;
+  --accent-teal-ink: #042F2E;
+  --accent-teal-subtle: rgba(45, 212, 191, 0.10);
+  --accent-teal-border: rgba(45, 212, 191, 0.28);
+
+  --sig-vol-up: #34D399;
+  --sig-vol-up-bg: rgba(52, 211, 153, 0.10);
+  --sig-vol-up-border: rgba(52, 211, 153, 0.26);
+
+  --sig-vol-down: #FB7185;
+  --sig-vol-down-bg: rgba(251, 113, 133, 0.10);
+  --sig-vol-down-border: rgba(251, 113, 133, 0.28);
+
+  --sig-price: #FBBF24;
+  --sig-price-bg: rgba(251, 191, 36, 0.10);
+  --sig-price-border: rgba(251, 191, 36, 0.26);
+
+  --sig-macro: #38BDF8;
+  --sig-macro-bg: rgba(56, 189, 248, 0.10);
+  --sig-macro-border: rgba(56, 189, 248, 0.26);
+
+  --kbd-bg: #1C2129;
+  --kbd-border: #2E3542;
+  --kbd-shadow: inset 0 -1px 0 #0A0C0E;
+
+  --chart-grid: #1E242D;
+  --chart-track: #0D1014;
+  --chart-dot-fill: #0A0C0E;
+}
+
+@theme {
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+
+  --color-canvas: var(--bg-canvas);
+  --color-workspace: var(--bg-workspace);
+  --color-surface: var(--bg-elevated);
+  --color-surface-elevated: var(--bg-elevated);
+  --color-surface-subtle: var(--bg-recessed);
+
+  --color-border-hairline: var(--border-subtle);
+  --color-border-default: var(--border-default);
+  --color-border-strong: var(--border-strong);
+
+  --color-ink-primary: var(--ink-primary);
+  --color-ink-secondary: var(--ink-secondary);
+  --color-ink-muted: var(--ink-muted);
+
+  --color-brand-primary: var(--accent-teal);
+  --color-brand-teal: var(--accent-teal-solid);
 }
 
 @layer base {
   html,
   body {
-    background-color: var(--color-canvas);
-    color: var(--color-ink-primary);
+    background-color: var(--bg-workspace);
+    color: var(--ink-primary);
     font-family: var(--font-sans);
     overscroll-behavior: none;
     overflow-wrap: break-word;
@@ -36,6 +174,7 @@
 
   :where(h1, h2, h3) {
     text-wrap: balance;
+    letter-spacing: -0.025em;
   }
 
   :where(p, li) {
@@ -44,288 +183,204 @@
 
   code,
   kbd {
-    font-family: var(--font-sans);
+    font-family: var(--font-mono);
   }
 }
 
-/* Pastikan indikator fokus keyboard selalu terlihat & kontras tinggi (WCAG 2.4.7) */
+/* Aksesibilitas Indikator Fokus */
 a:focus-visible,
 button:focus-visible,
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible,
 [tabindex]:focus-visible {
-  outline: 2px solid var(--color-brand-primary);
+  outline: 2px solid var(--accent-teal);
   outline-offset: 2px;
 }
 
-/* Kepastian keterbacaan angka statistik, tanggal, kode KBLI, dan counter dalam font Inter */
 .tabular-nums {
   font-variant-numeric: tabular-nums;
 }
 
-/* Midnight Cobalt-Emerald Gradient Showcase Surface (Landing Hero & Login Panel) */
-.hero-mesh-dark {
-  background-color: #090F24;
-  background-image:
-    radial-gradient(65% 70% at 14% 12%, rgba(37, 99, 235, 0.34), transparent 70%),
-    radial-gradient(55% 65% at 88% 18%, rgba(16, 185, 129, 0.24), transparent 70%),
-    radial-gradient(60% 65% at 52% 96%, rgba(79, 70, 229, 0.28), transparent 72%),
-    linear-gradient(145deg, #090F24 0%, #0F1D45 52%, #0B3B3E 100%);
+/* ==========================================================================
+   Bespoke Components (Raycast Daylight & Obsidian)
+   ========================================================================== */
+
+/* Tactile 3D Keycap Badges */
+kbd, .kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  background: var(--kbd-bg);
+  border: 1px solid var(--kbd-border);
+  box-shadow: var(--kbd-shadow);
+  border-radius: 5px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--ink-secondary);
+  user-select: none;
+  white-space: nowrap;
 }
 
-/* Subtle Luminous Canvas Aura for Bright Reading Surfaces */
-.canvas-aurora-light {
-  background-image:
-    radial-gradient(70% 42% at 15% -5%, rgba(37, 99, 235, 0.08), transparent 65%),
-    radial-gradient(60% 40% at 85% -5%, rgba(15, 118, 110, 0.07), transparent 65%);
+/* Super Premium Panel Card */
+.raycast-panel {
+  background-color: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  box-shadow: var(--specular-card);
+  border-radius: 10px;
+  transition: border-color 0.14s ease, box-shadow 0.14s ease;
 }
 
-/* Elevated Luminous SaaS Card */
-.saas-card {
-  background-color: var(--color-surface);
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  box-shadow:
-    0 1px 2px rgba(15, 23, 42, 0.04),
-    0 10px 26px -12px rgba(37, 99, 235, 0.08);
-  transition:
-    border-color 180ms cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 220ms cubic-bezier(0.22, 1, 0.36, 1),
-    transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+.raycast-panel-interactive:hover {
+  border-color: var(--border-strong);
+  box-shadow: 0 6px 22px -6px rgba(15, 23, 42, 0.08);
 }
 
-.saas-card-interactive:hover {
-  border-color: rgba(37, 99, 235, 0.28);
-  box-shadow:
-    0 8px 20px -8px rgba(15, 23, 42, 0.09),
-    0 16px 32px -14px rgba(37, 99, 235, 0.16);
+/* Primary Action CTA (High-Contrast Raycast Teal) */
+.btn-raycast-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 6px;
+  background-color: var(--accent-teal-solid);
+  color: var(--accent-teal-ink);
+  font-weight: 600;
+  font-size: 13px;
+  border: 1px solid var(--accent-teal);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 1px 3px rgba(15, 23, 42, 0.10);
+  transition: all 0.14s ease;
+  white-space: nowrap;
 }
 
-/* Primary Dimensional Cobalt-Emerald CTA Button (WCAG >= 5.4:1 with white text across gradient) */
-.btn-primary-gradient,
-.obsidian-button {
-  background-image: linear-gradient(135deg, var(--color-brand-primary) 0%, var(--color-brand-indigo) 55%, var(--color-brand-teal) 100%);
-  background-size: 140% 140%;
-  background-position: 0% 50%;
-  color: var(--color-surface);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.28),
-    0 2px 6px -1px rgba(37, 99, 235, 0.32),
-    0 8px 18px -6px rgba(79, 70, 229, 0.28);
-  transition:
-    background-position 240ms cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 180ms cubic-bezier(0.22, 1, 0.36, 1),
-    transform 140ms cubic-bezier(0.22, 1, 0.36, 1),
-    opacity 150ms ease;
+.btn-raycast-primary:hover {
+  background-color: var(--accent-teal-hover);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 2px 6px rgba(13, 148, 136, 0.25);
 }
 
-.btn-primary-gradient:hover:not(:disabled),
-.obsidian-button:hover:not(:disabled) {
-  background-position: 85% 50%;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.36),
-    0 4px 12px -2px rgba(37, 99, 235, 0.4),
-    0 12px 24px -8px rgba(15, 118, 110, 0.34);
+/* Secondary Button */
+.btn-raycast-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 6px;
+  background-color: var(--bg-elevated);
+  color: var(--ink-primary);
+  font-weight: 500;
+  font-size: 13px;
+  border: 1px solid var(--border-strong);
+  box-shadow: var(--specular-top);
+  transition: all 0.14s ease;
+  white-space: nowrap;
 }
 
-.btn-primary-gradient:disabled,
-.obsidian-button:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
+.btn-raycast-secondary:hover {
+  background-color: var(--bg-hover);
+  border-color: var(--ink-muted);
 }
 
-/* Luminous Active Sidebar Navigation Pill */
-.active-nav-card {
-  background-image: linear-gradient(90deg, rgba(238, 242, 255, 0.95) 0%, rgba(236, 253, 245, 0.72) 100%);
-  border: 1px solid rgba(99, 102, 241, 0.24);
-  box-shadow:
-    inset 3px 0 0 var(--color-brand-primary),
-    0 2px 6px -2px rgba(37, 99, 235, 0.12);
+/* Recessed Segmented Track */
+.segmented-track {
+  display: inline-flex;
+  align-items: center;
+  background-color: var(--bg-recessed);
+  border: 1px solid var(--border-default);
+  padding: 3px;
+  border-radius: 8px;
+  gap: 2px;
 }
 
-/* Smooth Editorial Timeline Spine (/linimasa) */
-.timeline-spine {
-  position: relative;
+.segmented-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 5px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-secondary);
+  border: 1px solid transparent;
+  transition: all 0.12s ease;
 }
 
-.timeline-spine::before {
-  content: "";
-  position: absolute;
-  top: 12px;
-  bottom: 12px;
-  left: 19px;
-  width: 2px;
-  background: linear-gradient(
-    to bottom,
-    rgba(37, 99, 235, 0.4),
-    rgba(15, 118, 110, 0.32) 35%,
-    #CBD5E1 85%,
-    transparent
-  );
-  pointer-events: none;
+.segmented-tab:hover {
+  color: var(--ink-primary);
 }
 
-/* Above-the-fold Hero GPU entrance (stays visible immediately from SSR byte 0) */
-.hero-entrance {
-  animation: sipena-hero-settle 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+.segmented-tab.active {
+  background-color: var(--bg-active);
+  color: var(--ink-primary);
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+  border-color: var(--border-strong);
 }
 
-.hero-entrance-delayed {
-  animation: sipena-hero-settle 360ms cubic-bezier(0.22, 1, 0.36, 1) 60ms both;
+/* KBLI Chip (JetBrains Mono Tabular Badge) */
+.kbli-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 26px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 4px;
+  background: var(--bg-recessed);
+  border: 1px solid var(--border-strong);
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--ink-primary);
 }
 
-@keyframes sipena-hero-settle {
-  from {
-    transform: translateY(10px);
-  }
-  to {
-    transform: translateY(0);
-  }
+.kbli-chip.teal {
+  background: var(--accent-teal-subtle);
+  border-color: var(--accent-teal-border);
+  color: var(--accent-teal-solid);
 }
 
-/* Native View Transitions & Vue Fallback Page/Layout Transitions */
-::view-transition-old(root) {
-  animation: sipena-vt-fade-out 170ms cubic-bezier(0.22, 1, 0.36, 1) both;
+.kbli-chip.gap {
+  background: var(--sig-vol-down-bg);
+  border-color: var(--sig-vol-down-border);
+  color: var(--sig-vol-down);
 }
 
-::view-transition-new(root) {
-  animation: sipena-vt-fade-in 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
+/* Sinyal Dualitas PDRB (Simbol + Teks) */
+.signal-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 4px;
+  font-size: 11.5px;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
-@keyframes sipena-vt-fade-out {
-  from {
-    opacity: 1;
-  }
-  to {
-    opacity: 0;
-  }
+.signal-badge.vol-up {
+  background: var(--sig-vol-up-bg);
+  border: 1px solid var(--sig-vol-up-border);
+  color: var(--sig-vol-up);
 }
 
-@keyframes sipena-vt-fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.signal-badge.vol-down {
+  background: var(--sig-vol-down-bg);
+  border: 1px solid var(--sig-vol-down-border);
+  color: var(--sig-vol-down);
 }
 
-.page-enter-active,
-.page-leave-active {
-  transition:
-    opacity 220ms cubic-bezier(0.22, 1, 0.36, 1),
-    transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.page-enter-from {
-  opacity: 0;
-  transform: translateY(8px);
-}
-
-.page-leave-to {
-  opacity: 0;
-  transform: translateY(-6px);
-}
-
-.layout-enter-active,
-.layout-leave-active {
-  transition: opacity 200ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.layout-enter-from,
-.layout-leave-to {
-  opacity: 0;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .hero-entrance,
-  .hero-entrance-delayed,
-  ::view-transition-group(*),
-  ::view-transition-old(*),
-  ::view-transition-new(*) {
-    animation: none !important;
-  }
-
-  .page-enter-active,
-  .page-leave-active,
-  .layout-enter-active,
-  .layout-leave-active {
-    transition: opacity 120ms linear;
-  }
-
-  .page-enter-from,
-  .page-leave-to {
-    transform: none;
-  }
-
-  .saas-card-interactive:hover {
-    transform: none;
-  }
-}
-
-/* Native Dialog Scroll Containment */
-dialog:modal {
-  overscroll-behavior: contain;
-}
-dialog::backdrop {
-  overflow: hidden;
-  overscroll-behavior: contain;
-}
-
-/* Responsive Scrollable Table Region (WCAG 1.4.11 & Keyboard Scrollable) */
-.saas-table-scroller {
-  overflow-x: auto;
-  max-inline-size: 100%;
-  overscroll-behavior-x: contain;
-  --scrollbar-thumb: var(--color-ink-muted);
-  --scrollbar-track: #F1F5F9;
-  scrollbar-width: thin;
-  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
-}
-
-.saas-scroll {
-  --scrollbar-thumb: var(--color-ink-muted);
-  --scrollbar-track: transparent;
-  scrollbar-width: thin;
-  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
-}
-
-@supports not (scrollbar-color: auto) {
-  .saas-table-scroller::-webkit-scrollbar,
-  .saas-scroll::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-  }
-
-  .saas-table-scroller::-webkit-scrollbar-thumb,
-  .saas-scroll::-webkit-scrollbar-thumb {
-    background: var(--scrollbar-thumb);
-    border-radius: 9999px;
-  }
-
-  .saas-table-scroller::-webkit-scrollbar-track,
-  .saas-scroll::-webkit-scrollbar-track {
-    background: var(--scrollbar-track);
-  }
-}
-
-/* Clean A4 Print Layout for BRS Narrative Synthesis */
-@media print {
-  body {
-    background: #FFFFFF !important;
-  }
-
-  .no-print {
-    display: none !important;
-  }
-
-  .synthesis-print-sheet {
-    box-shadow: none !important;
-    border: none !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    max-width: 100% !important;
-  }
+.signal-badge.price {
+  background: var(--sig-price-bg);
+  border: 1px solid var(--sig-price-border);
+  color: var(--sig-price);
 }

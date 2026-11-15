@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Executive Cockpit & Gap Sektoral (/admin) | SIPENA KTT</title>
+  <link rel="stylesheet" href="./styles.css" />
+  <style>
+    .cockpit-head {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    @media (max-width: 1120px) {
+      .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 640px) {
+      .kpi-grid { grid-template-columns: 1fr; }
+      .sector-row { grid-template-columns: 38px minmax(110px, 1fr) 0.9fr 32px; gap: 6px; padding: 5px 4px; }
+    }
+    .kpi-card {
+      padding: 18px 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 12px;
+      position: relative;
+    }
+    .kpi-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--ink-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .kpi-value-row {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      margin-top: 2px;
+    }
+    .kpi-big {
+      font-family: var(--font-mono);
+      font-size: 30px;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      color: var(--ink-primary);
+      line-height: 1.05;
+    }
+    .kpi-foot {
+      font-size: 11.5px;
+      color: var(--ink-muted);
+      padding-top: 10px;
+      border-top: 1px solid var(--border-subtle);
+      line-height: 1.45;
+    }
+
+    /* Main 2-Column Analytical Split */
+    .cockpit-split {
+      display: grid;
+      grid-template-columns: 1.38fr 1fr;
+      gap: 18px;
+      margin-bottom: 20px;
+      align-items: start;
+    }
+    @media (max-width: 1120px) {
+      .cockpit-split { grid-template-columns: 1fr; }
+    }
+
+    /* 17-Sector Bar Rows */
+    .sector-bar-list {
+      padding: 14px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+    .sector-row {
+      display: grid;
+      grid-template-columns: 44px minmax(140px, 1.1fr) 1.4fr 42px;
+      align-items: center;
+      gap: 10px;
+      padding: 5px 8px;
+      border-radius: var(--radius-xs);
+      font-size: 12.5px;
+      transition: background 0.12s ease;
+    }
+    .sector-row:hover {
+      background: var(--bg-hover);
+    }
+    .sector-row.is-gap {
+      background: var(--sig-vol-down-bg);
+      border: 1px dashed var(--sig-vol-down-border);
+    }
+    .bar-track {
+      height: 8px;
+      background: var(--chart-track);
+      border-radius: 4px;
+      overflow: hidden;
+      border: 1px solid var(--border-subtle);
+    }
+    .bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent-jade-solid), var(--accent-jade));
+      border-radius: 3px;
+    }
+
+    /* 17x6 Cross-Axis Matrix Table */
+    .matrix-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    .matrix-table th {
+      padding: 9px 10px;
+      background: var(--bg-recessed);
+      border-bottom: 1px solid var(--border-default);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--ink-secondary);
+      text-align: center;
+    }
+    .matrix-table th:first-child {
+      text-align: left;
+      padding-left: 16px;
+    }
+    .matrix-table td {
+      padding: 7px 10px;
+      border-bottom: 1px solid var(--border-subtle);
+      text-align: center;
+      font-family: var(--font-mono);
+      font-size: 12px;
+    }
+    .matrix-table td:first-child {
+      text-align: left;
+      padding-left: 16px;
+      font-family: var(--font-sans);
+    }
+    .heat-cell {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 24px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div id="proto-strip-mount"></div>
+
+  <div class="workbench-shell">
+    <!-- Left Navigation Rail -->
+    <div id="rail-mount"></div>
+
+    <!-- Main Analytical Workspace -->
+    <div class="workspace-main">
+      <div id="topbar-mount"></div>
+
+      <main class="workspace-body">
+        <!-- Cockpit Header & Period Switcher -->
+        <div class="cockpit-head">
+          <div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+              <span class="font-mono" style="font-size:11.5px;color:var(--accent-jade);font-weight:600;">EXECUTIVE INTELLIGENCE COCKPIT</span>
+              <span style="color:var(--border-strong);">·</span>
+              <span class="font-mono" style="font-size:11.5px;color:var(--ink-muted);">Sinkron Terakhir: 14 Nov 2026, 06:42 WITA</span>
+            </div>
+            <h1 class="font-display" style="font-size:24px;font-weight:700;color:var(--ink-primary);">
+              Dashboard Fenomena &amp; Cakupan Sektoral PDRB
+            </h1>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <div class="segmented-control" id="quarter-switcher" role="group" aria-label="Pilih Triwulan">
+              <button type="button" class="seg-btn" data-q="1">TW I <kbd style="height:16px;font-size:10px;">1</kbd></button>
+              <button type="button" class="seg-btn" data-q="2">TW II <kbd style="height:16px;font-size:10px;">2</kbd></button>
+              <button type="button" class="seg-btn" data-q="3">TW III <kbd style="height:16px;font-size:10px;">3</kbd></button>
+              <button type="button" class="seg-btn active" data-q="4"><span class="seg-dot"></span>TW IV 2026 <kbd style="height:16px;font-size:10px;">4</kbd></button>
+            </div>
+            <a href="./table.html" class="btn btn-secondary">
+              <span>Ekspor CSV</span>
+              <kbd>⌘E</kbd>
+            </a>
+          </div>
+        </div>
+
+        <!-- 4 Executive KPI Cards -->
+        <section class="kpi-grid" aria-label="Indikator Utama">
+          <!-- KPI 1: Total Verified -->
+          <article class="surface-card-elevated kpi-card">
+            <div>
+              <div class="kpi-label">
+                <span>Total Fenomena Terverifikasi</span>
+                <span class="kbli-chip jade">+17% QoQ</span>
+              </div>
+              <div class="kpi-value-row">
+                <span class="kpi-big" id="kpi-total-val">48</span>
+                <span class="font-mono" style="font-size:12px;color:var(--ink-muted);">vs 41 pada TW III</span>
+              </div>
+            </div>
+            <div class="kpi-foot">
+              <span style="color:var(--sig-price);font-family:var(--font-mono);font-weight:600;">23 antrean pending</span> menunggu verifikasi kurator di meja kerja harian.
+            </div>
+          </article>
+
+          <!-- KPI 2: Dominant KBLI -->
+          <article class="surface-card-elevated kpi-card">
+            <div>
+              <div class="kpi-label">
+                <span>Sektor Lapangan Usaha Dominan</span>
+                <span class="kbli-chip jade">KBLI A</span>
+              </div>
+              <div class="kpi-value-row">
+                <span class="kpi-big">29%</span>
+                <span class="font-mono" style="font-size:12px;color:var(--ink-secondary);">14 dari 48 berita</span>
+              </div>
+            </div>
+            <div class="kpi-foot">
+              <strong style="color:var(--ink-primary);">Pertanian, Kehutanan &amp; Perikanan</strong> (Sawit TBS &amp; Tambak Udang).
+            </div>
+          </article>
+
+          <!-- KPI 3: Dominant Expenditure -->
+          <article class="surface-card-elevated kpi-card">
+            <div>
+              <div class="kpi-label">
+                <span>Komponen Pengeluaran Dominan</span>
+                <span class="kbli-chip">PMTB</span>
+              </div>
+              <div class="kpi-value-row">
+                <span class="kpi-big">31%</span>
+                <span class="font-mono" style="font-size:12px;color:var(--ink-secondary);">15 dari 48 berita</span>
+              </div>
+            </div>
+            <div class="kpi-foot">
+              <strong style="color:var(--ink-primary);">Pembentukan Modal Tetap Bruto</strong> diikuti Ekspor Neto (10 berita).
+            </div>
+          </article>
+
+          <!-- KPI 4: Volume Expansion Proportion (with Explicit Disclaimer) -->
+          <article class="surface-card-elevated kpi-card" style="border-color:var(--accent-jade-border);">
+            <div>
+              <div class="kpi-label">
+                <span>Berita Bernada Ekspansi Volume</span>
+                <span class="signal-badge vol-up">↑ NTB / Riil</span>
+              </div>
+              <div class="kpi-value-row">
+                <span class="kpi-big" style="color:var(--accent-jade);">58%</span>
+                <span class="font-mono" style="font-size:12px;color:var(--ink-secondary);">28 dari 48 berita</span>
+              </div>
+            </div>
+            <div class="kpi-foot" style="color:var(--ink-secondary);">
+              <strong style="color:var(--accent-jade);">Catatan Metodologis:</strong> Proporsi berita terverifikasi, <em>bukan</em> angka pertumbuhan ekonomi/PDRB resmi.
+            </div>
+          </article>
+        </section>
+
+        <!-- Split Section: 17-Sector Coverage & Gap Monitor + Expenditure & Gap Action Panel -->
+        <section class="cockpit-split">
+          <!-- Left: 17-Sector Coverage & Luminous Bar Chart -->
+          <div class="surface-card-elevated">
+            <div class="panel-header">
+              <div>
+                <h2 class="panel-title">
+                  <span>Kelengkapan 17 Sektor PDRB (KBLI 2025 A–V)</span>
+                  <span class="kbli-chip jade">14/17 Terisi</span>
+                </h2>
+                <p class="panel-subtitle">3 sektor belum memiliki berita terverifikasi ditampilkan sebagai <code class="font-mono" style="color:var(--sig-vol-down);">—</code> (bukan 0%)</p>
+              </div>
+              <div class="segmented-control" id="sector-filter-btns">
+                <button type="button" class="seg-btn active" data-mode="ALL"><span class="seg-dot"></span>Semua (17)</button>
+                <button type="button" class="seg-btn" data-mode="GAP"><span class="seg-dot"></span>Hanya Gap (3)</button>
+              </div>
+            </div>
+
+            <div class="sector-bar-list" id="dashboard-sector-bars"></div>
+          </div>
+
+          <!-- Right Column: 3 Data Gaps Alert Box + 6 Expenditure Components + Recent Queue -->
+          <div style="display:flex;flex-direction:column;gap:18px;">
+            <!-- Data Gap Alert Card -->
+            <div class="surface-card-elevated" id="gap-focus" style="border-color:var(--sig-vol-down-border);background:linear-gradient(180deg, rgba(251,113,133,0.06) 0%, var(--bg-elevated) 100%);">
+              <div class="panel-header" style="border-bottom-color:rgba(251,113,133,0.18);">
+                <div>
+                  <h2 class="panel-title" style="color:var(--sig-vol-down);">
+                    <span>Peringatan Data Gap Sektoral (TW IV 2026)</span>
+                  </h2>
+                  <p class="panel-subtitle">Sektor tanpa bukti berita terverifikasi memerlukan pencarian terarah</p>
+                </div>
+                <span class="rail-badge rose">3 SEKTOR —</span>
+              </div>
+              <div style="padding:14px 18px;display:flex;flex-direction:column;gap:10px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:var(--bg-workspace);border:1px solid var(--border-default);border-radius:var(--radius-sm);">
+                  <div style="display:flex;align-items:center;gap:10px;">
+                    <span class="kbli-chip gap">J,K</span>
+                    <div>
+                      <div style="font-weight:600;color:var(--ink-primary);font-size:12.5px;">Informasi dan Komunikasi</div>
+                      <div style="font-size:11.5px;color:var(--ink-muted);">Keyword disarankan: BTS Bakti, serat optik, Telkomsel Tideng Pale</div>
+                    </div>
+                  </div>
+                  <span class="font-mono" style="font-weight:700;color:var(--sig-vol-down);">—</span>
+                </div>
+
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:var(--bg-workspace);border:1px solid var(--border-default);border-radius:var(--radius-sm);">
+                  <div style="display:flex;align-items:center;gap:10px;">
+                    <span class="kbli-chip gap">M</span>
+                    <div>
+                      <div style="font-weight:600;color:var(--ink-primary);font-size:12.5px;">Aktivitas Real Estat</div>
+                      <div style="font-size:11.5px;color:var(--ink-muted);">Keyword disarankan: perumahan ASN, sewa ruko, kavling tanah</div>
+                    </div>
+                  </div>
+                  <span class="font-mono" style="font-weight:700;color:var(--sig-vol-down);">—</span>
+                </div>
+
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:var(--bg-workspace);border:1px solid var(--border-default);border-radius:var(--radius-sm);">
+                  <div style="display:flex;align-items:center;gap:10px;">
+                    <span class="kbli-chip gap">Q</span>
+                    <div>
+                      <div style="font-weight:600;color:var(--ink-primary);font-size:12.5px;">Jasa Pendidikan</div>
+                      <div style="font-size:11.5px;color:var(--ink-muted);">Keyword disarankan: dana BOS, sekolah terpadu, pelatihan guru</div>
+                    </div>
+                  </div>
+                  <span class="font-mono" style="font-weight:700;color:var(--sig-vol-down);">—</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 6 Expenditure Components Distribution -->
+            <div class="surface-card-elevated">
+              <div class="panel-header">
+                <div>
+                  <h2 class="panel-title">Distribusi 6 Komponen Pengeluaran PDRB</h2>
+                  <p class="panel-subtitle">Proporsi terhadap 48 berita terverifikasi (tanpa grafik donat)</p>
+                </div>
+                <a href="./charts.html" class="btn btn-ghost" style="height:26px;font-size:11.5px;">Detail SVG →</a>
+              </div>
+              <div style="padding:16px 18px;">
+                <!-- Stacked Strip Bar -->
+                <div style="height:14px;display:flex;border-radius:5px;overflow:hidden;gap:2px;margin-bottom:16px;background:var(--bg-canvas);padding:2px;border:1px solid var(--border-default);">
+                  <div style="width:31.25%;background:#2DD4BF;" title="PMTB: 15"></div>
+                  <div style="width:22.91%;background:#38BDF8;" title="PK-P: 11"></div>
+                  <div style="width:20.83%;background:#34D399;" title="Ekspor Neto: 10"></div>
+                  <div style="width:18.75%;background:#818CF8;" title="PK-RT: 9"></div>
+                  <div style="width:4.16%;background:#FBBF24;" title="Inventori: 2"></div>
+                  <div style="width:2.08%;background:#FB7185;" title="PK-LNPRT: 1"></div>
+                </div>
+
+                <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(150px, 1fr));gap:8px;" id="exp-breakdown-grid"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Full-Width 17x6 Cross-Axis Matrix (Konkordansi Lapangan Usaha x Pengeluaran) -->
+        <section class="surface-card-elevated" id="matrix">
+          <div class="panel-header">
+            <div>
+              <h2 class="panel-title">
+                <span>Matriks Silang 17 Sektor PDRB × 6 Komponen Pengeluaran</span>
+                <span class="kbli-chip">17×6 MATRIX</span>
+              </h2>
+              <p class="panel-subtitle">Pemetaan ganda setiap fenomena antara Lapangan Usaha (baris) dan Pengeluaran (kolom)</p>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span class="font-mono" style="font-size:11px;color:var(--ink-muted);">Sel kosong = <code style="color:var(--ink-muted);">·</code> | Baris Gap = <code style="color:var(--sig-vol-down);">—</code></span>
+              <a href="./table.html" class="btn btn-secondary" style="height:28px;font-size:12px;">Lihat Tabel Artikel →</a>
+            </div>
+          </div>
+
+          <div class="data-table-wrap">
+            <table class="matrix-table" aria-label="Matriks Silang 17 Sektor x 6 Komponen">
+              <thead>
+                <tr>
+                  <th>Sektor Lapangan Usaha (KBLI 2025)</th>
+                  <th>PK-RT</th>
+                  <th>PK-LNPRT</th>
+                  <th>PK-P</th>
+                  <th>PMTB</th>
+                  <th>Inventori</th>
+                  <th>Ekspor Neto</th>
+                  <th>Total</th>
+                </tr>
+              </thead>
+              <tbody id="matrix-tbody"></tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script src="../shared/data.js"></script>
+  <script src="./command-palette.js"></script>
+  <script>
+    document.getElementById('proto-strip-mount').innerHTML = window.SIPENA_UI.renderProtoStrip('dashboard');
+    document.getElementById('rail-mount').innerHTML = window.SIPENA_UI.renderAdminRail('Dashboard & Gap Sektoral');
+    document.getElementById('topbar-mount').innerHTML = window.SIPENA_UI.renderTopCommandBar('Analitik & Rangkuman', 'Dashboard & Gap Sektoral');
+
+    const sectors = window.SIPENA.sectors;
+    const maxCount = Math.max(...sectors.map(s => s.count), 1);
+    let sectorFilterMode = 'ALL';
+
+    function renderSectorBars() {
+      const list = sectorFilterMode === 'GAP' ? sectors.filter(s => s.count === 0) : sectors;
+      const container = document.getElementById('dashboard-sector-bars');
+      container.innerHTML = list.map(s => {
+        const isGap = s.count === 0;
+        const pct = isGap ? 0 : Math.round((s.count / maxCount) * 100);
+        return `
+          <div class="sector-row ${isGap ? 'is-gap' : ''}">
+            <span class="kbli-chip ${isGap ? 'gap' : (s.count >= 8 ? 'jade' : '')}">${s.group}</span>
+            <span style="color:${isGap ? 'var(--sig-vol-down)' : 'var(--ink-primary)'};font-weight:${isGap ? '600' : '500'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${s.name}">
+              ${s.short}
+            </span>
+            <div class="bar-track">
+              ${isGap ? '' : `<div class="bar-fill" style="width:${pct}%;"></div>`}
+            </div>
+            <span class="font-mono" style="text-align:right;font-weight:700;color:${isGap ? 'var(--sig-vol-down)' : 'var(--ink-primary)'};">
+              ${isGap ? '—' : s.count}
+            </span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    document.querySelectorAll('#sector-filter-btns .seg-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#sector-filter-btns .seg-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        sectorFilterMode = btn.dataset.mode;
+        renderSectorBars();
+      });
+    });
+
+    renderSectorBars();
+
+    /* Render 6 Expenditure Breakdown */
+    const expColors = ['#818CF8', '#FB7185', '#38BDF8', '#2DD4BF', '#FBBF24', '#34D399'];
+    const expContainer = document.getElementById('exp-breakdown-grid');
+    expContainer.innerHTML = window.SIPENA.expenditure.map((e, idx) => {
+      const pct = Math.round((e.count / 48) * 100);
+      return `
+        <div style="padding:9px 11px;background:var(--bg-workspace);border:1px solid var(--border-default);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:space-between;">
+          <div style="display:flex;align-items:center;gap:8px;min-width:0;">
+            <span style="width:8px;height:8px;border-radius:2px;background:${expColors[idx]};flex-shrink:0;"></span>
+            <div style="min-width:0;">
+              <div class="font-mono" style="font-size:11px;font-weight:600;color:var(--ink-primary);">${e.short}</div>
+              <div style="font-size:11px;color:var(--ink-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${e.label}</div>
+            </div>
+          </div>
+          <div class="font-mono" style="text-align:right;margin-left:8px;">
+            <div style="font-size:12.5px;font-weight:700;color:var(--ink-primary);">${e.count}</div>
+            <div style="font-size:10.5px;color:var(--ink-muted);">${pct}%</div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    /* Render 17x6 Matrix */
+    const matrixBody = document.getElementById('matrix-tbody');
+    matrixBody.innerHTML = sectors.map(s => {
+      const rowVals = window.SIPENA.heatmap[s.group] || [0, 0, 0, 0, 0, 0];
+      const rowSum = rowVals.reduce((a, b) => a + b, 0);
+      const isGap = rowSum === 0;
+
+      const cellsHtml = rowVals.map(val => {
+        if (val === 0) {
+          return `<td style="color:var(--chart-empty-dot);">·</td>`;
+        }
+        const alpha = Math.min(0.12 + (val / 8) * 0.35, 0.55).toFixed(2);
+        return `
+          <td>
+            <span class="heat-cell" style="background:rgba(var(--accent-heat-rgb), ${alpha});border:1px solid var(--accent-jade-border);color:var(--ink-primary);">
+              ${val}
+            </span>
+          </td>
+        `;
+      }).join('');
+
+      return `
+        <tr style="${isGap ? 'background:var(--sig-vol-down-bg);' : ''}">
+          <td>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span class="kbli-chip ${isGap ? 'gap' : ''}" style="min-width:28px;height:20px;font-size:11px;">${s.group}</span>
+              <span style="color:${isGap ? 'var(--sig-vol-down)' : 'var(--ink-primary)'};font-weight:500;">${s.short}</span>
+            </div>
+          </td>
+          ${cellsHtml}
+          <td style="font-weight:700;color:${isGap ? 'var(--sig-vol-down)' : 'var(--accent-jade)'};">
+            ${isGap ? '—' : rowSum}
+          </td>
+        </tr>
+      `;
+    }).join('');
+
+    /* Quarter switcher interactivity */
+    document.querySelectorAll('#quarter-switcher .seg-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#quarter-switcher .seg-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const q = btn.dataset.q;
+        const kpiMap = { '1': 33, '2': 37, '3': 41, '4': 48 };
+        document.getElementById('kpi-total-val').textContent = kpiMap[q] || 48;
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SIPENA KTT — Dashboard & Gap Sektoral (/admin)</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <!-- Prototype Switcher Bar -->
+  <div class="proto-bar">
+    <div class="proto-bar-left">
+      <span class="proto-dot"></span>
+      <strong style="color:#fff;">01 · Linear Precision</strong>
+      <span class="hide-sm" style="color:#9CA3AF;">Mineral Daylight &amp; Hairline Precision</span>
+    </div>
+    <nav class="proto-links">
+      <a href="../index.html">← Semua Kandidat</a>
+      <a href="./index.html">00 Index</a>
+      <a href="./landing.html">01 Landing</a>
+      <a href="./dashboard.html" class="active">02 Dashboard</a>
+      <a href="./table.html">03 Bank Data</a>
+      <a href="./linimasa.html">04 Linimasa</a>
+      <a href="./charts.html">05 Visualisasi</a>
+      <a href="./detail.html">06 Workbench</a>
+    </nav>
+  </div>
+
+  <!-- Admin Shell with Inset Workspace Sheet -->
+  <div class="app-shell">
+    <!-- 248px Mineral Daylight Sidebar -->
+    <aside class="app-sidebar" id="app-sidebar">
+      <div>
+        <div class="brand-header">
+          <a href="./landing.html" class="brand-id">
+            <span class="brand-mark">SP</span>
+            <div>
+              <div class="brand-title">SIPENA KTT</div>
+              <div class="brand-sub">Admin · TW IV 2026</div>
+            </div>
+          </a>
+          <button class="btn btn-secondary btn-xs mobile-nav-toggle" onclick="document.getElementById('app-sidebar').classList.toggle('mobile-open')">
+            Menu ▾
+          </button>
+        </div>
+
+        <div class="sidebar-collapsible">
+          <button class="cmd-trigger" onclick="alert('Command Palette (⌘K): Lompat ke Sektor A–V, cari fenomena, atau ekspor laporan.')">
+            <span style="display:flex;align-items:center;gap:7px;">
+              <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="7" cy="7" r="4.8"/><path d="M10.6 10.6L14 14"/></svg>
+              Cari atau jalankan perintah...
+            </span>
+            <span class="kbd">⌘K</span>
+          </button>
+
+          <!-- Group 1: Analitik & Rangkuman -->
+          <div class="nav-section">
+            <div class="nav-group-label">Analitik &amp; Rangkuman</div>
+            <ul class="nav-list">
+              <li class="nav-item">
+                <a href="./dashboard.html" class="active">
+                  <span class="nav-item-left">
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>
+                    Dashboard &amp; Gap Sektoral
+                  </span>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a href="./charts.html">
+                  <span class="nav-item-left">
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 13.5H14M3.5 10.5L6.8 7L9.5 9.2L13 4.5"/></svg>
+                    Tren &amp; Komparasi
+                  </span>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a href="./linimasa.html">
+                  <span class="nav-item-left">
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2.5 4H13.5M2.5 8H10.5M2.5 12H12"/></svg>
+                    Sintesis Fenomena
+                  </span>
+                </a>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Group 2: Kurasi & Repositori -->
+          <div class="nav-section">
+            <div class="nav-group-label">Kurasi &amp; Repositori</div>
+            <ul class="nav-list">
+              <li class="nav-item">
+                <a href="./detail.html">
+                  <span class="nav-item-left">
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 8.5L6.2 11.5L13 4.5"/></svg>
+                    Review Harian
+                  </span>
+                  <span class="nav-badge warn">23</span>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a href="./table.html">
+                  <span class="nav-item-left">
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="2.5" width="12" height="11" rx="1.5"/><path d="M2 6H14M6 6V13.5"/></svg>
+                    Bank Data &amp; Ekspor
+                  </span>
+                  <span class="nav-badge">48</span>
+                </a>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Group 3: Sumber & Taksonomi -->
+          <div class="nav-section">
+            <div class="nav-group-label">Sumber &amp; Taksonomi</div>
+            <ul class="nav-list">
+              <li class="nav-item">
+                <a href="./table.html#portals">
+                  <span class="nav-item-left">
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="5.5"/><path d="M2.5 8H13.5M8 2.5C9.5 4.2 9.5 11.8 8 13.5"/></svg>
+                    Direktori Portal
+                  </span>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a href="./table.html#keywords">
+                  <span class="nav-item-left">
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2.5 5.5H9.5M2.5 10.5H13.5"/></svg>
+                    Master Keyword
+                  </span>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a href="./charts.html#taxonomy">
+                  <span class="nav-item-left">
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 3H7V7H3V3ZM9 3H13V7H9V3ZM6 10H10V14H6V10Z"/></svg>
+                    Kamus Taksonomi
+                  </span>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a href="./charts.html#concordance">
+                  <span class="nav-item-left">
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 4H12M4 8H12M4 12H8"/></svg>
+                    Konkordansi KBLI
+                  </span>
+                  <span class="nav-badge">A–V</span>
+                </a>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Group 4: Sistem -->
+          <div class="nav-section">
+            <div class="nav-group-label">Sistem</div>
+            <ul class="nav-list">
+              <li class="nav-item">
+                <a href="./detail.html#scrapers">
+                  <span class="nav-item-left">
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 2V5M8 11V14M2 8H5M11 8H14"/><circle cx="8" cy="8" r="2.5"/></svg>
+                    Monitor Scraper &amp; AI
+                  </span>
+                  <span class="nav-badge crit">3</span>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a href="./detail.html#team">
+                  <span class="nav-item-left">
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="5.5" r="2.5"/><path d="M3.5 13C3.5 10.8 5.5 9.5 8 9.5C10.5 9.5 12.5 10.8 12.5 13"/></svg>
+                    Kelola Akses &amp; Tim
+                  </span>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar-footer sidebar-collapsible">
+        <div>
+          <div style="font-weight:600;color:var(--ink-primary);">Tim Neraca Wilayah</div>
+          <div class="mono-num text-muted" style="font-size:11px;">Sinkron: 14 Nov 06:42 WITA</div>
+        </div>
+        <span class="status-pill verified" style="padding:1px 6px;">Online</span>
+      </div>
+    </aside>
+
+    <!-- INSET WORKSPACE SHEET -->
+    <main class="workspace-sheet">
+      <!-- Topbar -->
+      <header class="sheet-header">
+        <div class="breadcrumb">
+          <span class="breadcrumb-root">Analitik &amp; Rangkuman</span>
+          <span class="breadcrumb-sep">/</span>
+          <span class="breadcrumb-current">Dashboard &amp; Gap Sektoral</span>
+          <span class="status-pill verified" style="margin-left:6px;">TW IV 2026 (1 Okt – 14 Nov)</span>
+        </div>
+
+        <div class="header-actions">
+          <div class="segmented" role="group" aria-label="Pilih Triwulan">
+            <button type="button" onclick="switchQuarter(this, 'TW I 2026')">TW I</button>
+            <button type="button" onclick="switchQuarter(this, 'TW II 2026')">TW II</button>
+            <button type="button" onclick="switchQuarter(this, 'TW III 2026')">TW III</button>
+            <button type="button" class="active" onclick="switchQuarter(this, 'TW IV 2026')">TW IV 2026</button>
+          </div>
+          <a href="./table.html" class="btn btn-secondary">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 2.5V10.5M8 10.5L5 7.5M8 10.5L11 7.5M2.5 13H13.5"/></svg>
+            Ekspor Matriks
+          </a>
+          <a href="./detail.html" class="btn btn-emerald">
+            Review Antrean (23)
+            <span class="kbd" style="background:rgba(255,255,255,0.2);color:#fff;border-color:transparent;">R</span>
+          </a>
+        </div>
+      </header>
+
+      <!-- 4 KPI STRIP (Edge-to-Edge Hairline Architectural Grid) -->
+      <section class="kpi-strip" aria-label="Indikator Kinerja Utama Triwulan IV 2026">
+        <!-- KPI 1 -->
+        <div class="kpi-cell">
+          <div>
+            <div class="kpi-label-row">
+              <span class="kpi-label">Fenomena Terverifikasi</span>
+              <span class="status-pill verified">+17% vs TW III</span>
+            </div>
+            <div class="kpi-value-row">
+              <span class="kpi-value">48</span>
+              <span class="mono-num text-muted" style="font-size:13px;">dari 71 kandidat</span>
+            </div>
+          </div>
+          <div class="kpi-foot">
+            <strong class="mono-num text-warn">23 antrean pending</strong> menunggu kurasi analis · <span class="mono-num">41</span> berita pada TW III 2026
+          </div>
+        </div>
+
+        <!-- KPI 2 -->
+        <div class="kpi-cell">
+          <div>
+            <div class="kpi-label-row">
+              <span class="kpi-label">Sektor KBLI Dominan</span>
+              <span class="kbd">KBLI A</span>
+            </div>
+            <div class="kpi-value-row">
+              <span class="kpi-value">29%</span>
+              <span class="mono-num text-secondary" style="font-size:13.5px;font-weight:500;">14 dari 48 berita</span>
+            </div>
+          </div>
+          <div class="kpi-foot">
+            <strong>Pertanian, Kehutanan &amp; Perikanan</strong> (Sawit TBS, tambak udang vaname, hasil hutan)
+          </div>
+        </div>
+
+        <!-- KPI 3 -->
+        <div class="kpi-cell">
+          <div>
+            <div class="kpi-label-row">
+              <span class="kpi-label">Komponen Pengeluaran Dominan</span>
+              <span class="kbd">PMTB</span>
+            </div>
+            <div class="kpi-value-row">
+              <span class="kpi-value">31%</span>
+              <span class="mono-num text-secondary" style="font-size:13.5px;font-weight:500;">15 dari 48 berita</span>
+            </div>
+          </div>
+          <div class="kpi-foot">
+            <strong>Pembentukan Modal Tetap Bruto</strong> diikuti Konsumsi Pemerintah (<span class="mono-num">11</span>) &amp; Ekspor (<span class="mono-num">10</span>)
+          </div>
+        </div>
+
+        <!-- KPI 4 -->
+        <div class="kpi-cell">
+          <div>
+            <div class="kpi-label-row">
+              <span class="kpi-label">Berita Bernada Ekspansi Volume</span>
+              <span class="impact-badge impact-vol-up" style="padding:1px 6px;font-size:11px;">NTB / Riil ↑</span>
+            </div>
+            <div class="kpi-value-row">
+              <span class="kpi-value">58%</span>
+              <span class="mono-num text-secondary" style="font-size:13.5px;font-weight:500;">28 dari 48 berita</span>
+            </div>
+          </div>
+          <div class="kpi-foot">
+            *Proporsi berita terverifikasi (<span class="mono-num">28↑ · 7↓ · 13 Harga</span>), <strong>bukan</strong> angka pertumbuhan PDRB resmi.
+          </div>
+        </div>
+      </section>
+
+      <!-- SPLIT ROW 1: 17-SECTOR COVERAGE & 3 DATA GAPS vs 6 EXPENDITURE + ACTIONABLE GAPS -->
+      <section class="grid-split-2">
+        <!-- Left Column: 17-Sector Coverage Strip & Ranked Horizontal Bars -->
+        <div class="grid-col">
+          <div class="section-head">
+            <div>
+              <h2 class="section-title">Kelengkapan 17 Sektor PDRB &amp; Deteksi Data Gap</h2>
+              <p class="section-subtitle">
+                <strong class="mono-num">14 dari 17</strong> sektor memiliki bukti berita terverifikasi · <strong class="mono-num text-crit">3 sektor Data Gap (—)</strong> memerlukan pencarian bukti
+              </p>
+            </div>
+            <div class="segmented" role="group" aria-label="Filter Daftar Sektor">
+              <button type="button" class="active" id="btn-sector-all" onclick="filterSectorBars('all')">Semua (17)</button>
+              <button type="button" id="btn-sector-gap" onclick="filterSectorBars('gap')">Hanya Gap (3)</button>
+              <button type="button" id="btn-sector-top" onclick="filterSectorBars('top')">Teratas (8)</button>
+            </div>
+          </div>
+
+          <!-- 17-Cell Proportional Strip -->
+          <div id="dash-coverage-strip" class="coverage-strip"></div>
+
+          <!-- Ranked Horizontal Bar List -->
+          <div id="dash-sector-bars" class="sector-bar-list"></div>
+        </div>
+
+        <!-- Right Column: 3 Priority Data Gaps Action Panel + 6 Expenditure Breakdown -->
+        <div class="grid-col" style="display:flex;flex-direction:column;gap:24px;">
+          <!-- Priority Data Gap Callout Box -->
+          <div style="border:1px solid var(--crit-border);background:#FFF9FA;border-radius:var(--radius-panel);padding:16px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:8px;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span class="status-pill gap">3 Data Gap (—)</span>
+                <strong style="font-size:13.5px;color:var(--ink-primary);">Sektor Nir-Bukti Triwulan IV 2026</strong>
+              </div>
+              <span class="mono-num text-muted" style="font-size:11.5px;">Prioritas Crawl</span>
+            </div>
+            <p style="font-size:12.5px;color:var(--ink-secondary);margin-bottom:12px;">
+              Tiga kategori lapangan usaha berikut belum memiliki artikel terverifikasi pada TW IV 2026. Nilai ditampilkan sebagai <code class="mono-num">—</code> (bukan <code class="mono-num">0%</code>) agar tidak mendistorsi interpretasi pertumbuhan.
+            </p>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;background:var(--surface);padding:8px 12px;border-radius:6px;border:1px solid var(--crit-border);">
+                <div>
+                  <span class="mono-num" style="font-weight:600;color:var(--crit-ink);margin-right:6px;">KBLI J,K</span>
+                  <span style="font-size:13px;font-weight:500;">Informasi dan Komunikasi</span>
+                </div>
+                <a href="./detail.html?gap=JK" class="btn btn-secondary btn-xs">+ Tambah Bukti</a>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;background:var(--surface);padding:8px 12px;border-radius:6px;border:1px solid var(--crit-border);">
+                <div>
+                  <span class="mono-num" style="font-weight:600;color:var(--crit-ink);margin-right:6px;">KBLI M</span>
+                  <span style="font-size:13px;font-weight:500;">Aktivitas Real Estat</span>
+                </div>
+                <a href="./detail.html?gap=M" class="btn btn-secondary btn-xs">+ Tambah Bukti</a>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;background:var(--surface);padding:8px 12px;border-radius:6px;border:1px solid var(--crit-border);">
+                <div>
+                  <span class="mono-num" style="font-weight:600;color:var(--crit-ink);margin-right:6px;">KBLI Q</span>
+                  <span style="font-size:13px;font-weight:500;">Jasa Pendidikan</span>
+                </div>
+                <a href="./detail.html?gap=Q" class="btn btn-secondary btn-xs">+ Tambah Bukti</a>
+              </div>
+            </div>
+          </div>
+
+          <!-- 6 Expenditure Stacked Proportional Bar + Table -->
+          <div>
+            <div class="section-head" style="margin-bottom:10px;">
+              <div>
+                <h3 class="section-title">Distribusi 6 Komponen Pengeluaran PDRB</h3>
+                <p class="section-subtitle">Stacked proportional bar &amp; rincian berita (tanpa donut chart)</p>
+              </div>
+              <span class="mono-num text-muted" style="font-size:12px;">Total: 48 Berita</span>
+            </div>
+
+            <!-- Proportional Stacked Bar -->
+            <div id="dash-exp-bar" style="display:flex;height:14px;border-radius:6px;overflow:hidden;border:1px solid var(--border);margin-bottom:14px;gap:1px;background:var(--border);"></div>
+
+            <!-- Breakdown Table -->
+            <table class="data-table" style="border:1px solid var(--border);">
+              <thead>
+                <tr>
+                  <th style="padding:7px 10px;">Kode</th>
+                  <th style="padding:7px 10px;">Komponen Pengeluaran</th>
+                  <th style="padding:7px 10px;text-align:right;">Berita</th>
+                  <th style="padding:7px 10px;text-align:right;">Proporsi</th>
+                </tr>
+              </thead>
+              <tbody id="dash-exp-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- FULL-WIDTH ROW 2: 17 x 6 CROSS-MATRIX HEATMAP & RECENT VERIFIED STREAM -->
+      <section class="grid-split-2" style="border-bottom:none;">
+        <!-- 17x6 Cross-Matrix Heatmap -->
+        <div class="grid-col">
+          <div class="section-head">
+            <div>
+              <h2 class="section-title">Matriks Silang 17 Sektor PDRB × 6 Komponen Pengeluaran</h2>
+              <p class="section-subtitle">Intensitas warna emerald menunjukkan kepadatan bukti berita; tanda <code class="mono-num">—</code> menandakan sel kosong</p>
+            </div>
+            <a href="./charts.html" class="btn btn-secondary btn-xs">Buka Mode Analitik Penuh →</a>
+          </div>
+
+          <div class="data-table-wrap">
+            <table class="heatmap-table" id="dash-heatmap"></table>
+          </div>
+        </div>
+
+        <!-- Recent Verified Phenomenon Stream + System Status -->
+        <div class="grid-col">
+          <div class="section-head">
+            <div>
+              <h2 class="section-title">Fenomena Terverifikasi Terbaru</h2>
+              <p class="section-subtitle">Navigasi cepat <span class="kbd">J</span> <span class="kbd">K</span> atau klik untuk membuka detail konkordansi</p>
+            </div>
+            <a href="./table.html" class="btn btn-secondary btn-xs">Semua (48) →</a>
+          </div>
+
+          <div id="dash-recent-articles" style="display:flex;flex-direction:column;border:1px solid var(--border);border-radius:var(--radius-panel);overflow:hidden;"></div>
+
+          <!-- Multi-LLM Provider Health Mini-Strip -->
+          <div style="margin-top:18px;padding:12px 14px;background:var(--bg-canvas);border:1px solid var(--border);border-radius:var(--radius-panel);display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+            <div>
+              <div style="font-size:12.5px;font-weight:600;color:var(--ink-primary);">Status Rotasi 5 Slot Multi-LLM</div>
+              <div style="font-size:11.5px;color:var(--ink-muted);">Slot #1 <code class="mono-num">gemini-3.8-flash</code> (99% sukses) · <span class="text-crit mono-num">3 gagal</span> pada antrean fallback</div>
+            </div>
+            <a href="./detail.html#scrapers" class="btn btn-secondary btn-xs">Monitor AI (3) →</a>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Interactive Tooltip -->
+  <div id="chart-tooltip" class="chart-tooltip"></div>
+
+  <script src="../shared/data.js"></script>
+  <script>
+    const data = window.SIPENA;
+    const tooltip = document.getElementById('chart-tooltip');
+
+    function showTooltip(e, html) {
+      tooltip.innerHTML = html;
+      tooltip.classList.add('visible');
+      moveTooltip(e);
+    }
+    function moveTooltip(e) {
+      const x = Math.min(window.innerWidth - 260, e.clientX + 14);
+      const y = Math.max(12, e.clientY - 36);
+      tooltip.style.left = x + 'px';
+      tooltip.style.top = y + 'px';
+    }
+    function hideTooltip() {
+      tooltip.classList.remove('visible');
+    }
+
+    function switchQuarter(btn, label) {
+      btn.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+
+    // 1. Render 17-Sector Coverage Strip
+    const stripEl = document.getElementById('dash-coverage-strip');
+    stripEl.innerHTML = data.sectors.map(s => {
+      const isGap = s.count === 0;
+      return `
+        <div class="coverage-cell ${isGap ? 'is-gap' : 'has-data'}"
+             onmouseenter="showTooltip(event, '<strong>KBLI ${s.kbli}</strong> · ${s.short}<br/><span class=\\'mono-num\\'>${isGap ? 'Data Gap (—)' : s.count + ' berita terverifikasi'}</span>')"
+             onmousemove="moveTooltip(event)"
+             onmouseleave="hideTooltip()">
+          <span class="coverage-cell-code">${s.group}</span>
+          <span class="coverage-cell-val">${isGap ? '—' : s.count}</span>
+        </div>
+      `;
+    }).join('');
+
+    // 2. Render Ranked Sector Horizontal Bars
+    function renderSectorBars(mode) {
+      const container = document.getElementById('dash-sector-bars');
+      let list = [...data.sectors];
+      if (mode === 'gap') {
+        list = list.filter(s => s.count === 0);
+      } else if (mode === 'top') {
+        list = list.sort((a, b) => b.count - a.count).slice(0, 8);
+      } else {
+        // Sort by count descending, keeping gaps clearly highlighted at bottom
+        list = list.sort((a, b) => b.count - a.count);
+      }
+      const max = 14;
+      container.innerHTML = list.map(s => {
+        const isGap = s.count === 0;
+        const pct = isGap ? 0 : Math.max(6, Math.round((s.count / max) * 100));
+        return `
+          <div class="sector-bar-row ${isGap ? 'gap-row' : ''}">
+            <span class="mono-num" style="font-weight:600;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;color:${isGap ? 'var(--crit-ink)' : 'var(--ink-primary)'};">
+              <span class="kbli-dot ${s.cluster}"></span>${s.group}
+            </span>
+            <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:${isGap ? 'var(--crit-ink)' : 'var(--ink-secondary)'};font-weight:${isGap ? '600' : '500'};" title="${s.name}">
+              ${s.short}
+            </span>
+            <div class="sector-bar-track">
+              <div class="sector-bar-fill" style="width:${pct}%;"></div>
+            </div>
+            <div style="text-align:right;">
+              ${isGap
+                ? '<a href="./detail.html" class="status-pill gap" style="font-size:11px;padding:1px 7px;">Data Gap (—) +</a>'
+                : `<span class="mono-num" style="font-weight:600;">${s.count}</span> <span class="mono-num text-muted" style="font-size:11px;">(${Math.round((s.count / 48) * 100)}%)</span>`
+              }
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function filterSectorBars(mode) {
+      document.getElementById('btn-sector-all').classList.toggle('active', mode === 'all');
+      document.getElementById('btn-sector-gap').classList.toggle('active', mode === 'gap');
+      document.getElementById('btn-sector-top').classList.toggle('active', mode === 'top');
+      renderSectorBars(mode);
+    }
+    renderSectorBars('all');
+
+    // 3. Render 6 Expenditure Stacked Proportional Bar & Breakdown Table
+    const expColors = ['#0D6E52', '#10B981', '#0369A1', '#0F1115', '#B45309', '#6D28D9'];
+    const sortedExp = [...data.expenditure].sort((a, b) => b.count - a.count);
+    const expBarEl = document.getElementById('dash-exp-bar');
+    expBarEl.innerHTML = sortedExp.map((e, i) => {
+      const pct = ((e.count / 48) * 100).toFixed(1);
+      return `<div style="width:${pct}%;background:${expColors[i % expColors.length]};height:100%;cursor:pointer;"
+                   onmouseenter="showTooltip(event, '<strong>${e.short}</strong> · ${e.label}<br/><span class=\\'mono-num\\'>${e.count} berita (${pct}%)</span>')"
+                   onmousemove="moveTooltip(event)"
+                   onmouseleave="hideTooltip()"></div>`;
+    }).join('');
+
+    const expTbody = document.getElementById('dash-exp-tbody');
+    expTbody.innerHTML = sortedExp.map((e, i) => {
+      const pct = Math.round((e.count / 48) * 100);
+      return `
+        <tr>
+          <td style="padding:7px 10px;">
+            <span style="display:inline-flex;align-items:center;gap:6px;">
+              <span style="width:8px;height:8px;border-radius:2px;background:${expColors[i % expColors.length]};"></span>
+              <strong class="mono-num" style="font-size:12px;">${e.short}</strong>
+            </span>
+          </td>
+          <td style="padding:7px 10px;font-size:12.5px;color:var(--ink-secondary);">${e.label}</td>
+          <td class="mono-num" style="padding:7px 10px;text-align:right;font-weight:600;">${e.count}</td>
+          <td class="mono-num text-muted" style="padding:7px 10px;text-align:right;">${pct}%</td>
+        </tr>
+      `;
+    }).join('');
+
+    // 4. Render 17x6 Cross-Matrix Heatmap
+    const hmEl = document.getElementById('dash-heatmap');
+    const expHeaders = data.expenditure.map(e => `<th style="text-align:center;" title="${e.label}">${e.short}</th>`).join('');
+    const hmRows = data.sectors.map(s => {
+      const vals = data.heatmap[s.group] || [0, 0, 0, 0, 0, 0];
+      const isGapRow = s.count === 0;
+      const cells = vals.map((v, idx) => {
+        let cls = 'hm-0';
+        if (isGapRow) cls = 'hm-gap';
+        else if (v >= 6) cls = 'hm-5';
+        else if (v >= 4) cls = 'hm-4';
+        else if (v >= 2) cls = 'hm-3';
+        else if (v === 1) cls = 'hm-1';
+        const expName = data.expenditure[idx].short;
+        return `<td class="hm-cell ${cls}"
+                    onmouseenter="showTooltip(event, '<strong>KBLI ${s.group} × ${expName}</strong><br/>${s.short}<br/><span class=\\'mono-num\\'>${v === 0 ? 'Tidak ada berita (—)' : v + ' berita terverifikasi'}</span>')"
+                    onmousemove="moveTooltip(event)"
+                    onmouseleave="hideTooltip()">${v === 0 ? '—' : v}</td>`;
+      }).join('');
+      return `
+        <tr>
+          <td class="mono-num" style="font-weight:600;white-space:nowrap;color:${isGapRow ? 'var(--crit-ink)' : 'var(--ink-primary)'};">
+            ${s.group} <span style="font-family:var(--font-sans);font-weight:400;color:var(--ink-secondary);margin-left:4px;">${s.short}</span>
+          </td>
+          ${cells}
+        </tr>
+      `;
+    }).join('');
+    hmEl.innerHTML = `<thead><tr><th>Sektor PDRB (KBLI)</th>${expHeaders}</tr></thead><tbody>${hmRows}</tbody>`;
+
+    // 5. Render Recent Verified Articles
+    const recentEl = document.getElementById('dash-recent-articles');
+    recentEl.innerHTML = data.articles.slice(0, 5).map(art => {
+      const isVolUp = art.impactKbli === 'INCREASE_NTB';
+      const isVolDown = art.impactKbli === 'DECREASE_NTB';
+      const badgeClass = isVolUp ? 'impact-vol-up' : (isVolDown ? 'impact-vol-down' : 'impact-price-up');
+      const badgeText = data.impact[art.impactKbli] ? data.impact[art.impactKbli].label : 'Harga naik';
+      return `
+        <a href="./detail.html?id=${art.id}" class="stream-row" style="padding:11px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:12px;background:var(--surface);">
+          <div style="min-width:0;">
+            <div style="font-size:13px;font-weight:600;color:var(--ink-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+              ${art.title}
+            </div>
+            <div style="font-size:11.5px;color:var(--ink-muted);display:flex;gap:8px;margin-top:2px;">
+              <span class="mono-num">${art.date}</span>
+              <span>·</span>
+              <span>${art.portal}</span>
+              <span>·</span>
+              <span class="mono-num">KBLI ${art.kbli} × ${art.exp}</span>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+            <span class="impact-badge ${badgeClass}">${badgeText}</span>
+            <span class="row-kbd-hint"><span class="kbd">↵</span></span>
+          </div>
+        </a>
+      `;
+    }).join('');
+  </script>
+</body>
+</html>

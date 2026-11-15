@@ -647,7 +647,7 @@ const columns: TableColumn<AdminArticleItem>[] = [
             @click="() => { activeTabStatus = 'ALL'; }"
           >
             <span>Semua Berita</span>
-            <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-slate-200 text-slate-700 tabular-nums font-bold">
+            <span class="text-xs px-1.5 py-0.2 rounded-full bg-slate-200 text-slate-700 tabular-nums font-bold">
               {{ archiveData?.pagination.total ?? 0 }}
             </span>
           </button>
@@ -664,7 +664,7 @@ const columns: TableColumn<AdminArticleItem>[] = [
           >
             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500" />
             <span>Terverifikasi</span>
-            <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-emerald-100 text-emerald-800 tabular-nums font-bold">
+            <span class="text-xs px-1.5 py-0.2 rounded-full bg-emerald-100 text-emerald-800 tabular-nums font-bold">
               {{ archiveData?.summaryCounts.verifiedCount ?? 0 }}
             </span>
           </button>
@@ -681,7 +681,7 @@ const columns: TableColumn<AdminArticleItem>[] = [
           >
             <span class="w-1.5 h-1.5 rounded-full bg-amber-500" />
             <span>Menunggu Review</span>
-            <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-amber-100 text-amber-800 tabular-nums font-bold">
+            <span class="text-xs px-1.5 py-0.2 rounded-full bg-amber-100 text-amber-800 tabular-nums font-bold">
               {{ archiveData?.summaryCounts.pendingCount ?? 0 }}
             </span>
           </button>
@@ -697,7 +697,7 @@ const columns: TableColumn<AdminArticleItem>[] = [
             @click="() => { activeTabStatus = VerificationStatusEnum.IGNORED; }"
           >
             <span>Diabaikan</span>
-            <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-slate-200 text-slate-700 tabular-nums font-bold">
+            <span class="text-xs px-1.5 py-0.2 rounded-full bg-slate-200 text-slate-700 tabular-nums font-bold">
               {{ archiveData?.summaryCounts.ignoredCount ?? 0 }}
             </span>
           </button>
@@ -714,7 +714,7 @@ const columns: TableColumn<AdminArticleItem>[] = [
           >
             <span class="w-1.5 h-1.5 rounded-full bg-rose-500" />
             <span>Gagal AI</span>
-            <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-rose-100 text-rose-800 tabular-nums font-bold">
+            <span class="text-xs px-1.5 py-0.2 rounded-full bg-rose-100 text-rose-800 tabular-nums font-bold">
               {{ archiveData?.summaryCounts.llmFailedCount ?? 0 }}
             </span>
           </button>
@@ -745,7 +745,7 @@ const columns: TableColumn<AdminArticleItem>[] = [
             <span>Filter Lanjutan</span>
             <span
               v-if="advancedFilterActiveCount > 0"
-              class="w-4 h-4 rounded-full bg-indigo-600 text-white text-[10px] flex items-center justify-center font-bold"
+              class="w-4 h-4 rounded-full bg-indigo-600 text-white text-xs flex items-center justify-center font-bold"
             >
               {{ advancedFilterActiveCount }}
             </span>
@@ -889,7 +889,7 @@ const columns: TableColumn<AdminArticleItem>[] = [
               size="sm"
               class="w-full"
             />
-            <span class="text-xs text-slate-400">—</span>
+            <span class="text-xs text-slate-600">—</span>
             <UInput
               id="articles-filter-to"
               v-model="filters.to"
@@ -1074,7 +1074,7 @@ const columns: TableColumn<AdminArticleItem>[] = [
                 {{ formatDateId(row.original.publishedAt) }}
               </div>
               <div
-                class="text-[10px] font-medium text-slate-500 truncate max-w-[110px]"
+                class="text-xs font-medium text-slate-500 truncate max-w-[110px]"
                 :title="row.original.sourcePortal"
               >
                 {{ row.original.sourcePortal }}
@@ -1090,7 +1090,7 @@ const columns: TableColumn<AdminArticleItem>[] = [
               >
                 {{ row.original.title }}
               </div>
-              <div class="flex items-center gap-1 text-[10px] text-slate-500">
+              <div class="flex items-center gap-1 text-xs text-slate-500">
                 <a
                   v-if="isSafeHttpUrl(row.original.url)"
                   :href="row.original.url"
@@ -1109,7 +1109,7 @@ const columns: TableColumn<AdminArticleItem>[] = [
           <template #kbli-cell="{ row }">
             <div v-if="row.original.kbliCategory" class="space-y-1 max-w-[135px]">
               <span
-                class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold border leading-tight truncate max-w-full"
+                class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-bold border leading-tight truncate max-w-full"
                 :class="getKbliClusterTheme(row.original.kbliCategory).pillClass"
                 :title="getKbliShortCodeName(row.original.kbliCategory)"
               >
@@ -1122,7 +1122,7 @@ const columns: TableColumn<AdminArticleItem>[] = [
                   variant="subtle"
                   size="xs"
                   :icon="getKbliImpactBadge(row.original.kbliImpact).icon"
-                  class="text-[10px] py-0 px-1.5"
+                  class="text-xs py-0 px-1.5"
                 >
                   {{ getKbliImpactBadge(row.original.kbliImpact).shortLabel }}
                 </UBadge>
@@ -1134,7 +1134,7 @@ const columns: TableColumn<AdminArticleItem>[] = [
                 class="pt-0.5 border-t border-slate-100 flex items-center gap-1 flex-wrap"
               >
                 <span
-                  class="inline-flex items-center px-1 py-0.2 rounded text-[9px] font-medium border"
+                  class="inline-flex items-center px-1 py-0.2 rounded text-xs font-medium border"
                   :class="getKbliClusterTheme(row.original.secondaryKbliCategory).pillClass"
                 >
                   {{ getKbliShortCodeName(row.original.secondaryKbliCategory) }}
@@ -1144,13 +1144,13 @@ const columns: TableColumn<AdminArticleItem>[] = [
                   :color="getKbliImpactBadge(row.original.secondaryKbliImpact).color"
                   variant="subtle"
                   size="xs"
-                  class="text-[9px] py-0 px-1"
+                  class="text-xs py-0 px-1"
                 >
                   {{ getKbliImpactBadge(row.original.secondaryKbliImpact).shortLabel }}
                 </UBadge>
               </div>
             </div>
-            <span v-else class="text-xs text-slate-400">—</span>
+            <span v-else class="text-xs text-slate-600">—</span>
           </template>
 
           <template #expenditure-cell="{ row }">
@@ -1170,7 +1170,7 @@ const columns: TableColumn<AdminArticleItem>[] = [
                   variant="subtle"
                   size="xs"
                   :icon="getExpenditureImpactBadge(row.original.expenditureImpact).icon"
-                  class="text-[10px] py-0 px-1.5"
+                  class="text-xs py-0 px-1.5"
                 >
                   {{ getExpenditureImpactBadge(row.original.expenditureImpact).shortLabel }}
                 </UBadge>
@@ -1181,7 +1181,7 @@ const columns: TableColumn<AdminArticleItem>[] = [
                 v-if="row.original.secondaryExpenditureComponent"
                 class="pt-0.5 border-t border-slate-100 flex items-center gap-1 flex-wrap"
               >
-                <span class="text-[9px] font-medium text-slate-700 truncate max-w-[80px]">
+                <span class="text-xs font-medium text-slate-700 truncate max-w-[80px]">
                   {{ getExpenditureLabel(row.original.secondaryExpenditureComponent, false) }}
                 </span>
                 <UBadge
@@ -1189,17 +1189,17 @@ const columns: TableColumn<AdminArticleItem>[] = [
                   :color="getExpenditureImpactBadge(row.original.secondaryExpenditureImpact).color"
                   variant="subtle"
                   size="xs"
-                  class="text-[9px] py-0 px-1"
+                  class="text-xs py-0 px-1"
                 >
                   {{ getExpenditureImpactBadge(row.original.secondaryExpenditureImpact).shortLabel }}
                 </UBadge>
               </div>
             </div>
-            <span v-else class="text-xs text-slate-400">—</span>
+            <span v-else class="text-xs text-slate-600">—</span>
           </template>
 
           <template #period-cell="{ row }">
-            <span class="inline-flex px-1.5 py-0.5 rounded bg-slate-100 text-[10px] font-bold tabular-nums text-slate-800 whitespace-nowrap">
+            <span class="inline-flex px-1.5 py-0.5 rounded bg-slate-100 text-xs font-bold tabular-nums text-slate-800 whitespace-nowrap">
               {{ formatPeriodLabel(row.original.quarter, row.original.year) }}
             </span>
           </template>
@@ -1210,7 +1210,7 @@ const columns: TableColumn<AdminArticleItem>[] = [
               variant="subtle"
               size="xs"
               :icon="getVerificationStatusBadge(row.original.verificationStatus).icon"
-              class="text-[10px] py-0.5 px-1.5 font-semibold whitespace-nowrap"
+              class="text-xs py-0.5 px-1.5 font-semibold whitespace-nowrap"
             >
               {{ getVerificationStatusBadge(row.original.verificationStatus).label }}
             </UBadge>

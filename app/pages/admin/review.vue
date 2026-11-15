@@ -894,7 +894,7 @@ const statusTabs = computed(() => {
             <UIcon name="i-solar-inbox-in-bold-duotone" class="w-6 h-6" />
           </div>
           <div class="text-sm font-bold text-slate-900">
-            Tidak ada artikel pada tab {{ activeStatus }}
+            Tidak ada artikel pada tab {{ getVerificationStatusBadge(activeStatus).shortLabel }}
           </div>
           <p class="text-xs text-slate-600 text-pretty">
             Coba ubah cakupan ke <strong>Semua Antrean</strong> atau bersihkan kata pencarian.

@@ -291,7 +291,7 @@ function getSlotSuccessRate(stat: ScraperProviderStatEntry): number {
           <span class="text-xs font-semibold text-slate-600">
             Antrean LLM Gagal
           </span>
-          <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 border border-amber-200/80 flex items-center justify-center shrink-0">
+          <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-800 border border-amber-200/80 flex items-center justify-center shrink-0">
             <UIcon name="i-solar-refresh-circle-bold-duotone" class="w-4 h-4" />
           </div>
         </div>
@@ -430,7 +430,7 @@ function getSlotSuccessRate(stat: ScraperProviderStatEntry): number {
           </div>
 
           <div class="space-y-1 text-xs">
-            <div class="font-semibold text-slate-900 truncate" :title="slot.model">
+            <div class="font-semibold font-mono text-slate-900 truncate" :title="slot.model">
               {{ slot.model }}
             </div>
             <div class="text-[11px] text-slate-600 tabular-nums">

@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bank Data & Ekspor (/admin/articles) | SIPENA KTT</title>
+  <link rel="stylesheet" href="./styles.css" />
+  <style>
+    .filter-toolbar {
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      border-bottom: 1px solid var(--border-default);
+      background: var(--bg-workspace);
+    }
+    .search-box {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg-canvas);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      padding: 0 10px;
+      height: 32px;
+      min-width: 270px;
+      flex: 1;
+      max-width: 380px;
+    }
+    .search-box input {
+      width: 100%;
+      font-size: 12.5px;
+      color: var(--ink-primary);
+      outline: none;
+    }
+    .select-dark {
+      height: 32px;
+      padding: 0 28px 0 10px;
+      border-radius: var(--radius-sm);
+      background: var(--bg-canvas);
+      border: 1px solid var(--border-strong);
+      color: var(--ink-primary);
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .checkbox-custom {
+      width: 15px;
+      height: 15px;
+      accent-color: var(--accent-jade);
+      cursor: pointer;
+    }
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 2px 7px;
+      border-radius: 99px;
+      font-weight: 600;
+    }
+    .status-pill.approved {
+      background: var(--sig-vol-up-bg);
+      color: var(--sig-vol-up);
+      border: 1px solid var(--sig-vol-up-border);
+    }
+    .status-pill.pending {
+      background: var(--sig-price-bg);
+      color: var(--sig-price);
+      border: 1px solid var(--sig-price-border);
+    }
+
+    /* Raycast Floating Bulk Command Bar */
+    .bulk-action-bar {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--bg-elevated);
+      border: 1px solid var(--accent-jade-border);
+      box-shadow: var(--shadow-modal);
+      border-radius: var(--radius-lg);
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      z-index: 70;
+      transition: all 0.16s ease;
+    }
+    .bulk-action-bar.hidden {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateX(-50%) translateY(12px);
+    }
+  </style>
+</head>
+<body>
+  <div id="proto-strip-mount"></div>
+
+  <div class="workbench-shell">
+    <div id="rail-mount"></div>
+
+    <div class="workspace-main">
+      <div id="topbar-mount"></div>
+
+      <main class="workspace-body">
+        <!-- Header -->
+        <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:18px;flex-wrap:wrap;">
+          <div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+              <span class="font-mono" style="font-size:11.5px;color:var(--accent-jade);font-weight:600;">REPOSITORI &amp; AUDIT TRAIL</span>
+              <span style="color:var(--border-strong);">·</span>
+              <span class="font-mono" style="font-size:11.5px;color:var(--ink-muted);">48 Terverifikasi + 23 Antrean Pending</span>
+            </div>
+            <h1 class="font-display" style="font-size:24px;font-weight:700;color:var(--ink-primary);">
+              Bank Data Fenomena &amp; Ekspor KBLI 2025
+            </h1>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;" id="export">
+            <button type="button" class="btn btn-secondary" onclick="triggerExportToast('XLSX')">
+              <span>Unduh Matriks 17×6 (.XLSX)</span>
+            </button>
+            <button type="button" class="btn btn-primary" onclick="triggerExportToast('CSV')">
+              <span>Ekspor Baris Terfilter (.CSV)</span>
+              <kbd style="background:rgba(4,47,46,0.25);border-color:rgba(4,47,46,0.4);color:#042F2E;box-shadow:none;">⌘E</kbd>
+            </button>
+          </div>
+        </div>
+
+        <!-- Main Repository Card -->
+        <section class="surface-card-elevated" style="overflow:hidden;">
+          <!-- Filter Bar -->
+          <div class="filter-toolbar">
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;flex:1;">
+              <div class="search-box">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--ink-muted)" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input type="text" id="table-search" placeholder="Cari judul berita, portal, atau kode KBLI..." />
+                <kbd>/</kbd>
+              </div>
+
+              <select id="filter-kbli" class="select-dark" aria-label="Filter Sektor KBLI">
+                <option value="ALL">Semua KBLI (A–V)</option>
+                <option value="A">KBLI A · Pertanian &amp; Perikanan</option>
+                <option value="B">KBLI B · Pertambangan</option>
+                <option value="C">KBLI C · Industri Pengolahan</option>
+                <option value="F">KBLI F · Konstruksi</option>
+                <option value="G">KBLI G · Perdagangan</option>
+                <option value="H">KBLI H · Transportasi</option>
+                <option value="P">KBLI P · Administrasi Pemerintahan</option>
+              </select>
+
+              <select id="filter-exp" class="select-dark" aria-label="Filter Komponen Pengeluaran">
+                <option value="ALL">Semua Pengeluaran (6)</option>
+                <option value="PMTB">PMTB · Modal Tetap Bruto</option>
+                <option value="PK_P">PK-P · Konsumsi Pemerintah</option>
+                <option value="NET_EXPORT">NET_EXPORT · Ekspor Bersih</option>
+                <option value="PK_RT">PK-RT · Konsumsi Rumah Tangga</option>
+              </select>
+
+              <div class="segmented-control" id="status-tabs">
+                <button type="button" class="seg-btn active" data-status="ALL"><span class="seg-dot"></span>Semua (12)</button>
+                <button type="button" class="seg-btn" data-status="APPROVED"><span class="seg-dot"></span>Terverifikasi (9)</button>
+                <button type="button" class="seg-btn" data-status="PENDING"><span class="seg-dot"></span>Pending (3)</button>
+              </div>
+            </div>
+
+            <div class="font-mono" style="font-size:11.5px;color:var(--ink-muted);" id="row-counter-label">
+              Menampilkan 12 dari 12 baris sampel
+            </div>
+          </div>
+
+          <!-- Table -->
+          <div class="data-table-wrap">
+            <table class="data-table" aria-label="Tabel Bank Data Fenomena">
+              <thead>
+                <tr>
+                  <th style="width:38px;text-align:center;">
+                    <input type="checkbox" id="select-all-cb" class="checkbox-custom" aria-label="Pilih semua baris" />
+                  </th>
+                  <th>Tanggal &amp; Cakupan</th>
+                  <th>Judul Fenomena &amp; Sumber Portal</th>
+                  <th>Sektor KBLI</th>
+                  <th>Dampak Usaha (NTB/Harga)</th>
+                  <th>Pengeluaran</th>
+                  <th>Dampak Pengeluaran</th>
+                  <th>Confidence &amp; Model</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="repo-tbody"></tbody>
+            </table>
+          </div>
+
+          <!-- Table Footer Pagination -->
+          <div style="padding:12px 18px;background:var(--bg-recessed);border-top:1px solid var(--border-default);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--ink-muted);">
+            <div>
+              Shortcut Tabel: <kbd>J</kbd>/<kbd>K</kbd> Navigasi Baris · <kbd>Space</kbd> Pilih Baris · <kbd>⌘E</kbd> Ekspor CSV
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span class="font-mono">Halaman 1 dari 4 (Total 48 Terverifikasi)</span>
+              <button type="button" class="btn btn-secondary" style="height:26px;padding:0 8px;">←</button>
+              <button type="button" class="btn btn-secondary" style="height:26px;padding:0 8px;">→</button>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <!-- Floating Raycast Bulk Action Bar -->
+  <div class="bulk-action-bar hidden" id="bulk-bar" role="region" aria-label="Tindakan Massal">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span class="kbli-chip jade" id="bulk-count-chip">2</span>
+      <span style="font-size:13px;font-weight:600;color:var(--ink-primary);">fenomena dipilih</span>
+    </div>
+    <span style="color:var(--border-strong);">|</span>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <button type="button" class="btn btn-primary" style="height:28px;" onclick="triggerExportToast('BATCH_APPROVE')">
+        <span>Verifikasi Sekaligus</span>
+        <kbd style="background:rgba(4,47,46,0.25);border-color:rgba(4,47,46,0.4);color:#042F2E;box-shadow:none;">A</kbd>
+      </button>
+      <button type="button" class="btn btn-secondary" style="height:28px;" onclick="triggerExportToast('CSV_SELECTED')">
+        <span>Ekspor Pilihan (.CSV)</span>
+        <kbd>E</kbd>
+      </button>
+      <button type="button" class="btn btn-ghost" style="height:28px;" onclick="clearAllSelection()">
+        <span>Batal</span>
+        <kbd>ESC</kbd>
+      </button>
+    </div>
+  </div>
+
+  <script src="../shared/data.js"></script>
+  <script src="./command-palette.js"></script>
+  <script>
+    document.getElementById('proto-strip-mount').innerHTML = window.SIPENA_UI.renderProtoStrip('table');
+    document.getElementById('rail-mount').innerHTML = window.SIPENA_UI.renderAdminRail('Bank Data & Ekspor');
+    document.getElementById('topbar-mount').innerHTML = window.SIPENA_UI.renderTopCommandBar('Kurasi & Repositori', 'Bank Data & Ekspor');
+
+    /* Expand 6 shared articles to 12 realistic rows for high-density table evaluation */
+    const baseArticles = window.SIPENA.articles;
+    const extraArticles = [
+      {
+        id: 7, date: '29 Sep 2026', iso: '2026-09-29', scope: 'KTT_LOCAL', portal: 'Koran Kaltara',
+        title: 'Perbaikan Jembatan Sei Sesayap Memperlancar Distribusi Logistik Sembako',
+        kbli: 'F', kbliName: 'Konstruksi', impactKbli: 'INCREASE_NTB',
+        exp: 'PMTB', expLabel: 'Pembentukan Modal Tetap Bruto', impactExp: 'INCREASE_REAL',
+        confidence: 0.90, model: 'gemini-3.8-flash', status: 'APPROVED'
+      },
+      {
+        id: 8, date: '27 Sep 2026', iso: '2026-09-27', scope: 'KTT_LOCAL', portal: 'Benuanta',
+        title: 'Pasar Imbayud Tideng Pale Catat Kenaikan Transaksi Akhir Bulan',
+        kbli: 'G', kbliName: 'Perdagangan Besar dan Eceran', impactKbli: 'INCREASE_NTB',
+        exp: 'PK_RT', expLabel: 'Konsumsi Rumah Tangga', impactExp: 'INCREASE_REAL',
+        confidence: 0.86, model: 'gemini-3.8-flash', status: 'APPROVED'
+      },
+      {
+        id: 9, date: '25 Sep 2026', iso: '2026-09-25', scope: 'KALTARA_PROVINCIAL', portal: 'Tribun Kaltara',
+        title: 'Pabrik Pengolahan CPO Skala Menengah Tingkatkan Jam Operasional Gilir',
+        kbli: 'C', kbliName: 'Industri Pengolahan', impactKbli: 'INCREASE_NTB',
+        exp: 'NET_EXPORT', expLabel: 'Ekspor Bersih', impactExp: 'INCREASE_REAL',
+        confidence: 0.88, model: 'groq:llama-3.3-70b', status: 'APPROVED'
+      },
+      {
+        id: 10, date: '14 Nov 2026', iso: '2026-11-14', scope: 'KTT_LOCAL', portal: 'Radar Tarakan',
+        title: 'Tarif Speedboat Reguler Rute Tarakan–Tideng Pale Mengalami Penyesuaian',
+        kbli: 'H', kbliName: 'Transportasi dan Penyimpanan', impactKbli: 'INCREASE_PRICE',
+        exp: 'PK_RT', expLabel: 'Konsumsi Rumah Tangga', impactExp: 'INCREASE_DEFLATOR',
+        confidence: 0.79, model: 'gemini-3.5-flash-lite', status: 'PENDING'
+      },
+      {
+        id: 11, date: '13 Nov 2026', iso: '2026-11-13', scope: 'KTT_LOCAL', portal: 'Koran Kaltara',
+        title: 'Dinas Kesehatan KTT Gelar Layanan Puskesmas Keliling di Kecamatan Betayau',
+        kbli: 'R', kbliName: 'Kesehatan & Kegiatan Sosial', impactKbli: 'INCREASE_NTB',
+        exp: 'PK_P', expLabel: 'Konsumsi Pemerintah', impactExp: 'INCREASE_REAL',
+        confidence: 0.84, model: 'gemini-3.8-flash', status: 'PENDING'
+      },
+      {
+        id: 12, date: '12 Nov 2026', iso: '2026-11-12', scope: 'KTT_LOCAL', portal: 'Benuanta',
+        title: 'Penyaluran Kredit Usaha Rakyat (KUR) Petani Sawit Mandiri Tumbuh di TW IV',
+        kbli: 'L', kbliName: 'Aktivitas Keuangan dan Asuransi', impactKbli: 'INCREASE_NTB',
+        exp: 'PMTB', expLabel: 'Pembentukan Modal Tetap Bruto', impactExp: 'INCREASE_REAL',
+        confidence: 0.81, model: 'groq:llama-3.3-70b', status: 'PENDING'
+      }
+    ];
+
+    const allRows = [
+      ...baseArticles.map(a => ({ ...a, status: 'APPROVED' })),
+      ...extraArticles
+    ];
+
+    let selectedIds = new Set([1, 2]);
+    let statusFilter = 'ALL';
+
+    function renderTable() {
+      const q = document.getElementById('table-search').value.trim().toLowerCase();
+      const kbliVal = document.getElementById('filter-kbli').value;
+      const expVal = document.getElementById('filter-exp').value;
+
+      const filtered = allRows.filter(r => {
+        if (statusFilter !== 'ALL' && r.status !== statusFilter) return false;
+        if (kbliVal !== 'ALL' && r.kbli !== kbliVal) return false;
+        if (expVal !== 'ALL' && r.exp !== expVal) return false;
+        if (q && !(r.title.toLowerCase().includes(q) || r.portal.toLowerCase().includes(q) || r.kbli.toLowerCase().includes(q))) return false;
+        return true;
+      });
+
+      document.getElementById('row-counter-label').textContent = `Menampilkan ${filtered.length} dari ${allRows.length} baris sampel`;
+
+      const tbody = document.getElementById('repo-tbody');
+      tbody.innerHTML = filtered.map(r => {
+        const isSel = selectedIds.has(r.id);
+        const confPct = Math.round(r.confidence * 100);
+        const confColor = confPct >= 85 ? 'var(--sig-vol-up)' : (confPct >= 70 ? 'var(--sig-price)' : 'var(--sig-vol-down)');
+        return `
+          <tr class="${isSel ? 'selected' : ''}" onclick="toggleRow(${r.id}, event)">
+            <td style="text-align:center;">
+              <input type="checkbox" class="checkbox-custom" ${isSel ? 'checked' : ''} aria-label="Pilih baris ${r.id}" />
+            </td>
+            <td class="font-mono" style="font-size:11.5px;white-space:nowrap;">
+              <div style="color:var(--ink-primary);font-weight:600;">${r.date}</div>
+              <div style="color:var(--ink-muted);font-size:10.5px;">${r.scope}</div>
+            </td>
+            <td style="min-width:260px;max-width:390px;">
+              <div style="font-weight:600;color:var(--ink-primary);line-height:1.35;margin-bottom:3px;">${r.title}</div>
+              <div class="font-mono" style="font-size:11px;color:var(--ink-muted);">${r.portal} · ID #0${r.id}</div>
+            </td>
+            <td>
+              <div style="display:flex;align-items:center;gap:7px;">
+                <span class="kbli-chip jade">${r.kbli}</span>
+                <span style="font-size:12px;color:var(--ink-secondary);white-space:nowrap;">${r.kbliName.slice(0, 22)}${r.kbliName.length > 22 ? '…' : ''}</span>
+              </div>
+            </td>
+            <td>${window.SIPENA_UI.renderSignalBadge(r.impactKbli)}</td>
+            <td>
+              <span class="kbli-chip" style="font-size:10.5px;">${r.exp}</span>
+            </td>
+            <td>${window.SIPENA_UI.renderSignalBadge(r.impactExp)}</td>
+            <td class="font-mono" style="font-size:11.5px;white-space:nowrap;">
+              <span style="color:${confColor};font-weight:700;">${confPct}%</span>
+              <span style="color:var(--ink-muted);margin-left:4px;">${r.model}</span>
+            </td>
+            <td>
+              <span class="status-pill ${r.status === 'APPROVED' ? 'approved' : 'pending'}">
+                ● ${r.status}
+              </span>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      updateBulkBar();
+    }
+
+    function updateBulkBar() {
+      const bar = document.getElementById('bulk-bar');
+      const chip = document.getElementById('bulk-count-chip');
+      if (selectedIds.size > 0) {
+        chip.textContent = selectedIds.size;
+        bar.classList.remove('hidden');
+      } else {
+        bar.classList.add('hidden');
+      }
+    }
+
+    window.toggleRow = function(id, evt) {
+      if (selectedIds.has(id)) selectedIds.delete(id);
+      else selectedIds.add(id);
+      renderTable();
+    };
+
+    window.clearAllSelection = function() {
+      selectedIds.clear();
+      document.getElementById('select-all-cb').checked = false;
+      renderTable();
+    };
+
+    window.triggerExportToast = function(type) {
+      const chip = document.getElementById('row-counter-label');
+      chip.innerHTML = `<span style="color:var(--accent-jade);font-weight:600;">✓ Perintah ${type} berhasil dijalankan (TW IV 2026)</span>`;
+    };
+
+    document.getElementById('select-all-cb').addEventListener('change', e => {
+      if (e.target.checked) {
+        allRows.forEach(r => selectedIds.add(r.id));
+      } else {
+        selectedIds.clear();
+      }
+      renderTable();
+    });
+
+    document.getElementById('table-search').addEventListener('input', renderTable);
+    document.getElementById('filter-kbli').addEventListener('change', renderTable);
+    document.getElementById('filter-exp').addEventListener('change', renderTable);
+
+    document.querySelectorAll('#status-tabs .seg-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#status-tabs .seg-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        statusFilter = btn.dataset.status;
+        renderTable();
+      });
+    });
+
+    renderTable();
+  </script>
+</body>
+</html>

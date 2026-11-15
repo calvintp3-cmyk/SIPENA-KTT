@@ -744,7 +744,7 @@ function openDetailModal(article: PublicArticleItem) {
         <span>Filter</span>
         <span
           v-if="activeFilterCount > 0"
-          class="px-1.5 py-0.5 rounded-full bg-indigo-600 text-white text-[10px] font-bold tabular-nums"
+          class="px-1.5 py-0.5 rounded-full bg-indigo-600 text-white text-xs font-bold tabular-nums"
         >
           {{ activeFilterCount }}
         </span>
@@ -770,7 +770,7 @@ function openDetailModal(article: PublicArticleItem) {
       v-model:open="mobileFiltersOpen"
       side="left"
       title="Filter Fenomena Ekonomi"
-      description="Saring linimasa menurut sumber berita, 17 kategori KBLI, 6 komponen pengeluaran, dan dampak makro"
+      description="Saring linimasa menurut sumber berita, 17 Sektor PDRB, 6 komponen pengeluaran, dan dampak makro"
       :ui="{ content: 'max-w-sm' }"
     >
       <template #body>
@@ -1104,7 +1104,7 @@ function openDetailModal(article: PublicArticleItem) {
         </div>
         <p>
           Seluruh catatan pada portal ini merupakan bukti fenomena ekonomi terkurasi yang
-          diselaraskan terhadap 17 Sektor Usaha (KBLI) dan 6 Komponen Pengeluaran
+          diselaraskan terhadap 17 Sektor PDRB dan 6 Komponen Pengeluaran
           sebagai dokumentasi faktual pemantauan dinamika ekonomi daerah dan dampak kebijakan nasional ke Tana Tidung.
         </p>
       </div>

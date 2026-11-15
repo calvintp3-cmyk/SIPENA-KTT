@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SIPENA KTT — Workbench Review Harian & Monitor Multi-LLM (/admin/review)</title>
+  <link rel="stylesheet" href="./styles.css" />
+  <style>
+    .workbench-split {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      border-bottom: 1px solid var(--border);
+      min-height: 520px;
+    }
+    .queue-pane {
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      background: #FAFBFB;
+    }
+    .queue-item {
+      padding: 13px 16px;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      background: var(--surface);
+      transition: background-color 0.1s ease;
+    }
+    .queue-item:hover {
+      background: var(--surface-hover);
+    }
+    .queue-item.active {
+      background: #F3FAF7;
+      border-left: 3px solid var(--emerald);
+      padding-left: 13px;
+    }
+    .inspector-pane {
+      padding: 24px 28px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 20px;
+      background: var(--surface);
+    }
+    .field-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+    .field-box {
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-panel);
+      background: #FAFBFB;
+    }
+    .field-label {
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--ink-muted);
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .slot-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .slot-card {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-panel);
+      padding: 14px;
+      background: var(--surface);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    @media (max-width: 1024px) {
+      .workbench-split { grid-template-columns: 1fr; }
+      .queue-pane { border-right: none; border-bottom: 1px solid var(--border); }
+      .slot-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 640px) {
+      .field-grid { grid-template-columns: 1fr; }
+      .slot-grid { grid-template-columns: 1fr; }
+      .inspector-pane { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Prototype Switcher Bar -->
+  <div class="proto-bar">
+    <div class="proto-bar-left">
+      <span class="proto-dot"></span>
+      <strong style="color:#fff;">01 · Linear Precision</strong>
+      <span class="hide-sm" style="color:#9CA3AF;">Mineral Daylight &amp; Hairline Precision</span>
+    </div>
+    <nav class="proto-links">
+      <a href="../index.html">← Semua Kandidat</a>
+      <a href="./index.html">00 Index</a>
+      <a href="./landing.html">01 Landing</a>
+      <a href="./dashboard.html">02 Dashboard</a>
+      <a href="./table.html">03 Bank Data</a>
+      <a href="./linimasa.html">04 Linimasa</a>
+      <a href="./charts.html">05 Visualisasi</a>
+      <a href="./detail.html" class="active">06 Workbench</a>
+    </nav>
+  </div>
+
+  <!-- Admin Shell -->
+  <div class="app-shell">
+    <!-- 248px Mineral Daylight Sidebar -->
+    <aside class="app-sidebar" id="app-sidebar">
+      <div>
+        <div class="brand-header">
+          <a href="./landing.html" class="brand-id">
+            <span class="brand-mark">SP</span>
+            <div>
+              <div class="brand-title">SIPENA KTT</div>
+              <div class="brand-sub">Admin · TW IV 2026</div>
+            </div>
+          </a>
+          <button class="btn btn-secondary btn-xs mobile-nav-toggle" onclick="document.getElementById('app-sidebar').classList.toggle('mobile-open')">
+            Menu ▾
+          </button>
+        </div>
+
+        <div class="sidebar-collapsible">
+          <button class="cmd-trigger" onclick="alert('Command Palette (⌘K): Tekan V untuk Verifikasi, J/K untuk pindah antrean.')">
+            <span style="display:flex;align-items:center;gap:7px;">
+              <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="7" cy="7" r="4.8"/><path d="M10.6 10.6L14 14"/></svg>
+              Pintasan kurasi cepat...
+            </span>
+            <span class="kbd">⌘K</span>
+          </button>
+
+          <div class="nav-section">
+            <div class="nav-group-label">Analitik &amp; Rangkuman</div>
+            <ul class="nav-list">
+              <li class="nav-item"><a href="./dashboard.html"><span class="nav-item-left"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>Dashboard &amp; Gap Sektoral</span></a></li>
+              <li class="nav-item"><a href="./charts.html"><span class="nav-item-left"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 13.5H14M3.5 10.5L6.8 7L9.5 9.2L13 4.5"/></svg>Tren &amp; Komparasi</span></a></li>
+              <li class="nav-item"><a href="./linimasa.html"><span class="nav-item-left"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2.5 4H13.5M2.5 8H10.5M2.5 12H12"/></svg>Sintesis Fenomena</span></a></li>
+            </ul>
+          </div>
+
+          <div class="nav-section">
+            <div class="nav-group-label">Kurasi &amp; Repositori</div>
+            <ul class="nav-list">
+              <li class="nav-item"><a href="./detail.html" class="active"><span class="nav-item-left"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 8.5L6.2 11.5L13 4.5"/></svg>Review Harian</span><span class="nav-badge warn" id="sidebar-q-badge">23</span></a></li>
+              <li class="nav-item"><a href="./table.html"><span class="nav-item-left"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="2.5" width="12" height="11" rx="1.5"/><path d="M2 6H14M6 6V13.5"/></svg>Bank Data &amp; Ekspor</span><span class="nav-badge">48</span></a></li>
+            </ul>
+          </div>
+
+          <div class="nav-section">
+            <div class="nav-group-label">Sumber &amp; Taksonomi</div>
+            <ul class="nav-list">
+              <li class="nav-item"><a href="./table.html#portals"><span class="nav-item-left"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="5.5"/><path d="M2.5 8H13.5M8 2.5C9.5 4.2 9.5 11.8 8 13.5"/></svg>Direktori Portal</span></a></li>
+              <li class="nav-item"><a href="./table.html#keywords"><span class="nav-item-left"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2.5 5.5H9.5M2.5 10.5H13.5"/></svg>Master Keyword</span></a></li>
+              <li class="nav-item"><a href="./charts.html#taxonomy"><span class="nav-item-left"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 3H7V7H3V3ZM9 3H13V7H9V3ZM6 10H10V14H6V10Z"/></svg>Kamus Taksonomi</span></a></li>
+              <li class="nav-item"><a href="./charts.html#concordance"><span class="nav-item-left"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 4H12M4 8H12M4 12H8"/></svg>Konkordansi KBLI</span><span class="nav-badge">A–V</span></a></li>
+            </ul>
+          </div>
+
+          <div class="nav-section">
+            <div class="nav-group-label">Sistem</div>
+            <ul class="nav-list">
+              <li class="nav-item"><a href="#scrapers"><span class="nav-item-left"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 2V5M8 11V14M2 8H5M11 8H14"/><circle cx="8" cy="8" r="2.5"/></svg>Monitor Scraper &amp; AI</span><span class="nav-badge crit">3</span></a></li>
+              <li class="nav-item"><a href="#components"><span class="nav-item-left"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="5.5" r="2.5"/><path d="M3.5 13C3.5 10.8 5.5 9.5 8 9.5C10.5 9.5 12.5 10.8 12.5 13"/></svg>Kelola Akses &amp; Tim</span></a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar-footer sidebar-collapsible">
+        <div>
+          <div style="font-weight:600;color:var(--ink-primary);">Tim Neraca Wilayah</div>
+          <div class="mono-num text-muted" style="font-size:11px;">Sinkron: 14 Nov 06:42 WITA</div>
+        </div>
+        <span class="status-pill verified" style="padding:1px 6px;">Online</span>
+      </div>
+    </aside>
+
+    <!-- INSET WORKSPACE SHEET -->
+    <main class="workspace-sheet">
+      <!-- Topbar -->
+      <header class="sheet-header">
+        <div class="breadcrumb">
+          <span class="breadcrumb-root">Kurasi &amp; Repositori</span>
+          <span class="breadcrumb-sep">/</span>
+          <span class="breadcrumb-current">Workbench Review Harian</span>
+          <span class="status-pill pending"><span class="mono-num" id="header-q-count">23</span> Antrean Menunggu</span>
+        </div>
+
+        <div class="header-actions">
+          <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-secondary);margin-right:6px;">
+            <span>Pintasan Keyboard:</span>
+            <span class="kbd">J</span><span class="kbd">K</span> Pilih
+            <span class="kbd">V</span> Verifikasi
+            <span class="kbd">X</span> Tolak
+          </div>
+          <button class="btn btn-secondary" onclick="triggerCrawl()">
+            ↻ Jalankan Crawl Sekarang
+          </button>
+        </div>
+      </header>
+
+      <!-- SPLIT-PANE 2 COLUMN REVIEW WORKBENCH -->
+      <section class="workbench-split" aria-label="Workbench Kurasi 2 Kolom">
+        <!-- Left Pane: Candidate Queue -->
+        <div class="queue-pane">
+          <div style="padding:10px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:#FAFBFB;">
+            <span style="font-size:12.5px;font-weight:600;">Antrean Ekstraksi AI (TW IV 2026)</span>
+            <span class="mono-num text-muted" style="font-size:11.5px;">Urut: Confidence ↑</span>
+          </div>
+          <div id="queue-list" style="overflow-y:auto;flex:1;"></div>
+        </div>
+
+        <!-- Right Pane: Dual-Side KBLI & Expenditure Inspector -->
+        <div class="inspector-pane">
+          <div>
+            <!-- Article Metadata & Confidence Banner -->
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding-bottom:14px;border-bottom:1px solid var(--border);margin-bottom:16px;">
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                <span class="status-pill pending" id="insp-conf-pill">Confidence AI: 58% (Perlu Tinjauan)</span>
+                <span class="mono-num text-secondary" style="font-size:12.5px;" id="insp-meta">6 Okt 2026 · Radar Tarakan · KTT_LOCAL</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:6px;">
+                <span class="kbd" id="insp-model">groq:llama-3.1-8b</span>
+                <a href="#scrapers" class="btn btn-ghost btn-xs">Cek Slot LLM →</a>
+              </div>
+            </div>
+
+            <!-- Article Title & Extracted Summary -->
+            <h1 style="font-size:20px;font-weight:700;margin-bottom:10px;line-height:1.3;" id="insp-title"></h1>
+            <div style="padding:14px 16px;background:var(--bg-canvas);border:1px solid var(--border);border-radius:var(--radius-panel);margin-bottom:20px;">
+              <div style="font-size:11.5px;font-weight:600;color:var(--ink-muted);margin-bottom:4px;">Ringkasan Fenomena &amp; Kutipan Bukti (AI-Extracted)</div>
+              <p style="font-size:14px;color:var(--ink-primary);line-height:1.65;" id="insp-summary"></p>
+            </div>
+
+            <!-- Dual Classification Form (Production KBLI vs Expenditure + Volume vs Price) -->
+            <div class="field-grid">
+              <!-- Box 1: KBLI 2025 -->
+              <div class="field-box">
+                <div class="field-label">
+                  <span>1. Kategori Lapangan Usaha (KBLI 2025)</span>
+                  <span class="mono-num text-emerald">Sisi Produksi</span>
+                </div>
+                <select id="sel-kbli" class="select-control" style="width:100%;margin-bottom:10px;">
+                  <option value="A">KBLI A · Pertanian, Kehutanan, dan Perikanan</option>
+                  <option value="B">KBLI B · Pertambangan dan Penggalian</option>
+                  <option value="C">KBLI C · Industri Pengolahan</option>
+                  <option value="F">KBLI F · Konstruksi</option>
+                  <option value="G">KBLI G · Perdagangan Besar dan Eceran</option>
+                  <option value="H">KBLI H · Transportasi dan Penyimpanan</option>
+                  <option value="J,K">KBLI J,K · Informasi dan Komunikasi (Data Gap!)</option>
+                  <option value="M">KBLI M · Aktivitas Real Estat (Data Gap!)</option>
+                  <option value="P">KBLI P · Administrasi Pemerintahan</option>
+                  <option value="Q">KBLI Q · Pendidikan (Data Gap!)</option>
+                </select>
+
+                <div class="field-label" style="margin-top:4px;">
+                  <span>Arah &amp; Sifat Dampak Usaha</span>
+                  <span class="mono-num">NTB vs Harga</span>
+                </div>
+                <select id="sel-impact-kbli" class="select-control" style="width:100%;">
+                  <option value="INCREASE_NTB">↑ Volume Naik (INCREASE_NTB / Produksi Riil)</option>
+                  <option value="DECREASE_NTB">↓ Volume Turun (DECREASE_NTB / Produksi Riil)</option>
+                  <option value="INCREASE_PRICE">↑ Harga Naik (INCREASE_PRICE / Deflator)</option>
+                  <option value="DECREASE_PRICE">↓ Harga Turun (DECREASE_PRICE / Deflator)</option>
+                </select>
+              </div>
+
+              <!-- Box 2: Expenditure PDRB -->
+              <div class="field-box">
+                <div class="field-label">
+                  <span>2. Komponen Pengeluaran PDRB (6 Kategori)</span>
+                  <span class="mono-num text-info">Sisi Pengeluaran</span>
+                </div>
+                <select id="sel-exp" class="select-control" style="width:100%;margin-bottom:10px;">
+                  <option value="PK_RT">PK-RT · Konsumsi Rumah Tangga</option>
+                  <option value="PK_LNPRT">PK-LNPRT · Konsumsi LNPRT</option>
+                  <option value="PK_P">PK-P · Konsumsi Pemerintah</option>
+                  <option value="PMTB">PMTB · Pembentukan Modal Tetap Bruto</option>
+                  <option value="INVENTORY_CHANGE">INVENTORY · Perubahan Inventori</option>
+                  <option value="NET_EXPORT">NET_EXPORT · Ekspor Bersih</option>
+                </select>
+
+                <div class="field-label" style="margin-top:4px;">
+                  <span>Arah &amp; Sifat Dampak Pengeluaran</span>
+                  <span class="mono-num">Riil vs Deflator</span>
+                </div>
+                <select id="sel-impact-exp" class="select-control" style="width:100%;">
+                  <option value="INCREASE_REAL">↑ Volume Riil Naik (INCREASE_REAL)</option>
+                  <option value="DECREASE_REAL">↓ Volume Riil Turun (DECREASE_REAL)</option>
+                  <option value="INCREASE_DEFLATOR">↑ Deflator / Harga Naik (INCREASE_DEFLATOR)</option>
+                  <option value="DECREASE_DEFLATOR">↓ Deflator / Harga Turun (DECREASE_DEFLATOR)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Action Bar -->
+          <div style="padding-top:16px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <button class="btn btn-secondary" onclick="stepQueue(-1)">← Sebelumnya <span class="kbd">K</span></button>
+              <button class="btn btn-secondary" onclick="stepQueue(1)">Berikutnya <span class="kbd">J</span> →</button>
+            </div>
+
+            <div style="display:flex;align-items:center;gap:8px;">
+              <button class="btn btn-secondary" style="color:var(--crit-ink);border-color:var(--crit-border);background:var(--crit-surface);" onclick="rejectCurrent()">
+                Tolak / Bukan Ekonomi <span class="kbd" style="background:#fff;color:var(--crit-ink);">X</span>
+              </button>
+              <button class="btn btn-emerald" onclick="verifyCurrent()">
+                ✓ Setujui &amp; Masuk Matriks TW IV <span class="kbd" style="background:rgba(255,255,255,0.2);color:#fff;border-color:transparent;">V</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 2: 5-SLOT MULTI-LLM ROUTING & SCRAPER MONITOR (/admin/scrapers) -->
+      <section style="padding:24px;border-bottom:1px solid var(--border);" id="scrapers">
+        <div class="section-head">
+          <div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+              <span class="kbd">INFRASTRUKTUR AI · /admin/scrapers</span>
+              <span class="status-pill gap">3 Antrean Gagal Ekstraksi</span>
+            </div>
+            <h2 class="section-title">Monitor 5 Slot Multi-LLM Failover &amp; Kuota Token</h2>
+            <p class="section-subtitle">
+              Rotasi otomatis berjenjang (<code class="mono-num">Prioritas #1 → #5</code>) saat terjadi batas kuota <code class="mono-num">HTTP 429</code> pada ekstraksi taksonomi KBLI 2025
+            </p>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-secondary btn-xs" onclick="alert('Mengulang 3 artikel yang gagal pada antrean fallback menggunakan Slot #1 (gemini-3.8-flash)...')">
+              ↻ Retry 3 Gagal (Slot #1)
+            </button>
+          </div>
+        </div>
+
+        <div class="slot-grid" id="llm-slot-grid"></div>
+      </section>
+
+      <!-- SECTION 3: INTERACTIVE UI STATES & COMPONENT GALLERY -->
+      <section style="padding:24px;" id="components">
+        <div class="section-head">
+          <div>
+            <span class="kbd">SPESIMEN STATES &amp; KOMPONEN</span>
+            <h2 class="section-title">Galeri States: Normal, Hover, Loading, Empty Gap, &amp; Error</h2>
+            <p class="section-subtitle">Standar interaksi mikro Linear Precision untuk kejelasan operasional analis</p>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));gap:16px;">
+          <!-- State 1: Empty Sector / Data Gap State -->
+          <div style="border:1px dashed var(--crit-border);background:#FFF9FA;border-radius:var(--radius-panel);padding:16px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+              <span class="status-pill gap">Empty / Data Gap State</span>
+              <span class="mono-num text-crit" style="font-size:12px;">KBLI J,K · M · Q</span>
+            </div>
+            <div style="font-size:13.5px;font-weight:600;margin-bottom:4px;">Belum Ada Bukti Terverifikasi (—)</div>
+            <p style="font-size:12.5px;color:var(--ink-secondary);margin-bottom:12px;">
+              Sektor ini tidak memiliki artikel pada TW IV 2026. Ditampilkan sebagai <code class="mono-num">—</code> agar tidak disalahartikan sebagai pertumbuhan <code class="mono-num">0%</code>.
+            </p>
+            <button class="btn btn-secondary btn-xs" onclick="alert('Membuka form input bukti manual untuk sektor KBLI J,K...')">+ Tambah Bukti Sektoral</button>
+          </div>
+
+          <!-- State 2: Rate-Limit / Retry Error State -->
+          <div style="border:1px solid var(--warn-border);background:var(--warn-surface);border-radius:var(--radius-panel);padding:16px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+              <span class="status-pill pending">HTTP 429 · Failover Aktif</span>
+              <span class="mono-num text-warn" style="font-size:12px;">Slot #3 → Slot #4</span>
+            </div>
+            <div style="font-size:13.5px;font-weight:600;margin-bottom:4px;">Batas TPM Groq Tercapai (12.000 TPM)</div>
+            <p style="font-size:12.5px;color:var(--ink-secondary);margin-bottom:12px;">
+              Sistem otomatis mengalihkan 21 permintaan klasifikasi ke slot cadangan tanpa menghentikan proses kurasi harian.
+            </p>
+            <span class="kbd" style="background:#fff;">Exponential Backoff: 1.8s</span>
+          </div>
+
+          <!-- State 3: Verified & Locked Reconciliation State -->
+          <div style="border:1px solid var(--emerald-border);background:var(--emerald-tint);border-radius:var(--radius-panel);padding:16px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+              <span class="status-pill verified">Verified &amp; Indexed</span>
+              <span class="mono-num text-emerald" style="font-size:12px;">Audit Trail Aktif</span>
+            </div>
+            <div style="font-size:13.5px;font-weight:600;margin-bottom:4px;">Terkunci di Matriks Rekonsiliasi TW IV</div>
+            <p style="font-size:12.5px;color:var(--ink-secondary);margin-bottom:12px;">
+              Artikel telah divalidasi analis dan langsung memperbarui sel matriks silang <code class="mono-num">17×6</code> serta indikator proporsi ekspansi volume.
+            </p>
+            <span class="kbd" style="background:#fff;color:var(--emerald-ink);">SHA-256 Receipt</span>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="../shared/data.js"></script>
+  <script>
+    const data = window.SIPENA;
+    // Order articles by ascending confidence so low-confidence items appear first in review queue
+    const queue = [...data.articles].sort((a, b) => a.confidence - b.confidence);
+    let activeIdx = 0;
+    let remainingCount = 23;
+
+    function renderWorkbench() {
+      const qList = document.getElementById('queue-list');
+      qList.innerHTML = queue.map((item, idx) => {
+        const pct = Math.round(item.confidence * 100);
+        const lowConf = pct < 80;
+        return `
+          <div class="queue-item ${idx === activeIdx ? 'active' : ''}" onclick="selectQueue(${idx})">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+              <span class="mono-num text-muted" style="font-size:11.5px;">${item.date} · ${item.portal}</span>
+              <span class="status-pill ${lowConf ? 'pending' : 'verified'}" style="font-size:10.5px;padding:1px 6px;">
+                <span class="mono-num">${pct}%</span>
+              </span>
+            </div>
+            <div style="font-size:13px;font-weight:600;color:var(--ink-primary);line-height:1.35;margin-bottom:6px;">
+              ${item.title}
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;">
+              <span class="kbd">KBLI ${item.kbli} × ${item.exp}</span>
+              <span class="mono-num text-muted" style="font-size:11px;">${item.model}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      const cur = queue[activeIdx];
+      const pct = Math.round(cur.confidence * 100);
+      const pill = document.getElementById('insp-conf-pill');
+      pill.textContent = `Confidence AI: ${pct}% ${pct < 80 ? '(Perlu Tinjauan Analis)' : '(Keyakinan Tinggi)'}`;
+      pill.className = `status-pill ${pct < 80 ? 'pending' : 'verified'}`;
+
+      document.getElementById('insp-meta').textContent = `${cur.date} · ${cur.portal} · ${cur.scope}`;
+      document.getElementById('insp-model').textContent = cur.model;
+      document.getElementById('insp-title').textContent = cur.title;
+      document.getElementById('insp-summary').textContent = cur.summary;
+
+      document.getElementById('sel-kbli').value = cur.kbli;
+      document.getElementById('sel-impact-kbli').value = cur.impactKbli;
+      document.getElementById('sel-exp').value = cur.exp;
+      document.getElementById('sel-impact-exp').value = cur.impactExp;
+    }
+
+    function selectQueue(idx) {
+      activeIdx = idx;
+      renderWorkbench();
+    }
+
+    function stepQueue(dir) {
+      activeIdx = (activeIdx + dir + queue.length) % queue.length;
+      renderWorkbench();
+    }
+
+    function verifyCurrent() {
+      remainingCount = Math.max(0, remainingCount - 1);
+      document.getElementById('header-q-count').textContent = remainingCount;
+      document.getElementById('sidebar-q-badge').textContent = remainingCount;
+      stepQueue(1);
+    }
+
+    function rejectCurrent() {
+      remainingCount = Math.max(0, remainingCount - 1);
+      document.getElementById('header-q-count').textContent = remainingCount;
+      document.getElementById('sidebar-q-badge').textContent = remainingCount;
+      stepQueue(1);
+    }
+
+    function triggerCrawl() {
+      alert('Crawler portal berita Kalimantan Utara dijalankan di latar belakang.');
+    }
+
+    // Keyboard shortcuts J, K, V, X
+    document.addEventListener('keydown', e => {
+      if (['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
+      if (e.key === 'j' || e.key === 'J') stepQueue(1);
+      if (e.key === 'k' || e.key === 'K') stepQueue(-1);
+      if (e.key === 'v' || e.key === 'V') verifyCurrent();
+      if (e.key === 'x' || e.key === 'X') rejectCurrent();
+    });
+
+    // Render 5 Provider Slots
+    const slotGrid = document.getElementById('llm-slot-grid');
+    slotGrid.innerHTML = data.providerSlots.map(s => {
+      const isStandby = s.calls === 0;
+      const isWarn = s.limited >= 10;
+      return `
+        <div class="slot-card" style="${s.priority === 1 ? 'border-color:var(--emerald);background:#FAFDFC;' : ''}">
+          <div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+              <span class="kbd">Slot #${s.priority}</span>
+              ${isStandby
+                ? '<span class="status-pill">Standby</span>'
+                : (isWarn ? `<span class="status-pill pending">${s.limited} Rate-Limited</span>` : '<span class="status-pill verified">Healthy</span>')
+              }
+            </div>
+            <div style="font-size:13.5px;font-weight:700;color:var(--ink-primary);">${s.provider}</div>
+            <div class="mono-num text-secondary" style="font-size:11.5px;margin-top:2px;word-break:break-all;">${s.model}</div>
+          </div>
+
+          <div style="border-top:1px solid var(--border);padding-top:8px;font-size:11.5px;display:grid;gap:4px;">
+            <div style="display:flex;justify-content:space-between;">
+              <span class="text-muted">Batas RPM / TPM</span>
+              <span class="mono-num">${s.rpm} / ${s.tpm ? (s.tpm / 1000) + 'k' : 'Dinamis'}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;">
+              <span class="text-muted">Panggilan / Sukses</span>
+              <span class="mono-num"><strong>${s.calls}</strong> (${s.success}%)</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;">
+              <span class="text-muted">Token Terpakai</span>
+              <span class="mono-num">${(s.tokens / 1000).toFixed(0)}k tok</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    renderWorkbench();
+  </script>
+</body>
+</html>

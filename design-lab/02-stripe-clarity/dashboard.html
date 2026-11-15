@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard & Gap Sektoral — SIPENA KTT Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Instrument+Sans:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,500;0,6..72,600;1,6..72,500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .dash-two-col {
+      display: grid;
+      grid-template-columns: 1.45fr 1fr;
+      gap: 20px;
+    }
+    .sector-bar-list {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+    .sector-row {
+      display: grid;
+      grid-template-columns: 64px minmax(140px, 1.2fr) 1fr 64px;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 10px;
+      border-radius: 7px;
+      font-size: 0.82rem;
+      transition: background 0.12s ease;
+    }
+    .sector-row:hover {
+      background: var(--bg-subtle);
+    }
+    .sector-row.is-gap {
+      background: #FFF8F8;
+      border: 1px dashed var(--vol-down-border);
+    }
+    @media (max-width: 1024px) {
+      .dash-two-col {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+    @media (max-width: 640px) {
+      .sector-row {
+        grid-template-columns: 52px minmax(0, 1fr) 46px;
+        gap: 6px;
+        padding: 5px 6px;
+      }
+      .sector-row .bar-track-col {
+        display: none;
+      }
+    }
+  </style>
+  <script src="../shared/data.js"></script>
+  <script src="app.js"></script>
+</head>
+<body>
+  <div id="proto-bar-mount"></div>
+
+  <div class="admin-layout">
+    <div id="sidebar-mount"></div>
+
+    <main class="admin-main">
+      <!-- Top Workspace Bar with Unified Period Pill -->
+      <header class="workspace-topbar">
+        <div class="topbar-title-area">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span class="section-label">ANALITIK &amp; RANGKUMAN EKSEKUTIF</span>
+            <span style="color:var(--ink-faint);">·</span>
+            <span class="font-mono text-muted" style="font-size:0.75rem;">1 Okt – 14 Nov 2026</span>
+          </div>
+          <h1 class="heading-lg" style="font-size:1.55rem;">Dashboard &amp; Kelengkapan 17 Sektor PDRB</h1>
+        </div>
+
+        <div class="topbar-controls">
+          <!-- Unified Period Pill (Year + Quarter I-IV) -->
+          <div class="segmented-pill" role="group" aria-label="Pemilih Periode Triwulan">
+            <select aria-label="Tahun" style="border:none; background:transparent; font-weight:600; font-size:0.8rem; padding:4px 8px 4px 10px; color:var(--ink-primary); cursor:pointer;">
+              <option value="2026" selected>2026</option>
+              <option value="2025">2025</option>
+            </select>
+            <button type="button" onclick="switchQuarter(this, 'TW I 2026')">TW I</button>
+            <button type="button" onclick="switchQuarter(this, 'TW II 2026')">TW II</button>
+            <button type="button" onclick="switchQuarter(this, 'TW III 2026')">TW III</button>
+            <button type="button" class="active" onclick="switchQuarter(this, 'TW IV 2026')">TW IV</button>
+          </div>
+
+          <a href="detail.html" class="btn btn-subtle btn-sm">
+            <span>Antrean Review</span>
+            <span class="font-mono" style="font-weight:700;">23</span>
+          </a>
+          <a href="table.html" class="btn btn-primary btn-sm">Ekspor Laporan CSV</a>
+        </div>
+      </header>
+
+      <!-- 4 KPI Bento Cards with 8-Quarter Sparklines (No Decorative Icons) -->
+      <section class="kpi-grid" aria-label="Indikator Utama Triwulan IV 2026">
+        <!-- KPI 1: Total Berita Terverifikasi -->
+        <article class="kpi-card">
+          <div class="kpi-top">
+            <span class="kpi-label">Fenomena Terverifikasi</span>
+            <span class="kpi-delta up">+17% vs TW III</span>
+          </div>
+          <div class="kpi-value-row">
+            <div>
+              <div class="kpi-number" id="kpi-total-val">48</div>
+              <div class="text-muted" style="font-size:0.75rem; margin-top:2px;">TW III 2026: 41 berita</div>
+            </div>
+            <svg width="88" height="34" viewBox="0 0 88 34" fill="none" aria-label="Tren 8 Triwulan">
+              <path d="M2 29L14 25L26 20L38 23L50 18L62 14L74 11L86 4" stroke="#1D4ED8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="86" cy="4" r="3" fill="#1D4ED8"/>
+            </svg>
+          </div>
+          <div class="kpi-foot">
+            <strong>23 berita</strong> menunggu verifikasi di <a href="detail.html" style="color:var(--cobalt-600); font-weight:600;">Review Harian</a>.
+          </div>
+        </article>
+
+        <!-- KPI 2: Dominasi Lapangan Usaha (KBLI) -->
+        <article class="kpi-card">
+          <div class="kpi-top">
+            <span class="kpi-label">Sektor Lapangan Usaha Dominan</span>
+            <span class="kpi-delta neutral">KBLI A · 29%</span>
+          </div>
+          <div class="kpi-value-row">
+            <div>
+              <div class="kpi-number">14 <span style="font-size:1rem; font-family:var(--font-sans); color:var(--ink-secondary); font-weight:500;">berita</span></div>
+              <div class="text-secondary" style="font-size:0.77rem; font-weight:500; margin-top:2px;">Pertanian, Kehutanan &amp; Perikanan</div>
+            </div>
+            <svg width="88" height="34" viewBox="0 0 88 34" fill="none">
+              <path d="M2 24L14 22L26 18L38 21L50 16L62 15L74 10L86 6" stroke="#1D4ED8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="86" cy="6" r="3" fill="#1D4ED8"/>
+            </svg>
+          </div>
+          <div class="kpi-foot">
+            Diikuti <strong>P · Administrasi Pemerintahan (9)</strong> &amp; <strong>F · Konstruksi (8)</strong>.
+          </div>
+        </article>
+
+        <!-- KPI 3: Dominasi Komponen Pengeluaran -->
+        <article class="kpi-card">
+          <div class="kpi-top">
+            <span class="kpi-label">Komponen Pengeluaran Dominan</span>
+            <span class="kpi-delta neutral">PMTB · 31%</span>
+          </div>
+          <div class="kpi-value-row">
+            <div>
+              <div class="kpi-number">15 <span style="font-size:1rem; font-family:var(--font-sans); color:var(--ink-secondary); font-weight:500;">berita</span></div>
+              <div class="text-secondary" style="font-size:0.77rem; font-weight:500; margin-top:2px;">Pembentukan Modal Tetap Bruto</div>
+            </div>
+            <svg width="88" height="34" viewBox="0 0 88 34" fill="none">
+              <path d="M2 27L14 26L26 22L38 20L50 19L62 13L74 12L86 5" stroke="#1D4ED8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="86" cy="5" r="3" fill="#1D4ED8"/>
+            </svg>
+          </div>
+          <div class="kpi-foot">
+            Diikuti <strong>PK-P · Pemerintah (11)</strong> &amp; <strong>Ekspor Bersih (10)</strong>.
+          </div>
+        </article>
+
+        <!-- KPI 4: Berita Bernada Ekspansi Volume -->
+        <article class="kpi-card">
+          <div class="kpi-top">
+            <span class="kpi-label">Berita Bernada Ekspansi Volume</span>
+            <span class="kpi-delta up">28 dari 48 berita</span>
+          </div>
+          <div class="kpi-value-row">
+            <div>
+              <div class="kpi-number" style="color:var(--vol-up-text);">58%</div>
+              <div class="text-muted" style="font-size:0.74rem; margin-top:2px;">Volume ↓: 7 · Harga/Deflator: 13</div>
+            </div>
+            <svg width="88" height="34" viewBox="0 0 88 34" fill="none">
+              <path d="M2 28L14 23L26 18L38 24L50 19L62 13L74 11L86 4" stroke="#047857" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="86" cy="4" r="3" fill="#047857"/>
+            </svg>
+          </div>
+          <div class="kpi-foot">
+            <em>Proporsi berita terverifikasi, bukan angka pertumbuhan ekonomi/PDRB resmi.</em>
+          </div>
+        </article>
+      </section>
+
+      <!-- Bento Split: 17 Sector Coverage + 6 Expenditure Allocation & Data Gap Callout -->
+      <section class="dash-two-col">
+        <!-- Left Card: 17 PDRB Sectors Coverage -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="section-label">CAKUPAN LAPANGAN USAHA (22 KBLI 2025 → 17 SEKTOR PDRB)</div>
+              <h2 class="heading-md" style="margin-top:2px;">Distribusi 17 Sektor &amp; Identifikasi 3 Data Gap</h2>
+            </div>
+            <div style="display:flex; gap:6px; align-items:center;">
+              <span class="kbli-badge"><span class="kbli-code">14/17</span><span>Terisi</span></span>
+              <span class="gap-tag">3 Sektor Kosong (—)</span>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="sector-bar-list" id="dashboard-sector-list"></div>
+          </div>
+          <div class="card-footer" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+            <span>Sektor tanpa berita ditampilkan sebagai <strong>—</strong> (bukan 0%) untuk mencegah bias interpretasi pertumbuhan.</span>
+            <a href="charts.html" style="color:var(--cobalt-600); font-weight:600;">Buka Analisis Grafik Penuh →</a>
+          </div>
+        </div>
+
+        <!-- Right Column: 6 Expenditure Allocation + Actionable Data Gap Card -->
+        <div style="display:flex; flex-direction:column; gap:20px;">
+          <!-- 6 Komponen Pengeluaran Portfolio Card -->
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="section-label">KOMPOSISI SISI PENGELUARAN</div>
+                <h2 class="heading-md" style="margin-top:2px;">Alokasi 6 Komponen PDRB Pengeluaran</h2>
+              </div>
+              <span class="font-mono text-muted" style="font-size:0.78rem;">N = 48 berita</span>
+            </div>
+            <div class="card-body" style="display:flex; flex-direction:column; gap:16px;">
+              <!-- Mercury-style Multi-Segment Bar -->
+              <div style="display:flex; height:14px; border-radius:999px; overflow:hidden; gap:2px; background:var(--bg-well);">
+                <div style="width:31.25%; background:#1D4ED8;" title="PMTB (31.3%)"></div>
+                <div style="width:22.92%; background:#3B82F6;" title="PK-P (22.9%)"></div>
+                <div style="width:20.83%; background:#047857;" title="Ekspor Bersih (20.8%)"></div>
+                <div style="width:18.75%; background:#B45309;" title="PK-RT (18.8%)"></div>
+                <div style="width:4.17%; background:#64748B;" title="Inventori (4.2%)"></div>
+                <div style="width:2.08%; background:#94A3B8;" title="PK-LNPRT (2.1%)"></div>
+              </div>
+
+              <div id="dashboard-exp-list" style="display:flex; flex-direction:column; gap:8px;"></div>
+            </div>
+          </div>
+
+          <!-- Actionable Data Gap Alert Card -->
+          <div class="card" style="border-color:var(--vol-down-border); background:linear-gradient(180deg, #FFFFFF 0%, #FFF9FA 100%);">
+            <div class="card-header" style="border-bottom-color:var(--vol-down-border);">
+              <div>
+                <div class="section-label" style="color:var(--vol-down-text);">TINDAK LANJUT PENYUSUNAN PDRB</div>
+                <h2 class="heading-md" style="margin-top:2px;">3 Sektor Belum Memiliki Liputan Berita (TW IV 2026)</h2>
+              </div>
+            </div>
+            <div class="card-body" style="display:flex; flex-direction:column; gap:10px; font-size:0.84rem;">
+              <p class="text-secondary">
+                Sektor <strong>J,K (Informasi &amp; Komunikasi)</strong>, <strong>M (Real Estat)</strong>, dan <strong>Q (Pendidikan)</strong> belum memiliki artikel terverifikasi pada periode berjalan.
+              </p>
+              <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:4px;">
+                <a href="detail.html#keyword" class="btn btn-secondary btn-sm">Perluas Master Keyword</a>
+                <a href="detail.html" class="btn btn-primary btn-sm">Periksa 23 Antrean Review →</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Cross-Matrix 17 Sectors x 6 Expenditure Components -->
+      <section class="card">
+        <div class="card-header">
+          <div>
+            <div class="section-label">MATRIKS KONKORDANSI DUA SISI PDRB</div>
+            <h2 class="heading-md" style="margin-top:2px;">Matriks Silang 17 Sektor Lapangan Usaha × 6 Komponen Pengeluaran</h2>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px; font-size:0.76rem; color:var(--ink-muted);">
+            <span>Intensitas Berita:</span>
+            <span class="matrix-cell cell-0" style="padding:2px 7px;">—</span>
+            <span class="matrix-cell cell-1" style="padding:2px 7px;">1</span>
+            <span class="matrix-cell cell-2" style="padding:2px 7px;">2–3</span>
+            <span class="matrix-cell cell-4" style="padding:2px 7px;">4–5</span>
+            <span class="matrix-cell cell-5" style="padding:2px 7px;">6+</span>
+          </div>
+        </div>
+        <div class="card-body data-table-wrap">
+          <table class="matrix-grid" id="dashboard-matrix-table"></table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    document.getElementById('proto-bar-mount').innerHTML = window.SIPENA_UI.renderProtoBar('dashboard.html');
+    document.getElementById('sidebar-mount').innerHTML = window.SIPENA_UI.renderAdminSidebar('Dashboard & Gap Sektoral');
+
+    const S = window.SIPENA;
+    const maxCount = Math.max(...S.sectors.map(s => s.count));
+
+    /* Render 17 Sectors list */
+    const sectorContainer = document.getElementById('dashboard-sector-list');
+    sectorContainer.innerHTML = S.sectors.map(s => {
+      const isGap = s.count === 0;
+      const pct = isGap ? 0 : Math.round((s.count / maxCount) * 100);
+      return `
+        <div class="sector-row ${isGap ? 'is-gap' : ''}">
+          <span class="kbli-code" style="text-align:center;">${s.group}</span>
+          <span style="font-weight:${isGap ? '600' : '500'}; color:${isGap ? 'var(--vol-down-text)' : 'var(--ink-primary)'}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+            ${s.short}
+          </span>
+          <div class="bar-track-col" style="height:8px; background:var(--bg-well); border-radius:999px; overflow:hidden;">
+            ${!isGap ? `<div style="width:${pct}%; height:100%; background:var(--cobalt-600); border-radius:999px;"></div>` : ''}
+          </div>
+          <span class="font-mono" style="text-align:right; font-weight:600; color:${isGap ? 'var(--vol-down-text)' : 'var(--ink-primary)'};">
+            ${isGap ? '—' : `${s.count} brt`}
+          </span>
+        </div>
+      `;
+    }).join('');
+
+    /* Render 6 Expenditure Components */
+    const expColors = ['#1D4ED8', '#3B82F6', '#047857', '#B45309', '#64748B', '#94A3B8'];
+    const expSorted = [...S.expenditure].sort((a, b) => b.count - a.count);
+    document.getElementById('dashboard-exp-list').innerHTML = expSorted.map((e, idx) => {
+      const share = ((e.count / S.kpi.totalVerified) * 100).toFixed(1);
+      return `
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:7px 10px; border-radius:7px; background:var(--bg-subtle); font-size:0.82rem;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="width:10px; height:10px; border-radius:3px; background:${expColors[idx]}; display:inline-block;"></span>
+            <span class="font-mono" style="font-weight:600; color:var(--ink-primary); min-width:74px;">${e.short}</span>
+            <span class="text-secondary">${e.label}</span>
+          </div>
+          <div class="font-mono" style="font-weight:600;">
+            ${e.count} <span class="text-muted" style="font-weight:400;">(${share}%)</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    /* Render 17x6 Matrix */
+    const expHeaders = S.expenditure;
+    const matrixEl = document.getElementById('dashboard-matrix-table');
+    function cellClass(v) {
+      if (!v || v === 0) return 'cell-0';
+      if (v === 1) return 'cell-1';
+      if (v <= 3) return 'cell-2';
+      if (v <= 5) return 'cell-4';
+      return 'cell-5';
+    }
+    matrixEl.innerHTML = `
+      <thead>
+        <tr>
+          <th class="row-head">Sektor PDRB (KBLI 2025)</th>
+          ${expHeaders.map(e => `<th title="${e.label}">${e.short}</th>`).join('')}
+          <th>Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${S.sectors.map(s => {
+          const rowVals = S.heatmap[s.group] || [0,0,0,0,0,0];
+          const isGap = s.count === 0;
+          return `
+            <tr class="${isGap ? 'gap-row' : ''}">
+              <td style="padding:5px 8px; font-weight:500;">
+                <span class="kbli-code" style="margin-right:6px;">${s.group}</span>
+                <span>${s.short}</span>
+                ${isGap ? '<span class="gap-tag">GAP</span>' : ''}
+              </td>
+              ${rowVals.map((v, i) => `
+                <td class="matrix-cell ${cellClass(v)}" title="${s.short} × ${expHeaders[i].label}: ${v === 0 ? 'Belum ada berita (—)' : v + ' berita'}">
+                  ${v === 0 ? '—' : v}
+                </td>
+              `).join('')}
+              <td class="font-mono" style="text-align:center; font-weight:600; color:${isGap ? 'var(--vol-down-text)' : 'var(--ink-primary)'};">
+                ${isGap ? '—' : s.count}
+              </td>
+            </tr>
+          `;
+        }).join('')}
+      </tbody>
+    `;
+
+    function switchQuarter(btn, label) {
+      btn.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const mapTotal = { 'TW I 2026': 33, 'TW II 2026': 37, 'TW III 2026': 41, 'TW IV 2026': 48 };
+      document.getElementById('kpi-total-val').textContent = mapTotal[label] || 48;
+    }
+  </script>
+</body>
+</html>
