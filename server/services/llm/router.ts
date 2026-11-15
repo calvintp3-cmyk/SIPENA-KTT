@@ -46,7 +46,7 @@ export const DEFAULT_GEMINI_EMBEDDING_MODEL = 'gemini-embedding-2' as const;
 export const OPENROUTER_DEFAULT_FREE_MODELS = [
   'google/gemma-4-31b-it:free',
   'google/gemma-4-26b-a4b-it:free',
-  'meta-llama/llama-3.3-70b-instruct:free',
+  'qwen/qwen-2.5-72b-instruct:free',
   'qwen/qwen3-coder:free',
   'openrouter/free',
 ] as const;

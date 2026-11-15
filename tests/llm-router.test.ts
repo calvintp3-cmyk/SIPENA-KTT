@@ -602,7 +602,7 @@ describe('MultiLlmRouter & Provider Key Configuration', () => {
 
   it('OPENROUTER_DEFAULT_FREE_MODELS hanya berisi model teks murni dan mendukung Cerebras/Mistral/NVIDIA serta multi-key OpenRouter', async () => {
     expect(OPENROUTER_DEFAULT_FREE_MODELS.some((m) => /-vl[:/]/i.test(m))).toBe(false);
-    expect(OPENROUTER_DEFAULT_FREE_MODELS).toContain('meta-llama/llama-3.3-70b-instruct:free');
+    expect(OPENROUTER_DEFAULT_FREE_MODELS).toContain('qwen/qwen-2.5-72b-instruct:free');
 
     const keys = resolveConfiguredProviderKeys({
       cerebrasApiKey: 'csk_Cerebras001',
