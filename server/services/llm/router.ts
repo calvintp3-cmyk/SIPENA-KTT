@@ -404,8 +404,10 @@ function buildDefaultChainSpecs(
     specs.push({ provider: 'nvidia', model: DEFAULT_NVIDIA_MODEL });
   }
 
-  for (const model of resolved.openrouterFreeModels) {
-    specs.push({ provider: 'openrouter', model });
+  if (includeAllOptionalProviders || resolved.openrouter.length > 0) {
+    for (const model of resolved.openrouterFreeModels) {
+      specs.push({ provider: 'openrouter', model });
+    }
   }
 
   return specs;
