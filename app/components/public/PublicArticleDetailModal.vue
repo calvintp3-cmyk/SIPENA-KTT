@@ -226,7 +226,7 @@ async function handleCopyArticleLink() {
                 1. Lapangan Usaha (Produksi)
               </span>
               <span
-                class="px-2 py-0.5 rounded-full text-xs font-semibold border"
+                class="px-2 py-0.5 rounded-full text-[10px] font-semibold border"
                 :class="clusterTheme.pillClass"
               >
                 {{ clusterTheme.label }}
@@ -337,14 +337,14 @@ async function handleCopyArticleLink() {
                 Jembatan Konkordansi KBLI 4-Generasi (BPS RI)
               </span>
             </div>
-            <span class="text-xs bg-indigo-100 text-indigo-800 font-bold px-2 py-0.5 rounded-full">
+            <span class="text-[10px] bg-indigo-100 text-indigo-800 font-bold px-2 py-0.5 rounded-full">
               {{ kbliBridge.pdrbSector }}
             </span>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
             <div class="p-2.5 rounded-xl bg-white border border-indigo-200/80 shadow-2xs">
-              <div class="text-xs font-bold text-indigo-700 uppercase tracking-wider mb-1">
+              <div class="text-[10px] font-bold text-indigo-700 uppercase tracking-wider mb-1">
                 KBLI 2025 (Terkini)
               </div>
               <div class="font-bold text-slate-900">
@@ -356,7 +356,7 @@ async function handleCopyArticleLink() {
             </div>
 
             <div class="p-2.5 rounded-xl bg-white/90 border border-slate-200 shadow-2xs">
-              <div class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
+              <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
                 KBLI 2020 (Transisi)
               </div>
               <div class="font-bold text-slate-800">
@@ -368,7 +368,7 @@ async function handleCopyArticleLink() {
             </div>
 
             <div class="p-2.5 rounded-xl bg-white/80 border border-slate-200">
-              <div class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
+              <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
                 KBLI 2015
               </div>
               <div class="font-bold text-slate-800">
@@ -380,7 +380,7 @@ async function handleCopyArticleLink() {
             </div>
 
             <div class="p-2.5 rounded-xl bg-white/80 border border-slate-200">
-              <div class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
+              <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
                 KBLI 2009 (Awal)
               </div>
               <div class="font-bold text-slate-800">

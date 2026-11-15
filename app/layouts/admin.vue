@@ -216,7 +216,7 @@ onBeforeUnmount(() => {
 
     <!-- Collapsible Modern SaaS Sidebar Rail (Desktop) -->
     <aside
-      class="no-print hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-30 lg:flex lg:flex-col bg-[var(--bg-canvas)] border-r border-[var(--border-default)] shadow-xs transition-[width] duration-200 ease-out"
+      class="no-print hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-30 lg:flex lg:flex-col bg-white/95 backdrop-blur-xl border-r border-slate-200/85 shadow-[4px_0_24px_-16px_rgba(15,23,42,0.08)] transition-[width] duration-200 ease-out"
       :class="isSidebarCollapsed ? 'lg:w-20' : 'lg:w-64'"
     >
       <!-- Edge Collapse Toggle Button -->
@@ -224,7 +224,7 @@ onBeforeUnmount(() => {
         type="button"
         :aria-label="isSidebarCollapsed ? 'Perluas sidebar navigasi' : 'Ciutkan sidebar navigasi'"
         :title="isSidebarCollapsed ? 'Perluas sidebar' : 'Ciutkan sidebar'"
-        class="hidden lg:inline-flex items-center justify-center w-7 h-7 rounded-full bg-[var(--bg-elevated)] border border-[var(--border-default)] text-[var(--ink-secondary)] hover:text-[var(--accent-teal-solid)] hover:border-[var(--accent-teal)] shadow-xs absolute -right-3.5 top-4.5 z-40 transition-colors cursor-pointer"
+        class="hidden lg:inline-flex items-center justify-center w-7 h-7 rounded-full bg-white border border-slate-200 text-slate-600 hover:text-indigo-700 hover:border-indigo-300 shadow-xs absolute -right-3.5 top-4.5 z-40 transition-colors cursor-pointer"
         @click="() => { toggleSidebarCollapsed(); }"
       >
         <UIcon
@@ -235,7 +235,7 @@ onBeforeUnmount(() => {
 
       <!-- Sidebar Brand Header -->
       <div
-        class="h-16 border-b border-[var(--border-default)] flex items-center shrink-0"
+        class="h-16 border-b border-slate-200/80 flex items-center shrink-0"
         :class="isSidebarCollapsed ? 'justify-center px-2' : 'px-4 gap-2.5'"
       >
         <NuxtLink
@@ -244,15 +244,15 @@ onBeforeUnmount(() => {
           :class="isSidebarCollapsed ? 'justify-center' : ''"
         >
           <div
-            class="h-9 w-9 rounded-xl bg-[var(--accent-teal-solid)] text-white flex items-center justify-center shrink-0 border border-[var(--accent-teal)] shadow-xs"
+            class="h-9 w-9 rounded-xl bg-gradient-to-br from-blue-600 via-indigo-600 to-teal-700 text-white flex items-center justify-center shrink-0 shadow-[inset_0_1px_0_rgba(255,255,255,0.28),0_4px_12px_-2px_rgba(37,99,235,0.38)]"
           >
-            <UIcon name="i-solar-chart-2-bold-duotone" class="w-5 h-5 text-white" />
+            <UIcon name="i-solar-chart-2-bold-duotone" class="w-5 h-5" />
           </div>
           <div v-if="!isSidebarCollapsed" class="min-w-0">
             <div class="font-extrabold text-sm tracking-tight text-slate-900 truncate flex items-center gap-1.5">
               <span>SIPENA</span>
               <span class="text-indigo-700">KTT</span>
-              
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" title="Konsol Aktif • Nerwilis Online" />
             </div>
             <div class="text-[11px] font-medium text-slate-500 truncate">
               Workstation Nerwilis
@@ -270,7 +270,7 @@ onBeforeUnmount(() => {
         <div v-for="group in navGroups" :key="group.title" class="space-y-1">
           <div
             v-if="!isSidebarCollapsed"
-            class="px-2.5 pb-1 text-xs font-bold tracking-wider text-slate-600 uppercase"
+            class="px-2.5 pb-1 text-[10px] font-bold tracking-wider text-slate-400 uppercase"
           >
             {{ group.title }}
           </div>
@@ -363,7 +363,7 @@ onBeforeUnmount(() => {
               </span>
               <span
                 v-if="user?.role === UserRoleEnum.ADMIN"
-                class="px-1.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200/80 text-xs font-bold shrink-0"
+                class="px-1.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200/80 text-[10px] font-bold shrink-0"
               >
                 Admin
               </span>
@@ -528,7 +528,7 @@ onBeforeUnmount(() => {
     >
       <!-- Full-Width Docked 100% Solid Header (Crisp Freeze Panes, Zero Ghosting/Blur) -->
       <header
-        class="no-print sticky top-0 z-30 w-full bg-[var(--bg-glass)] backdrop-blur-md border-b border-[var(--border-default)] shadow-xs"
+        class="no-print sticky top-0 z-30 w-full bg-white border-b border-slate-200/90 shadow-2xs"
         style="view-transition-name: sipena-admin-header"
       >
         <div
@@ -539,25 +539,25 @@ onBeforeUnmount(() => {
             <button
               type="button"
               aria-label="Buka menu navigasi admin"
-              class="lg:hidden min-w-10 min-h-10 inline-flex items-center justify-center rounded-xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-[var(--ink-secondary)] hover:bg-[var(--bg-hover)] cursor-pointer"
+              class="lg:hidden min-w-10 min-h-10 inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 cursor-pointer"
               @click="() => { mobileNavOpen = true; }"
             >
-              <UIcon name="i-solar-hamburger-menu-bold-duotone" class="w-5 h-5 text-[var(--accent-teal)]" />
+              <UIcon name="i-solar-hamburger-menu-bold-duotone" class="w-5 h-5 text-indigo-600" />
             </button>
 
             <div class="hidden sm:flex items-center gap-2 text-xs min-w-0">
-              <span class="text-[var(--ink-muted)] font-medium truncate">{{ currentBreadcrumb.section }}</span>
-              <span class="text-[var(--border-strong)]">/</span>
-              <span class="font-bold text-[var(--ink-primary)] truncate">{{ currentBreadcrumb.page }}</span>
+              <span class="text-slate-600 font-medium truncate">{{ currentBreadcrumb.section }}</span>
+              <span class="text-slate-400">/</span>
+              <span class="font-bold text-slate-900 truncate">{{ currentBreadcrumb.page }}</span>
             </div>
-            <span class="sm:hidden font-bold text-xs text-[var(--ink-primary)] truncate">
+            <span class="sm:hidden font-bold text-xs text-slate-900 truncate">
               {{ currentBreadcrumb.page }}
             </span>
 
             <span
-              class="hidden xl:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[var(--sig-vol-up-bg)] border border-[var(--sig-vol-up-border)] text-xs font-semibold text-[var(--sig-vol-up)] tabular-nums shrink-0"
+              class="hidden xl:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200/80 text-xs font-semibold text-emerald-800 tabular-nums shrink-0"
             >
-              <span class="w-1.5 h-1.5 rounded-full bg-[var(--sig-vol-up)]" />
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-600" />
               <span>{{ shortPeriodLabel }}</span>
             </span>
           </div>
@@ -568,14 +568,14 @@ onBeforeUnmount(() => {
             <button
               type="button"
               aria-label="Cari menu atau artikel dengan pintasan Command K"
-              class="h-9 min-w-9 px-3 rounded-lg border border-[var(--border-strong)] bg-[var(--bg-canvas)] hover:bg-[var(--bg-elevated)] hover:border-[var(--accent-teal)] text-xs text-[var(--ink-muted)] hover:text-[var(--ink-primary)] inline-flex items-center gap-2 transition-colors cursor-pointer"
+              class="h-9 min-w-9 px-3 rounded-xl border border-slate-200/90 bg-slate-100/75 hover:bg-white hover:border-indigo-300 text-xs text-slate-700 hover:text-slate-900 inline-flex items-center gap-2 transition-colors cursor-pointer"
               @click="() => { commandPaletteOpen = true; }"
             >
-              <UIcon name="i-solar-magnifer-line-duotone" class="w-4 h-4 text-[var(--ink-muted)]" />
+              <UIcon name="i-solar-magnifer-line-duotone" class="w-4 h-4 text-slate-500" />
               <span class="hidden md:inline font-medium">Cari menu / artikel...</span>
               <kbd
                 :title="shortcutTitle"
-                class="hidden sm:inline"
+                class="hidden sm:inline text-[11px] font-semibold px-1.5 py-0.5 rounded-md bg-white border border-slate-200 text-slate-600 leading-none"
               >
                 {{ shortcutKey }}
               </kbd>

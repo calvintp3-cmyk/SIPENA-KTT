@@ -328,7 +328,7 @@ function handleExportXlsx() {
                 "
                 @click="() => { dimension = 'kbli'; }"
               >
-                17 Sektor PDRB
+                17 Lapangan Usaha KBLI
               </button>
               <button
                 type="button"
@@ -464,7 +464,7 @@ function handleExportXlsx() {
           <span class="text-xs font-semibold text-slate-600">
             Gap {{ dimension === 'kbli' ? '17 Sektor' : '6 Pengeluaran' }}
           </span>
-          <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-800 border border-amber-200/80 flex items-center justify-center shrink-0">
+          <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 border border-amber-200/80 flex items-center justify-center shrink-0">
             <UIcon name="i-solar-radar-2-bold-duotone" class="w-4 h-4" />
           </div>
         </div>
@@ -646,7 +646,7 @@ function handleExportXlsx() {
             </caption>
             <thead>
               <tr class="border-b border-slate-200 bg-slate-50/70 text-xs font-semibold text-slate-600">
-                <th scope="col" class="px-4 py-3.5">Pos {{ dimension === 'kbli' ? 'Sektor PDRB (17)' : 'Pengeluaran' }}</th>
+                <th scope="col" class="px-4 py-3.5">Pos {{ dimension === 'kbli' ? 'KBLI (17 Sektor)' : 'Pengeluaran' }}</th>
                 <th scope="col" class="px-3 py-3.5 text-right whitespace-nowrap">{{ trendData.baseline.label }}</th>
                 <th scope="col" class="px-3 py-3.5 text-right whitespace-nowrap">{{ trendData.period.label }}</th>
                 <th scope="col" class="px-3 py-3.5 text-right">Delta</th>

@@ -54,18 +54,18 @@ const deltaBadge = computed(() => {
 
     <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       <!-- KPI 1: Total Fenomena Valid -->
-      <div class="raycast-panel p-4 sm:p-5 space-y-2.5">
+      <div class="saas-card rounded-2xl p-4 sm:p-5 space-y-2.5 border-t-2 border-t-blue-600">
         <div class="flex items-center justify-between gap-2">
-          <span class="text-xs font-semibold text-[var(--ink-secondary)]">
+          <span class="text-xs font-semibold text-slate-600">
             Total Fenomena Valid
           </span>
-          <div class="w-8 h-8 rounded-lg bg-[var(--accent-teal-subtle)] text-[var(--accent-teal-solid)] border border-[var(--accent-teal-border)] flex items-center justify-center shrink-0">
+          <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-700 border border-blue-200/70 flex items-center justify-center shrink-0">
             <UIcon name="i-solar-document-text-bold-duotone" class="w-4 h-4" />
           </div>
         </div>
-        <div class="text-2xl sm:text-3xl font-bold font-mono tracking-tight text-[var(--ink-primary)] tabular-nums">
+        <div class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 tabular-nums">
           {{ formatNumberId(overview?.kpi.totalVerified) }}
-          <span class="text-xs font-semibold text-[var(--ink-muted)] font-sans">Catatan</span>
+          <span class="text-xs font-semibold text-slate-600">Catatan</span>
         </div>
         <div v-if="deltaBadge" class="flex items-center gap-1.5">
           <UBadge :color="deltaBadge.color" variant="subtle" size="xs" :icon="deltaBadge.icon">
@@ -75,9 +75,9 @@ const deltaBadge = computed(() => {
       </div>
 
       <!-- KPI 2: Sektor KBLI Dominan -->
-      <div class="raycast-panel p-4 sm:p-5 space-y-2.5">
+      <div class="saas-card rounded-2xl p-4 sm:p-5 space-y-2.5 border-t-2 border-t-indigo-600">
         <div class="flex items-center justify-between gap-2">
-          <span class="text-xs font-semibold text-[var(--ink-secondary)]">
+          <span class="text-xs font-semibold text-slate-600">
             Sektor KBLI Dominan
           </span>
           <div
@@ -85,81 +85,72 @@ const deltaBadge = computed(() => {
             :class="
               overview?.kpi.dominantKbli
                 ? getKbliClusterTheme(overview.kpi.dominantKbli.code).iconBgClass + ' border-transparent'
-                : 'bg-[var(--bg-recessed)] text-[var(--ink-primary)] border-[var(--border-strong)]'
+                : 'bg-indigo-50 text-indigo-700 border-indigo-200/70'
             "
           >
             <UIcon name="i-solar-buildings-2-bold-duotone" class="w-4 h-4" />
           </div>
         </div>
         <template v-if="overview?.kpi.dominantKbli">
-          <div class="text-sm sm:text-[15px] font-bold text-[var(--ink-primary)] leading-snug line-clamp-2">
-            <span class="kbli-chip teal mr-1.5">{{ overview.kpi.dominantKbli.code }}</span>
-            <span>{{ overview.kpi.dominantKbli.name }}</span>
+          <div class="text-sm sm:text-[15px] font-bold text-slate-900 leading-snug line-clamp-2">
+            {{ overview.kpi.dominantKbli.code }} - {{ overview.kpi.dominantKbli.name }}
           </div>
-          <div class="text-xs text-[var(--ink-secondary)] font-medium tabular-nums">
+          <div class="text-xs text-slate-600 font-medium tabular-nums">
             {{ formatNumberId(overview.kpi.dominantKbli.count) }} fenomena ({{
               overview.kpi.dominantKbli.percentage
             }}%)
           </div>
         </template>
         <template v-else>
-          <div class="text-base font-bold text-[var(--ink-muted)]">Belum ada data</div>
-          <div class="text-xs text-[var(--ink-muted)]">Menunggu kurasi terverifikasi</div>
+          <div class="text-base font-bold text-slate-600">Belum ada data</div>
+          <div class="text-xs text-slate-600">Menunggu kurasi terverifikasi</div>
         </template>
       </div>
 
       <!-- KPI 3: Komponen Pengeluaran Teraktif -->
-      <div class="raycast-panel p-4 sm:p-5 space-y-2.5">
+      <div class="saas-card rounded-2xl p-4 sm:p-5 space-y-2.5 border-t-2 border-t-amber-600">
         <div class="flex items-center justify-between gap-2">
-          <span class="text-xs font-semibold text-[var(--ink-secondary)]">
+          <span class="text-xs font-semibold text-slate-600">
             Pengeluaran Teraktif
           </span>
-          <div class="w-8 h-8 rounded-lg bg-[var(--bg-recessed)] text-[var(--ink-secondary)] border border-[var(--border-default)] flex items-center justify-center shrink-0">
+          <div class="w-8 h-8 rounded-lg bg-amber-50 text-amber-700 border border-amber-200/70 flex items-center justify-center shrink-0">
             <UIcon name="i-solar-wallet-money-bold-duotone" class="w-4 h-4" />
           </div>
         </div>
         <template v-if="overview?.kpi.dominantExpenditure">
-          <div class="text-sm sm:text-[15px] font-bold text-[var(--ink-primary)] leading-snug line-clamp-2">
+          <div class="text-sm sm:text-[15px] font-bold text-slate-900 leading-snug line-clamp-2">
             {{ overview.kpi.dominantExpenditure.label }}
           </div>
-          <div class="text-xs text-[var(--ink-secondary)] font-medium tabular-nums">
+          <div class="text-xs text-slate-600 font-medium tabular-nums">
             {{ formatNumberId(overview.kpi.dominantExpenditure.count) }} fenomena ({{
               overview.kpi.dominantExpenditure.percentage
             }}%)
           </div>
         </template>
         <template v-else>
-          <div class="text-base font-bold text-[var(--ink-muted)]">Belum ada data</div>
-          <div class="text-xs text-[var(--ink-muted)]">Menunggu kurasi terverifikasi</div>
+          <div class="text-base font-bold text-slate-600">Belum ada data</div>
+          <div class="text-xs text-slate-600">Menunggu kurasi terverifikasi</div>
         </template>
       </div>
 
       <!-- KPI 4: Rasio Ekspansi -->
-      <div class="raycast-panel p-4 sm:p-5 space-y-2.5 border border-[var(--accent-teal-border)]">
+      <div class="saas-card rounded-2xl p-4 sm:p-5 space-y-2.5 border-t-2 border-t-emerald-700">
         <div class="flex items-center justify-between gap-2">
-          <span class="text-xs font-semibold text-[var(--ink-secondary)]">
-            Berita Bernada Ekspansi Volume
+          <span class="text-xs font-semibold text-slate-600">
+            Rasio Ekspansi Riil
           </span>
-          <span class="signal-badge vol-up">↑ Riil</span>
+          <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200/70 flex items-center justify-center shrink-0">
+            <UIcon name="i-solar-graph-up-bold-duotone" class="w-4 h-4" />
+          </div>
         </div>
-        <template v-if="overview && overview.kpi.totalVerified > 0">
-          <div class="text-2xl sm:text-3xl font-bold font-mono tracking-tight text-[var(--accent-teal-solid)] tabular-nums">
-            {{ overview.kpi.expansionStats.positiveRealPercent }}%
-            <span class="text-xs font-semibold text-[var(--ink-muted)] font-sans">dari berita</span>
-          </div>
-          <div class="text-xs text-[var(--ink-secondary)] font-medium tabular-nums">
-            {{ formatNumberId(overview.kpi.expansionStats.expansionCount) }} dari
-            {{ formatNumberId(overview.kpi.totalVerified) }} berita menandai kenaikan volume
-            (Nilai Tambah Bruto riil); sisanya harga atau lainnya.
-          </div>
-        </template>
-        <template v-else>
-          <div class="text-2xl sm:text-3xl font-bold font-mono tracking-tight text-[var(--ink-muted)]">—</div>
-          <div class="text-xs text-[var(--ink-muted)] font-medium">Belum ada berita terverifikasi</div>
-        </template>
-        <p class="text-[11px] text-[var(--ink-secondary)] leading-snug border-t border-[var(--border-subtle)] pt-2">
-          Proporsi berita terverifikasi, <strong class="text-[var(--ink-primary)]">bukan angka pertumbuhan ekonomi</strong> atau PDRB resmi.
-        </p>
+        <div class="text-2xl sm:text-3xl font-extrabold tracking-tight text-emerald-700 tabular-nums">
+          {{ overview?.kpi.expansionStats.positiveRealPercent ?? 0 }}%
+          <span class="text-xs font-semibold text-slate-600">Naik NTB</span>
+        </div>
+        <div class="text-xs text-slate-600 font-medium tabular-nums">
+          {{ formatNumberId(overview?.kpi.expansionStats.expansionCount) }} ekspansi •
+          {{ formatNumberId(overview?.kpi.expansionStats.pressureOrContractionCount) }} harga/lainnya
+        </div>
       </div>
     </div>
   </section>

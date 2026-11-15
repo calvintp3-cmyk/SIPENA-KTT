@@ -346,32 +346,32 @@ export function usePdrbLabels() {
       return {
         label: 'Lokal Tana Tidung',
         shortLabel: 'Lokal KTT',
-        pillClass: 'bg-slate-100 text-slate-800 border-slate-300/90',
-        dotClass: 'bg-teal-700',
+        pillClass: 'bg-emerald-50 text-emerald-800 border-emerald-200/80',
+        dotClass: 'bg-emerald-700',
       };
     }
     if (scope === 'KALTARA_PROVINCIAL') {
       return {
         label: 'Regional Kalimantan Utara',
         shortLabel: 'Kaltara',
-        pillClass: 'bg-slate-100 text-slate-800 border-slate-300/90',
-        dotClass: 'bg-sky-700',
+        pillClass: 'bg-blue-50 text-blue-800 border-blue-200/80',
+        dotClass: 'bg-blue-600',
       };
     }
     if (scope === 'NATIONAL_MACRO_IMPACT') {
       return {
         label: 'Dampak Makro Nasional',
         shortLabel: 'Makro Nasional',
-        pillClass: 'bg-slate-100 text-slate-800 border-slate-300/90',
-        dotClass: 'bg-indigo-700',
+        pillClass: 'bg-amber-50 text-amber-800 border-amber-200/80',
+        dotClass: 'bg-amber-700',
       };
     }
     if (fallbackSourceType === ArticleSourceTypeEnum.REGIONAL) {
       return {
         label: 'Portal Regional KTT/Kaltara',
         shortLabel: 'Lokal / Kaltara',
-        pillClass: 'bg-slate-100 text-slate-800 border-slate-300/90',
-        dotClass: 'bg-teal-700',
+        pillClass: 'bg-emerald-50 text-emerald-800 border-emerald-200/80',
+        dotClass: 'bg-emerald-700',
       };
     }
     return {

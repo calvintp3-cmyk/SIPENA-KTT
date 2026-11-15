@@ -178,7 +178,7 @@ const bentoImpactItems = [
           <span class="text-xs font-bold text-slate-900 block leading-tight">
             Filter Terpadu
           </span>
-          <span class="text-xs text-slate-600 font-medium leading-tight">
+          <span class="text-[10px] text-slate-600 font-medium leading-tight">
             {{ activeFilterCount > 0 ? `${activeFilterCount} kriteria aktif` : 'Semua fenomena' }}
           </span>
         </div>
@@ -243,7 +243,7 @@ const bentoImpactItems = [
             </span>
             <span
               v-if="dateFrom || dateTo"
-              class="px-1.5 py-0.2 rounded-full bg-indigo-600 text-white text-xs font-bold"
+              class="px-1.5 py-0.2 rounded-full bg-indigo-600 text-white text-[9px] font-bold"
             >
               Aktif
             </span>
@@ -251,7 +251,7 @@ const bentoImpactItems = [
           <button
             v-if="dateFrom || dateTo"
             type="button"
-            class="text-xs font-semibold text-indigo-600 hover:text-indigo-800 cursor-pointer"
+            class="text-[10px] font-semibold text-indigo-600 hover:text-indigo-800 cursor-pointer"
             @click="() => { emit('update:dateFrom', ''); emit('update:dateTo', ''); }"
           >
             Reset
@@ -260,7 +260,7 @@ const bentoImpactItems = [
 
         <div class="grid grid-cols-2 gap-1.5">
           <div class="space-y-1">
-            <label for="filter-date-from" class="text-xs font-medium text-slate-500 block">Dari Tanggal</label>
+            <label for="filter-date-from" class="text-[10px] font-medium text-slate-500 block">Dari Tanggal</label>
             <input
               id="filter-date-from"
               :value="dateFrom"
@@ -270,7 +270,7 @@ const bentoImpactItems = [
             >
           </div>
           <div class="space-y-1">
-            <label for="filter-date-to" class="text-xs font-medium text-slate-500 block">Sampai Tanggal</label>
+            <label for="filter-date-to" class="text-[10px] font-medium text-slate-500 block">Sampai Tanggal</label>
             <input
               id="filter-date-to"
               :value="dateTo"
@@ -297,7 +297,7 @@ const bentoImpactItems = [
             :key="src.value"
             type="button"
             :aria-pressed="sourceType === src.value"
-            class="py-1 px-1 rounded-lg text-xs transition-all whitespace-nowrap cursor-pointer"
+            class="py-1 px-1 rounded-lg text-[10px] transition-all whitespace-nowrap cursor-pointer"
             :class="
               sourceType === src.value
                 ? 'font-bold bg-white text-indigo-700 shadow-2xs border border-indigo-200'
@@ -319,7 +319,7 @@ const bentoImpactItems = [
           <button
             v-if="impactMacro !== 'ALL'"
             type="button"
-            class="text-xs font-semibold text-indigo-600 hover:text-indigo-800 cursor-pointer"
+            class="text-[10px] font-semibold text-indigo-600 hover:text-indigo-800 cursor-pointer"
             @click="() => { emit('update:impactMacro', 'ALL'); }"
           >
             Hapus
@@ -348,7 +348,7 @@ const bentoImpactItems = [
               <div class="font-bold text-[11px] leading-tight">
                 {{ chip.label }}
               </div>
-              <div class="text-xs text-slate-500 leading-tight">
+              <div class="text-[9px] text-slate-500 leading-tight">
                 {{ chip.subLabel }}
               </div>
             </div>
@@ -365,7 +365,7 @@ const bentoImpactItems = [
             </span>
             <span
               v-if="pdrbGroups.length > 0"
-              class="px-1.5 py-0.2 rounded-full bg-indigo-600 text-white text-xs font-bold tabular-nums"
+              class="px-1.5 py-0.2 rounded-full bg-indigo-600 text-white text-[9px] font-bold tabular-nums"
             >
               {{ pdrbGroups.length }}
             </span>
@@ -373,7 +373,7 @@ const bentoImpactItems = [
           <button
             v-if="pdrbGroups.length > 0"
             type="button"
-            class="text-xs font-semibold text-indigo-600 hover:text-indigo-800 cursor-pointer"
+            class="text-[10px] font-semibold text-indigo-600 hover:text-indigo-800 cursor-pointer"
             @click="clearPdrbGroups"
           >
             Reset
@@ -384,13 +384,13 @@ const bentoImpactItems = [
         <div class="relative">
           <UIcon
             name="i-solar-magnifer-line-duotone"
-            class="w-3 h-3 absolute left-2 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none"
+            class="w-3 h-3 absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
           />
           <input
             v-model="sectorSearchQuery"
             type="search"
             placeholder="Saring sektor A-U..."
-            class="w-full h-6.5 pl-6 pr-5 bg-slate-50 text-[11px] text-slate-800 placeholder:text-slate-500 rounded-md border border-slate-200 focus:bg-white focus:border-indigo-400 focus:outline-none"
+            class="w-full h-6.5 pl-6 pr-5 bg-slate-50 text-[11px] text-slate-800 placeholder:text-slate-400 rounded-md border border-slate-200 focus:bg-white focus:border-indigo-400 focus:outline-none"
           >
           <button
             v-if="sectorSearchQuery"
@@ -428,7 +428,7 @@ const bentoImpactItems = [
                 class="w-3.5 h-3.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer pointer-events-none shrink-0"
               >
               <span
-                class="min-w-6 px-1 h-4.5 rounded text-xs font-bold font-mono flex items-center justify-center shrink-0"
+                class="min-w-6 px-1 h-4.5 rounded text-[9px] font-bold flex items-center justify-center shrink-0"
                 :class="
                   pdrbGroups.includes(sector.groupCode)
                     ? 'bg-indigo-600 text-white'
@@ -443,13 +443,13 @@ const bentoImpactItems = [
             </div>
 
             <span
-              class="text-xs tabular-nums font-semibold shrink-0"
+              class="text-[10px] tabular-nums font-semibold shrink-0"
               :class="
                 sector.count > 0
                   ? pdrbGroups.includes(sector.groupCode)
                     ? 'text-indigo-700'
                     : 'text-slate-700 font-bold'
-                  : 'text-slate-600'
+                  : 'text-slate-400'
               "
             >
               {{ sector.count }}
@@ -467,7 +467,7 @@ const bentoImpactItems = [
             </span>
             <span
               v-if="expenditures.length > 0"
-              class="px-1.5 py-0.2 rounded-full bg-indigo-600 text-white text-xs font-bold tabular-nums"
+              class="px-1.5 py-0.2 rounded-full bg-indigo-600 text-white text-[9px] font-bold tabular-nums"
             >
               {{ expenditures.length }}
             </span>
@@ -475,7 +475,7 @@ const bentoImpactItems = [
           <button
             v-if="expenditures.length > 0"
             type="button"
-            class="text-xs font-semibold text-indigo-600 hover:text-indigo-800 cursor-pointer"
+            class="text-[10px] font-semibold text-indigo-600 hover:text-indigo-800 cursor-pointer"
             @click="clearExpenditures"
           >
             Reset
@@ -518,13 +518,13 @@ const bentoImpactItems = [
             </div>
 
             <span
-              class="text-xs tabular-nums font-semibold shrink-0"
+              class="text-[10px] tabular-nums font-semibold shrink-0"
               :class="
                 (expenditureCountMap.get(item.code) ?? 0) > 0
                   ? expenditures.includes(item.code)
                     ? 'text-indigo-700'
                     : 'text-slate-700 font-bold'
-                  : 'text-slate-600'
+                  : 'text-slate-400'
               "
             >
               {{ expenditureCountMap.get(item.code) ?? 0 }}

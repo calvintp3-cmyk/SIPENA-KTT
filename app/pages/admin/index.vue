@@ -105,7 +105,7 @@ function handleExportXlsx() {
 }
 
 function heatmapCellClass(val: number): string {
-  if (val <= 0) return 'bg-slate-50/80 text-slate-600';
+  if (val <= 0) return 'bg-slate-50/80 text-slate-300';
   if (val <= 2) return 'bg-blue-50 text-blue-800 border border-blue-200/70 hover:bg-blue-100 font-semibold';
   if (val <= 5) return 'bg-indigo-100 text-indigo-900 border border-indigo-200 hover:bg-indigo-200 font-bold';
   return 'bg-gradient-to-br from-blue-600 to-indigo-600 text-white font-bold shadow-2xs hover:brightness-110';
@@ -219,7 +219,7 @@ const shortExpHeaders: Record<string, string> = {
           Dashboard &amp; Gap Sektoral — {{ periodLabel }}
         </h1>
         <p class="text-xs sm:text-sm text-slate-600 mt-0.5 text-pretty">
-          Deteksi 17 Sektor PDRB yang belum memiliki bukti berita terverifikasi dan
+          Deteksi 17 kategori Lapangan Usaha yang belum memiliki bukti berita terverifikasi dan
           peta silang PDRB dua sisi.
         </p>
       </div>
@@ -340,7 +340,7 @@ const shortExpHeaders: Record<string, string> = {
           <span class="text-xs font-semibold text-slate-600">
             Antrean Kurasi Pending
           </span>
-          <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-800 border border-amber-200/80 flex items-center justify-center shrink-0">
+          <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 border border-amber-200/80 flex items-center justify-center shrink-0">
             <UIcon name="i-solar-inbox-in-bold-duotone" class="w-4 h-4" />
           </div>
         </div>
@@ -365,19 +365,18 @@ const shortExpHeaders: Record<string, string> = {
       <div class="saas-card rounded-2xl p-5 space-y-2.5">
         <div class="flex items-center justify-between gap-2">
           <span class="text-xs font-semibold text-slate-600">
-            Berita Bernada Ekspansi Volume
+            Sinyal Ekspansi Riil
           </span>
           <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200/80 flex items-center justify-center shrink-0">
             <UIcon name="i-solar-graph-new-up-bold-duotone" class="w-4 h-4" />
           </div>
         </div>
-        <div class="text-3xl font-extrabold tracking-tight text-slate-900 tabular-nums">
-          <template v-if="dashData.kpi.totalVerifiedPeriod > 0">{{ dashData.kpi.expansionPercent }}%</template>
-          <template v-else>—</template>
+        <div class="text-3xl font-extrabold tracking-tight text-emerald-700 tabular-nums">
+          {{ dashData.kpi.expansionPercent }}%
         </div>
         <div class="text-xs text-slate-600 flex items-center justify-between gap-2">
-          <span>Proporsi berita naik Nilai Tambah Bruto (NTB) riil, bukan angka PDRB</span>
-          <NuxtLink to="/admin/synthesis" class="text-indigo-700 hover:text-indigo-900 hover:underline font-semibold shrink-0">
+          <span>Proporsi Naik NTB</span>
+          <NuxtLink to="/admin/synthesis" class="text-indigo-700 hover:text-indigo-900 hover:underline font-semibold">
             Buka Sintesis →
           </NuxtLink>
         </div>
@@ -385,7 +384,7 @@ const shortExpHeaders: Record<string, string> = {
     </div>
 
     <!-- SECTION A: 17-SECTOR GAP DETECTOR + ECHARTS OVERVIEW -->
-    <section v-if="dashData" aria-label="Detektor Data Gap 17 Sektor PDRB" class="space-y-4">
+    <section v-if="dashData" aria-label="Detector Data Gap 17 Sektor KBLI" class="space-y-4">
       <div class="saas-card rounded-2xl p-5 grid grid-cols-1 lg:grid-cols-12 gap-5 items-center">
         <div class="lg:col-span-4">
           <SharedAppChart
@@ -401,7 +400,7 @@ const shortExpHeaders: Record<string, string> = {
         <div class="lg:col-span-8 space-y-3.5">
           <div>
             <h2 class="text-base font-extrabold text-slate-900 text-balance">
-              Kelengkapan Bukti 17 Sektor PDRB
+              Radar Kelengkapan 17 Lapangan Usaha PDRB
             </h2>
             <p class="text-xs sm:text-sm text-slate-600 mt-0.5 leading-relaxed text-pretty">
               Klik segmen donat atau pilih status di bawah untuk menyaring sektor yang berstatus
@@ -485,7 +484,7 @@ const shortExpHeaders: Record<string, string> = {
           <div class="space-y-2.5">
             <div class="flex items-center justify-between gap-2">
               <span
-                class="text-[11px] font-bold font-mono px-2.5 py-0.5 rounded-full border"
+                class="text-[11px] font-bold px-2.5 py-0.5 rounded-full border"
                 :class="
                   tile.isGap
                     ? 'bg-rose-50 text-rose-800 border-rose-200'
@@ -569,7 +568,7 @@ const shortExpHeaders: Record<string, string> = {
     <section v-if="dashData" aria-label="Heatmap Matriks Silang KBLI dan Pengeluaran" class="space-y-3">
       <div>
         <h2 class="text-base font-extrabold text-slate-900 text-balance">
-          Matriks Silang 17 Sektor PDRB × 6 Komponen Pengeluaran
+          Matriks Silang 17 Sektor KBLI × 6 Komponen Pengeluaran
         </h2>
         <p class="text-xs text-slate-600">
           Klik sel matriks bernilai positif untuk membuka daftar bukti fenomena di Bank Data.
@@ -580,18 +579,18 @@ const shortExpHeaders: Record<string, string> = {
         <div
           tabindex="0"
           role="region"
-          aria-label="Matriks Heatmap 17 Sektor PDRB kali 6 Komponen Pengeluaran PDRB"
+          aria-label="Matriks Heatmap 17 Sektor KBLI kali 6 Komponen Pengeluaran PDRB"
           class="saas-table-scroller"
         >
           <table class="w-full text-left border-collapse min-w-[780px]">
             <caption class="sr-only">
-              Distribusi silang artikel terverifikasi menurut 17 Sektor PDRB dan 6 komponen
+              Distribusi silang artikel terverifikasi menurut 17 sektor KBLI dan 6 komponen
               pengeluaran PDRB pada {{ periodLabel }}
             </caption>
             <thead>
               <tr class="border-b border-slate-200 bg-slate-50/70 text-xs font-semibold text-slate-600">
                 <th scope="col" class="px-4 py-3.5 min-w-[230px]">
-                  Lapangan Usaha (17 Sektor PDRB)
+                  Lapangan Usaha (17 Sektor KBLI)
                 </th>
                 <th
                   v-for="comp in PDRB_6_EXPENDITURE_LIST"
@@ -616,7 +615,7 @@ const shortExpHeaders: Record<string, string> = {
               >
                 <th scope="row" class="px-4 py-2.5 font-medium text-slate-900 text-left bg-white sm:sticky sm:left-0">
                   <span
-                    class="inline-block text-[11px] font-bold font-mono px-2 py-0.5 rounded-full border mr-2"
+                    class="inline-block text-[11px] font-bold px-2 py-0.5 rounded-full border mr-2"
                     :class="getKbliClusterTheme(row.groupCode).pillClass"
                   >
                     {{ row.groupCode }}
