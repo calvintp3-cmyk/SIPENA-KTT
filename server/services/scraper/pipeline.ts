@@ -766,13 +766,21 @@ async function executeLockedScrapePipeline(
               return;
             }
 
-            if (
-              extracted.nextFullPageUrl &&
-              isSameDomainHost(extracted.nextFullPageUrl, rawFinalUrl) &&
+            let currentPageUrl = extracted.nextFullPageUrl;
+            let pageIter = 0;
+            const visitedPageUrls = new Set<string>([rawFinalUrl]);
+
+            while (
+              currentPageUrl &&
+              pageIter < 3 &&
+              !visitedPageUrls.has(currentPageUrl) &&
+              isSameDomainHost(currentPageUrl, rawFinalUrl) &&
               hasRemainingBudget(400)
             ) {
+              visitedPageUrls.add(currentPageUrl);
+              pageIter += 1;
               try {
-                const fullResp = await fetchFn(extracted.nextFullPageUrl, {
+                const fullResp = await fetchFn(currentPageUrl, {
                   timeoutMs: fetchTimeoutMs,
                   maxBytes: 2 * 1024 * 1024,
                   userAgent: DEFAULT_BROWSER_USER_AGENT,
@@ -787,13 +795,34 @@ async function executeLockedScrapePipeline(
                 );
                 if (
                   !fullExtracted.isSoftBlocked &&
-                  fullExtracted.isValidContent &&
-                  fullExtracted.wordCount >= extracted.wordCount
+                  fullExtracted.isValidContent
                 ) {
-                  extracted = fullExtracted;
+                  // Jika URL adalah view-all / single-page parameter, gantikan dokumen utuh
+                  if (
+                    currentPageUrl.includes('page=all') ||
+                    currentPageUrl.includes('show=all') ||
+                    currentPageUrl.includes('showpage=all') ||
+                    currentPageUrl.includes('single=1')
+                  ) {
+                    if (fullExtracted.wordCount >= extracted.wordCount) {
+                      extracted = fullExtracted;
+                    }
+                    break;
+                  } else {
+                    // Jika halaman numerik berantai (mis. /page/2/), sambungkan teksnya
+                    const combinedSnippet = `${extracted.snippetText}\n\n${fullExtracted.snippetText}`.trim();
+                    extracted = {
+                      ...extracted,
+                      snippetText: combinedSnippet,
+                      wordCount: extracted.wordCount + fullExtracted.wordCount,
+                    };
+                    currentPageUrl = fullExtracted.nextFullPageUrl;
+                  }
+                } else {
+                  break;
                 }
               } catch {
-                // Abaikan kegagalan ?page=all; gunakan hasil halaman utama
+                break;
               }
             }
 

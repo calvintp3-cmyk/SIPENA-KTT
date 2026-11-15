@@ -59,10 +59,28 @@ const NOISE_ELEMENT_SELECTORS = [
   'header',
   '.baca-juga',
   '.bacajuga',
+  '.baca-inline',
+  '.baca-juga-box',
+  '.detail-baca-juga',
+  '.inline-ads',
   '.iklan',
   '.ads',
   '.ad-banner',
   '.advertisement',
+  '.advert',
+  '.ad-slot',
+  '.ad-wrapper',
+  '.in-article-ad',
+  '.google-auto-placed',
+  '.adsbygoogle',
+  '.parallax-ad',
+  '.native-ad',
+  '.sponsored-content',
+  '.outbrain',
+  '.taboola',
+  '.mgid',
+  '.detail__body-tag',
+  '.detail__body-partner',
   '.related-posts',
   '.related-news',
   '.related',
@@ -97,15 +115,23 @@ const NOISE_PARAGRAPH_PATTERNS: RegExp[] = [
   /^baca\s+juga\s*:/i,
   /^simak\s+juga\s*:/i,
   /^lihat\s+juga\s*:/i,
+  /^baca\s+selengkapnya\b/i,
+  /^artikel\s+terkait\s*:/i,
+  /^berita\s+terkait\s*:/i,
   /^artikel\s+ini\s+telah\s+tayang/i,
-  /^(penulis|editor|reporter|pewarta|foto|dok|dokumen|ilustrasi|grafis|sumber|copyright)\s*[:/]/i,
+  /^diterbitkan\s+oleh/i,
+  /^(penulis|editor|reporter|pewarta|penyunting|redaktur|foto|dok|dokumen|ilustrasi|grafis|sumber|copyright)\s*[:/]/i,
   /^\(?(?:foto|dok|dokumen|ilustrasi|grafis|sumber)\s*[:/]/i,
   /^halaman\s+(?:selanjutnya|\d+)\s*$/i,
   /^loading\.\.\.$/i,
   /^follow\s+berita\s+/i,
   /^dapatkan\s+informasi\s+/i,
-  /^\s*\(?(?:tribunkaltara|korankaltara|radartarakan|benuanta|antara|jawapos)\.com\)?\s*$/i,
-  /^baca\s+selengkapnya\b/i,
+  /^\s*\(?(?:tribunkaltara|korankaltara|radartarakan|benuanta|antara|jawapos|kompas|detik|tempo)\.com\)?\s*$/i,
+  /^\(\s*(?:\*\/red|\*\/tribun|[a-z0-9\s-]+)\s*\)$/i,
+  /^(?:advertisement|scroll\s+to\s+continue\s+with\s+content|iklan)/i,
+  /^(?:rekomendasi\s+untuk\s+anda|pilihan\s+editor|trending\s+topic|populer\s+hari\s+ini)/i,
+  /^simak\s+berita\s+lainnya\s+di\s+google\s+news/i,
+  /^baca\s+artikel\s+detik(?:news|finance)?\s+/i,
   /^simak\s+video\b/i,
   /^tonton\s+video\b/i,
   /^klik\s+(?:di\s+sini|tautan|link)\b/i,
@@ -640,7 +666,16 @@ function extractNextFullPageUrl(
   const explicitSelectors = [
     'a[href*="page=all"]',
     'a[href*="show=all"]',
+    'a[href*="showpage=all"]',
+    'a[href*="single=1"]',
     '.paging a[href*="all"]',
+    '.pagination a[href*="all"]',
+    'link[rel="next"]',
+    'a[rel="next"]',
+    '.paging a.next',
+    '.page-numbers a.next',
+    '.pagination a.next',
+    'a.page-link[rel="next"]',
   ];
   for (const sel of explicitSelectors) {
     const href = $(sel).first().attr('href');
@@ -653,7 +688,11 @@ function extractNextFullPageUrl(
     if (matchedByLabel) return;
     const anchor = $(el);
     const label = cleanText(anchor.text());
-    if (/^(?:tampilkan\s+semua|baca\s+selengkapnya\s*\(semua\)|lihat\s+semua\s+halaman)$/i.test(label)) {
+    if (
+      /^(?:tampilkan\s+semua|baca\s+selengkapnya\s*\(semua\)|lihat\s+semua\s+halaman|halaman\s+selanjutnya|selanjutnya|next(?:\s+page)?)$/i.test(
+        label,
+      )
+    ) {
       const resolved = resolveAnchorHref(anchor.attr('href'));
       if (resolved) {
         matchedByLabel = resolved;

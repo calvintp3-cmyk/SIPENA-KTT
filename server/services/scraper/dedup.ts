@@ -238,7 +238,9 @@ export function deduplicateCandidatesByTitle(
 
   for (const candidate of ordered) {
     const matchedHistorical = historicalTitles.some(
-      (histTitle) => computeTitleSimilarity(candidate.title, histTitle) >= threshold,
+      (histTitle) =>
+        computeTitleSimilarity(candidate.title, histTitle) >= threshold &&
+        !hasSemanticNumericMismatch(candidate.title, histTitle),
     );
     if (matchedHistorical) {
       deduplicatedCount += 1;
@@ -246,7 +248,9 @@ export function deduplicateCandidatesByTitle(
     }
 
     const matchedAccepted = kept.some(
-      (accepted) => computeTitleSimilarity(candidate.title, accepted.title) >= threshold,
+      (accepted) =>
+        computeTitleSimilarity(candidate.title, accepted.title) >= threshold &&
+        !hasSemanticNumericMismatch(candidate.title, accepted.title),
     );
     if (matchedAccepted) {
       deduplicatedCount += 1;
