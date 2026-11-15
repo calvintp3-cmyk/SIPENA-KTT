@@ -38,10 +38,12 @@ async function main() {
   const args = process.argv.slice(2);
   const limitArg = args.find((a) => a.startsWith('--limit='));
   const delayArg = args.find((a) => a.startsWith('--delay='));
+  const filterArg = args.find((a) => a.startsWith('--filter='));
   const refetchTribun = args.includes('--refetch-tribun');
   const dryRun = args.includes('--dry-run');
 
   const limit = limitArg ? Number(limitArg.split('=')[1]) : null;
+  const filterKeyword = filterArg ? filterArg.split('=')[1] : null;
   const callDelayMs = delayArg ? Number(delayArg.split('=')[1]) : 800;
 
   console.log('='.repeat(75));
@@ -50,6 +52,7 @@ async function main() {
   console.log(`Mode               : ${dryRun ? 'DRY RUN (Hanya Preview)' : 'LIVE UPDATE DATABASE'}`);
   console.log(`Re-fetch Tribun    : ${refetchTribun ? 'AKTIF (Ekstrak ulang multipage inline text)' : 'NON-AKTIF'}`);
   console.log(`Jeda Antar-Panggilan: ${callDelayMs} ms`);
+  if (filterKeyword) console.log(`Filter Kata Kunci  : "${filterKeyword}"`);
   if (limit) console.log(`Limit Artikel      : ${limit}`);
   console.log(`Waktu Mulai        : ${new Date().toLocaleString('id-ID')}`);
   console.log('='.repeat(75));
@@ -68,13 +71,19 @@ async function main() {
       kbli_category, kbli_impact, expenditure_component, expenditure_impact,
       verification_status
     FROM articles 
-    ORDER BY published_at DESC
   `;
+  const queryParams: any[] = [];
+  if (filterKeyword) {
+    queryParams.push(`%${filterKeyword}%`);
+    query += ` WHERE title ILIKE $1 OR snippet_text ILIKE $1 `;
+  }
+  query += ` ORDER BY published_at DESC `;
   if (limit) {
-    query += ` LIMIT ${limit}`;
+    queryParams.push(limit);
+    query += ` LIMIT $${queryParams.length}`;
   }
 
-  const { rows } = await pool.query<ArticleRow>(query);
+  const { rows } = await pool.query<ArticleRow>(query, queryParams);
   console.log(`Total artikel yang akan diproses: ${rows.length}\n`);
 
   let countSuccess = 0;
