@@ -7,7 +7,7 @@ import {
   SIPENA_SYSTEM_INSTRUCTION,
 } from '../server/services/llm/classifier';
 import { buildScraperPipelineRuntimeOptions } from '../server/utils/llm-config';
-import { safeFetchText } from '../server/services/scraper/fetcher';
+import { safeFetchText } from '../server/utils/ssrf';
 import { extractArticleContent } from '../server/services/scraper/extractor';
 import { determineQuarterAndYearFromWita } from '../shared/utils/period';
 import { VerificationStatusEnum } from '../shared/enums/pdrb';
