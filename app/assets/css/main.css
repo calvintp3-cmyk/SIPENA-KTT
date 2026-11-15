@@ -3,22 +3,26 @@
 @import "@nuxt/ui";
 
 @theme {
-  /* Layer 1: Unified Single-Font System (Friendly, crisp Inter everywhere) */
+  /* Layer 1: Super Premium Dual-Font & Monospace Hierarchy */
+  --font-display: "Plus Jakarta Sans", "Inter", system-ui, sans-serif;
   --font-sans: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 
-  /* Layer 2: Cobalt-Emerald Luminous SaaS Semantic Tokens (WCAG 2.1 AA Compliant) */
-  --color-canvas: #F4F7FC;
+  /* Layer 2: Institutional Sapphire & Neutral Alabaster Tokens (WCAG 2.1 AAA/AA) */
+  --color-canvas: #F8FAFC;
   --color-surface: #FFFFFF;
-  --color-surface-elevated: #FAFBFD;
-  --color-surface-subtle: #EDF2FA;
-  --color-border-hairline: #E2E8F0;
+  --color-surface-elevated: #FFFFFF;
+  --color-surface-subtle: #F1F5F9;
+  --color-border-hairline: rgba(15, 23, 42, 0.08);
   --color-ink-obsidian: #0F172A;
   --color-ink-primary: #0F172A;
   --color-ink-secondary: #334155;
   --color-ink-muted: #64748B;
-  --color-brand-primary: #2563EB;
-  --color-brand-indigo: #4F46E5;
-  --color-brand-emerald: #047857;
+  --color-brand-primary: #1D4ED8;
+  --color-brand-hover: #1E40AF;
+  --color-brand-tint: #EFF6FF;
+  --color-brand-border: #BFDBFE;
+  --color-brand-emerald: #059669;
   --color-brand-teal: #0F766E;
 }
 
@@ -34,7 +38,9 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
-  :where(h1, h2, h3) {
+  :where(h1, h2, h3, h4) {
+    font-family: var(--font-display);
+    letter-spacing: -0.022em;
     text-wrap: balance;
   }
 
@@ -44,7 +50,7 @@
 
   code,
   kbd {
-    font-family: var(--font-sans);
+    font-family: var(--font-mono);
   }
 }
 
@@ -59,88 +65,92 @@ textarea:focus-visible,
   outline-offset: 2px;
 }
 
-/* Kepastian keterbacaan angka statistik, tanggal, kode KBLI, dan counter dalam font Inter */
+/* Kepastian keterbacaan angka statistik, tanggal, kode KBLI, dan counter */
 .tabular-nums {
-  font-variant-numeric: tabular-nums;
-}
-
-/* Midnight Cobalt-Emerald Gradient Showcase Surface (Landing Hero & Login Panel) */
-.hero-mesh-dark {
-  background-color: #090F24;
-  background-image:
-    radial-gradient(65% 70% at 14% 12%, rgba(37, 99, 235, 0.34), transparent 70%),
-    radial-gradient(55% 65% at 88% 18%, rgba(16, 185, 129, 0.24), transparent 70%),
-    radial-gradient(60% 65% at 52% 96%, rgba(79, 70, 229, 0.28), transparent 72%),
-    linear-gradient(145deg, #090F24 0%, #0F1D45 52%, #0B3B3E 100%);
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: "tnum" 1, "cv01" 1;
 }
 
 /* Subtle Luminous Canvas Aura for Bright Reading Surfaces */
 .canvas-aurora-light {
   background-image:
-    radial-gradient(70% 42% at 15% -5%, rgba(37, 99, 235, 0.08), transparent 65%),
-    radial-gradient(60% 40% at 85% -5%, rgba(15, 118, 110, 0.07), transparent 65%);
+    radial-gradient(70% 36% at 20% -5%, rgba(29, 78, 216, 0.05), transparent 60%),
+    radial-gradient(55% 32% at 80% -5%, rgba(15, 118, 110, 0.04), transparent 60%);
 }
 
-/* Elevated Luminous SaaS Card */
+/* Super Premium Dual-Hairline Elevated SaaS Card */
 .saas-card {
   background-color: var(--color-surface);
   border: 1px solid rgba(15, 23, 42, 0.08);
   box-shadow:
-    0 1px 2px rgba(15, 23, 42, 0.04),
-    0 10px 26px -12px rgba(37, 99, 235, 0.08);
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    0 1px 2px 0 rgba(15, 23, 42, 0.04),
+    0 6px 16px -4px rgba(15, 23, 42, 0.05);
   transition:
-    border-color 180ms cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 220ms cubic-bezier(0.22, 1, 0.36, 1),
-    transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+    border-color 160ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 180ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 160ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .saas-card-interactive:hover {
-  border-color: rgba(37, 99, 235, 0.28);
+  border-color: rgba(29, 78, 216, 0.24);
   box-shadow:
-    0 8px 20px -8px rgba(15, 23, 42, 0.09),
-    0 16px 32px -14px rgba(37, 99, 235, 0.16);
+    inset 0 1px 0 rgba(255, 255, 255, 1),
+    0 2px 4px 0 rgba(15, 23, 42, 0.05),
+    0 12px 24px -6px rgba(15, 23, 42, 0.08);
+  transform: translateY(-1px);
 }
 
-/* Primary Dimensional Cobalt-Emerald CTA Button (WCAG >= 5.4:1 with white text across gradient) */
+/* Primary Tactile Solid Sapphire Executive Button (Replaces rainbow gradients) */
 .btn-primary-gradient,
 .obsidian-button {
-  background-image: linear-gradient(135deg, var(--color-brand-primary) 0%, var(--color-brand-indigo) 55%, var(--color-brand-teal) 100%);
-  background-size: 140% 140%;
-  background-position: 0% 50%;
-  color: var(--color-surface);
+  background-color: var(--color-brand-primary);
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0) 100%);
+  color: #FFFFFF;
+  border: 1px solid rgba(15, 23, 42, 0.14);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.28),
-    0 2px 6px -1px rgba(37, 99, 235, 0.32),
-    0 8px 18px -6px rgba(79, 70, 229, 0.28);
+    inset 0 1px 0 rgba(255, 255, 255, 0.24),
+    0 1px 2px rgba(15, 23, 42, 0.08),
+    0 2px 5px rgba(29, 78, 216, 0.16);
+  font-family: var(--font-sans);
+  font-weight: 600;
   transition:
-    background-position 240ms cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 180ms cubic-bezier(0.22, 1, 0.36, 1),
-    transform 140ms cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 140ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 160ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 120ms cubic-bezier(0.16, 1, 0.3, 1),
     opacity 150ms ease;
 }
 
 .btn-primary-gradient:hover:not(:disabled),
 .obsidian-button:hover:not(:disabled) {
-  background-position: 85% 50%;
+  background-color: var(--color-brand-hover);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.36),
-    0 4px 12px -2px rgba(37, 99, 235, 0.4),
-    0 12px 24px -8px rgba(15, 118, 110, 0.34);
+    inset 0 1px 0 rgba(255, 255, 255, 0.32),
+    0 2px 4px rgba(15, 23, 42, 0.1),
+    0 6px 14px -2px rgba(29, 78, 216, 0.24);
+  transform: translateY(-1px);
+}
+
+.btn-primary-gradient:active:not(:disabled),
+.obsidian-button:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.22);
 }
 
 .btn-primary-gradient:disabled,
 .obsidian-button:disabled {
   opacity: 0.55;
   cursor: not-allowed;
+  transform: none !important;
 }
 
-/* Luminous Active Sidebar Navigation Pill */
+/* Quiet & Solid Active Sidebar Navigation Pill */
 .active-nav-card {
-  background-image: linear-gradient(90deg, rgba(238, 242, 255, 0.95) 0%, rgba(236, 253, 245, 0.72) 100%);
-  border: 1px solid rgba(99, 102, 241, 0.24);
-  box-shadow:
-    inset 3px 0 0 var(--color-brand-primary),
-    0 2px 6px -2px rgba(37, 99, 235, 0.12);
+  background-color: #F1F5F9;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  color: #0F172A;
+  font-weight: 600;
 }
 
 /* Smooth Editorial Timeline Spine (/linimasa) */

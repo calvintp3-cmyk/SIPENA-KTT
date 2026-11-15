@@ -16,7 +16,9 @@ export default defineNuxtConfig({
 
   fonts: {
     families: [
-      { name: 'Inter', provider: 'google', weights: [400, 500, 600, 700, 800] },
+      { name: 'Plus Jakarta Sans', provider: 'google', weights: [500, 600, 700, 800] },
+      { name: 'Inter', provider: 'google', weights: [400, 500, 600, 700] },
+      { name: 'JetBrains Mono', provider: 'google', weights: [400, 500, 600] },
     ],
   },
 
