@@ -42,6 +42,7 @@ export interface RegionalPortalConfig {
   maxPages?: number;
   isActive?: boolean;
   inactiveReason?: string;
+  googleNewsFallbackQuery?: string;
 }
 
 export function buildPaginatedPortalUrl(
@@ -130,6 +131,7 @@ export const REGIONAL_PORTALS: ReadonlyArray<RegionalPortalConfig> = [
     allowedHosts: ['korankaltara.com', 'www.korankaltara.com'],
     paginationPattern: 'SLASH_PAGE',
     maxPages: 5,
+    googleNewsFallbackQuery: 'site:korankaltara.com "tana tidung"',
     itemSelectors: [
       'a[href^="/"]:not([href="/"]):not([href="/epaper"]):not([href*="/category/"]):not([href*="/redaksi"]):not([href*="/kode-etik"]):not([href*="/disclaimer"]):not([href*="/privacy-policy"]):not([href*="/kontak"])',
       'div.max-w-\\[1240px\\] a[href]',
@@ -196,6 +198,7 @@ export const REGIONAL_PORTALS: ReadonlyArray<RegionalPortalConfig> = [
     allowedHosts: ['tanatidungkab.go.id', 'www.tanatidungkab.go.id'],
     paginationPattern: 'QUERY_PAGE',
     maxPages: 5,
+    googleNewsFallbackQuery: 'site:tanatidungkab.go.id',
     itemSelectors: [
       '.news-item',
       'article',
@@ -214,6 +217,7 @@ export const REGIONAL_PORTALS: ReadonlyArray<RegionalPortalConfig> = [
     allowedHosts: ['kaltaraprov.go.id', 'www.kaltaraprov.go.id'],
     paginationPattern: 'SLASH_PAGE',
     maxPages: 5,
+    googleNewsFallbackQuery: 'site:kaltaraprov.go.id "tana tidung"',
     itemSelectors: [
       'article',
       '.post',
@@ -281,6 +285,7 @@ export const REGIONAL_PORTALS: ReadonlyArray<RegionalPortalConfig> = [
     allowedHosts: ['niaga.asia', 'www.niaga.asia'],
     paginationPattern: 'SLASH_PAGE',
     maxPages: 5,
+    googleNewsFallbackQuery: 'site:niaga.asia "tana tidung"',
     itemSelectors: [
       'article',
       '.jeg_post',
@@ -949,7 +954,73 @@ export async function harvestRegionalPortals(
         }
       }
 
-      // Catat error HARVEST hanya bila seluruh upaya HTML/RSS gagal menemukan satu pun artikel
+      // 3. Fallback Jalur Google News RSS jika portal mengalami error akses (Firewall 403 / Cloudflare)
+      // atau jika portal belum menghasilkan kandidat dari jalur direct HTML/feed
+      if (
+        portal.googleNewsFallbackQuery &&
+        (portalFoundCount === 0 || portalErrors.length > 0) &&
+        !signal?.aborted
+      ) {
+        try {
+          const gNewsUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(portal.googleNewsFallbackQuery)}&hl=id&gl=ID&ceid=ID:id`;
+          const gNewsResp = await fetchFn(gNewsUrl, {
+            timeoutMs,
+            maxBytes: 1024 * 1024,
+            accept: 'application/rss+xml, application/xml, text/xml;q=0.9, */*;q=0.5',
+            userAgent: DEFAULT_BROWSER_USER_AGENT,
+            headers: DEFAULT_BROWSER_HEADERS,
+            signal,
+            politeHostPacing: !options.fetchFn,
+          });
+
+          const $ = load(gNewsResp.body, { xmlMode: true });
+          const items = $('item');
+          items.each((_i, el) => {
+            if (portalFoundCount >= maxItemsPerPortal) return false;
+            const item = $(el);
+            const rawTitle = cleanInlineText(item.find('title').first().text());
+            const rawLink = item.find('link').first().text().trim() || item.find('guid').first().text().trim();
+            const rawPubDate = item.find('pubDate').first().text().trim();
+            const sourceEl = item.find('source');
+            const sourceUrl = sourceEl.attr('url') || '';
+
+            if (!rawLink || !rawTitle) return;
+
+            // Bersihkan suffix sumber dari judul Google News ("Judul Berita - Nama Media")
+            const cleanTitle = rawTitle.replace(/\s+-\s+[^-]+$/, '').trim();
+            if (!isValidCandidateTitle(cleanTitle)) return;
+
+            const publishedHint = parseIndonesianDateTime(rawPubDate, now);
+            const { normalizedUrl, urlHash } = hashNormalizedUrl(rawLink);
+
+            if (!globalSeenHashes.has(urlHash)) {
+              globalSeenHashes.add(urlHash);
+              candidates.push({
+                url: normalizedUrl,
+                normalizedUrl,
+                urlHash,
+                title: cleanTitle,
+                sourcePortal: portal.sourcePortal,
+                sourceType: ArticleSourceTypeEnum.REGIONAL,
+                publishedHint,
+                keywordId: null,
+                matchedKeyword: 'Google News Fallback: ' + portal.label,
+                fallbackDescription: `Berita ${portal.label} melalui Google News sindikasi.`,
+              });
+              portalFoundCount += 1;
+            }
+          });
+
+          // Jika Google News fallback berhasil menemukan artikel, bersihkan error portal
+          if (portalFoundCount > 0) {
+            portalErrors.length = 0;
+          }
+        } catch {
+          // Abaikan error jaringan sekunder pada Google News fallback
+        }
+      }
+
+      // Catat error HARVEST hanya bila seluruh upaya HTML/RSS/Fallback gagal menemukan satu pun artikel
       // atau jika portal tidak memakai RSS (menjaga isolasi error portal).
       if (portalFoundCount === 0 && portalErrors.length > 0) {
         errors.push(...portalErrors);

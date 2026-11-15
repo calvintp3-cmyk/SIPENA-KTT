@@ -307,6 +307,47 @@ function syncToGlobalPeriod() {
   filters.quarter = selectedQuarter.value;
 }
 
+function setQuickDatePreset(days: number) {
+  const now = new Date();
+  const past = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  filters.from = `${past.getFullYear()}-${pad(past.getMonth() + 1)}-${pad(past.getDate())}`;
+  filters.to = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+  page.value = 1;
+}
+
+function setQuickQuarterPreset() {
+  const targetYear = typeof filters.year === 'number' ? filters.year : currentPeriod.year;
+  const targetQuarter =
+    typeof filters.quarter === 'number' ? (filters.quarter as PdrbQuarter) : currentPeriod.quarter;
+  const pad = (n: number) => String(n).padStart(2, '0');
+
+  let startMonth = 1;
+  let endMonth = 3;
+  let endDay = 31;
+  if (targetQuarter === 1) {
+    startMonth = 1;
+    endMonth = 3;
+    endDay = 31;
+  } else if (targetQuarter === 2) {
+    startMonth = 4;
+    endMonth = 6;
+    endDay = 30;
+  } else if (targetQuarter === 3) {
+    startMonth = 7;
+    endMonth = 9;
+    endDay = 30;
+  } else if (targetQuarter === 4) {
+    startMonth = 10;
+    endMonth = 12;
+    endDay = 31;
+  }
+
+  filters.from = `${targetYear}-${pad(startMonth)}-01`;
+  filters.to = `${targetYear}-${pad(endMonth)}-${pad(endDay)}`;
+  page.value = 1;
+}
+
 const hasActiveFilters = computed(
   () =>
     Boolean(debouncedQ.value) ||
@@ -812,103 +853,177 @@ const columns: TableColumn<AdminArticleItem>[] = [
         </div>
       </div>
 
-      <!-- Collapsible Advanced Filter Section -->
+      <!-- Collapsible Advanced Filter Section (Bento Grouping) -->
       <div
         v-if="showAdvancedFilters"
-        class="pt-3 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 bg-slate-50/60 p-3.5 rounded-xl border"
+        class="pt-3 border-t border-slate-200/80 space-y-3"
       >
-        <div>
-          <label for="articles-filter-kbli" class="block text-[11px] font-bold text-slate-700 mb-1">
-            KBLI Spesifik (A–V)
-          </label>
-          <USelectMenu
-            id="articles-filter-kbli"
-            v-model="filters.kbli"
-            :items="kbliFilterItems"
-            value-key="value"
-            label-key="label"
-            size="sm"
-            class="w-full"
-          />
-        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <!-- BENTO 1: Dimensi Klasifikasi PDRB -->
+          <div class="rounded-xl border border-blue-200/70 bg-blue-50/25 p-3.5 space-y-3">
+            <div class="flex items-center gap-1.5 text-xs font-bold text-blue-900 font-display">
+              <UIcon name="i-solar-buildings-2-bold-duotone" class="w-4 h-4 text-blue-700" />
+              <span>Dimensi PDRB Terinci</span>
+            </div>
 
-        <div>
-          <label for="articles-filter-expenditure" class="block text-[11px] font-bold text-slate-700 mb-1">
-            Kelompok Permintaan
-          </label>
-          <USelect
-            id="articles-filter-expenditure"
-            v-model="filters.expenditure"
-            :items="expenditureFilterItems"
-            value-key="value"
-            label-key="label"
-            size="sm"
-            class="w-full"
-          />
-        </div>
+            <div class="space-y-2">
+              <div>
+                <label for="articles-filter-kbli" class="block text-[11px] font-semibold text-slate-700 mb-1">
+                  KBLI Spesifik (A–V)
+                </label>
+                <USelectMenu
+                  id="articles-filter-kbli"
+                  v-model="filters.kbli"
+                  :items="kbliFilterItems"
+                  value-key="value"
+                  label-key="label"
+                  size="sm"
+                  class="w-full"
+                />
+              </div>
 
-        <div>
-          <label for="articles-filter-portal" class="block text-[11px] font-bold text-slate-700 mb-1">
-            Portal Sumber
-          </label>
-          <USelect
-            id="articles-filter-portal"
-            v-model="filters.portal"
-            :items="portalFilterItems"
-            value-key="value"
-            label-key="label"
-            size="sm"
-            class="w-full"
-          />
-        </div>
-
-        <div>
-          <label for="articles-filter-economic" class="block text-[11px] font-bold text-slate-700 mb-1">
-            Relevansi Ekonomi
-          </label>
-          <USelect
-            id="articles-filter-economic"
-            v-model="filters.isEconomic"
-            :items="economicFilterItems"
-            value-key="value"
-            label-key="label"
-            size="sm"
-            class="w-full"
-          />
-        </div>
-
-        <div class="sm:col-span-2">
-          <span class="block text-[11px] font-bold text-slate-700 mb-1">
-            Rentang Waktu Rilis (WITA)
-          </span>
-          <div class="flex items-center gap-2">
-            <UInput
-              id="articles-filter-from"
-              v-model="filters.from"
-              type="date"
-              size="sm"
-              class="w-full"
-            />
-            <span class="text-xs text-slate-400">—</span>
-            <UInput
-              id="articles-filter-to"
-              v-model="filters.to"
-              type="date"
-              size="sm"
-              class="w-full"
-            />
+              <div>
+                <label for="articles-filter-expenditure" class="block text-[11px] font-semibold text-slate-700 mb-1">
+                  Kelompok Permintaan
+                </label>
+                <USelect
+                  id="articles-filter-expenditure"
+                  v-model="filters.expenditure"
+                  :items="expenditureFilterItems"
+                  value-key="value"
+                  label-key="label"
+                  size="sm"
+                  class="w-full"
+                />
+              </div>
+            </div>
           </div>
-        </div>
 
-        <div class="sm:col-span-2 flex items-end justify-end">
-          <button
-            type="button"
-            class="h-8 px-3 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 inline-flex items-center gap-1.5 cursor-pointer"
-            @click="resetFilters"
-          >
-            <UIcon name="i-solar-restart-bold-duotone" class="w-3.5 h-3.5 text-indigo-600" />
-            <span>Reset Seluruh Filter</span>
-          </button>
+          <!-- BENTO 2: Sumber & Validitas Informasi -->
+          <div class="rounded-xl border border-slate-200/80 bg-slate-50/80 p-3.5 space-y-3">
+            <div class="flex items-center gap-1.5 text-xs font-bold text-slate-900 font-display">
+              <UIcon name="i-solar-global-bold-duotone" class="w-4 h-4 text-slate-700" />
+              <span>Sumber &amp; Validitas</span>
+            </div>
+
+            <div class="space-y-2">
+              <div>
+                <label for="articles-filter-portal" class="block text-[11px] font-semibold text-slate-700 mb-1">
+                  Portal Sumber
+                </label>
+                <USelect
+                  id="articles-filter-portal"
+                  v-model="filters.portal"
+                  :items="portalFilterItems"
+                  value-key="value"
+                  label-key="label"
+                  size="sm"
+                  class="w-full"
+                />
+              </div>
+
+              <div>
+                <label for="articles-filter-economic" class="block text-[11px] font-semibold text-slate-700 mb-1">
+                  Relevansi Fenomena Ekonomi
+                </label>
+                <USelect
+                  id="articles-filter-economic"
+                  v-model="filters.isEconomic"
+                  :items="economicFilterItems"
+                  value-key="value"
+                  label-key="label"
+                  size="sm"
+                  class="w-full"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- BENTO 3: Rentang Waktu Rilis (WITA) + Quick Presets -->
+          <div class="rounded-xl border border-slate-200/80 bg-slate-50/80 p-3.5 space-y-3 flex flex-col justify-between">
+            <div class="space-y-2.5">
+              <div class="flex items-center justify-between text-xs font-bold text-slate-900 font-display">
+                <div class="flex items-center gap-1.5">
+                  <UIcon name="i-solar-calendar-linear" class="w-4 h-4 text-blue-700" />
+                  <span>Rentang Tanggal Terbit</span>
+                </div>
+                <button
+                  v-if="filters.from || filters.to"
+                  type="button"
+                  class="text-[11px] font-semibold text-blue-700 hover:text-blue-900 cursor-pointer"
+                  @click="() => { filters.from = ''; filters.to = ''; }"
+                >
+                  Reset Tanggal
+                </button>
+              </div>
+
+              <!-- Quick Presets -->
+              <div class="grid grid-cols-3 gap-1 font-mono text-[10px]">
+                <button
+                  type="button"
+                  class="px-2 py-1 rounded-md bg-white border border-slate-200 hover:border-blue-400 hover:text-blue-700 font-medium text-slate-700 transition-colors cursor-pointer text-center"
+                  @click="setQuickDatePreset(7)"
+                >
+                  7 Hari
+                </button>
+                <button
+                  type="button"
+                  class="px-2 py-1 rounded-md bg-white border border-slate-200 hover:border-blue-400 hover:text-blue-700 font-medium text-slate-700 transition-colors cursor-pointer text-center"
+                  @click="setQuickDatePreset(30)"
+                >
+                  30 Hari
+                </button>
+                <button
+                  type="button"
+                  class="px-2 py-1 rounded-md bg-white border border-slate-200 hover:border-blue-400 hover:text-blue-700 font-medium text-slate-700 transition-colors cursor-pointer text-center"
+                  @click="setQuickQuarterPreset"
+                >
+                  Triwulan
+                </button>
+              </div>
+
+              <!-- Inputs -->
+              <div class="grid grid-cols-2 gap-2">
+                <div class="space-y-1">
+                  <label for="articles-filter-from" class="block text-[10px] font-medium text-slate-500">
+                    Dari Tanggal
+                  </label>
+                  <UInput
+                    id="articles-filter-from"
+                    v-model="filters.from"
+                    type="date"
+                    size="xs"
+                    leading-icon="i-solar-calendar-linear"
+                    class="w-full font-mono text-[11px]"
+                  />
+                </div>
+                <div class="space-y-1">
+                  <label for="articles-filter-to" class="block text-[10px] font-medium text-slate-500">
+                    Sampai Tanggal
+                  </label>
+                  <UInput
+                    id="articles-filter-to"
+                    v-model="filters.to"
+                    type="date"
+                    size="xs"
+                    leading-icon="i-solar-calendar-linear"
+                    class="w-full font-mono text-[11px]"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div class="pt-2 flex justify-end border-t border-slate-200/60">
+              <button
+                type="button"
+                class="min-h-7 px-2.5 py-1 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 text-[11px] font-semibold text-slate-700 inline-flex items-center gap-1.5 cursor-pointer transition-colors"
+                @click="resetFilters"
+              >
+                <UIcon name="i-solar-restart-bold-duotone" class="w-3.5 h-3.5 text-blue-700" />
+                <span>Reset Seluruh Filter</span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
