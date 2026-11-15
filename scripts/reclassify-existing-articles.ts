@@ -19,7 +19,9 @@ interface ArticleRow {
   source_type: string;
   title: string;
   snippet_text: string;
+  word_count: number;
   published_at: Date;
+  updated_at: Date;
   quarter: number;
   year: number;
   is_economic_phenomenon: boolean | null;
@@ -34,40 +36,61 @@ function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+async function asyncPool<T, R>(
+  concurrency: number,
+  items: T[],
+  fn: (item: T, index: number) => Promise<R>,
+): Promise<R[]> {
+  const results: R[] = new Array(items.length);
+  let currentIndex = 0;
+
+  const workers = Array.from({ length: concurrency }, async () => {
+    while (currentIndex < items.length) {
+      const idx = currentIndex++;
+      results[idx] = await fn(items[idx], idx);
+    }
+  });
+
+  await Promise.all(workers);
+  return results;
+}
+
 async function main() {
   const args = process.argv.slice(2);
   const limitArg = args.find((a) => a.startsWith('--limit='));
-  const delayArg = args.find((a) => a.startsWith('--delay='));
+  const concurrencyArg = args.find((a) => a.startsWith('--concurrency='));
   const filterArg = args.find((a) => a.startsWith('--filter='));
-  const refetchTribun = args.includes('--refetch-tribun');
   const dryRun = args.includes('--dry-run');
+  const forceAll = args.includes('--force');
 
   const limit = limitArg ? Number(limitArg.split('=')[1]) : null;
+  const concurrency = concurrencyArg ? Math.max(1, Math.min(6, Number(concurrencyArg.split('=')[1]))) : 3;
   const filterKeyword = filterArg ? filterArg.split('=')[1] : null;
-  const callDelayMs = delayArg ? Number(delayArg.split('=')[1]) : 800;
 
   console.log('='.repeat(75));
-  console.log('SIPENA KTT - RE-KLASIFIKASI & PENYELARASAN PDRB ARTIKEL LOKAL');
+  console.log('SIPENA KTT - RE-KLASIFIKASI & PENYELARASAN PDRB EFISIEN & CEPAT');
   console.log('='.repeat(75));
   console.log(`Mode               : ${dryRun ? 'DRY RUN (Hanya Preview)' : 'LIVE UPDATE DATABASE'}`);
-  console.log(`Re-fetch Tribun    : ${refetchTribun ? 'AKTIF (Ekstrak ulang multipage inline text)' : 'NON-AKTIF'}`);
-  console.log(`Jeda Antar-Panggilan: ${callDelayMs} ms`);
+  console.log(`Paralelisme / Worker: ${concurrency} concurrent worker(s)`);
+  console.log(`Strategi Resume    : ${forceAll ? 'FORCE ALL (Proses ulang semua)' : 'SMART RESUME (Lewati artikel yang baru selesai < 2 jam)'}`);
   if (filterKeyword) console.log(`Filter Kata Kunci  : "${filterKeyword}"`);
   if (limit) console.log(`Limit Artikel      : ${limit}`);
   console.log(`Waktu Mulai        : ${new Date().toLocaleString('id-ID')}`);
   console.log('='.repeat(75));
 
   const runtimeOpts = buildScraperPipelineRuntimeOptions();
+  // Set maxCallsPerRun tinggi agar tidak terbentur batas 150 panggilan per sesi
   const llmRouter = new MultiLlmRouter({
     task: 'classify',
+    maxCallsPerRun: 5000,
     ...(runtimeOpts.routerOptions ?? {}),
   });
 
-  // Ambil semua artikel
+  // Ambil artikel target
   let query = `
     SELECT 
-      id, url, source_portal, source_type, title, snippet_text, 
-      published_at, quarter, year, is_economic_phenomenon,
+      id, url, source_portal, source_type, title, snippet_text, word_count,
+      published_at, updated_at, quarter, year, is_economic_phenomenon,
       kbli_category, kbli_impact, expenditure_component, expenditure_impact,
       verification_status
     FROM articles 
@@ -84,8 +107,10 @@ async function main() {
   }
 
   const { rows } = await pool.query<ArticleRow>(query, queryParams);
-  console.log(`Total artikel yang akan diproses: ${rows.length}\n`);
+  console.log(`Total artikel ditemukan di database: ${rows.length}\n`);
 
+  const twoHoursAgo = Date.now() - 2 * 3600_000;
+  let countSkipped = 0;
   let countSuccess = 0;
   let countFailed = 0;
   let countChangedEcon = 0;
@@ -94,15 +119,35 @@ async function main() {
   let countChangedExp = 0;
   let countRefetched = 0;
 
-  for (let i = 0; i < rows.length; i += 1) {
-    const row = rows[i];
-    const idxStr = `[${i + 1}/${rows.length}]`;
+  // Filter daftar artikel jika smart resume
+  const targetRows: Array<{ row: ArticleRow; originalIndex: number }> = [];
+  rows.forEach((row, i) => {
+    const isRecentlyUpdated = row.updated_at && row.updated_at.getTime() > twoHoursAgo;
+    // Jika baru diupdate < 2 jam dan bukan forceAll, lewati
+    if (!forceAll && isRecentlyUpdated && row.is_economic_phenomenon !== null) {
+      countSkipped += 1;
+    } else {
+      targetRows.push({ row, originalIndex: i });
+    }
+  });
+
+  console.log(`Artikel yang dilewati (sudah diproses baru saja): ${countSkipped}`);
+  console.log(`Artikel yang dieksekusi sekarang               : ${targetRows.length}\n`);
+
+  if (targetRows.length === 0) {
+    console.log('Semua artikel sudah termutakhirkan dengan kalibrasi terbaru. Tidak ada yang perlu diproses.');
+    await pool.end();
+    return;
+  }
+
+  await asyncPool(concurrency, targetRows, async ({ row, originalIndex }) => {
+    const idxStr = `[${originalIndex + 1}/${rows.length}]`;
     let snippet = row.snippet_text;
 
-    // Jika --refetch-tribun dan portalnya tribun, coba re-fetch untuk menangkap full script text
-    if (refetchTribun && row.source_portal.toLowerCase().includes('tribun')) {
+    // Hanya refetch jika snippet kosong atau sangat pendek (< 30 kata)
+    if (row.word_count < 30 && row.source_portal.toLowerCase().includes('tribun')) {
       try {
-        const fetchRes = await safeFetchText(row.url, { timeoutMs: 10_000 });
+        const fetchRes = await safeFetchText(row.url, { timeoutMs: 8_000 });
         if (fetchRes.ok && fetchRes.html) {
           const extracted = extractArticleContent(fetchRes.html, row.source_portal);
           if (extracted.snippetText && extracted.snippetText.length > snippet.length) {
@@ -116,8 +161,8 @@ async function main() {
             }
           }
         }
-      } catch (err) {
-        // Abaikan fetch error, tetap gunakan snippet lama
+      } catch {
+        // Fallback gunakan snippet eksisting
       }
     }
 
@@ -144,27 +189,33 @@ async function main() {
           systemInstruction: SIPENA_SYSTEM_INSTRUCTION,
         });
         if (aiResult.ok) break;
-        // Jika 429 atau error sementara, beri jeda lebih lama
         attempts += 1;
-        console.warn(`    ⚠️ ${idxStr} Percobaan ${attempts} gagal: ${aiResult.error ?? 'Unknown error'}. Menunggu 2.5s...`);
-        await delay(2500);
+        const errMsg = aiResult.errorMessage ?? aiResult.error ?? 'Unknown error';
+        if (attempts < 3) {
+          await delay(1500 * attempts);
+        } else {
+          console.warn(`    ⚠️ ${idxStr} Percobaan terakhir gagal: ${errMsg}`);
+        }
       } catch (err: any) {
         attempts += 1;
-        console.warn(`    ⚠️ ${idxStr} Exception ${attempts}: ${err.message}. Menunggu 3s...`);
-        await delay(3000);
+        if (attempts < 3) {
+          await delay(2000 * attempts);
+        } else {
+          console.warn(`    ⚠️ ${idxStr} Exception: ${err.message}`);
+        }
       }
     }
 
     if (!aiResult || !aiResult.ok) {
       countFailed += 1;
-      console.log(`${idxStr} ❌ GAGAL: "${row.title.slice(0, 45)}..." | Model: ${aiResult?.modelUsed ?? 'None'}`);
-      continue;
+      const failReason = aiResult?.errorMessage ?? 'AI Timeout/Exhausted';
+      console.log(`${idxStr} ❌ GAGAL: "${row.title.slice(0, 45)}..." (${failReason})`);
+      return;
     }
 
     countSuccess += 1;
     const mapped = mapClassificationToPersistence(aiResult.classification, aiResult.modelUsed);
 
-    // Deteksi perbedaan dengan nilai lama
     const wasEcon = row.is_economic_phenomenon === true;
     const isEcon = mapped.isEconomicPhenomenon === true;
     let changeTag = '';
@@ -187,9 +238,6 @@ async function main() {
       changeTag += ` [Pengeluaran: ${row.expenditure_component ?? '-'} -> ${mapped.expenditureComponent}]`;
     }
 
-    // Tentukan status verifikasi
-    // Jika non-ekonomi -> IGNORED
-    // Jika ekonomi: jika sebelumnya sudah VERIFIED oleh user manual, pertahankan VERIFIED; jika PENDING/IGNORED, set PENDING.
     let targetVerifStatus = mapped.verificationStatus;
     if (row.verification_status === VerificationStatusEnum.VERIFIED && isEcon) {
       targetVerifStatus = VerificationStatusEnum.VERIFIED;
@@ -246,33 +294,32 @@ async function main() {
 
     const shortTitle = row.title.length > 40 ? row.title.slice(0, 37) + '...' : row.title;
     const econLabel = isEcon
-      ? `ECON [KBLI: ${mapped.kbliCategory} | Pengeluaran: ${mapped.expenditureComponent}]`
+      ? `ECON [${mapped.kbliCategory} | ${mapped.expenditureComponent}]`
       : `NON-ECON (${mapped.geographicScope})`;
 
     console.log(
       `${idxStr} ${econLabel} | "${shortTitle}" (${aiResult.modelUsed}, ${aiResult.responseTimeMs}ms)${changeTag}`,
     );
 
-    // Beri jeda antar-panggilan agar santai pada rate limit free tier
-    if (i < rows.length - 1) {
-      await delay(callDelayMs);
-    }
-  }
+    // Sedikit jeda 200ms per worker agar mulus
+    await delay(200);
+  });
 
   console.log('\n' + '='.repeat(75));
   console.log('REKAPITULASI HASIL RE-KLASIFIKASI:');
   console.log('='.repeat(75));
-  console.log(`Total Diproses             : ${rows.length}`);
+  console.log(`Total Artikel di Database  : ${rows.length}`);
+  console.log(`Dilewati (Sudah Termutakhir): ${countSkipped}`);
+  console.log(`Dieksekusi                 : ${targetRows.length}`);
   console.log(`Berhasil                   : ${countSuccess}`);
   console.log(`Gagal                      : ${countFailed}`);
-  if (refetchTribun) console.log(`Artikel Tribun Direfetch   : ${countRefetched}`);
+  if (countRefetched > 0) console.log(`Snippet Direfetch           : ${countRefetched}`);
   console.log(`Berubah Menjadi Fenomena   : ${countChangedEcon}`);
   console.log(`Berubah Menjadi Non-Ekonomi: ${countChangedNonEcon}`);
   console.log(`KBLI Bergeser/Terkoreksi   : ${countChangedKbli}`);
   console.log(`Pengeluaran Terkoreksi     : ${countChangedExp}`);
   console.log('='.repeat(75));
 
-  // Query hasil distribusi akhir di DB jika tidak dry run
   if (!dryRun) {
     const finalStats = await pool.query(`
       SELECT 
