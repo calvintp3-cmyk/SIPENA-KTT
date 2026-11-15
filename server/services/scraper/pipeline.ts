@@ -511,6 +511,8 @@ async function executeLockedScrapePipeline(
             startDate: params.startDate,
             endDate: params.endDate,
             lookbackDays,
+            maxItemsPerPortal: params.startDate ? Math.max(DEFAULT_REGIONAL_MAX_ITEMS, Math.floor(maxArticlesPerRun / 2)) : undefined,
+            maxPagesPerPortal: params.startDate ? 25 : undefined,
             timeoutMs: fetchTimeoutMs,
             concurrency: fetchConcurrency,
             signal: pipelineController.signal,

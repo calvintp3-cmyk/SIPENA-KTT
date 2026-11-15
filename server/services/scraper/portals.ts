@@ -915,7 +915,9 @@ export async function harvestRegionalPortals(
         if (signal?.aborted) break;
         if (portalFoundCount >= maxItemsPerPortal) break;
 
-        const maxPages = portal.maxPages ?? options.maxPagesPerPortal ?? 1;
+        const maxPages = isHistoricalMode
+          ? Math.max(portal.maxPages ?? 1, options.maxPagesPerPortal ?? 25)
+          : (portal.maxPages ?? options.maxPagesPerPortal ?? 1);
         for (let page = 1; page <= maxPages; page++) {
           if (signal?.aborted) break;
           if (portalFoundCount >= maxItemsPerPortal) break;
