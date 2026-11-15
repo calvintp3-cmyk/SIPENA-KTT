@@ -132,23 +132,23 @@ onBeforeUnmount(() => {
         <!-- Brand Lockup -->
         <NuxtLink to="/" class="flex items-center gap-2.5 group shrink-0 rounded-xl py-1">
           <div
-            class="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600 via-indigo-600 to-teal-700 text-white flex items-center justify-center shadow-[inset_0_1px_0_rgba(255,255,255,0.28),0_4px_12px_-2px_rgba(37,99,235,0.38)] group-hover:scale-[1.03] transition-transform"
+            class="w-9 h-9 rounded-xl bg-blue-700 text-white flex items-center justify-center shadow-[inset_0_1px_0_rgba(255,255,255,0.22),0_2px_8px_-2px_rgba(29,78,216,0.35)] group-hover:scale-[1.03] transition-transform"
           >
-            <UIcon name="i-solar-chart-2-bold-duotone" class="w-5 h-5" />
+            <UIcon name="i-solar-chart-2-bold-duotone" class="w-5 h-5 text-blue-100" />
           </div>
           <div class="flex flex-col leading-tight min-w-0">
-            <div class="flex items-center gap-1.5">
+            <div class="flex items-center gap-1.5 font-display">
               <span class="font-extrabold tracking-tight text-slate-900 text-[15px] whitespace-nowrap">
                 SIPENA
-                <span class="text-indigo-700">KTT</span>
+                <span class="text-blue-700">KTT</span>
               </span>
               <span
-                class="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200/80"
+                class="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-200/80"
               >
                 Nerwilis
               </span>
             </div>
-            <span class="hidden lg:inline text-xs text-slate-600 font-medium whitespace-nowrap">
+            <span class="hidden lg:inline text-xs text-slate-500 font-medium whitespace-nowrap">
               Portal Intelijen Ekonomi Tana Tidung
             </span>
           </div>
@@ -157,7 +157,7 @@ onBeforeUnmount(() => {
         <!-- Primary Navigation Pills (Desktop) -->
         <nav
           aria-label="Navigasi Portal Publik"
-          class="hidden md:inline-flex items-center gap-1 p-1 rounded-xl bg-slate-100/90 border border-slate-200/80 shrink-0"
+          class="hidden md:inline-flex items-center gap-1 p-1 rounded-xl bg-slate-100/90 border border-slate-200/80 shrink-0 font-display"
         >
           <NuxtLink
             v-for="item in navLinks"
@@ -167,7 +167,7 @@ onBeforeUnmount(() => {
             class="px-3 py-1.5 min-h-9 rounded-lg text-xs inline-flex items-center gap-1.5 transition-[color,background-color,box-shadow] whitespace-nowrap"
             :class="
               item.active
-                ? 'bg-white text-indigo-700 font-semibold shadow-[0_1px_3px_rgba(15,23,42,0.08),0_0_0_1px_rgba(79,70,229,0.16)]'
+                ? 'bg-white text-blue-700 font-semibold shadow-[0_1px_3px_rgba(15,23,42,0.08),0_0_0_1px_rgba(29,78,216,0.18)]'
                 : 'text-slate-600 hover:text-slate-950 hover:bg-white/60 font-medium'
             "
             @click="(e: MouseEvent) => handleNavClick(item.to, e)"
@@ -175,7 +175,7 @@ onBeforeUnmount(() => {
             <UIcon
               :name="item.icon"
               class="w-4 h-4 shrink-0"
-              :class="item.active ? 'text-indigo-600' : 'text-slate-500'"
+              :class="item.active ? 'text-blue-700' : 'text-slate-500'"
             />
             <span>{{ item.label }}</span>
           </NuxtLink>
@@ -186,7 +186,7 @@ onBeforeUnmount(() => {
           <div class="relative group">
             <UIcon
               name="i-solar-magnifer-line-duotone"
-              class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-600 pointer-events-none transition-colors"
+              class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-blue-700 pointer-events-none transition-colors"
             />
             <label for="public-header-search" class="sr-only">Cari fenomena ekonomi</label>
             <input
@@ -195,7 +195,7 @@ onBeforeUnmount(() => {
               v-model="searchInput"
               type="search"
               placeholder="Cari komoditas atau berita..."
-              class="w-full h-9 pl-9 pr-14 bg-slate-100/80 hover:bg-slate-100 focus:bg-white text-xs text-slate-900 placeholder:text-slate-600 rounded-xl border border-slate-200/90 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/15 transition-[color,background-color,border-color,box-shadow]"
+              class="w-full h-9 pl-9 pr-14 bg-slate-100/80 hover:bg-slate-100 focus:bg-white text-xs text-slate-900 placeholder:text-slate-500 rounded-xl border border-slate-200/90 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/15 transition-[color,background-color,border-color,box-shadow]"
             >
             <div class="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
               <button
@@ -210,7 +210,7 @@ onBeforeUnmount(() => {
               <kbd
                 v-else
                 :title="shortcutTitle"
-                class="text-[11px] text-slate-600 bg-white border border-slate-200/90 shadow-2xs rounded-md px-1.5 py-0.5 font-semibold leading-none pointer-events-none"
+                class="text-[11px] text-slate-600 bg-white border border-slate-200/90 shadow-2xs rounded-md px-1.5 py-0.5 font-semibold leading-none pointer-events-none font-mono"
               >
                 {{ shortcutKey }}
               </kbd>
@@ -221,7 +221,7 @@ onBeforeUnmount(() => {
         <!-- Right Utility Cluster -->
         <div class="flex items-center gap-2 shrink-0">
           <div
-            class="items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50/90 border border-emerald-200/90 text-emerald-800 text-xs font-semibold tabular-nums whitespace-nowrap"
+            class="items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50/90 border border-emerald-200/90 text-emerald-800 text-xs font-semibold tabular-nums whitespace-nowrap font-mono"
             :class="isLinimasaRoute ? 'hidden sm:inline-flex' : 'hidden xl:inline-flex'"
           >
             <span class="w-1.5 h-1.5 rounded-full bg-emerald-600" />
@@ -231,7 +231,7 @@ onBeforeUnmount(() => {
           <NuxtLink
             v-if="user"
             to="/admin"
-            class="btn-primary-gradient h-9 text-xs font-semibold px-3.5 rounded-xl inline-flex items-center gap-1.5 whitespace-nowrap"
+            class="btn-primary-gradient h-9 text-xs font-semibold px-3.5 rounded-xl inline-flex items-center gap-1.5 whitespace-nowrap shadow-xs"
           >
             <UIcon name="i-solar-widget-5-bold-duotone" class="w-4 h-4 text-emerald-100" />
             <span class="hidden sm:inline">Workspace Admin</span>
@@ -240,7 +240,7 @@ onBeforeUnmount(() => {
           <NuxtLink
             v-else
             to="/login"
-            class="btn-primary-gradient h-9 text-xs font-semibold px-3.5 rounded-xl inline-flex items-center gap-1.5 whitespace-nowrap"
+            class="btn-primary-gradient h-9 text-xs font-semibold px-3.5 rounded-xl inline-flex items-center gap-1.5 whitespace-nowrap shadow-xs"
           >
             <UIcon name="i-solar-shield-keyhole-bold-duotone" class="w-4 h-4 text-blue-100" />
             <span class="hidden sm:inline">Masuk Admin</span>
@@ -253,7 +253,7 @@ onBeforeUnmount(() => {
             class="md:hidden min-w-11 min-h-11 inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 cursor-pointer"
             @click="() => { mobileMenuOpen = true; }"
           >
-            <UIcon name="i-solar-hamburger-menu-bold-duotone" class="w-5 h-5 text-indigo-600" />
+            <UIcon name="i-solar-hamburger-menu-bold-duotone" class="w-5 h-5 text-blue-700" />
           </button>
         </div>
       </div>
@@ -277,7 +277,7 @@ onBeforeUnmount(() => {
             class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition-colors"
             :class="
               item.active
-                ? 'bg-indigo-50 text-indigo-800 font-semibold border border-indigo-200/80'
+                ? 'bg-blue-50 text-blue-800 font-semibold border border-blue-200/80'
                 : 'text-slate-700 hover:bg-slate-100 font-medium'
             "
             @click="(e: MouseEvent) => handleNavClick(item.to, e)"

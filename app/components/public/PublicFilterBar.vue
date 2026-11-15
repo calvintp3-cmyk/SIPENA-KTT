@@ -165,20 +165,20 @@ const bentoImpactItems = [
     :class="
       inDrawer
         ? 'w-full gap-4'
-        : 'w-full lg:w-[310px] h-full overflow-hidden bg-white/95 backdrop-blur-md border border-slate-200/90 shadow-sm rounded-2xl flex flex-col'
+        : 'w-full lg:w-[310px] h-full overflow-hidden bg-white border border-slate-200/90 shadow-[0_1px_3px_rgba(15,23,42,0.04),0_6px_16px_-4px_rgba(15,23,42,0.04)] rounded-xl flex flex-col'
     "
   >
     <!-- Filter Card Header Bar -->
-    <div class="px-4 py-3.5 border-b border-slate-200/80 bg-slate-50/60 flex items-center justify-between shrink-0">
+    <div class="px-4 py-3.5 border-b border-slate-200/80 bg-slate-50/70 flex items-center justify-between shrink-0">
       <div class="inline-flex items-center gap-2">
-        <div class="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200/70 flex items-center justify-center">
+        <div class="w-7 h-7 rounded-md bg-blue-50 text-blue-700 border border-blue-200/70 flex items-center justify-center">
           <UIcon name="i-solar-filter-bold-duotone" class="w-4 h-4" />
         </div>
         <div>
-          <span class="text-xs font-bold text-slate-900 block leading-tight">
+          <span class="text-xs font-bold text-slate-900 block leading-tight font-display">
             Filter Terpadu
           </span>
-          <span class="text-[10px] text-slate-600 font-medium leading-tight">
+          <span class="text-[10px] text-slate-500 font-medium leading-tight font-mono">
             {{ activeFilterCount > 0 ? `${activeFilterCount} kriteria aktif` : 'Semua fenomena' }}
           </span>
         </div>
@@ -189,8 +189,8 @@ const bentoImpactItems = [
         class="inline-flex items-center gap-1 text-[11px] font-semibold transition-colors rounded-lg px-2 py-1"
         :class="
           activeFilterCount > 0
-            ? 'text-indigo-700 hover:text-indigo-900 hover:bg-indigo-100/60 cursor-pointer'
-            : 'text-slate-500 cursor-not-allowed opacity-60'
+            ? 'text-blue-700 hover:text-blue-900 hover:bg-blue-50 cursor-pointer'
+            : 'text-slate-400 cursor-not-allowed opacity-60'
         "
         :disabled="activeFilterCount === 0"
         @click="() => { emit('reset'); }"
@@ -213,20 +213,20 @@ const bentoImpactItems = [
         <div class="relative">
           <UIcon
             name="i-solar-magnifer-line-duotone"
-            class="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-600 pointer-events-none"
+            class="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none"
           />
           <input
             id="filter-sidebar-search"
             v-model="searchInput"
             type="search"
             placeholder="Cari komoditas, proyek, lokasi..."
-            class="w-full h-8 pl-8 pr-7 bg-slate-50 hover:bg-white focus:bg-white text-xs text-slate-900 placeholder:text-slate-600 rounded-lg border border-slate-200 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20 transition-colors"
+            class="w-full h-8 pl-8 pr-7 bg-slate-50 hover:bg-white focus:bg-white text-xs text-slate-900 placeholder:text-slate-500 rounded-lg border border-slate-200 focus:border-blue-600 focus:ring-1 focus:ring-blue-600/20 transition-colors"
           >
           <button
             v-if="searchInput"
             type="button"
             aria-label="Bersihkan pencarian"
-            class="absolute right-1 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center text-slate-500 hover:text-slate-800 cursor-pointer"
+            class="absolute right-1 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center text-slate-400 hover:text-slate-700 cursor-pointer"
             @click="() => { searchInput = ''; }"
           >
             <UIcon name="i-lucide-x" class="w-3 h-3" />
@@ -243,7 +243,7 @@ const bentoImpactItems = [
             </span>
             <span
               v-if="dateFrom || dateTo"
-              class="px-1.5 py-0.2 rounded-full bg-indigo-600 text-white text-[9px] font-bold"
+              class="px-1.5 py-0.2 rounded-full bg-blue-700 text-white text-[9px] font-bold"
             >
               Aktif
             </span>
@@ -251,7 +251,7 @@ const bentoImpactItems = [
           <button
             v-if="dateFrom || dateTo"
             type="button"
-            class="text-[10px] font-semibold text-indigo-600 hover:text-indigo-800 cursor-pointer"
+            class="text-[10px] font-semibold text-blue-700 hover:text-blue-900 cursor-pointer"
             @click="() => { emit('update:dateFrom', ''); emit('update:dateTo', ''); }"
           >
             Reset
@@ -265,7 +265,7 @@ const bentoImpactItems = [
               id="filter-date-from"
               :value="dateFrom"
               type="date"
-              class="w-full h-7.5 px-2 bg-slate-50 text-[11px] text-slate-800 rounded-lg border border-slate-200 focus:bg-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20"
+              class="w-full h-7.5 px-2 bg-slate-50 text-[11px] text-slate-800 rounded-lg border border-slate-200 focus:bg-white focus:border-blue-600 focus:ring-1 focus:ring-blue-600/20"
               @input="(e: Event) => emit('update:dateFrom', (e.target as HTMLInputElement).value)"
             >
           </div>
@@ -275,7 +275,7 @@ const bentoImpactItems = [
               id="filter-date-to"
               :value="dateTo"
               type="date"
-              class="w-full h-7.5 px-2 bg-slate-50 text-[11px] text-slate-800 rounded-lg border border-slate-200 focus:bg-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20"
+              class="w-full h-7.5 px-2 bg-slate-50 text-[11px] text-slate-800 rounded-lg border border-slate-200 focus:bg-white focus:border-blue-600 focus:ring-1 focus:ring-blue-600/20"
               @input="(e: Event) => emit('update:dateTo', (e.target as HTMLInputElement).value)"
             >
           </div>
@@ -300,7 +300,7 @@ const bentoImpactItems = [
             class="py-1 px-1 rounded-lg text-[10px] transition-all whitespace-nowrap cursor-pointer"
             :class="
               sourceType === src.value
-                ? 'font-bold bg-white text-indigo-700 shadow-2xs border border-indigo-200'
+                ? 'font-bold bg-white text-blue-700 shadow-2xs border border-blue-200'
                 : 'text-slate-600 hover:text-slate-900 font-medium'
             "
             @click="() => { emit('update:sourceType', src.value); }"
@@ -319,7 +319,7 @@ const bentoImpactItems = [
           <button
             v-if="impactMacro !== 'ALL'"
             type="button"
-            class="text-[10px] font-semibold text-indigo-600 hover:text-indigo-800 cursor-pointer"
+            class="text-[10px] font-semibold text-blue-700 hover:text-blue-900 cursor-pointer"
             @click="() => { emit('update:impactMacro', 'ALL'); }"
           >
             Hapus
@@ -365,7 +365,7 @@ const bentoImpactItems = [
             </span>
             <span
               v-if="pdrbGroups.length > 0"
-              class="px-1.5 py-0.2 rounded-full bg-indigo-600 text-white text-[9px] font-bold tabular-nums"
+              class="px-1.5 py-0.2 rounded-full bg-blue-700 text-white text-[9px] font-bold tabular-nums font-mono"
             >
               {{ pdrbGroups.length }}
             </span>
@@ -373,7 +373,7 @@ const bentoImpactItems = [
           <button
             v-if="pdrbGroups.length > 0"
             type="button"
-            class="text-[10px] font-semibold text-indigo-600 hover:text-indigo-800 cursor-pointer"
+            class="text-[10px] font-semibold text-blue-700 hover:text-blue-900 cursor-pointer"
             @click="clearPdrbGroups"
           >
             Reset
@@ -390,7 +390,7 @@ const bentoImpactItems = [
             v-model="sectorSearchQuery"
             type="search"
             placeholder="Saring sektor A-U..."
-            class="w-full h-6.5 pl-6 pr-5 bg-slate-50 text-[11px] text-slate-800 placeholder:text-slate-400 rounded-md border border-slate-200 focus:bg-white focus:border-indigo-400 focus:outline-none"
+            class="w-full h-6.5 pl-6 pr-5 bg-slate-50 text-[11px] text-slate-800 placeholder:text-slate-400 rounded-md border border-slate-200 focus:bg-white focus:border-blue-500 focus:outline-none"
           >
           <button
             v-if="sectorSearchQuery"
@@ -415,7 +415,7 @@ const bentoImpactItems = [
             class="w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-left transition-colors cursor-pointer group"
             :class="
               pdrbGroups.includes(sector.groupCode)
-                ? 'bg-white font-semibold text-indigo-900 shadow-2xs border border-indigo-200/80'
+                ? 'bg-white font-semibold text-blue-950 shadow-2xs border border-blue-200/80'
                 : 'hover:bg-white text-slate-700 font-normal'
             "
             @click="togglePdrbGroup(sector.groupCode)"
@@ -425,13 +425,13 @@ const bentoImpactItems = [
                 type="checkbox"
                 tabindex="-1"
                 :checked="pdrbGroups.includes(sector.groupCode)"
-                class="w-3.5 h-3.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer pointer-events-none shrink-0"
+                class="w-3.5 h-3.5 rounded border-slate-300 text-blue-700 focus:ring-blue-600 cursor-pointer pointer-events-none shrink-0"
               >
               <span
-                class="min-w-6 px-1 h-4.5 rounded text-[9px] font-bold flex items-center justify-center shrink-0"
+                class="min-w-6 px-1 h-4.5 rounded text-[9px] font-bold flex items-center justify-center shrink-0 font-mono"
                 :class="
                   pdrbGroups.includes(sector.groupCode)
-                    ? 'bg-indigo-600 text-white'
+                    ? 'bg-blue-700 text-white'
                     : 'bg-slate-200 text-slate-700'
                 "
               >
@@ -443,11 +443,11 @@ const bentoImpactItems = [
             </div>
 
             <span
-              class="text-[10px] tabular-nums font-semibold shrink-0"
+              class="text-[10px] tabular-nums font-semibold shrink-0 font-mono"
               :class="
                 sector.count > 0
                   ? pdrbGroups.includes(sector.groupCode)
-                    ? 'text-indigo-700'
+                    ? 'text-blue-700'
                     : 'text-slate-700 font-bold'
                   : 'text-slate-400'
               "

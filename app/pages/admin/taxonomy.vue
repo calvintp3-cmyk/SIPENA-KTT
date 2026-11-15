@@ -194,12 +194,12 @@ const expenditureImpactRows: Array<{
     <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
       <div>
         <div
-          class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200/80 text-xs font-semibold"
+          class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200/80 text-xs font-semibold"
         >
-          <UIcon name="i-solar-book-bookmark-bold-duotone" class="w-3.5 h-3.5" />
+          <UIcon name="i-solar-book-bookmark-bold-duotone" class="w-3.5 h-3.5 text-blue-700" />
           <span>Standar Klasifikasi Neraca Wilayah BPS RI</span>
         </div>
-        <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 mt-2">
+        <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 mt-2 font-display">
           Kamus &amp; Taksonomi PDRB Dua Sisi
         </h1>
         <p class="text-xs sm:text-sm text-slate-600 mt-0.5">
@@ -211,15 +211,15 @@ const expenditureImpactRows: Array<{
       <div class="flex items-center gap-2 flex-wrap self-start lg:self-auto shrink-0">
         <NuxtLink
           to="/admin/kbli"
-          class="min-h-9 px-3.5 rounded-xl border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 text-xs font-bold text-indigo-800 inline-flex items-center gap-1.5 transition-colors shadow-2xs"
+          class="min-h-9 px-3.5 rounded-xl border border-blue-200 bg-blue-50 hover:bg-blue-100 text-xs font-bold text-blue-800 inline-flex items-center gap-1.5 transition-colors shadow-2xs font-mono"
         >
-          <UIcon name="i-solar-route-bold-duotone" class="w-4 h-4 text-indigo-600" />
+          <UIcon name="i-solar-route-bold-duotone" class="w-4 h-4 text-blue-700" />
           <span>Matriks Konkordansi 4-Generasi</span>
         </NuxtLink>
 
         <NuxtLink
           :to="`/admin/articles?year=${selectedYear}&quarter=${selectedQuarter}&status=${VerificationStatusEnum.VERIFIED}`"
-          class="btn-primary-gradient min-h-9 px-4 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5"
+          class="btn-primary-gradient min-h-9 px-4 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 shadow-xs"
         >
           <UIcon name="i-solar-database-bold-duotone" class="w-4 h-4 text-emerald-200" />
           <span>Buka Bank Data ({{ shortPeriodLabel }})</span>
@@ -244,9 +244,9 @@ const expenditureImpactRows: Array<{
 
     <!-- 3 Summary Architecture Pills -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <div class="saas-card rounded-2xl p-4 sm:p-5 flex items-start gap-3.5">
+      <div class="saas-card rounded-xl p-4 sm:p-5 flex items-start gap-3.5">
         <div
-          class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white text-xs font-extrabold tabular-nums flex items-center justify-center shrink-0 shadow-xs"
+          class="w-10 h-10 rounded-xl bg-blue-700 text-white text-xs font-extrabold tabular-nums flex items-center justify-center shrink-0 shadow-2xs font-mono"
         >
           17
         </div>

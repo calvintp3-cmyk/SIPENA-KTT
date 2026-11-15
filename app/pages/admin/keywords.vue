@@ -164,12 +164,12 @@ const columns: TableColumn<KeywordItem>[] = [
     <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
       <div>
         <div
-          class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200/80 text-xs font-semibold"
+          class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200/80 text-xs font-semibold"
         >
-          <UIcon name="i-solar-tag-price-bold-duotone" class="w-3.5 h-3.5" />
+          <UIcon name="i-solar-tag-price-bold-duotone" class="w-3.5 h-3.5 text-blue-700" />
           <span>Penjaringan Transmisi Ekonomi Nasional</span>
         </div>
-        <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 mt-2">
+        <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 mt-2 font-display">
           Master Keyword Berita Nasional
         </h1>
         <p class="text-xs sm:text-sm text-slate-600 mt-0.5">
@@ -190,7 +190,7 @@ const columns: TableColumn<KeywordItem>[] = [
             v-model="searchText"
             type="search"
             placeholder="Cari kata kunci..."
-            class="min-h-9 w-full sm:w-60 pl-9 pr-10 rounded-xl border border-slate-200 bg-white text-xs text-slate-900 placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none"
+            class="min-h-9 w-full sm:w-60 pl-9 pr-10 rounded-xl border border-slate-200 bg-white text-xs text-slate-900 placeholder:text-slate-500 focus:border-blue-600 focus:outline-none"
           >
           <button
             v-if="searchText"
@@ -205,7 +205,7 @@ const columns: TableColumn<KeywordItem>[] = [
 
         <button
           type="button"
-          class="btn-primary-gradient min-h-9 px-4 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer"
+          class="btn-primary-gradient min-h-9 px-4 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer shadow-xs"
           @click="() => { openCreateModal(); }"
         >
           <UIcon name="i-solar-add-circle-bold-duotone" class="w-4 h-4 text-emerald-200" />
@@ -234,7 +234,7 @@ const columns: TableColumn<KeywordItem>[] = [
       <div
         v-for="n in 3"
         :key="`kw-skeleton-${n}`"
-        class="saas-card rounded-2xl p-5 space-y-3"
+        class="saas-card rounded-xl p-5 space-y-3"
       >
         <div class="flex items-center justify-between gap-2">
           <USkeleton class="h-3.5 w-32 rounded" />

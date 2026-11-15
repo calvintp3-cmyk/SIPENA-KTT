@@ -589,12 +589,12 @@ const columns: TableColumn<AdminArticleItem>[] = [
     <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
       <div>
         <div
-          class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200/80 text-xs font-semibold"
+          class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200/80 text-xs font-semibold"
         >
-          <UIcon name="i-solar-database-bold-duotone" class="w-3.5 h-3.5" />
+          <UIcon name="i-solar-database-bold-duotone" class="w-3.5 h-3.5 text-blue-700" />
           <span>Repositori Arsip &amp; Kertas Kerja BPS</span>
         </div>
-        <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 text-balance mt-2">
+        <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 text-balance mt-2 font-display">
           Bank Data Fenomena Ekonomi
         </h1>
         <p class="text-xs sm:text-sm text-slate-600 mt-0.5 text-pretty">
@@ -606,10 +606,10 @@ const columns: TableColumn<AdminArticleItem>[] = [
       <div class="flex flex-wrap items-center gap-2.5 shrink-0">
         <button
           type="button"
-          class="min-h-9 px-3.5 rounded-xl border border-slate-200 bg-white hover:border-indigo-300 hover:bg-slate-50 text-xs font-semibold text-slate-900 inline-flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
+          class="min-h-9 px-3.5 rounded-xl border border-slate-200 bg-white hover:border-blue-300 hover:bg-slate-50 text-xs font-semibold text-slate-900 inline-flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
           @click="() => { manualModalOpen = true; }"
         >
-          <UIcon name="i-solar-add-circle-bold-duotone" class="w-4 h-4 text-indigo-600" />
+          <UIcon name="i-solar-add-circle-bold-duotone" class="w-4 h-4 text-blue-700" />
           <span>Tambah Berita / Tarik URL</span>
         </button>
 
@@ -617,7 +617,7 @@ const columns: TableColumn<AdminArticleItem>[] = [
           <button
             type="button"
             :disabled="isExporting"
-            class="btn-primary-gradient min-h-9 px-4 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer"
+            class="btn-primary-gradient min-h-9 px-4 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer shadow-xs"
           >
             <UIcon
               :name="isExporting ? 'i-lucide-loader-circle' : 'i-solar-download-bold-duotone'"
@@ -632,7 +632,7 @@ const columns: TableColumn<AdminArticleItem>[] = [
     </div>
 
     <!-- Filter Toolbar & Status Segment Workbench -->
-    <div class="saas-card rounded-2xl p-4 sm:p-5 space-y-4">
+    <div class="saas-card rounded-xl p-4 sm:p-5 space-y-4">
       <!-- Quick Status Segment Tabs -->
       <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100">
         <div class="flex flex-wrap items-center gap-1.5 p-1 bg-slate-100/80 rounded-xl border border-slate-200/80">
@@ -641,13 +641,13 @@ const columns: TableColumn<AdminArticleItem>[] = [
             class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer inline-flex items-center gap-1.5"
             :class="
               activeTabStatus === 'ALL'
-                ? 'bg-white text-indigo-700 shadow-xs border border-indigo-200'
+                ? 'bg-white text-blue-700 shadow-xs border border-blue-200'
                 : 'text-slate-600 hover:text-slate-900'
             "
             @click="() => { activeTabStatus = 'ALL'; }"
           >
             <span>Semua Berita</span>
-            <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-slate-200 text-slate-700 tabular-nums font-bold">
+            <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-slate-200 text-slate-700 tabular-nums font-bold font-mono">
               {{ archiveData?.pagination.total ?? 0 }}
             </span>
           </button>
@@ -664,7 +664,7 @@ const columns: TableColumn<AdminArticleItem>[] = [
           >
             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500" />
             <span>Terverifikasi</span>
-            <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-emerald-100 text-emerald-800 tabular-nums font-bold">
+            <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-emerald-100 text-emerald-800 tabular-nums font-bold font-mono">
               {{ archiveData?.summaryCounts.verifiedCount ?? 0 }}
             </span>
           </button>
@@ -681,7 +681,7 @@ const columns: TableColumn<AdminArticleItem>[] = [
           >
             <span class="w-1.5 h-1.5 rounded-full bg-amber-500" />
             <span>Menunggu Review</span>
-            <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-amber-100 text-amber-800 tabular-nums font-bold">
+            <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-amber-100 text-amber-800 tabular-nums font-bold font-mono">
               {{ archiveData?.summaryCounts.pendingCount ?? 0 }}
             </span>
           </button>
@@ -697,7 +697,7 @@ const columns: TableColumn<AdminArticleItem>[] = [
             @click="() => { activeTabStatus = VerificationStatusEnum.IGNORED; }"
           >
             <span>Diabaikan</span>
-            <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-slate-200 text-slate-700 tabular-nums font-bold">
+            <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-slate-200 text-slate-700 tabular-nums font-bold font-mono">
               {{ archiveData?.summaryCounts.ignoredCount ?? 0 }}
             </span>
           </button>
@@ -714,7 +714,7 @@ const columns: TableColumn<AdminArticleItem>[] = [
           >
             <span class="w-1.5 h-1.5 rounded-full bg-rose-500" />
             <span>Gagal AI</span>
-            <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-rose-100 text-rose-800 tabular-nums font-bold">
+            <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-rose-100 text-rose-800 tabular-nums font-bold font-mono">
               {{ archiveData?.summaryCounts.llmFailedCount ?? 0 }}
             </span>
           </button>
@@ -724,7 +724,7 @@ const columns: TableColumn<AdminArticleItem>[] = [
           <button
             v-if="!isSyncedToGlobalPeriod"
             type="button"
-            class="h-8 px-2.5 rounded-lg border border-indigo-200 bg-indigo-50/70 hover:bg-indigo-100 text-xs font-semibold text-indigo-800 inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+            class="h-8 px-2.5 rounded-lg border border-blue-200 bg-blue-50/70 hover:bg-blue-100 text-xs font-semibold text-blue-800 inline-flex items-center gap-1.5 transition-colors cursor-pointer font-mono"
             @click="syncToGlobalPeriod"
           >
             <UIcon name="i-solar-calendar-mark-bold-duotone" class="w-3.5 h-3.5" />
@@ -736,16 +736,16 @@ const columns: TableColumn<AdminArticleItem>[] = [
             class="h-8 px-3 rounded-lg border text-xs font-semibold inline-flex items-center gap-1.5 transition-all cursor-pointer"
             :class="
               showAdvancedFilters || advancedFilterActiveCount > 0
-                ? 'border-indigo-300 bg-indigo-50 text-indigo-900'
+                ? 'border-blue-300 bg-blue-50 text-blue-900'
                 : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'
             "
             @click="() => { showAdvancedFilters = !showAdvancedFilters; }"
           >
-            <UIcon name="i-solar-filter-bold-duotone" class="w-3.5 h-3.5 text-indigo-600" />
+            <UIcon name="i-solar-filter-bold-duotone" class="w-3.5 h-3.5 text-blue-700" />
             <span>Filter Lanjutan</span>
             <span
               v-if="advancedFilterActiveCount > 0"
-              class="w-4 h-4 rounded-full bg-indigo-600 text-white text-[10px] flex items-center justify-center font-bold"
+              class="w-4 h-4 rounded-full bg-blue-700 text-white text-[10px] flex items-center justify-center font-bold font-mono"
             >
               {{ advancedFilterActiveCount }}
             </span>

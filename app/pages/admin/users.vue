@@ -193,12 +193,12 @@ const columns: TableColumn<AdminUserItem>[] = [
       <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
           <div
-            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200/80 text-xs font-semibold"
+            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200/80 text-xs font-semibold"
           >
-            <UIcon name="i-solar-shield-user-bold-duotone" class="w-3.5 h-3.5" />
+            <UIcon name="i-solar-shield-user-bold-duotone" class="w-3.5 h-3.5 text-blue-700" />
             <span>Tata Kelola Akses &amp; RBAC</span>
           </div>
-          <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 mt-2">
+          <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 mt-2 font-display">
             Kelola Akses Admin &amp; Whitelist Google
           </h1>
           <p class="text-xs sm:text-sm text-slate-600 mt-0.5">
@@ -219,7 +219,7 @@ const columns: TableColumn<AdminUserItem>[] = [
               v-model="searchText"
               type="search"
               placeholder="Cari nama / Gmail..."
-              class="min-h-9 w-full sm:w-56 pl-9 pr-10 rounded-xl border border-slate-200 bg-white text-xs text-slate-900 placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none"
+              class="min-h-9 w-full sm:w-56 pl-9 pr-10 rounded-xl border border-slate-200 bg-white text-xs text-slate-900 placeholder:text-slate-500 focus:border-blue-600 focus:outline-none"
             >
             <button
               v-if="searchText"
@@ -234,7 +234,7 @@ const columns: TableColumn<AdminUserItem>[] = [
 
           <button
             type="button"
-            class="btn-primary-gradient min-h-9 px-4 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer"
+            class="btn-primary-gradient min-h-9 px-4 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer shadow-xs"
             @click="() => { openCreateModal(); }"
           >
             <UIcon name="i-solar-user-plus-bold-duotone" class="w-4 h-4 text-emerald-200" />
@@ -244,15 +244,15 @@ const columns: TableColumn<AdminUserItem>[] = [
       </div>
 
       <!-- Whitelist Security Notice Card -->
-      <div class="saas-card rounded-2xl p-5 flex items-start gap-3.5 border-indigo-200/80 bg-indigo-50/30">
+      <div class="saas-card rounded-xl p-5 flex items-start gap-3.5 border-blue-200/80 bg-blue-50/40">
         <div
-          class="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-600 flex items-center justify-center shrink-0"
+          class="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 flex items-center justify-center shrink-0"
         >
-          <UIcon name="i-solar-shield-check-bold-duotone" class="w-5 h-5" />
+          <UIcon name="i-solar-shield-check-bold-duotone" class="w-5 h-5 text-blue-700" />
         </div>
         <div class="space-y-1">
           <div class="flex flex-wrap items-center gap-2">
-            <h2 class="text-sm font-bold text-slate-900">
+            <h2 class="text-sm font-bold text-slate-900 font-display">
               Mekanisme Whitelist Aktif
             </h2>
             <span

@@ -237,12 +237,12 @@ function handleExportXlsx() {
       <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
           <div
-            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200/80 text-xs font-semibold"
+            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200/80 text-xs font-semibold"
           >
-            <UIcon name="i-solar-graph-new-up-bold-duotone" class="w-3.5 h-3.5" />
+            <UIcon name="i-solar-graph-new-up-bold-duotone" class="w-3.5 h-3.5 text-blue-700" />
             <span>Komparasi Dinamika Sinyal Antar Periode</span>
           </div>
-          <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 text-balance mt-2">
+          <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 text-balance mt-2 font-display">
             Tren &amp; Komparasi Fenomena PDRB
           </h1>
           <p v-if="trendData" class="text-xs sm:text-sm text-slate-600 mt-0.5 text-pretty">
@@ -258,7 +258,7 @@ function handleExportXlsx() {
           <button
             type="button"
             :disabled="isExporting"
-            class="min-h-9 px-3.5 rounded-xl border border-slate-200 bg-white hover:border-indigo-300 hover:bg-slate-50 text-xs font-semibold text-slate-900 inline-flex items-center gap-1.5 shadow-2xs transition-colors disabled:opacity-50 cursor-pointer"
+            class="min-h-9 px-3.5 rounded-xl border border-slate-200 bg-white hover:border-blue-300 hover:bg-slate-50 text-xs font-semibold text-slate-900 inline-flex items-center gap-1.5 shadow-2xs transition-colors disabled:opacity-50 cursor-pointer"
             @click="() => { handleExportXlsx(); }"
           >
             <UIcon name="i-solar-download-bold-duotone" class="w-4 h-4 text-emerald-700" />
@@ -268,7 +268,7 @@ function handleExportXlsx() {
       </div>
 
       <!-- Deck 2: Comparison Mode & Dimension Segmented Controls -->
-      <div class="saas-card rounded-2xl p-3.5 flex flex-wrap items-center justify-between gap-3">
+      <div class="saas-card rounded-xl p-3.5 flex flex-wrap items-center justify-between gap-3">
         <div class="flex flex-wrap items-center gap-3">
           <div class="flex items-center gap-2">
             <span class="text-xs font-semibold text-slate-600">
@@ -277,7 +277,7 @@ function handleExportXlsx() {
             <div
               role="group"
               aria-label="Mode komparasi periode"
-              class="inline-flex p-1 bg-slate-100 rounded-xl border border-slate-200/90"
+              class="inline-flex p-1 bg-slate-100 rounded-xl border border-slate-200/90 font-mono"
             >
               <button
                 type="button"
@@ -285,7 +285,7 @@ function handleExportXlsx() {
                 class="min-h-8 px-3 py-1 rounded-lg text-xs transition-colors cursor-pointer"
                 :class="
                   mode === 'qoq'
-                    ? 'bg-white text-indigo-700 font-bold shadow-2xs border border-indigo-200/70'
+                    ? 'bg-white text-blue-700 font-bold shadow-2xs border border-blue-200/70'
                     : 'text-slate-600 hover:text-slate-950 font-medium'
                 "
                 @click="() => { mode = 'qoq'; }"
@@ -298,7 +298,7 @@ function handleExportXlsx() {
                 class="min-h-8 px-3 py-1 rounded-lg text-xs transition-colors cursor-pointer"
                 :class="
                   mode === 'yoy'
-                    ? 'bg-white text-indigo-700 font-bold shadow-2xs border border-indigo-200/70'
+                    ? 'bg-white text-blue-700 font-bold shadow-2xs border border-blue-200/70'
                     : 'text-slate-600 hover:text-slate-950 font-medium'
                 "
                 @click="() => { mode = 'yoy'; }"
@@ -323,7 +323,7 @@ function handleExportXlsx() {
                 class="min-h-8 px-3 py-1 rounded-lg text-xs transition-colors cursor-pointer"
                 :class="
                   dimension === 'kbli'
-                    ? 'bg-white text-indigo-700 font-bold shadow-2xs border border-indigo-200/70'
+                    ? 'bg-white text-blue-700 font-bold shadow-2xs border border-blue-200/70'
                     : 'text-slate-600 hover:text-slate-950 font-medium'
                 "
                 @click="() => { dimension = 'kbli'; }"
@@ -336,7 +336,7 @@ function handleExportXlsx() {
                 class="min-h-8 px-3 py-1 rounded-lg text-xs transition-colors cursor-pointer"
                 :class="
                   dimension === 'expenditure'
-                    ? 'bg-white text-indigo-700 font-bold shadow-2xs border border-indigo-200/70'
+                    ? 'bg-white text-blue-700 font-bold shadow-2xs border border-blue-200/70'
                     : 'text-slate-600 hover:text-slate-950 font-medium'
                 "
                 @click="() => { dimension = 'expenditure'; }"
@@ -349,7 +349,7 @@ function handleExportXlsx() {
 
         <span
           v-if="trendData"
-          class="text-xs font-semibold text-indigo-700 tabular-nums px-3 py-1 rounded-full bg-indigo-50 border border-indigo-200/80"
+          class="text-xs font-semibold text-blue-700 tabular-nums px-3 py-1 rounded-full bg-blue-50 border border-blue-200/80 font-mono"
         >
           {{ trendData.period.label }} vs {{ trendData.baseline.label }}
         </span>
@@ -372,31 +372,31 @@ function handleExportXlsx() {
 
     <!-- 4 KPI Comparison Strip -->
     <div v-if="pending && !trendData" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-      <div v-for="i in 4" :key="i" class="saas-card rounded-2xl p-5 space-y-2">
+      <div v-for="i in 4" :key="i" class="saas-card rounded-xl p-5 space-y-2">
         <div class="h-3 w-28 rounded bg-slate-200" />
         <div class="h-8 w-20 rounded bg-slate-200" />
       </div>
     </div>
 
     <div v-else-if="trendData" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-      <div class="saas-card rounded-2xl p-5 space-y-2.5">
+      <div class="saas-card rounded-xl p-5 space-y-2.5">
         <div class="flex items-center justify-between gap-2">
           <span class="text-xs font-semibold text-slate-600">
             Volume Periode Aktif
           </span>
-          <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 border border-blue-200/80 flex items-center justify-center shrink-0">
+          <div class="w-7 h-7 rounded-md bg-blue-50 text-blue-700 border border-blue-200/70 flex items-center justify-center shrink-0">
             <UIcon name="i-solar-chart-square-bold-duotone" class="w-4 h-4" />
           </div>
         </div>
-        <div class="flex items-baseline gap-2">
+        <div class="flex items-baseline gap-2 font-mono">
           <span class="text-3xl font-extrabold tabular-nums text-slate-900">
             {{ formatNumberId(trendData.kpi.currentTotal) }}
           </span>
-          <span class="text-xs text-slate-600 tabular-nums">
+          <span class="text-xs text-slate-500 tabular-nums font-sans">
             vs {{ trendData.kpi.baselineTotal }}
           </span>
         </div>
-        <div class="text-xs">
+        <div class="text-xs font-mono">
           <span
             class="px-2 py-0.5 rounded-full border font-semibold tabular-nums"
             :class="
@@ -415,12 +415,12 @@ function handleExportXlsx() {
         </div>
       </div>
 
-      <div class="saas-card rounded-2xl p-5 space-y-2.5">
+      <div class="saas-card rounded-xl p-5 space-y-2.5">
         <div class="flex items-center justify-between gap-2">
           <span class="text-xs font-semibold text-slate-600">
             Kenaikan Sinyal Tertinggi
           </span>
-          <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200/80 flex items-center justify-center shrink-0">
+          <div class="w-7 h-7 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200/70 flex items-center justify-center shrink-0">
             <UIcon name="i-solar-diagram-up-bold-duotone" class="w-4 h-4" />
           </div>
         </div>
@@ -428,7 +428,7 @@ function handleExportXlsx() {
           <div class="text-sm font-bold text-slate-900 leading-snug line-clamp-2">
             {{ trendData.kpi.topRiser.code }} - {{ trendData.kpi.topRiser.label }}
           </div>
-          <div class="text-xs font-bold text-emerald-700 tabular-nums">
+          <div class="text-xs font-bold text-emerald-700 tabular-nums font-mono">
             +{{ trendData.kpi.topRiser.deltaCount }} bukti vs baseline
           </div>
         </template>
@@ -437,12 +437,12 @@ function handleExportXlsx() {
         </div>
       </div>
 
-      <div class="saas-card rounded-2xl p-5 space-y-2.5">
+      <div class="saas-card rounded-xl p-5 space-y-2.5">
         <div class="flex items-center justify-between gap-2">
           <span class="text-xs font-semibold text-slate-600">
             Penurunan Sinyal Terbesar
           </span>
-          <div class="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 border border-rose-200/80 flex items-center justify-center shrink-0">
+          <div class="w-7 h-7 rounded-md bg-rose-50 text-rose-700 border border-rose-200/70 flex items-center justify-center shrink-0">
             <UIcon name="i-solar-heart-pulse-2-bold-duotone" class="w-4 h-4" />
           </div>
         </div>

@@ -698,12 +698,12 @@ const statusTabs = computed(() => {
       <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
           <div
-            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200/80 text-xs font-semibold"
+            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200/80 text-xs font-semibold"
           >
-            <UIcon name="i-solar-inbox-in-bold-duotone" class="w-3.5 h-3.5" />
+            <UIcon name="i-solar-inbox-in-bold-duotone" class="w-3.5 h-3.5 text-blue-700" />
             <span>Kurasi &amp; Validasi Harian Nerwilis</span>
           </div>
-          <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 text-balance mt-2">
+          <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 text-balance mt-2 font-display">
             Review Harian Fenomena Ekonomi
           </h1>
           <p class="text-xs sm:text-sm text-slate-600 mt-0.5 text-pretty">
@@ -716,7 +716,7 @@ const statusTabs = computed(() => {
           <div
             role="group"
             aria-label="Cakupan periode review"
-            class="inline-flex p-1 bg-slate-100 rounded-xl border border-slate-200/90"
+            class="inline-flex p-1 bg-slate-100 rounded-xl border border-slate-200/90 font-mono"
           >
             <button
               type="button"
@@ -724,7 +724,7 @@ const statusTabs = computed(() => {
               class="min-h-8 px-3 py-1 rounded-lg text-xs transition-colors cursor-pointer"
               :class="
                 periodScope === 'all'
-                  ? 'bg-white font-bold text-indigo-700 shadow-2xs border border-indigo-200/70'
+                  ? 'bg-white font-bold text-blue-700 shadow-2xs border border-blue-200/70'
                   : 'text-slate-600 hover:text-slate-950 font-medium'
               "
               @click="() => { periodScope = 'all'; }"
@@ -737,7 +737,7 @@ const statusTabs = computed(() => {
               class="min-h-8 px-3 py-1 rounded-lg text-xs tabular-nums transition-colors cursor-pointer"
               :class="
                 periodScope === 'period'
-                  ? 'bg-white font-bold text-indigo-700 shadow-2xs border border-indigo-200/70'
+                  ? 'bg-white font-bold text-blue-700 shadow-2xs border border-blue-200/70'
                   : 'text-slate-600 hover:text-slate-950 font-medium'
               "
               @click="() => { periodScope = 'period'; }"
@@ -758,7 +758,7 @@ const statusTabs = computed(() => {
             </label>
             <span
               v-if="(reviewData?.summaryCounts.llmFailedCount ?? 0) > 0"
-              class="px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200 text-[11px] font-bold tabular-nums"
+              class="px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200 text-[11px] font-bold tabular-nums font-mono"
             >
               {{ reviewData?.summaryCounts.llmFailedCount }}
             </span>
@@ -779,7 +779,7 @@ const statusTabs = computed(() => {
         <button
           v-if="periodScope === 'all'"
           type="button"
-          class="text-indigo-700 hover:text-indigo-900 font-semibold hover:underline cursor-pointer"
+          class="text-blue-700 hover:text-blue-900 font-semibold hover:underline cursor-pointer"
           @click="() => { periodScope = 'period'; }"
         >
           Fokus ke {{ shortPeriodLabel }}
@@ -787,7 +787,7 @@ const statusTabs = computed(() => {
         <button
           v-else
           type="button"
-          class="text-indigo-700 hover:text-indigo-900 font-semibold hover:underline cursor-pointer"
+          class="text-blue-700 hover:text-blue-900 font-semibold hover:underline cursor-pointer"
           @click="() => { periodScope = 'all'; }"
         >
           Lihat Semua Periode
@@ -799,7 +799,7 @@ const statusTabs = computed(() => {
         <div
           role="group"
           aria-label="Status kurasi"
-          class="inline-flex flex-nowrap overflow-x-auto saas-scroll p-1 bg-slate-100 rounded-xl border border-slate-200/90 max-w-full gap-1"
+          class="inline-flex flex-nowrap overflow-x-auto saas-scroll p-1 bg-slate-100 rounded-xl border border-slate-200/90 max-w-full gap-1 font-mono"
         >
           <button
             v-for="tab in statusTabs"
@@ -814,9 +814,9 @@ const statusTabs = computed(() => {
             "
             @click="() => { activeStatus = tab.value; }"
           >
-            <span>{{ tab.label }}</span>
+            <span class="font-sans">{{ tab.label }}</span>
             <span
-              class="px-2 py-0.5 rounded-full text-[11px] font-bold tabular-nums border"
+              class="px-2 py-0.5 rounded-full text-[11px] font-bold tabular-nums border font-mono"
               :class="tab.toneClass"
             >
               {{ tab.count }}
@@ -835,7 +835,7 @@ const statusTabs = computed(() => {
             v-model="searchInput"
             type="search"
             placeholder="Cari judul atau portal..."
-            class="w-full h-9 pl-9 pr-3 bg-white border border-slate-200 focus:border-indigo-500 rounded-xl text-xs text-slate-900"
+            class="w-full h-9 pl-9 pr-3 bg-white border border-slate-200 focus:border-blue-600 focus:ring-1 focus:ring-blue-600/20 rounded-xl text-xs text-slate-900"
           >
         </div>
       </div>

@@ -185,12 +185,12 @@ function getSlotSuccessRate(stat: ScraperProviderStatEntry): number {
     <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
       <div>
         <div
-          class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200/80 text-xs font-semibold"
+          class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200/80 text-xs font-semibold"
         >
-          <UIcon name="i-solar-cpu-bolt-bold-duotone" class="w-3.5 h-3.5" />
+          <UIcon name="i-solar-cpu-bolt-bold-duotone" class="w-3.5 h-3.5 text-blue-700" />
           <span>Observabilitas Crawler &amp; Pipeline Multi-LLM</span>
         </div>
-        <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 mt-2">
+        <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 mt-2 font-display">
           Monitor Crawler &amp; Rute Multi-LLM
         </h1>
         <p class="text-xs sm:text-sm text-slate-600 mt-0.5">
@@ -202,7 +202,7 @@ function getSlotSuccessRate(stat: ScraperProviderStatEntry): number {
       <div class="flex items-center gap-2 shrink-0">
         <span
           role="status"
-          class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold border shadow-2xs"
+          class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold border shadow-2xs font-mono"
           :class="
             isRunning
               ? 'bg-sky-50 text-sky-800 border-sky-200'
@@ -236,12 +236,12 @@ function getSlotSuccessRate(stat: ScraperProviderStatEntry): number {
 
     <!-- 4 Kartu Metrik Observabilitas -->
     <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-      <div class="saas-card rounded-2xl p-5 space-y-2">
+      <div class="saas-card rounded-xl p-5 space-y-2">
         <div class="flex items-center justify-between gap-2">
           <span class="text-xs font-semibold text-slate-600">
             Eksekusi Terakhir
           </span>
-          <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 border border-blue-200/80 flex items-center justify-center shrink-0">
+          <div class="w-7 h-7 rounded-md bg-blue-50 text-blue-700 border border-blue-200/70 flex items-center justify-center shrink-0">
             <UIcon name="i-solar-clock-circle-bold-duotone" class="w-4 h-4" />
           </div>
         </div>
@@ -255,11 +255,11 @@ function getSlotSuccessRate(stat: ScraperProviderStatEntry): number {
             >
               {{ latestStatusBadge.label }}
             </UBadge>
-            <span class="text-xs font-medium tabular-nums text-slate-600">
+            <span class="text-xs font-medium tabular-nums text-slate-600 font-mono">
               {{ formatDurationMs(latestRun.durationMs) }}
             </span>
           </div>
-          <div class="text-xs tabular-nums text-slate-600">
+          <div class="text-xs tabular-nums text-slate-600 font-mono">
             {{ formatDateTimeWita(latestRun.startedAt) }}
           </div>
         </template>
@@ -268,30 +268,30 @@ function getSlotSuccessRate(stat: ScraperProviderStatEntry): number {
         </template>
       </div>
 
-      <div class="saas-card rounded-2xl p-5 space-y-2">
+      <div class="saas-card rounded-xl p-5 space-y-2">
         <div class="flex items-center justify-between gap-2">
           <span class="text-xs font-semibold text-slate-600">
             Token LLM (30 Hari)
           </span>
-          <div class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-200/80 flex items-center justify-center shrink-0">
+          <div class="w-7 h-7 rounded-md bg-blue-50 text-blue-700 border border-blue-200/70 flex items-center justify-center shrink-0">
             <UIcon name="i-solar-cpu-bolt-bold-duotone" class="w-4 h-4" />
           </div>
         </div>
-        <div class="text-3xl font-extrabold text-slate-900 tabular-nums">
+        <div class="text-3xl font-extrabold text-slate-900 tabular-nums font-mono">
           {{ formatNumberId(observability?.tokenStats30d.totalTokens) }}
         </div>
-        <div class="text-xs tabular-nums text-slate-600">
+        <div class="text-xs tabular-nums text-slate-600 font-mono">
           In: {{ formatNumberId(observability?.tokenStats30d.totalInputTokens) }} • Out:
           {{ formatNumberId(observability?.tokenStats30d.totalOutputTokens) }}
         </div>
       </div>
 
-      <div class="saas-card rounded-2xl p-5 space-y-2">
+      <div class="saas-card rounded-xl p-5 space-y-2">
         <div class="flex items-center justify-between gap-2">
           <span class="text-xs font-semibold text-slate-600">
             Antrean LLM Gagal
           </span>
-          <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 border border-amber-200/80 flex items-center justify-center shrink-0">
+          <div class="w-7 h-7 rounded-md bg-amber-50 text-amber-700 border border-amber-200/70 flex items-center justify-center shrink-0">
             <UIcon name="i-solar-refresh-circle-bold-duotone" class="w-4 h-4" />
           </div>
         </div>

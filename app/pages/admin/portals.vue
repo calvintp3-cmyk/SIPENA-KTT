@@ -155,12 +155,12 @@ const lastRunBadge = computed(() =>
     <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
       <div>
         <div
-          class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200/80 text-xs font-semibold"
+          class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200/80 text-xs font-semibold"
         >
-          <UIcon name="i-solar-globe-bold-duotone" class="w-3.5 h-3.5" />
+          <UIcon name="i-solar-globe-bold-duotone" class="w-3.5 h-3.5 text-blue-700" />
           <span>Cakupan Sumber Media &amp; Telemetri Portal</span>
         </div>
-        <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 text-balance mt-2">
+        <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 text-balance mt-2 font-display">
           Direktori Portal Regional Kaltara
         </h1>
         <p class="text-xs sm:text-sm text-slate-600 mt-0.5 text-pretty">
@@ -173,12 +173,12 @@ const lastRunBadge = computed(() =>
         <button
           type="button"
           :disabled="pending"
-          class="min-h-9 px-3.5 rounded-xl border border-slate-200 bg-white hover:border-indigo-300 hover:bg-slate-50 text-xs font-semibold text-slate-900 inline-flex items-center gap-1.5 shadow-2xs transition-colors disabled:opacity-50 cursor-pointer"
+          class="min-h-9 px-3.5 rounded-xl border border-slate-200 bg-white hover:border-blue-300 hover:bg-slate-50 text-xs font-semibold text-slate-900 inline-flex items-center gap-1.5 shadow-2xs transition-colors disabled:opacity-50 cursor-pointer"
           @click="() => { void refresh(); }"
         >
           <UIcon
             name="i-solar-restart-bold-duotone"
-            class="w-4 h-4 text-indigo-600"
+            class="w-4 h-4 text-blue-700"
             :class="{ 'animate-spin': pending }"
           />
           <span>Segarkan</span>
@@ -186,7 +186,7 @@ const lastRunBadge = computed(() =>
 
         <NuxtLink
           to="/admin/scrapers"
-          class="btn-primary-gradient min-h-9 px-4 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5"
+          class="btn-primary-gradient min-h-9 px-4 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 shadow-xs"
         >
           <UIcon name="i-solar-cpu-bolt-bold-duotone" class="w-4 h-4 text-emerald-200" />
           <span>Monitor Scraper &amp; AI</span>
@@ -212,32 +212,32 @@ const lastRunBadge = computed(() =>
     <!-- Loading Skeletons -->
     <div v-if="pending && !portalsData" class="space-y-4">
       <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        <div v-for="i in 4" :key="i" class="saas-card rounded-2xl p-5 space-y-2.5">
+        <div v-for="i in 4" :key="i" class="saas-card rounded-xl p-5 space-y-2.5">
           <div class="h-3 w-28 rounded bg-slate-200" />
           <div class="h-8 w-20 rounded bg-slate-200" />
           <div class="h-3 w-36 rounded bg-slate-100" />
         </div>
       </div>
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div v-for="i in 2" :key="i" class="saas-card rounded-2xl p-5 space-y-3 h-44" />
+        <div v-for="i in 2" :key="i" class="saas-card rounded-xl p-5 space-y-3 h-44" />
       </div>
     </div>
 
     <!-- Summary Metrics & Last Run Strip -->
     <div v-else-if="portalsData" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-      <div class="saas-card rounded-2xl p-5 space-y-2">
+      <div class="saas-card rounded-xl p-5 space-y-2">
         <div class="flex items-center justify-between gap-2">
           <span class="text-xs font-semibold text-slate-600">
             Portal Regional Aktif
           </span>
-          <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 border border-blue-200/80 flex items-center justify-center shrink-0">
+          <div class="w-7 h-7 rounded-md bg-blue-50 text-blue-700 border border-blue-200/70 flex items-center justify-center shrink-0">
             <UIcon name="i-solar-globe-bold-duotone" class="w-4 h-4" />
           </div>
         </div>
-        <div class="text-3xl font-extrabold tracking-tight text-slate-900 tabular-nums">
+        <div class="text-3xl font-extrabold tracking-tight text-slate-900 tabular-nums font-mono">
           {{ summaryStats.portalCount }}
         </div>
-        <div class="text-xs text-slate-600 tabular-nums">
+        <div class="text-xs text-slate-600 tabular-nums font-mono">
           {{
             summaryStats.errorPortals > 0
               ? `${summaryStats.errorPortals} portal punya log error`
@@ -246,16 +246,16 @@ const lastRunBadge = computed(() =>
         </div>
       </div>
 
-      <div class="saas-card rounded-2xl p-5 space-y-2">
+      <div class="saas-card rounded-xl p-5 space-y-2">
         <div class="flex items-center justify-between gap-2">
           <span class="text-xs font-semibold text-slate-600">
             Artikel Portal Regional
           </span>
-          <div class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-200/80 flex items-center justify-center shrink-0">
+          <div class="w-7 h-7 rounded-md bg-blue-50 text-blue-700 border border-blue-200/70 flex items-center justify-center shrink-0">
             <UIcon name="i-solar-documents-bold-duotone" class="w-4 h-4" />
           </div>
         </div>
-        <div class="text-3xl font-extrabold tracking-tight text-slate-900 tabular-nums">
+        <div class="text-3xl font-extrabold tracking-tight text-slate-900 tabular-nums font-mono">
           {{ formatNumberId(summaryStats.totalRegionalArticles) }}
         </div>
         <div class="text-xs text-slate-600 tabular-nums">

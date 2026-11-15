@@ -102,15 +102,15 @@ async function copyEntryCitation(entry: KbliConcordanceEntry) {
         <div class="flex items-center gap-2">
           <NuxtLink
             to="/admin/taxonomy"
-            class="text-xs font-semibold text-slate-500 hover:text-indigo-600 transition-colors"
+            class="text-xs font-semibold text-slate-500 hover:text-blue-700 transition-colors"
           >
             Kamus Taksonomi
           </NuxtLink>
           <span class="text-xs text-slate-400">/</span>
-          <span class="text-xs font-bold text-indigo-700">Matriks Konkordansi 4-Generasi</span>
+          <span class="text-xs font-bold text-blue-700">Matriks Konkordansi 4-Generasi</span>
         </div>
-        <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight mt-1 flex items-center gap-2">
-          <UIcon name="i-solar-route-bold-duotone" class="w-6 h-6 text-indigo-600" />
+        <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight mt-1 flex items-center gap-2 font-display">
+          <UIcon name="i-solar-route-bold-duotone" class="w-6 h-6 text-blue-700" />
           <span>Matriks Konkordansi KBLI (2009 ↔ 2015 ↔ 2020 ↔ 2025)</span>
         </h1>
         <p class="text-xs sm:text-sm text-slate-600 mt-1 max-w-3xl leading-relaxed">
@@ -123,7 +123,7 @@ async function copyEntryCitation(entry: KbliConcordanceEntry) {
       <div class="flex items-center gap-2 shrink-0">
         <NuxtLink
           to="/admin/taxonomy"
-          class="min-h-9 px-3.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 inline-flex items-center gap-1.5 transition-colors shadow-2xs"
+          class="min-h-9 px-3.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 inline-flex items-center gap-1.5 transition-colors shadow-2xs font-mono"
         >
           <UIcon name="i-solar-book-bookmark-bold-duotone" class="w-4 h-4 text-slate-500" />
           <span>Taksonomi Sektor</span>
@@ -132,18 +132,18 @@ async function copyEntryCitation(entry: KbliConcordanceEntry) {
     </div>
 
     <!-- Interactive Quick Converter Card -->
-    <div class="p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-indigo-50/90 via-white to-blue-50/70 border border-indigo-200/90 shadow-2xs space-y-4">
+    <div class="p-5 sm:p-6 rounded-xl bg-slate-50 border border-slate-200/90 shadow-2xs space-y-4">
       <div class="flex items-center justify-between flex-wrap gap-2">
         <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center shrink-0">
+          <div class="w-8 h-8 rounded-lg bg-blue-700 text-white flex items-center justify-center shrink-0">
             <UIcon name="i-solar-transfer-horizontal-bold-duotone" class="w-4 h-4" />
           </div>
           <div>
-            <h2 class="text-sm font-bold text-slate-900">Kalkulator Konversi Cepat KBLI Antar-Generasi</h2>
+            <h2 class="text-sm font-bold text-slate-900 font-display">Kalkulator Konversi Cepat KBLI Antar-Generasi</h2>
             <p class="text-[11px] text-slate-600">Pilih versi dan kategori untuk melihat padanan kode & judul di ketiga edisi lainnya.</p>
           </div>
         </div>
-        <span class="text-[10px] bg-indigo-100 text-indigo-800 font-extrabold px-2 py-0.5 rounded-full border border-indigo-200">
+        <span class="text-[10px] bg-blue-50 text-blue-700 font-extrabold px-2 py-0.5 rounded-full border border-blue-200 font-mono">
           Engine Konversi Aktif
         </span>
       </div>
@@ -153,7 +153,7 @@ async function copyEntryCitation(entry: KbliConcordanceEntry) {
           <label class="block text-[11px] font-bold text-slate-700 mb-1">Edisi KBLI Acuan</label>
           <select
             v-model="converterFromVersion"
-            class="w-full h-9 px-3 rounded-xl border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:border-indigo-500"
+            class="w-full h-9 px-3 rounded-xl border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-600 font-mono"
           >
             <option value="2025">KBLI 2025 (Terkini - 22 Kategori)</option>
             <option value="2020">KBLI 2020 (Transisi - 21 Kategori)</option>
@@ -166,7 +166,7 @@ async function copyEntryCitation(entry: KbliConcordanceEntry) {
           <label class="block text-[11px] font-bold text-slate-700 mb-1">Kategori Lapangan Usaha</label>
           <select
             v-model="converterCode"
-            class="w-full h-9 px-3 rounded-xl border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:border-indigo-500 truncate"
+            class="w-full h-9 px-3 rounded-xl border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-600 truncate font-mono"
           >
             <option
               v-for="item in KBLI_CONCORDANCE_ENTRIES"
@@ -180,28 +180,28 @@ async function copyEntryCitation(entry: KbliConcordanceEntry) {
       </div>
 
       <!-- Result Grid -->
-      <div v-if="convertedResults.entry" class="grid grid-cols-1 sm:grid-cols-4 gap-3 pt-2">
+      <div v-if="convertedResults.entry" class="grid grid-cols-1 sm:grid-cols-4 gap-3 pt-2 font-mono">
         <div
           v-for="m in convertedResults.mappings"
           :key="m.version"
           class="p-3 rounded-xl border transition-all"
-          :class="m.isCurrent ? 'bg-indigo-600 text-white border-indigo-700 shadow-sm' : 'bg-white text-slate-800 border-slate-200/90'"
+          :class="m.isCurrent ? 'bg-blue-700 text-white border-blue-800 shadow-xs' : 'bg-white text-slate-800 border-slate-200/90'"
         >
-          <div class="text-[10px] font-bold uppercase tracking-wider mb-1" :class="m.isCurrent ? 'text-indigo-200' : 'text-slate-500'">
+          <div class="text-[10px] font-bold uppercase tracking-wider mb-1" :class="m.isCurrent ? 'text-blue-100' : 'text-slate-500'">
             KBLI {{ m.version }} {{ m.isCurrent ? '(Sumber)' : '' }}
           </div>
           <div class="text-base font-extrabold mb-0.5">
             Kategori {{ m.code }}
           </div>
-          <div class="text-[11px] line-clamp-2 leading-snug" :class="m.isCurrent ? 'text-indigo-100' : 'text-slate-600'" :title="m.title">
+          <div class="text-[11px] line-clamp-2 leading-snug font-sans" :class="m.isCurrent ? 'text-blue-50' : 'text-slate-600'" :title="m.title">
             {{ m.title }}
           </div>
         </div>
       </div>
 
-      <div v-if="convertedResults.entry" class="p-3 bg-white/80 rounded-xl border border-indigo-100 text-xs text-slate-700 space-y-1">
-        <div class="flex items-center gap-1.5 font-bold text-indigo-900">
-          <UIcon name="i-solar-info-circle-bold-duotone" class="w-4 h-4 text-indigo-600 shrink-0" />
+      <div v-if="convertedResults.entry" class="p-3 bg-white rounded-xl border border-slate-200/90 text-xs text-slate-700 space-y-1">
+        <div class="flex items-center gap-1.5 font-bold text-blue-900 font-display">
+          <UIcon name="i-solar-info-circle-bold-duotone" class="w-4 h-4 text-blue-700 shrink-0" />
           <span>{{ convertedResults.entry.pdrb_sector_mapping }}</span>
         </div>
         <p class="text-[11px] text-slate-600 leading-relaxed">
@@ -216,7 +216,7 @@ async function copyEntryCitation(entry: KbliConcordanceEntry) {
         <button
           type="button"
           class="min-h-8 px-3 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
-          :class="filterType === 'ALL' ? 'bg-indigo-600 text-white shadow-2xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+          :class="filterType === 'ALL' ? 'bg-blue-700 text-white shadow-2xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
           @click="filterType = 'ALL'"
         >
           Semua (22 Kategori)

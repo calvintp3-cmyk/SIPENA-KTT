@@ -847,12 +847,12 @@ const manualModalOpen = ref(false);
       <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
           <div
-            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200/80 text-xs font-semibold"
+            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200/80 text-xs font-semibold"
           >
-            <UIcon name="i-solar-magic-stick-3-bold-duotone" class="w-3.5 h-3.5" />
+            <UIcon name="i-solar-magic-stick-3-bold-duotone" class="w-3.5 h-3.5 text-blue-700" />
             <span>Studio Rangkuman Fenomena Ekonomi</span>
           </div>
-          <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 text-balance mt-2">
+          <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 text-balance mt-2 font-display">
             Sintesis Fenomena Ekonomi — {{ periodLabel }}
           </h1>
           <p class="text-xs sm:text-sm text-slate-600 mt-0.5 text-pretty">
@@ -863,17 +863,17 @@ const manualModalOpen = ref(false);
         <div class="flex flex-wrap items-center gap-2.5">
           <button
             type="button"
-            class="min-h-9 px-3.5 rounded-xl border border-slate-200 bg-white hover:border-indigo-300 hover:bg-slate-50 text-xs font-semibold text-slate-900 inline-flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
+            class="min-h-9 px-3.5 rounded-xl border border-slate-200 bg-white hover:border-blue-300 hover:bg-slate-50 text-xs font-semibold text-slate-900 inline-flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
             @click="() => { draftsDrawerOpen = true; }"
           >
-            <UIcon name="i-solar-history-2-bold-duotone" class="w-4 h-4 text-indigo-600" />
-            <span class="tabular-nums">Riwayat Draf ({{ savedDrafts.length }})</span>
+            <UIcon name="i-solar-history-2-bold-duotone" class="w-4 h-4 text-blue-700" />
+            <span class="tabular-nums font-mono">Riwayat Draf ({{ savedDrafts.length }})</span>
           </button>
 
           <button
             type="button"
             :disabled="isGenerating || checkedIds.length === 0"
-            class="btn-primary-gradient min-h-9 px-4 rounded-xl text-xs font-semibold inline-flex items-center gap-2 cursor-pointer"
+            class="btn-primary-gradient min-h-9 px-4 rounded-xl text-xs font-semibold inline-flex items-center gap-2 cursor-pointer shadow-xs"
             @click="() => { requestGenerateNarrative(); }"
           >
             <UIcon
@@ -887,7 +887,7 @@ const manualModalOpen = ref(false);
       </div>
 
       <!-- Studio Parameter Controls (No button wrapping/clipping) -->
-      <div class="saas-card rounded-2xl p-4 sm:p-5 grid grid-cols-1 md:grid-cols-12 gap-3.5 items-end">
+      <div class="saas-card rounded-xl p-4 sm:p-5 grid grid-cols-1 md:grid-cols-12 gap-3.5 items-end">
         <div class="md:col-span-3 space-y-1.5">
           <span class="block text-xs font-semibold text-slate-600">
             Dimensi PDRB
@@ -895,7 +895,7 @@ const manualModalOpen = ref(false);
           <div
             role="group"
             aria-label="Pilih dimensi sintesis"
-            class="grid grid-cols-2 p-1 bg-slate-100 rounded-xl border border-slate-200/90 gap-1"
+            class="grid grid-cols-2 p-1 bg-slate-100 rounded-xl border border-slate-200/90 gap-1 font-mono"
           >
             <button
               type="button"
@@ -903,7 +903,7 @@ const manualModalOpen = ref(false);
               class="min-h-8 py-1.5 px-2 rounded-lg text-xs transition-colors cursor-pointer"
               :class="
                 dimension === 'kbli'
-                  ? 'bg-white font-bold text-indigo-700 shadow-2xs border border-indigo-200/70'
+                  ? 'bg-white font-bold text-blue-700 shadow-2xs border border-blue-200/70'
                   : 'text-slate-600 hover:text-slate-950 font-medium'
               "
               @click="() => { requestDimensionChange('kbli'); }"

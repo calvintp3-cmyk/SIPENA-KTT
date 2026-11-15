@@ -313,7 +313,7 @@ const activeFilterChips = computed(() => {
     chips.push({
       key: 'q',
       label: `Cari: "${debouncedSearch.value}"`,
-      dotClass: 'bg-indigo-600',
+      dotClass: 'bg-blue-700',
       clear: () => {
         searchInput.value = '';
         debouncedSearch.value = '';
@@ -378,7 +378,7 @@ const activeFilterChips = computed(() => {
     chips.push({
       key: 'dateRange',
       label: `Rentang: ${customDateRangeLabel.value}`,
-      dotClass: 'bg-indigo-600',
+      dotClass: 'bg-blue-700',
       clear: () => {
         selectedDateFrom.value = '';
         selectedDateTo.value = '';
@@ -525,7 +525,7 @@ function openDetailModal(article: PublicArticleItem) {
     <!-- Top Editorial Command Header (Cobalt-Emerald Luminous Surface) -->
     <section
       aria-label="Kontrol Periode dan Ringkasan Linimasa"
-      class="saas-card rounded-2xl p-5 sm:p-7 relative overflow-hidden"
+      class="saas-card rounded-xl p-5 sm:p-7 relative overflow-hidden"
     >
       <div class="flex flex-col gap-5">
         <!-- Title Row & View Switcher -->
@@ -533,21 +533,21 @@ function openDetailModal(article: PublicArticleItem) {
           <div class="space-y-2 max-w-3xl">
             <div class="flex flex-wrap items-center gap-2">
               <span
-                class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 text-indigo-800 border border-indigo-200/80 text-xs font-semibold"
+                class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-blue-800 border border-blue-200/80 text-xs font-semibold font-mono"
               >
-                <UIcon name="i-solar-calendar-search-bold-duotone" class="w-3.5 h-3.5 text-indigo-600" />
+                <UIcon name="i-solar-calendar-search-bold-duotone" class="w-3.5 h-3.5 text-blue-700" />
                 <span>Linimasa Fenomena Ekonomi • {{ currentPeriodLabel }}</span>
               </span>
 
               <span
-                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200/80 text-xs font-semibold tabular-nums"
+                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200/80 text-xs font-semibold tabular-nums font-mono"
               >
                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-600" />
                 <span>{{ formatNumberId(overview?.kpi.totalVerified ?? 0) }} Terverifikasi</span>
               </span>
             </div>
 
-            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 leading-tight">
+            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 leading-tight font-display">
               Portal Fenomena PDRB Kabupaten Tana Tidung
             </h1>
 
@@ -562,7 +562,7 @@ function openDetailModal(article: PublicArticleItem) {
             <div
               role="group"
               aria-label="Mode Tampilan Linimasa"
-              class="inline-flex p-1 rounded-xl bg-slate-100/95 border border-slate-200/90"
+              class="inline-flex p-1 rounded-xl bg-slate-100/95 border border-slate-200/90 font-display"
             >
               <button
                 type="button"
@@ -570,7 +570,7 @@ function openDetailModal(article: PublicArticleItem) {
                 class="min-h-9 px-3.5 py-1.5 rounded-lg text-xs inline-flex items-center gap-1.5 transition-colors cursor-pointer"
                 :class="
                   viewMode === 'stream'
-                    ? 'bg-white text-indigo-700 font-semibold shadow-2xs border border-indigo-200/70'
+                    ? 'bg-white text-blue-700 font-semibold shadow-2xs border border-blue-200/70'
                     : 'text-slate-600 hover:text-slate-950 font-medium'
                 "
                 @click="() => { viewMode = 'stream'; }"
@@ -584,7 +584,7 @@ function openDetailModal(article: PublicArticleItem) {
                 class="min-h-9 px-3.5 py-1.5 rounded-lg text-xs inline-flex items-center gap-1.5 transition-colors cursor-pointer"
                 :class="
                   viewMode === 'table'
-                    ? 'bg-white text-indigo-700 font-semibold shadow-2xs border border-indigo-200/70'
+                    ? 'bg-white text-blue-700 font-semibold shadow-2xs border border-blue-200/70'
                     : 'text-slate-600 hover:text-slate-950 font-medium'
                 "
                 @click="() => { viewMode = 'table'; }"
@@ -626,7 +626,7 @@ function openDetailModal(article: PublicArticleItem) {
                     leading-icon="i-solar-calendar-bold-duotone"
                     size="xs"
                     aria-label="Tahun PDRB"
-                    class="w-full font-semibold"
+                    class="w-full font-semibold font-mono"
                     @update:model-value="(val: unknown) => handlePeriodChange(Number(val), selectedQuarter)"
                   />
                 </div>
@@ -645,7 +645,7 @@ function openDetailModal(article: PublicArticleItem) {
               <div
                 role="group"
                 aria-label="Pilih Triwulan"
-                class="inline-flex items-center gap-1 pl-2.5"
+                class="inline-flex items-center gap-1 pl-2.5 font-mono"
               >
                 <button
                   v-for="qBtn in quarterButtons"
@@ -655,7 +655,7 @@ function openDetailModal(article: PublicArticleItem) {
                   class="min-h-8 px-2.5 py-1 rounded-lg text-xs transition-colors tabular-nums cursor-pointer"
                   :class="
                     selectedQuarter === qBtn.value
-                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold shadow-xs'
+                      ? 'bg-blue-700 text-white font-semibold shadow-2xs'
                       : 'text-slate-600 hover:text-slate-950 font-medium'
                   "
                   :title="`${qBtn.label} (${qBtn.range})`"
@@ -667,7 +667,7 @@ function openDetailModal(article: PublicArticleItem) {
             </div>
 
             <!-- Dynamic Period Disclosure Label (State Hierarchy: Date Range Override vs Standard Quarter) -->
-            <div class="hidden sm:inline-flex items-center gap-2">
+            <div class="hidden sm:inline-flex items-center gap-2 font-mono">
               <span
                 v-if="!hasCustomDateRange"
                 class="text-xs text-slate-700 font-semibold"
@@ -677,13 +677,13 @@ function openDetailModal(article: PublicArticleItem) {
 
               <div
                 v-else
-                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-50 border border-indigo-200/80 text-xs font-semibold text-indigo-900"
+                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-50 border border-blue-200/80 text-xs font-semibold text-blue-900"
               >
-                <UIcon name="i-solar-calendar-bold-duotone" class="w-3.5 h-3.5 text-indigo-600" />
+                <UIcon name="i-solar-calendar-bold-duotone" class="w-3.5 h-3.5 text-blue-700" />
                 <span>Rentang Khusus: {{ customDateRangeLabel }}</span>
                 <button
                   type="button"
-                  class="ml-1 text-indigo-500 hover:text-indigo-800 cursor-pointer"
+                  class="ml-1 text-blue-500 hover:text-blue-800 cursor-pointer"
                   title="Hapus rentang kustom & kembali ke Triwulan murni"
                   @click="() => { selectedDateFrom = ''; selectedDateTo = ''; page = 1; }"
                 >

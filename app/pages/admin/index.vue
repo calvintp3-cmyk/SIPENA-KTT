@@ -107,8 +107,8 @@ function handleExportXlsx() {
 function heatmapCellClass(val: number): string {
   if (val <= 0) return 'bg-slate-50/80 text-slate-300';
   if (val <= 2) return 'bg-blue-50 text-blue-800 border border-blue-200/70 hover:bg-blue-100 font-semibold';
-  if (val <= 5) return 'bg-indigo-100 text-indigo-900 border border-indigo-200 hover:bg-indigo-200 font-bold';
-  return 'bg-gradient-to-br from-blue-600 to-indigo-600 text-white font-bold shadow-2xs hover:brightness-110';
+  if (val <= 5) return 'bg-blue-100 text-blue-900 border border-blue-300 hover:bg-blue-200 font-bold';
+  return 'bg-blue-700 text-white font-bold shadow-2xs hover:bg-blue-800';
 }
 
 const coverageChartOption = computed<ECOption | null>(() => {
@@ -210,12 +210,12 @@ const shortExpHeaders: Record<string, string> = {
     <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
       <div>
         <div
-          class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200/80 text-xs font-semibold"
+          class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200/80 text-xs font-semibold"
         >
-          <UIcon name="i-solar-radar-2-bold-duotone" class="w-3.5 h-3.5" />
+          <UIcon name="i-solar-radar-2-bold-duotone" class="w-3.5 h-3.5 text-blue-700" />
           <span>Analitik &amp; Kelengkapan Bukti Sektoral</span>
         </div>
-        <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 text-balance mt-2">
+        <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 text-balance mt-2 font-display">
           Dashboard &amp; Gap Sektoral — {{ periodLabel }}
         </h1>
         <p class="text-xs sm:text-sm text-slate-600 mt-0.5 text-pretty">
@@ -228,7 +228,7 @@ const shortExpHeaders: Record<string, string> = {
         <button
           type="button"
           :disabled="isExporting"
-          class="min-h-9 px-3.5 rounded-xl border border-slate-200 bg-white hover:border-indigo-300 hover:bg-slate-50 text-xs font-semibold text-slate-900 inline-flex items-center gap-1.5 shadow-2xs transition-colors disabled:opacity-50 cursor-pointer"
+          class="min-h-9 px-3.5 rounded-xl border border-slate-200 bg-white hover:border-blue-300 hover:bg-slate-50 text-xs font-semibold text-slate-900 inline-flex items-center gap-1.5 shadow-2xs transition-colors disabled:opacity-50 cursor-pointer"
           @click="() => { handleExportXlsx(); }"
         >
           <UIcon name="i-solar-download-bold-duotone" class="w-4 h-4 text-emerald-700" />
@@ -237,7 +237,7 @@ const shortExpHeaders: Record<string, string> = {
 
         <button
           type="button"
-          class="btn-primary-gradient min-h-9 px-4 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer"
+          class="btn-primary-gradient min-h-9 px-4 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer shadow-xs"
           @click="() => { openManualForSector(null); }"
         >
           <UIcon name="i-solar-add-circle-bold-duotone" class="w-4 h-4 text-emerald-200" />
@@ -263,7 +263,7 @@ const shortExpHeaders: Record<string, string> = {
 
     <!-- 4-Card KPI Bento Grid -->
     <div v-if="pending && !dashData" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-      <div v-for="i in 4" :key="i" class="saas-card rounded-2xl p-5 space-y-2.5">
+      <div v-for="i in 4" :key="i" class="saas-card rounded-xl p-5 space-y-2.5">
         <div class="h-3 w-28 rounded bg-slate-200" />
         <div class="h-8 w-20 rounded bg-slate-200" />
         <div class="h-3 w-36 rounded bg-slate-100" />
@@ -272,19 +272,19 @@ const shortExpHeaders: Record<string, string> = {
 
     <div v-else-if="dashData" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
       <!-- KPI 1 -->
-      <div class="saas-card rounded-2xl p-5 space-y-2.5">
+      <div class="saas-card rounded-xl p-5 space-y-2.5">
         <div class="flex items-center justify-between gap-2">
           <span class="text-xs font-semibold text-slate-600">
             Bukti Terverifikasi
           </span>
-          <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 border border-blue-200/80 flex items-center justify-center shrink-0">
+          <div class="w-7 h-7 rounded-md bg-blue-50 text-blue-700 border border-blue-200/70 flex items-center justify-center shrink-0">
             <UIcon name="i-solar-check-circle-bold-duotone" class="w-4 h-4" />
           </div>
         </div>
-        <div class="text-3xl font-extrabold tracking-tight text-slate-900 tabular-nums">
+        <div class="text-3xl font-extrabold tracking-tight text-slate-900 tabular-nums font-mono">
           {{ formatNumberId(dashData.kpi.totalVerifiedPeriod) }}
         </div>
-        <div class="text-xs text-slate-600 flex items-center gap-1.5 flex-wrap">
+        <div class="text-xs text-slate-600 flex items-center gap-1.5 flex-wrap font-mono">
           <span
             v-if="dashData.kpi.deltaPercent !== null"
             class="px-2 py-0.5 rounded-full text-[11px] font-bold tabular-nums border"
@@ -298,27 +298,27 @@ const shortExpHeaders: Record<string, string> = {
           >
             {{ dashData.kpi.deltaPercent > 0 ? '+' : '' }}{{ dashData.kpi.deltaPercent }}%
           </span>
-          <span class="tabular-nums">vs {{ dashData.period.previousLabel }} ({{ dashData.kpi.previousTotalVerified }})</span>
+          <span class="tabular-nums font-sans text-slate-500">vs {{ dashData.period.previousLabel }} ({{ dashData.kpi.previousTotalVerified }})</span>
         </div>
       </div>
 
       <!-- KPI 2 -->
-      <div class="saas-card rounded-2xl p-5 space-y-2.5">
+      <div class="saas-card rounded-xl p-5 space-y-2.5">
         <div class="flex items-center justify-between gap-2">
           <span class="text-xs font-semibold text-slate-600">
             Cakupan 17 Sektor PDRB
           </span>
-          <div class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-200/80 flex items-center justify-center shrink-0">
+          <div class="w-7 h-7 rounded-md bg-blue-50 text-blue-700 border border-blue-200/70 flex items-center justify-center shrink-0">
             <UIcon name="i-solar-layers-minimalistic-bold-duotone" class="w-4 h-4" />
           </div>
         </div>
-        <div class="text-3xl font-extrabold tracking-tight text-slate-900 tabular-nums">
+        <div class="text-3xl font-extrabold tracking-tight text-slate-900 tabular-nums font-mono">
           {{ dashData.kpi.coveredSectors }}
-          <span class="text-base font-semibold text-slate-500">/ {{ dashData.kpi.totalSectors }}</span>
+          <span class="text-base font-semibold text-slate-500 font-sans">/ {{ dashData.kpi.totalSectors }}</span>
         </div>
         <div class="text-xs flex items-center gap-1.5">
           <span
-            class="px-2 py-0.5 rounded-full text-[11px] font-semibold border tabular-nums"
+            class="px-2 py-0.5 rounded-full text-[11px] font-semibold border tabular-nums font-mono"
             :class="
               dashData.kpi.gapSectorsCount > 0
                 ? 'bg-rose-50 text-rose-700 border-rose-200'
@@ -335,48 +335,48 @@ const shortExpHeaders: Record<string, string> = {
       </div>
 
       <!-- KPI 3 -->
-      <div class="saas-card rounded-2xl p-5 space-y-2.5">
+      <div class="saas-card rounded-xl p-5 space-y-2.5">
         <div class="flex items-center justify-between gap-2">
           <span class="text-xs font-semibold text-slate-600">
             Antrean Kurasi Pending
           </span>
-          <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 border border-amber-200/80 flex items-center justify-center shrink-0">
+          <div class="w-7 h-7 rounded-md bg-amber-50 text-amber-700 border border-amber-200/70 flex items-center justify-center shrink-0">
             <UIcon name="i-solar-inbox-in-bold-duotone" class="w-4 h-4" />
           </div>
         </div>
-        <div class="text-3xl font-extrabold tracking-tight text-slate-900 tabular-nums">
+        <div class="text-3xl font-extrabold tracking-tight text-slate-900 tabular-nums font-mono">
           {{ formatNumberId(dashData.kpi.pendingQueueCount) }}
         </div>
         <div class="flex items-center justify-between gap-2 text-xs">
           <span
             v-if="dashData.kpi.llmFailedCount > 0"
-            class="text-xs text-rose-700 font-semibold tabular-nums"
+            class="text-xs text-rose-700 font-semibold tabular-nums font-mono"
           >
             {{ dashData.kpi.llmFailedCount }} AI Gagal
           </span>
           <span v-else class="text-slate-600">Pipeline AI Normal</span>
-          <NuxtLink to="/admin/review" class="text-indigo-700 hover:text-indigo-900 hover:underline font-semibold">
+          <NuxtLink to="/admin/review" class="text-blue-700 hover:text-blue-900 hover:underline font-semibold">
             Kurasi →
           </NuxtLink>
         </div>
       </div>
 
       <!-- KPI 4 -->
-      <div class="saas-card rounded-2xl p-5 space-y-2.5">
+      <div class="saas-card rounded-xl p-5 space-y-2.5">
         <div class="flex items-center justify-between gap-2">
           <span class="text-xs font-semibold text-slate-600">
             Sinyal Ekspansi Riil
           </span>
-          <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200/80 flex items-center justify-center shrink-0">
+          <div class="w-7 h-7 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200/70 flex items-center justify-center shrink-0">
             <UIcon name="i-solar-graph-new-up-bold-duotone" class="w-4 h-4" />
           </div>
         </div>
-        <div class="text-3xl font-extrabold tracking-tight text-emerald-700 tabular-nums">
+        <div class="text-3xl font-extrabold tracking-tight text-emerald-700 tabular-nums font-mono">
           {{ dashData.kpi.expansionPercent }}%
         </div>
         <div class="text-xs text-slate-600 flex items-center justify-between gap-2">
           <span>Proporsi Naik NTB</span>
-          <NuxtLink to="/admin/synthesis" class="text-indigo-700 hover:text-indigo-900 hover:underline font-semibold">
+          <NuxtLink to="/admin/synthesis" class="text-blue-700 hover:text-blue-900 hover:underline font-semibold">
             Buka Sintesis →
           </NuxtLink>
         </div>
@@ -385,7 +385,7 @@ const shortExpHeaders: Record<string, string> = {
 
     <!-- SECTION A: 17-SECTOR GAP DETECTOR + ECHARTS OVERVIEW -->
     <section v-if="dashData" aria-label="Detector Data Gap 17 Sektor KBLI" class="space-y-4">
-      <div class="saas-card rounded-2xl p-5 grid grid-cols-1 lg:grid-cols-12 gap-5 items-center">
+      <div class="saas-card rounded-xl p-5 grid grid-cols-1 lg:grid-cols-12 gap-5 items-center">
         <div class="lg:col-span-4">
           <SharedAppChart
             :option="coverageChartOption"
@@ -399,7 +399,7 @@ const shortExpHeaders: Record<string, string> = {
 
         <div class="lg:col-span-8 space-y-3.5">
           <div>
-            <h2 class="text-base font-extrabold text-slate-900 text-balance">
+            <h2 class="text-base font-extrabold text-slate-900 text-balance font-display">
               Radar Kelengkapan 17 Lapangan Usaha PDRB
             </h2>
             <p class="text-xs sm:text-sm text-slate-600 mt-0.5 leading-relaxed text-pretty">
@@ -412,7 +412,7 @@ const shortExpHeaders: Record<string, string> = {
           <div
             role="group"
             aria-label="Filter status kelengkapan 17 sektor"
-            class="inline-flex flex-wrap p-1 bg-slate-100 rounded-xl border border-slate-200/90 gap-1"
+            class="inline-flex flex-wrap p-1 bg-slate-100 rounded-xl border border-slate-200/90 gap-1 font-mono"
           >
             <button
               type="button"
@@ -420,7 +420,7 @@ const shortExpHeaders: Record<string, string> = {
               class="min-h-8 px-3 py-1 rounded-lg text-xs tabular-nums transition-colors cursor-pointer"
               :class="
                 tileFilter === 'all'
-                  ? 'bg-white text-indigo-700 font-bold shadow-2xs border border-indigo-200/70'
+                  ? 'bg-white text-blue-700 font-bold shadow-2xs border border-blue-200/70'
                   : 'text-slate-600 hover:text-slate-950 font-medium'
               "
               @click="() => { tileFilter = 'all'; }"
@@ -474,17 +474,17 @@ const shortExpHeaders: Record<string, string> = {
         <div
           v-for="tile in filteredGapTiles"
           :key="tile.groupCode"
-          class="rounded-2xl p-4 flex flex-col justify-between gap-3 transition-colors relative overflow-hidden"
+          class="rounded-xl p-4 flex flex-col justify-between gap-3 transition-colors relative overflow-hidden"
           :class="
             tile.isGap
-              ? 'bg-rose-50/35 border border-dashed border-rose-300/90 shadow-2xs'
+              ? 'bg-rose-50/40 border border-rose-200/80 shadow-2xs'
               : 'saas-card saas-card-interactive'
           "
         >
           <div class="space-y-2.5">
             <div class="flex items-center justify-between gap-2">
               <span
-                class="text-[11px] font-bold px-2.5 py-0.5 rounded-full border"
+                class="text-[11px] font-bold px-2.5 py-0.5 rounded-full border font-mono"
                 :class="
                   tile.isGap
                     ? 'bg-rose-50 text-rose-800 border-rose-200'
@@ -502,19 +502,19 @@ const shortExpHeaders: Record<string, string> = {
               </span>
               <span
                 v-else-if="tile.isThin"
-                class="px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200 text-[11px] font-bold tabular-nums"
+                class="px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200 text-[11px] font-bold tabular-nums font-mono"
               >
                 Tipis • {{ tile.count }}
               </span>
               <span
                 v-else
-                class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-[11px] font-bold tabular-nums"
+                class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-[11px] font-bold tabular-nums font-mono"
               >
                 {{ tile.count }} Bukti ({{ tile.sharePercent }}%)
               </span>
             </div>
 
-            <h3 class="text-sm font-bold text-slate-900 leading-snug">
+            <h3 class="text-sm font-bold text-slate-900 leading-snug font-display">
               {{ tile.shortName }}
             </h3>
 
@@ -545,7 +545,7 @@ const shortExpHeaders: Record<string, string> = {
           <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2">
             <button
               type="button"
-              class="min-h-8 inline-flex items-center gap-1 text-xs font-semibold text-indigo-700 hover:text-indigo-900 hover:underline cursor-pointer"
+              class="min-h-8 inline-flex items-center gap-1 text-xs font-semibold text-blue-700 hover:text-blue-900 hover:underline cursor-pointer"
               @click="() => { openManualForSector(tile.primaryKbliCode); }"
             >
               <UIcon name="i-solar-add-circle-bold-duotone" class="w-4 h-4" />
@@ -567,7 +567,7 @@ const shortExpHeaders: Record<string, string> = {
     <!-- SECTION B: 17 x 6 CROSS-AXIS HEATMAP MATRIX -->
     <section v-if="dashData" aria-label="Heatmap Matriks Silang KBLI dan Pengeluaran" class="space-y-3">
       <div>
-        <h2 class="text-base font-extrabold text-slate-900 text-balance">
+        <h2 class="text-base font-extrabold text-slate-900 text-balance font-display">
           Matriks Silang 17 Sektor KBLI × 6 Komponen Pengeluaran
         </h2>
         <p class="text-xs text-slate-600">
@@ -575,7 +575,7 @@ const shortExpHeaders: Record<string, string> = {
         </p>
       </div>
 
-      <div class="saas-card rounded-2xl overflow-hidden">
+      <div class="saas-card rounded-xl overflow-hidden">
         <div
           tabindex="0"
           role="region"
