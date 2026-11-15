@@ -768,11 +768,12 @@ async function executeLockedScrapePipeline(
 
             let currentPageUrl = extracted.nextFullPageUrl;
             let pageIter = 0;
+            const MAX_ARTICLE_PAGINATION_DEPTH = 10;
             const visitedPageUrls = new Set<string>([rawFinalUrl]);
 
             while (
               currentPageUrl &&
-              pageIter < 3 &&
+              pageIter < MAX_ARTICLE_PAGINATION_DEPTH &&
               !visitedPageUrls.has(currentPageUrl) &&
               isSameDomainHost(currentPageUrl, rawFinalUrl) &&
               hasRemainingBudget(400)
