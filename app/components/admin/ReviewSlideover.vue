@@ -10,6 +10,12 @@ import {
 } from '#shared/enums/pdrb';
 import { formatDateTimeWita, getCurrentQuarterYearWita, type PdrbQuarter } from '#shared/utils/period';
 import type { AdminArticleItem } from '~/types/sipena';
+import { parseEconomicSnippetSegments } from '~/utils/snippetHighlight';
+
+const fullSnippetModalOpen = ref(false);
+const highlightedSnippetSegments = computed(() =>
+  parseEconomicSnippetSegments(props.article?.snippetText || ''),
+);
 
 const props = withDefaults(
   defineProps<{
@@ -373,13 +379,23 @@ async function submitUpdate(action: 'VERIFIED' | 'IGNORED' | 'DRAFT') {
 
         <!-- Cuplikan Teks Asli (Word Threshold Buffer) -->
         <div class="space-y-1.5">
-          <div class="flex items-center justify-between">
+          <div class="flex items-center justify-between gap-2">
             <span id="slideover-snippet-label" class="text-xs font-semibold text-slate-600">
               Cuplikan Teks Asli (Verifikasi Konten)
             </span>
-            <span class="text-xs font-semibold tabular-nums text-slate-600">
-              {{ snippetWordCount }} kata
-            </span>
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-semibold tabular-nums text-slate-600">
+                {{ snippetWordCount }} kata
+              </span>
+              <button
+                type="button"
+                class="inline-flex items-center gap-1 min-h-7 px-2 rounded-lg text-[11px] font-semibold text-blue-700 hover:bg-blue-50 transition-colors cursor-pointer"
+                @click="() => { fullSnippetModalOpen = true; }"
+              >
+                <UIcon name="i-solar-maximize-square-2-linear" class="w-3.5 h-3.5" />
+                <span>Baca Penuh</span>
+              </button>
+            </div>
           </div>
           <UTextarea
             id="slideover-snippet-textarea"
@@ -626,4 +642,27 @@ async function submitUpdate(action: 'VERIFIED' | 'IGNORED' | 'DRAFT') {
       </div>
     </template>
   </USlideover>
+
+  <UModal
+    v-model:open="fullSnippetModalOpen"
+    :title="article?.title || 'Teks Sumber Lengkap'"
+    :description="article ? `${article.sourcePortal} • ${formatDateTimeWita(article.publishedAt)}` : ''"
+    :ui="{ content: 'max-w-2xl' }"
+  >
+    <template #body>
+      <div class="max-h-[60vh] overflow-y-auto saas-scroll rounded-xl bg-slate-50 border border-slate-200 p-4 text-sm text-slate-800 leading-relaxed whitespace-pre-line">
+        <template v-for="(seg, idx) in highlightedSnippetSegments" :key="idx">
+          <mark
+            v-if="seg.kind === 'location'"
+            class="bg-blue-100/90 text-blue-900 px-1 rounded font-semibold"
+          >{{ seg.text }}</mark>
+          <mark
+            v-else-if="seg.kind === 'metric'"
+            class="bg-amber-100/90 text-amber-900 px-1 rounded font-mono font-semibold"
+          >{{ seg.text }}</mark>
+          <template v-else>{{ seg.text }}</template>
+        </template>
+      </div>
+    </template>
+  </UModal>
 </template>

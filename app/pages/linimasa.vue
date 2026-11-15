@@ -700,19 +700,17 @@ function openDetailModal(article: PublicArticleItem) {
 
     <!-- Mobile Search & Filter Trigger (< lg) — Prioritized above analytics -->
     <div class="lg:hidden flex items-center gap-2.5">
-      <div class="relative flex-1">
-        <UIcon
-          name="i-solar-magnifer-line-duotone"
-          class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none"
-        />
+      <div class="flex-1">
         <label for="mobile-linimasa-search" class="sr-only">Cari fenomena ekonomi</label>
-        <input
+        <UInput
           id="mobile-linimasa-search"
           v-model="searchInput"
           type="search"
+          size="md"
+          leading-icon="i-solar-magnifer-line-duotone"
           placeholder="Cari komoditas, sektor, atau judul..."
-          class="w-full h-11 pl-9 pr-3 rounded-xl bg-white border border-slate-200 text-xs text-slate-900 placeholder:text-slate-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/15"
-        >
+          class="w-full"
+        />
       </div>
 
       <button

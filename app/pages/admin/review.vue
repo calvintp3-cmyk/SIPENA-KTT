@@ -16,6 +16,7 @@ import {
   type PdrbQuarter,
 } from '#shared/utils/period';
 import type { AdminArticleItem, AdminArticlesResponse } from '~/types/sipena';
+import { parseEconomicSnippetSegments } from '~/utils/snippetHighlight';
 
 definePageMeta({
   layout: 'admin',
@@ -689,25 +690,90 @@ const statusTabs = computed(() => {
     },
   ];
 });
+
+const fullSnippetModalOpen = ref(false);
+const highlightedSnippetSegments = computed(() =>
+  parseEconomicSnippetSegments(inspectedArticle.value?.snippetText || ''),
+);
+
+function isEditableTarget(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) return false;
+  const tag = target.tagName;
+  return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || target.isContentEditable;
+}
+
+function moveInspectedRow(delta: number) {
+  const rows = currentRows.value;
+  if (!rows.length) return;
+  const currentIdx = inspectedArticle.value
+    ? rows.findIndex((r: AdminArticleItem) => r.id === inspectedArticle.value?.id)
+    : -1;
+  const nextIdx =
+    currentIdx === -1
+      ? delta > 0
+        ? 0
+        : rows.length - 1
+      : Math.max(0, Math.min(rows.length - 1, currentIdx + delta));
+  const nextRow = rows[nextIdx];
+  if (nextRow) {
+    selectArticleForInspection(nextRow);
+  }
+}
+
+function handleReviewKeydown(e: KeyboardEvent) {
+  if (fullSnippetModalOpen.value || drawerOpen.value) return;
+
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+    if (inspectedArticle.value && inspectorSubmitting.value === null) {
+      e.preventDefault();
+      void submitInspectorAction('VERIFIED');
+    }
+    return;
+  }
+
+  if (e.altKey && e.key.toLowerCase() === 'i') {
+    if (inspectedArticle.value && inspectorSubmitting.value === null) {
+      e.preventDefault();
+      void submitInspectorAction('IGNORED');
+    }
+    return;
+  }
+
+  if (isEditableTarget(e.target) || e.ctrlKey || e.metaKey || e.altKey) return;
+
+  if (e.key === 'j' || e.key === 'J' || e.key === 'ArrowDown') {
+    e.preventDefault();
+    moveInspectedRow(1);
+  } else if (e.key === 'k' || e.key === 'K' || e.key === 'ArrowUp') {
+    e.preventDefault();
+    moveInspectedRow(-1);
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', handleReviewKeydown);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', handleReviewKeydown);
+});
 </script>
 
 <template>
-  <div class="space-y-4 pb-4">
-    <!-- Page Header & Filter Bar -->
-    <div class="space-y-4">
-      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+  <div class="space-y-3 pb-4">
+    <!-- Page Header & Filter Bar (Compacted for maximum workbench height) -->
+    <div class="space-y-3">
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
         <div>
-          <div
-            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200/80 text-xs font-semibold"
-          >
-            <UIcon name="i-solar-inbox-in-bold-duotone" class="w-3.5 h-3.5 text-blue-700" />
-            <span>Kurasi &amp; Validasi Harian Nerwilis</span>
-          </div>
-          <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 text-balance mt-2 font-display">
+          <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 text-balance font-display">
             Review Harian Fenomena Ekonomi
           </h1>
-          <p class="text-xs sm:text-sm text-slate-600 mt-0.5 text-pretty">
-            Audit hasil klasifikasi AI dan lengkapi pemetaan dua sisi PDRB sebelum ditayangkan ke publik.
+          <p class="text-xs text-slate-600 mt-0.5 text-pretty flex flex-wrap items-center gap-1.5">
+            <span>Audit klasifikasi AI dan pemetaan dua sisi PDRB sebelum ditayangkan.</span>
+            <span aria-hidden="true" class="text-slate-300">•</span>
+            <span class="font-medium text-slate-700">
+              {{ periodScope === 'period' ? `Khusus ${shortPeriodLabel}` : 'Lintas semua periode' }}
+            </span>
           </p>
         </div>
 
@@ -766,34 +832,6 @@ const statusTabs = computed(() => {
         </div>
       </div>
 
-      <!-- Scope clarity strip -->
-      <div class="rounded-xl border border-slate-200/80 bg-slate-50/70 px-3.5 py-2 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600">
-        <span>
-          <strong class="text-slate-900">Cakupan aktif:</strong>
-          {{
-            periodScope === 'period'
-              ? `Menampilkan antrean khusus periode ${shortPeriodLabel}.`
-              : `Menampilkan seluruh periode (penghitung tab mencerminkan total antrean lintas triwulan).`
-          }}
-        </span>
-        <button
-          v-if="periodScope === 'all'"
-          type="button"
-          class="text-blue-700 hover:text-blue-900 font-semibold hover:underline cursor-pointer"
-          @click="() => { periodScope = 'period'; }"
-        >
-          Fokus ke {{ shortPeriodLabel }}
-        </button>
-        <button
-          v-else
-          type="button"
-          class="text-blue-700 hover:text-blue-900 font-semibold hover:underline cursor-pointer"
-          @click="() => { periodScope = 'all'; }"
-        >
-          Lihat Semua Periode
-        </button>
-      </div>
-
       <!-- Status Tabs & Search -->
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div
@@ -824,20 +862,16 @@ const statusTabs = computed(() => {
           </button>
         </div>
 
-        <div class="relative w-full sm:w-64">
-          <UIcon
-            name="i-solar-magnifer-line-duotone"
-            class="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
-          />
-          <label for="review-queue-search" class="sr-only">Cari artikel pada antrean</label>
-          <input
-            id="review-queue-search"
-            v-model="searchInput"
-            type="search"
-            placeholder="Cari judul atau portal..."
-            class="w-full h-9 pl-9 pr-3 bg-white border border-slate-200 focus:border-blue-600 focus:ring-1 focus:ring-blue-600/20 rounded-xl text-xs text-slate-900"
-          >
-        </div>
+        <UInput
+          id="review-queue-search"
+          v-model="searchInput"
+          type="search"
+          size="sm"
+          leading-icon="i-solar-magnifer-line-duotone"
+          placeholder="Cari judul atau portal..."
+          aria-label="Cari artikel pada antrean"
+          class="w-full sm:w-64"
+        />
       </div>
     </div>
 
@@ -859,16 +893,13 @@ const statusTabs = computed(() => {
     <!-- WORKBENCH HEADER ROW (Aligned above equal-height split columns) -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-center">
       <div class="lg:col-span-7 flex items-center justify-between px-1 text-xs text-slate-600">
-        <label class="inline-flex items-center gap-2 min-h-7 font-semibold hover:text-slate-900 cursor-pointer">
-          <input
-            type="checkbox"
-            :checked="allVisibleChecked"
-            aria-label="Pilih semua artikel pada halaman ini"
-            class="w-4 h-4 rounded border-slate-300 text-blue-700 cursor-pointer"
-            @change="() => { toggleSelectAllVisible(); }"
-          >
-          <span>Pilih semua di halaman ({{ currentRows.length }})</span>
-        </label>
+        <UCheckbox
+          :model-value="allVisibleChecked"
+          :label="`Pilih semua di halaman (${currentRows.length})`"
+          aria-label="Pilih semua artikel pada halaman ini"
+          size="sm"
+          @update:model-value="() => { toggleSelectAllVisible(); }"
+        />
 
         <span v-if="reviewData" class="text-xs font-medium text-slate-600 font-mono tabular-nums">
           Hal {{ reviewData.pagination.page }}/{{ reviewData.pagination.totalPages }} •
@@ -879,13 +910,13 @@ const statusTabs = computed(() => {
       <div class="hidden lg:flex lg:col-span-5 items-center justify-between px-1 text-xs text-slate-500">
         <span class="font-semibold text-slate-700 font-display">Panel Inspeksi &amp; Hasil LLM</span>
         <span class="font-mono text-[11px] text-slate-500">
-          {{ inspectedArticle ? `ID #${inspectedArticle.id}` : 'Siap mengurasi' }}
+          {{ inspectedArticle ? `↑↓ Navigasi • Ctrl+Enter Verifikasi` : 'Siap mengurasi' }}
         </span>
       </div>
     </div>
 
     <!-- ASYMMETRIC 7/5 WORKBENCH WITH UNIFIED FIXED VIEWPORT HEIGHT -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch lg:h-[calc(100vh-265px)] lg:min-h-[540px]">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch lg:h-[calc(100vh-225px)] lg:min-h-[540px]">
       <!-- LEFT 7: QUEUE CARDS (Contained with internal scroll) -->
       <div class="lg:col-span-7 h-full flex flex-col min-h-0">
         <!-- Skeletons -->
@@ -897,17 +928,49 @@ const statusTabs = computed(() => {
           </div>
         </div>
 
-        <!-- Empty Queue -->
-        <div v-else-if="!currentRows.length" class="saas-card rounded-xl py-12 px-6 text-center space-y-2.5 flex-1 flex flex-col items-center justify-center">
+        <!-- Empty Queue with Contextual Quick Actions -->
+        <div v-else-if="!currentRows.length" class="saas-card rounded-xl py-12 px-6 text-center space-y-3.5 flex-1 flex flex-col items-center justify-center">
           <div class="w-12 h-12 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center mx-auto">
             <UIcon name="i-solar-inbox-in-bold-duotone" class="w-6 h-6" />
           </div>
-          <div class="text-sm font-bold text-slate-900 font-display">
-            Tidak ada artikel pada tab {{ activeStatus }}
+          <div class="space-y-1">
+            <div class="text-sm font-bold text-slate-900 font-display">
+              Tidak ada artikel pada tab {{ activeStatus }}
+            </div>
+            <p class="text-xs text-slate-600 text-pretty max-w-sm mx-auto">
+              Antrean saat ini bersih. Anda dapat meninjau tab lain atau mengubah cakupan filter.
+            </p>
           </div>
-          <p class="text-xs text-slate-600 text-pretty">
-            Coba ubah cakupan ke <strong>Semua Antrean</strong> atau bersihkan kata pencarian.
-          </p>
+          <div class="flex flex-wrap items-center justify-center gap-2 pt-1">
+            <UButton
+              v-if="activeStatus === VerificationStatusEnum.PENDING && (reviewData?.summaryCounts.verifiedCount ?? 0) > 0"
+              size="xs"
+              color="primary"
+              variant="soft"
+              icon="i-solar-check-circle-bold-duotone"
+              @click="() => { activeStatus = VerificationStatusEnum.VERIFIED; }"
+            >
+              Lihat {{ reviewData?.summaryCounts.verifiedCount }} Terverifikasi
+            </UButton>
+            <UButton
+              v-if="periodScope === 'period'"
+              size="xs"
+              color="neutral"
+              variant="outline"
+              @click="() => { periodScope = 'all'; }"
+            >
+              Tampilkan Semua Periode
+            </UButton>
+            <UButton
+              v-if="searchInput.trim()"
+              size="xs"
+              color="neutral"
+              variant="outline"
+              @click="() => { searchInput = ''; }"
+            >
+              Bersihkan Pencarian
+            </UButton>
+          </div>
         </div>
 
         <!-- Queue Card List (Scrollable) -->
@@ -924,13 +987,12 @@ const statusTabs = computed(() => {
           >
             <div class="flex items-start gap-3">
               <div class="pt-0.5 shrink-0 relative z-10">
-                <input
-                  type="checkbox"
-                  :checked="Boolean(selectedMap[art.id])"
+                <UCheckbox
+                  :model-value="Boolean(selectedMap[art.id])"
                   :aria-label="`Pilih ${art.title}`"
-                  class="rounded border-slate-300 text-blue-700 w-4 h-4 cursor-pointer"
-                  @change="() => { toggleRowSelection(art.id); }"
-                >
+                  size="sm"
+                  @update:model-value="() => { toggleRowSelection(art.id); }"
+                />
               </div>
 
               <div class="min-w-0 flex-1 space-y-2">
@@ -1116,8 +1178,7 @@ const statusTabs = computed(() => {
               </UBadge>
               <span
                 v-if="inspectedArticle.llmModel"
-                class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[11px] font-semibold"
-                :class="formatLlmProviderBadge(inspectedArticle.llmModel).pillClass"
+                class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full border border-slate-200 bg-slate-100/90 text-slate-700 text-[11px] font-medium font-mono"
                 :title="inspectedArticle.llmModel"
               >
                 {{ formatLlmProviderBadge(inspectedArticle.llmModel).shortLabel }}
@@ -1388,9 +1449,19 @@ const statusTabs = computed(() => {
 
             <!-- Cuplikan Sumber Asli -->
             <div class="space-y-1">
-              <label for="insp-snippet-source" class="block text-xs font-semibold text-slate-600 font-display">
-                Cuplikan Teks Asli (Referensi Verifikasi)
-              </label>
+              <div class="flex items-center justify-between gap-2">
+                <label for="insp-snippet-source" class="block text-xs font-semibold text-slate-600 font-display">
+                  Cuplikan Teks Asli (Referensi Verifikasi)
+                </label>
+                <button
+                  type="button"
+                  class="inline-flex items-center gap-1 min-h-7 px-2 rounded-lg text-[11px] font-semibold text-blue-700 hover:bg-blue-50 transition-colors cursor-pointer"
+                  @click="() => { fullSnippetModalOpen = true; }"
+                >
+                  <UIcon name="i-solar-maximize-square-2-linear" class="w-3.5 h-3.5" />
+                  <span>Baca Penuh</span>
+                </button>
+              </div>
               <UTextarea
                 id="insp-snippet-source"
                 :model-value="inspectedArticle.snippetText"
@@ -1506,5 +1577,41 @@ const statusTabs = computed(() => {
       :show-auto-next-toggle="activeStatus === VerificationStatusEnum.PENDING"
       @saved="handleSlideoverSaved"
     />
+
+    <!-- Full Snippet Reader Modal with Economic Fact Highlighting -->
+    <UModal
+      v-model:open="fullSnippetModalOpen"
+      :title="inspectedArticle?.title || 'Teks Sumber Lengkap'"
+      :description="inspectedArticle ? `${inspectedArticle.sourcePortal} • ${formatDateTimeWita(inspectedArticle.publishedAt)}` : ''"
+      :ui="{ content: 'max-w-2xl' }"
+    >
+      <template #body>
+        <div class="space-y-3">
+          <div class="flex flex-wrap items-center gap-2 text-[11px] text-slate-500">
+            <span class="inline-flex items-center gap-1">
+              <span class="w-2.5 h-2.5 rounded bg-blue-100 border border-blue-300 inline-block" />
+              Lokus Tana Tidung / Kaltara
+            </span>
+            <span class="inline-flex items-center gap-1">
+              <span class="w-2.5 h-2.5 rounded bg-amber-100 border border-amber-300 inline-block" />
+              Angka, Persentase &amp; Nominal
+            </span>
+          </div>
+          <div class="max-h-[60vh] overflow-y-auto saas-scroll rounded-xl bg-slate-50 border border-slate-200 p-4 text-sm text-slate-800 leading-relaxed whitespace-pre-line">
+            <template v-for="(seg, idx) in highlightedSnippetSegments" :key="idx">
+              <mark
+                v-if="seg.kind === 'location'"
+                class="bg-blue-100/90 text-blue-900 px-1 rounded font-semibold"
+              >{{ seg.text }}</mark>
+              <mark
+                v-else-if="seg.kind === 'metric'"
+                class="bg-amber-100/90 text-amber-900 px-1 rounded font-mono font-semibold"
+              >{{ seg.text }}</mark>
+              <template v-else>{{ seg.text }}</template>
+            </template>
+          </div>
+        </div>
+      </template>
+    </UModal>
   </div>
 </template>

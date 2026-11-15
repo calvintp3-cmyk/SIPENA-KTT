@@ -293,30 +293,19 @@ const expenditureImpactRows: Array<{
 
     <!-- Search & Section Filter Bar -->
     <div class="saas-card rounded-2xl p-3.5 sm:p-4 flex flex-col md:flex-row md:items-center justify-between gap-3">
-      <div class="relative flex-1 max-w-md">
+      <div class="flex-1 max-w-md">
         <label for="taxonomy-search" class="sr-only">
           Cari kode KBLI, sektor PDRB, sinyal, atau komponen pengeluaran
         </label>
-        <UIcon
-          name="i-solar-magnifer-line-duotone"
-          class="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
-        />
-        <input
+        <UInput
           id="taxonomy-search"
           v-model="searchQuery"
           type="search"
+          size="sm"
+          leading-icon="i-solar-magnifer-line-duotone"
           placeholder="Cari kode KBLI (mis. J, N, T, PMTB), sektor, atau sinyal..."
-          class="w-full min-h-9 pl-9 pr-10 rounded-xl border border-slate-200 bg-slate-50/70 focus:bg-white text-xs text-slate-900 placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none transition-colors"
-        >
-        <button
-          v-if="searchQuery"
-          type="button"
-          aria-label="Hapus pencarian taksonomi"
-          class="absolute right-1 top-1/2 -translate-y-1/2 min-w-8 min-h-8 rounded-lg flex items-center justify-center text-slate-600 hover:text-slate-900 hover:bg-slate-200/70 cursor-pointer"
-          @click="() => { searchQuery = ''; }"
-        >
-          <UIcon name="i-lucide-x" class="w-3.5 h-3.5" />
-        </button>
+          class="w-full"
+        />
       </div>
 
       <div

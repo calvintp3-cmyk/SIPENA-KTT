@@ -208,28 +208,17 @@ const columns: TableColumn<AdminUserItem>[] = [
         </div>
 
         <div class="flex flex-wrap items-center gap-2.5 shrink-0">
-          <div class="relative w-full sm:w-auto">
+          <div class="w-full sm:w-56">
             <label for="users-search-input" class="sr-only">Cari nama atau Gmail staf</label>
-            <UIcon
-              name="i-solar-magnifer-line-duotone"
-              class="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
-            />
-            <input
+            <UInput
               id="users-search-input"
               v-model="searchText"
               type="search"
+              size="sm"
+              leading-icon="i-solar-magnifer-line-duotone"
               placeholder="Cari nama / Gmail..."
-              class="min-h-9 w-full sm:w-56 pl-9 pr-10 rounded-xl border border-slate-200 bg-white text-xs text-slate-900 placeholder:text-slate-500 focus:border-blue-600 focus:outline-none"
-            >
-            <button
-              v-if="searchText"
-              type="button"
-              aria-label="Hapus pencarian staf"
-              class="absolute right-1 top-1/2 -translate-y-1/2 min-w-8 min-h-8 rounded-lg flex items-center justify-center text-slate-600 hover:text-slate-900 hover:bg-slate-100 cursor-pointer"
-              @click="() => { searchText = ''; }"
-            >
-              <UIcon name="i-lucide-x" class="w-3.5 h-3.5" />
-            </button>
+              class="w-full"
+            />
           </div>
 
           <button

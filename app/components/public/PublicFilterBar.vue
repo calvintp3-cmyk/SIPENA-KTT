@@ -226,31 +226,18 @@ function setThisMonthRange() {
     >
       <!-- Quick Keyword Search Field inside Filter Bar -->
       <div class="space-y-1.5">
-        <label for="filter-sidebar-search" class="block text-[11px] font-bold text-slate-700">
+        <label for="filter-sidebar-search" class="block text-[11px] font-bold text-slate-700 font-display">
           Cari Kata Kunci
         </label>
-        <div class="relative">
-          <UIcon
-            name="i-solar-magnifer-line-duotone"
-            class="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none"
-          />
-          <input
-            id="filter-sidebar-search"
-            v-model="searchInput"
-            type="search"
-            placeholder="Cari komoditas, proyek, lokasi..."
-            class="w-full h-8 pl-8 pr-7 bg-slate-50 hover:bg-white focus:bg-white text-xs text-slate-900 placeholder:text-slate-500 rounded-lg border border-slate-200 focus:border-blue-600 focus:ring-1 focus:ring-blue-600/20 transition-colors"
-          >
-          <button
-            v-if="searchInput"
-            type="button"
-            aria-label="Bersihkan pencarian"
-            class="absolute right-1 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center text-slate-400 hover:text-slate-700 cursor-pointer"
-            @click="() => { searchInput = ''; }"
-          >
-            <UIcon name="i-lucide-x" class="w-3 h-3" />
-          </button>
-        </div>
+        <UInput
+          id="filter-sidebar-search"
+          v-model="searchInput"
+          type="search"
+          size="xs"
+          leading-icon="i-solar-magnifer-line-duotone"
+          placeholder="Cari komoditas, proyek, lokasi..."
+          class="w-full"
+        />
       </div>
 
       <!-- Filter Rentang Tanggal Rilis Kustom (Nuxt UI + Quick Presets) -->

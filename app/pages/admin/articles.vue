@@ -1052,20 +1052,20 @@ const columns: TableColumn<AdminArticleItem>[] = [
           empty="Tidak ada arsip berita yang sesuai dengan kriteria filter."
         >
           <template #select-header>
-            <input
-              type="checkbox"
-              :checked="isAllSelected"
-              class="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
-              @change="toggleSelectAll"
-            >
+            <UCheckbox
+              :model-value="isAllSelected"
+              aria-label="Pilih semua baris di halaman"
+              size="sm"
+              @update:model-value="toggleSelectAll"
+            />
           </template>
 
           <template #select-cell="{ row }">
-            <input
+            <UCheckbox
               v-model="selectedMap[row.original.id]"
-              type="checkbox"
-              class="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
-            >
+              :aria-label="`Pilih ${row.original.title}`"
+              size="sm"
+            />
           </template>
 
           <template #publishedAt-cell="{ row }">

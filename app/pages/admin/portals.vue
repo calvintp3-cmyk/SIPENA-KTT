@@ -335,19 +335,17 @@ const lastRunBadge = computed(() =>
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
-          <div class="relative w-full sm:w-56">
+          <div class="w-full sm:w-56">
             <label for="portals-search-input" class="sr-only">Cari portal regional</label>
-            <UIcon
-              name="i-solar-magnifer-line-duotone"
-              class="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
-            />
-            <input
+            <UInput
               id="portals-search-input"
               v-model="searchQuery"
               type="search"
+              size="sm"
+              leading-icon="i-solar-magnifer-line-duotone"
               placeholder="Cari portal atau domain..."
-              class="w-full h-9 pl-9 pr-3 rounded-xl border border-slate-200 bg-white text-xs text-slate-900 placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none"
-            >
+              class="w-full"
+            />
           </div>
 
           <div
