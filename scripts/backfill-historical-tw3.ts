@@ -40,7 +40,7 @@ async function main() {
     const summary = await runScrapePipeline({
       runType: ScraperRunTypeEnum.MANUAL,
       mode: 'REGIONAL_ONLY',
-      triggeredBy: 'cli-backfill-tw3',
+      triggeredBy: null,
       startDate,
       endDate,
       maxArticlesPerRun: maxArticles,
