@@ -98,6 +98,7 @@ const NOISE_ELEMENT_SELECTORS = [
 ].join(', ');
 
 const CONTENT_CONTAINER_SELECTORS = [
+  '.news-content',
   'article .entry-content',
   '.entry-content',
   '.post-content',
@@ -565,9 +566,10 @@ export function detectSoftBlockPage(html: string): { isSoftBlocked: boolean; rea
   }
 
   if (
-    /id=["']cf-browser-verification["']|class=["'][^"']*\bcf-(?:error-details|challenge)\b|\/cdn-cgi\/challenge-platform/i.test(
+    /id=["']cf-browser-verification["']|class=["'][^"']*\bcf-(?:error-details|challenge)\b/i.test(
       raw,
-    )
+    ) ||
+    (/\/cdn-cgi\/challenge-platform/i.test(raw) && raw.length < 35_000)
   ) {
     return { isSoftBlocked: true, reason: 'Terdeteksi halaman verifikasi browser Cloudflare.' };
   }

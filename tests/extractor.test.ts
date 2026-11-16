@@ -162,6 +162,17 @@ describe('Scraper Extractor & Portal/RSS Parsers', () => {
     expect(candidates).toHaveLength(1);
     expect(candidates[0]?.url).toBe('https://korankaltara.com/harga-tbs-sawit-tana-tidung-menguat');
     expect(candidates[0]?.sourcePortal).toBe('korankaltara.com');
+
+    // Uji ekstraksi Next.js App Router RSC Flight Payload (__next_f)
+    const rscFlightHtml = `
+      <html><body>
+        <script>self.__next_f.push([1,"[{\\"id\\":46875,\\"title\\":\\"Pemkab KTT Siapkan Pemerintahan Desa Kasai\\",\\"slug\\":\\"pemkab-ktt-siapkan-pemerintahan-desa-kasai\\",\\"category\\":{\\"id\\":229,\\"name\\":\\"Tana Tidung\\"},\\"createdAt\\":\\"2026-10-14T03:45:49.000Z\\"}]"])</script>
+      </body></html>
+    `;
+    const rscCandidates = parseRegionalPortalIndex(rscFlightHtml, koranKaltara, { now, lookbackDays: 3 });
+    expect(rscCandidates).toHaveLength(1);
+    expect(rscCandidates[0]?.url).toBe('https://korankaltara.com/pemkab-ktt-siapkan-pemerintahan-desa-kasai');
+    expect(rscCandidates[0]?.title).toBe('Pemkab KTT Siapkan Pemerintahan Desa Kasai');
   });
 
   it('mem-parsing Google News RSS XML dan menyaring hard-noise title hanya untuk portal nasional', () => {

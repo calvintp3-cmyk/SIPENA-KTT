@@ -9,7 +9,9 @@ import {
 } from '../../../shared/schemas/llm-output.schema';
 import {
   buildClassificationPrompt,
+  buildRescueJudgePrompt,
   parseAndValidateLlmJson,
+  shouldRunPhenomenonRescuePass,
   SIPENA_SYSTEM_INSTRUCTION_COMPACT,
   SIPENA_SYSTEM_INSTRUCTION_FULL,
   type ArticleClassificationInput,
@@ -44,9 +46,9 @@ export const DEFAULT_NVIDIA_MODEL = 'meta/llama-3.3-70b-instruct' as const;
 export const DEFAULT_GEMINI_EMBEDDING_MODEL = 'gemini-embedding-2' as const;
 
 export const OPENROUTER_DEFAULT_FREE_MODELS = [
-  'openrouter/free',
+  'meta-llama/llama-3.3-70b-instruct:free',
   'qwen/qwen-2.5-72b-instruct:free',
-  'google/gemma-4-31b-it:free',
+  'mistralai/mistral-small-24b-instruct-2501:free',
 ] as const;
 
 export const DEFAULT_LLM_MAX_OUTPUT_TOKENS = DEFAULT_GEMINI_MAX_OUTPUT_TOKENS;
@@ -1111,9 +1113,54 @@ export class MultiLlmRouter {
           const validated = parseAndValidateLlmJson(response.outputText);
           this.recordSuccess(slot, response.usage, callLatencyMs);
 
+          let finalClassification = validated;
+          if (
+            !validated.is_economic_phenomenon &&
+            shouldRunPhenomenonRescuePass(validated, article) &&
+            this.callsMade < this.maxCallsPerRun &&
+            this.hasRemainingBudget(10, callOptions)
+          ) {
+            try {
+              const rescuePrompt = buildRescueJudgePrompt(article, validated);
+              this.callsMade += 1;
+              const rescueStartedAt = this.nowFn();
+              const rescueRes = await this.invokeProviderSlot({
+                slotId: slot.slotId,
+                provider: slot.provider,
+                model: slot.model,
+                apiKey: slot.apiKey,
+                systemInstruction,
+                userInput: rescuePrompt,
+                jsonMode: true,
+                temperature: 0.1,
+                maxOutputTokens: DEFAULT_LLM_MAX_OUTPUT_TOKENS,
+                timeoutMs: GEMINI_REQUEST_TIMEOUT_MS,
+                thinkingLevel:
+                  slot.provider === 'gemini'
+                    ? slot.model.includes('lite')
+                      ? 'MINIMAL'
+                      : 'LOW'
+                    : undefined,
+                abortSignal: callOptions?.signal,
+              });
+
+              totalUsage.inputTokens += rescueRes.usage.inputTokens;
+              totalUsage.outputTokens += rescueRes.usage.outputTokens;
+              totalUsage.totalTokens += rescueRes.usage.totalTokens;
+
+              const rescuedValidated = parseAndValidateLlmJson(rescueRes.outputText);
+              this.recordSuccess(slot, rescueRes.usage, Math.max(0, this.nowFn() - rescueStartedAt));
+              if (rescuedValidated.is_economic_phenomenon) {
+                finalClassification = rescuedValidated;
+              }
+            } catch {
+              // Non-blocking: pertahankan hasil validasi awal jika evaluasi penyelamatan gagal
+            }
+          }
+
           return {
             ok: true,
-            classification: validated,
+            classification: finalClassification,
             usage: totalUsage,
             modelUsed: slot.slotId,
             providerUsed: slot.provider,
@@ -1194,7 +1241,11 @@ export class MultiLlmRouter {
 
           lastErrorCode = 'API_ERROR';
           lastIsRateLimit = false;
-          slot.cooldownUntilMs = this.nowFn() + this.transientCooldownMs;
+          if (/404|not found|unavailable/i.test(failure.message)) {
+            slot.disabledForSession = true;
+          } else {
+            slot.cooldownUntilMs = this.nowFn() + this.transientCooldownMs;
+          }
           break slotLoop;
         }
       }

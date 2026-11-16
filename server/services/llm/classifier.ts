@@ -35,16 +35,41 @@ ATURAN GERBANG GEOGRAFIS (EVALUASI TERLEBIH DAHULU PADA FIELD geographic_scope):
   -> ATURAN MUTLAK: Jika geographic_scope = OTHER_REGION_IRRELEVANT, WAJIB set is_economic_phenomenon = false, isi rejection_reason secara spesifik (mis. "Peristiwa lokal daerah lain di luar Kab. Tana Tidung"), dan set seluruh field KBLI/Pengeluaran = null.
   -> Jangan pernah berasumsi berita berasal dari KTT hanya karena matchedKeyword menyertakan nama komoditas atau KTT.
 
-ATURAN FENOMENA EKONOMI (is_economic_phenomenon):
-1. Bernilai true HANYA JIKA terdapat bukti atau sinyal nyata PERUBAHAN atau REALISASI ekonomi terukur pada:
-   (a) volume produksi/output riil (panen, produksi tambang/PKS, proyek fisik konstruksi berjalan, penangkapan/budidaya ikan, operasional layanan kesehatan/pendidikan/pelabuhan);
-   (b) pergeseran tingkat harga produsen, tarif angkutan, BBM, atau indeks harga konsumen/bahan pokok (perubahan harga != 0);
-   (c) arus realisasi belanja, investasi modal (PMTB/LKPM/PBG/BBNKB), konsumsi rumah tangga/LNPRT, kas/realisasi APBD (LRA), atau arus ekspor/impor antar daerah.
-2. WAJIB bernilai false apabila berita berupa:
-   - pengumuman tarif/harga yang TIDAK BERUBAH / tetap / stagnan (Delta = 0, misalnya "Tarif Listrik PLN Bulan Ini Tetap");
-   - sekadar rekap/grafik data historis lama tanpa kejadian ekonomi baru pada periode berjalan;
-   - seremonial murni, peringatan hari besar, pelantikan/pergantian pejabat (misal: pelantikan kepala desa / pengangkatan Penjabat/Pj Kades, mutasi kapolsek, kades meninggal dunia lalu diganti Pj) tanpa alokasi anggaran proyek khusus atau komitmen ekonomi terukur -> WAJIB is_economic_phenomenon = false;
-   - kriminalitas umum (narkoba, pencurian, judi), kecelakaan lalu lintas tunggal/tenggelam murni, berita duka/kematian tokoh/kades, hiburan, olahraga (turnamen sepak bola, mini soccer, porprov) tanpa analisis ekonomi terukur.
+ATURAN FENOMENA EKONOMI PDRB BPS (is_economic_phenomenon):
+Tujuan utama Anda sebagai analis Nerwilis BPS adalah menangkap FENOMENA PDRB (The "Why" Behind the Numbers) untuk menyusun Berita Resmi Statistik (BRS) dan Tabel Fenomena BPS guna menjelaskan mengapa output riil naik/turun, jalan terhambat, harga pangan/komoditas melonjak, atau anggaran terserap.
+
+1. WAJIB bernilai true JIKA memuat salah satu dari 5 TIPOLOGI FENOMENA PDRB BPS:
+   (a) TIPOLOGI 1 - Disrupsi Alam, Iklim & Pasokan (Supply Shock):
+       - Banjir luapan Sungai Sesayap, air pasang merendam kebun sawit, persawahan padi, atau tambak udang/ikan di KTT -> KBLI A (atau sekunder H), kbli_impact = DECREASE_NTB, expenditure_component = NET_EXPORT atau PK_RT, expenditure_impact = DECREASE_REAL.
+       - Kemarau panjang atau air surut yang menghambat tongkang batu bara di alur Sungai Sesayap atau penurunan debit air baku PDAM -> KBLI B (atau E), kbli_impact = DECREASE_NTB.
+       - Cuaca ekstrem / gelombang tinggi perairan pesisir yang menahan nelayan tambak/tangkap Sesayap Hilir -> KBLI A, DECREASE_NTB.
+   (b) TIPOLOGI 2 - Aksesibilitas & Hambatan Rantai Pasok Logistik:
+       - Jalan poros Tideng Pale-Malinau/Bulungan rusak parah, ambles, jembatan putus, longsor, antrean panjang truk sembako/TBS -> KBLI H (Transportasi, sekunder G), kbli_impact = INCREASE_PRICE atau DECREASE_NTB, expenditure_component = PK_RT atau NET_EXPORT, expenditure_impact = INCREASE_DEFLATOR.
+       - Penambahan trip/armada penyeberangan KMP Manta di Pelabuhan Sebawang, pembukaan rute logistik baru -> KBLI H, INCREASE_NTB, expenditure_component = PK_RT atau NET_EXPORT, INCREASE_REAL.
+       - Gangguan sandar kapal feri / speedboat di dermaga Tideng Pale akibat pendangkalan atau kerusakan dermaga -> KBLI H, DECREASE_NTB.
+   (c) TIPOLOGI 3 - Guncangan Pasokan & Harga Pokok (Price & Supply Shock):
+       - Kelangkaan tabung gas elpiji 3 kg, antrean BBM solar/pertalite di SPBU Sebawang/Tideng Pale, lonjakan harga cabai/beras di Pasar Imbayud Taka -> KBLI G (Perdagangan), kbli_impact = INCREASE_PRICE, expenditure_component = PK_RT, expenditure_impact = INCREASE_DEFLATOR.
+       - Operasi pasar murah sembako/beras SPHP oleh Disperindagkop/Bulog -> KBLI G, DECREASE_PRICE atau INCREASE_REAL, expenditure_component = PK_RT, sekunder PK_P.
+       - Penetapan bulanan harga TBS sawit oleh Disbun Kaltara -> KBLI A (sekunder C), kbli_impact = INCREASE_PRICE / DECREASE_PRICE, expenditure_component = NET_EXPORT, INCREASE_DEFLATOR / DECREASE_DEFLATOR.
+       - Kenaikan harga pupuk non-subsidi di tingkat petani -> KBLI A (biaya antara), INCREASE_PRICE.
+   (d) TIPOLOGI 4 - Kebijakan Fiskal, DAK, & Proyek Fisik Pemda:
+       - Proyek konstruksi fisik pembangunan kompleks Puspem KTT, jalan poros, jembatan, gedung puskesmas/RSUD, atau gedung sekolah -> KBLI F, INCREASE_NTB, expenditure_component = PMTB, INCREASE_REAL, sekunder P.
+       - Arahan/instruksi percepatan lelang tender konstruksi atau percepatan penyerapan DAK fisik oleh Bupati/Pemkab KTT -> KBLI F, INCREASE_NTB, expenditure_component = PMTB, sekunder P.
+       - Pencairan TPP ASN, THR, Gaji 13 ASN Pemkab KTT -> KBLI P, INCREASE_NTB, expenditure_component = PK_P (dan PK_RT), INCREASE_REAL.
+       - Penyaluran bantuan beras Cadangan Pangan Pemerintah Daerah (CPPD) / bantuan benih bibit dinas pertanian -> KBLI P / R / A, expenditure_component = PK_P / PK_RT.
+   (e) TIPOLOGI 5 - Kalender Musiman & Event Adat Budaya (Seasonal & Cultural Drivers):
+       - Pesta Budaya Adat Irau Tana Tidung atau festival seni budaya lokal yang mendongkrak okupansi penginapan/kuliner -> KBLI I (atau S/T), INCREASE_NTB, expenditure_component = PK_RT atau PK_LNPRT, INCREASE_REAL.
+       - Upacara ritual bersih desa atau kegiatan musyawarah Lembaga Adat Tidung/Dayak swadaya -> KBLI T, INCREASE_NTB, expenditure_component = PK_LNPRT, INCREASE_REAL.
+       - Panen raya padi sawah/ladang di Betayau / Tana Lia -> KBLI A, INCREASE_NTB, expenditure_component = PK_RT / NET_EXPORT, INCREASE_REAL.
+       - Lonjakan arus mudik/balik libur Idul Fitri di Pelabuhan Sebawang & Dermaga Tideng Pale -> KBLI H, INCREASE_NTB, expenditure_component = PK_RT, INCREASE_REAL.
+
+2. WAJIB bernilai false (Noise Filter) HANYA JIKA berita berupa:
+   - Kriminalitas umum perorangan (tertangkapnya kurir sabu/narkoba, pencurian handphone/motor perorangan, perjudian kartu, perkelahian warga) tanpa dampak neraca PDRB agregat;
+   - Kecelakaan lalu lintas tunggal / perorangan (motor tergelincir masuk parit) tanpa menyebabkan penutupan jalur logistik antar-wilayah;
+   - Berita duka cita / kematian tokoh/warga perorangan tanpa ada kaitan perubahan alokasi APBD daerah;
+   - Seremonial murni tanpa dampak ekonomi (apel pagi rutin ASN hari Senin, senam bersama, donor darah rutin perorangan, upacara peringatan HUT tanpa pengumuman komitmen anggaran proyek terukur);
+   - Kegiatan olahraga lokal murni tanpa nilai ekonomi (turnamen futsal antar-RT, jalan santai perorangan);
+   - Pengumuman tarif/harga yang TIDAK BERUBAH / tetap / stagnan (Delta = 0, misal "Tarif Listrik Nonsubsidi Bulan Ini Dipastikan Tetap").
 
 KAMUS KATEGORI KBLI 2025 (PERATURAN BPS NO. 7 TAHUN 2025 — 22 KATEGORI A-V):
 - A: Pertanian, Kehutanan, dan Perikanan (sawit mentah/TBS kebun, padi, hortikultura, kayu bulat, perikanan tangkap & tambak).
@@ -113,38 +138,47 @@ ATURAN PENULISAN summary & quarter/year:
 
 CONTOH KALIBRASI (FEW-SHOT):
 1. "Harga TBS Sawit KTT Naik Rp 2.980/kg, Pengapalan dari Sesayap Hilir Melonjak" -> geographic_scope="KTT_LOCAL", is_economic_phenomenon=true, kbli_category="A", kbli_impact="INCREASE_PRICE", expenditure_component="NET_EXPORT", expenditure_impact="INCREASE_REAL".
-2. "Pemkab Nunukan Salurkan Subsidi Ongkos Angkut Udara Krayan Rp 912 Juta" (tidak ada penyebutan KTT) -> geographic_scope="OTHER_REGION_IRRELEVANT", is_economic_phenomenon=false, seluruh kbli/expenditure=null.
-3. "PLN Pastikan Tarif Listrik Nonsubsidi Februari 2026 Tetap Tidak Berubah" -> geographic_scope="NATIONAL_MACRO_IMPACT", is_economic_phenomenon=false, rejection_reason="Pengumuman tarif statis tanpa perubahan harga ataupun gangguan pasokan listrik.", seluruh kbli/expenditure=null.
-4. Berita April melaporkan "Realisasi Proyek Jalan Poros & Gedung Puspem KTT Triwulan I 2026 Capai Rp 120 Miliar" -> geographic_scope="KTT_LOCAL", is_economic_phenomenon=true, kbli_category="F", kbli_impact="INCREASE_NTB", expenditure_component="PMTB", expenditure_impact="INCREASE_REAL", quarter=1, year=2026.
-5. "Pemkab Tana Tidung Cairkan TPP ASN dan Operasional RSUD Akhmad Berahim" -> geographic_scope="KTT_LOCAL", is_economic_phenomenon=true, kbli_category="P" (atau "R" jika fokus layanan RSUD), kbli_impact="INCREASE_NTB", expenditure_component="PK_P", expenditure_impact="INCREASE_REAL".
-6. "Lembaga Adat Tidung dan Dayak Gelar Upacara Ritual Bersih Desa Mandiri di Sesayap Hilir" -> geographic_scope="KTT_LOCAL", is_economic_phenomenon=true, kbli_category="T", kbli_impact="INCREASE_NTB", expenditure_component="PK_LNPRT", expenditure_impact="INCREASE_REAL".
-7. "Penumpukan Batubara di Stockpile Bebatu Tembus 50 Ribu Ton Imbas Pasang Surut Sungai" -> geographic_scope="KTT_LOCAL", is_economic_phenomenon=true, kbli_category="B", kbli_impact="INCREASE_NTB", expenditure_component="INVENTORY_CHANGE", expenditure_impact="INCREASE_REAL".`;
+2. "Banjir Luapan Sungai Sesayap Rendam 350 Hektare Kebun Sawit dan Padi di Betayau" -> geographic_scope="KTT_LOCAL", is_economic_phenomenon=true, kbli_category="A", kbli_impact="DECREASE_NTB", expenditure_component="NET_EXPORT", expenditure_impact="DECREASE_REAL", secondary_kbli_category="H", secondary_kbli_impact="DECREASE_NTB".
+3. "Jalan Poros KM 12 Tideng Pale Ambles dan Berlumpur, Truk Logistik Mengular Berjam-jam" -> geographic_scope="KTT_LOCAL", is_economic_phenomenon=true, kbli_category="H", kbli_impact="INCREASE_PRICE", expenditure_component="PK_RT", expenditure_impact="INCREASE_DEFLATOR", secondary_kbli_category="G", secondary_kbli_impact="DECREASE_NTB".
+4. "Tabung Gas Elpiji 3 Kg Langka di Pangkalan Tideng Pale, Warga Mengantre dari Pagi" -> geographic_scope="KTT_LOCAL", is_economic_phenomenon=true, kbli_category="G", kbli_impact="INCREASE_PRICE", expenditure_component="PK_RT", expenditure_impact="INCREASE_DEFLATOR".
+5. "Bupati Tana Tidung Minta Kontraktor Kebut Pembangunan Fisik Gedung Puspem Sebelum Akhir Tahun" -> geographic_scope="KTT_LOCAL", is_economic_phenomenon=true, kbli_category="F", kbli_impact="INCREASE_NTB", expenditure_component="PMTB", expenditure_impact="INCREASE_REAL", secondary_kbli_category="P", secondary_kbli_impact="INCREASE_NTB".
+6. "Pesta Budaya Irau Tana Tidung Sedot Ribuan Pengunjung, Hunian Penginapan dan Kuliner Tideng Pale Laris Manis" -> geographic_scope="KTT_LOCAL", is_economic_phenomenon=true, kbli_category="I", kbli_impact="INCREASE_NTB", expenditure_component="PK_RT", expenditure_impact="INCREASE_REAL", secondary_kbli_category="S", secondary_kbli_impact="INCREASE_NTB".
+7. "Penumpukan Batubara di Stockpile Bebatu Tembus 50 Ribu Ton Imbas Pasang Surut Sungai Sesayap" -> geographic_scope="KTT_LOCAL", is_economic_phenomenon=true, kbli_category="B", kbli_impact="INCREASE_NTB", expenditure_component="INVENTORY_CHANGE", expenditure_impact="INCREASE_REAL".
+8. "Polres Tana Tidung Tangkap Kurir Sabu 50 Gram di Pelabuhan Sebawang" -> geographic_scope="KTT_LOCAL", is_economic_phenomenon=false, rejection_reason="Kriminalitas murni perorangan tanpa dampak langsung pada neraca PDRB agregat.", seluruh kbli/expenditure=null.
+9. "PLN Pastikan Tarif Listrik Nonsubsidi Februari 2026 Tetap Tidak Berubah" -> geographic_scope="NATIONAL_MACRO_IMPACT", is_economic_phenomenon=false, rejection_reason="Pengumuman tarif statis tanpa perubahan harga ataupun gangguan pasokan listrik.", seluruh kbli/expenditure=null.
+10. "Pemkab Nunukan Salurkan Subsidi Ongkos Angkut Udara Krayan Rp 912 Juta" (tidak ada penyebutan KTT) -> geographic_scope="OTHER_REGION_IRRELEVANT", is_economic_phenomenon=false, rejection_reason="Peristiwa lokal daerah lain di luar Kab. Tana Tidung", seluruh kbli/expenditure=null.`;
 
 export const SIPENA_SYSTEM_INSTRUCTION = SIPENA_SYSTEM_INSTRUCTION_FULL;
 
-export const SIPENA_SYSTEM_INSTRUCTION_COMPACT = `Analis PDRB BPS Kab. Tana Tidung (KTT), Kalimantan Utara. Keluarkan HANYA 1 objek JSON valid tanpa teks tambahan, mengikuti urutan field ini:
+export const SIPENA_SYSTEM_INSTRUCTION_COMPACT = `Analis PDRB BPS Kab. Tana Tidung (KTT), Kalimantan Utara. Menangkap FENOMENA PDRB (The "Why" Behind the Numbers) untuk BRS & Tabel Fenomena.
+Keluarkan HANYA 1 objek JSON valid tanpa teks tambahan, mengikuti urutan field ini:
 {"geographic_scope","is_economic_phenomenon","rejection_reason","summary","kbli_category","kbli_impact","expenditure_component","expenditure_impact","secondary_kbli_category","secondary_kbli_impact","secondary_expenditure_component","secondary_expenditure_impact","quarter","year","confidence"}
 
 1. GEOGRAPHIC_SCOPE:
 - "KTT_LOCAL": kejadian di Kab. Tana Tidung (Tideng Pale, Sesayap, Betayau, Muruk Rian, Tana Lia, Bebatu, Sepala Dalung, Pemkab KTT).
-- "KALTARA_PROVINCIAL": kebijakan/harga resmi Pemprov/BI/Disbun Kaltara yang berdampak langsung ke KTT.
+- "KALTARA_PROVINCIAL": kebijakan/harga/infrastruktur resmi Pemprov/BI/Disbun Kaltara bertransmisi ke KTT.
 - "NATIONAL_MACRO_IMPACT": kebijakan fiskal/moneter APBN/DBH/HBA/CPO/BBM pusat berimbas ke KTT.
 - "OTHER_REGION_IRRELEVANT": kejadian lokal daerah lain (Nunukan/Krayan/Sebatik, Tarakan, Bulungan, Malinau, Riau/Jambi/Kalteng) tanpa KTT & bukan kebijakan makro nasional -> WAJIB is_economic_phenomenon=false & 4 field PDRB null.
 
-2. IS_ECONOMIC_PHENOMENON:
-- true hanya jika ada perubahan/realisasi nyata output riil, harga/tarif (!=0), investasi, konsumsi, belanja APBD, atau ekspor-impor.
-- false jika tarif/harga TETAP/stagnan (Delta=0), rekap grafik historis tanpa kejadian baru, seremonial murni/apel/rapat, suksesi/pelantikan/pergantian/kematian pejabat daerah (misal kades meninggal/Pj Kades dilantik) tanpa komitmen anggaran proyek terukur, kriminalitas, duka cita, olahraga -> set 4 field PDRB=null & isi rejection_reason.
+2. IS_ECONOMIC_PHENOMENON (5 TIPOLOGI FENOMENA PDRB BPS):
+- WAJIB TRUE jika memuat salah satu fenomena pendorong PDRB:
+  (1) Disrupsi Alam/Iklim: banjir Sungai Sesayap, kemarau/air surut tongkang batubara kandas, gelombang tinggi nelayan -> KBLI A/B/E (DECREASE_NTB);
+  (2) Logistik & Jalan: jalan poros Tideng Pale rusak/ambles/longsor, antrean truk sembako/TBS, penambahan feri KMP Manta Sebawang -> KBLI H/G (INCREASE_PRICE atau INCREASE/DECREASE_NTB, deflator PK_RT/NET_EXPORT);
+  (3) Pasokan & Harga: gas elpiji 3 kg langka, antrean BBM SPBU Sebawang, pasar murah beras SPHP, harga TBS sawit Disbun, harga pupuk -> KBLI G/A/C (INCREASE_PRICE/DEFLATOR);
+  (4) Fiskal & Proyek: pembangunan kompleks Puspem KTT, jalan poros, jembatan, DAK fisik, pencairan TPP/Gaji 13 ASN, bansos beras CPPD -> KBLI F/P/R (PMTB/PK_P/PK_RT);
+  (5) Event & Musiman: Festival Adat Irau, ritual adat Tidung/Dayak, mudik Lebaran Sebawang, panen raya Betayau -> KBLI I/S/T/A (PK_RT/PK_LNPRT).
+- WAJIB FALSE (noise): tarif/harga TETAP/stagnan (Delta=0), kriminalitas murni (sabu/judi/pencurian), kecelakaan lalu lintas perorangan tanpa penutupan jalan, duka cita perorangan, seremonial apel/senam/rapat rutin tanpa komitmen proyek, olahraga hiburan biasa -> set 4 field PDRB=null & isi rejection_reason.
 
 3. KBLI 2025 (A-V):
-A=Pertanian/Kehutanan/Perikanan(TBS mentah,ikan,kayu,bantuan bibit/pupuk); B=Pertambangan/Penggalian(batubara,migas,kuari); C=Industri(PKS CPO,chipmill,IKM olahan/bantuan mesin UMKM); D=Listrik/Gas/PJU/Lampu Jalan; E=Air/PDAM/Limbah; F=Konstruksi(termasuk bangun gedung sekolah/RSUD/jalan); G=Perdagangan Besar/Eceran(sembako,BBM,bantuan modal dagang,tanpa bengkel); H=Transportasi/Gudang(pelabuhan,speedboat,SOA,kurir); I=Akomodasi/Makan Minum; J=Penerbitan/Penyiaran/Konten; K=Telekomunikasi/IT/BTS/Internet; L=Keuangan/Asuransi/KUR; M=Real Estat; N=Jasa Profesional/Konsultan/Teknis; O=Jasa Administratif/Sewa Alat Berat/Travel; P=Adm Pemerintahan/APBD/DBH/Pajak/Bansos Beras Pemkab; Q=Pendidikan murni (pengajaran/sekolah/beasiswa; DILARANG untuk bansos bencana); R=Kesehatan RSUD & Aktivitas Sosial (santunan dhuafa/bencana); S=Kesenian/Wisata/Olahraga; T=Jasa Lainnya(Ormas,Lembaga Adat,Rumah Ibadah,Salon,Bengkel/Reparasi Motor-Mobil); U=Jasa Rumah Tangga; V=Badan Internasional.
+A=Pertanian/Kehutanan/Perikanan(TBS mentah,banjir sawit,ikan,kayu,bibit/pupuk); B=Pertambangan(batubara,pasang surut tongkang,kuari); C=Industri(PKS CPO,chipmill,IKM olahan); D=Listrik/Gas/PJU; E=Air/PDAM/Limbah; F=Konstruksi(gedung Puspem,jalan poros,jembatan); G=Perdagangan(sembako,pasar murah,BBM,elpiji langka,tanpa bengkel); H=Transportasi/Gudang(jalan rusak,pelabuhan Sebawang,speedboat,KMP Manta); I=Hotel & Makan Minum; J=Penerbitan/Konten; K=Telekomunikasi/IT/BTS; L=Keuangan/KUR; M=Real Estat; N=Jasa Profesional/Teknis; O=Sewa Alat Berat/Travel; P=Adm Pemerintahan/APBD/TPP/DAK/Bansos Beras; Q=Pendidikan murni; R=Kesehatan RSUD & Bantuan Sosial; S=Kesenian/Wisata/Irau; T=Lembaga Adat Dayak-Tidung/Ormas/Bengkel Motor-Mobil; U=Jasa Rumah Tangga; V=Badan Internasional.
 
 4. PENGELUARAN (6 KOMPONEN):
-PK_RT=Konsumsi RT KTT (bukan ekspor sawit/batubara); PK_LNPRT=Operasional Lembaga Adat/Masjid/Gereja/Ormas Swadaya; PK_P=Belanja pegawai/barang-jasa operasional OPD & bansos/hibah pemda; PMTB=Belanja modal/konstruksi/mesin/alat berat/BBNKB/LKPM; INVENTORY_CHANGE=Perubahan stok(stockpile batubara Sesayap/gudang beras Bulog); NET_EXPORT=Ekspor keluar minus Impor masuk KTT (ekspor naik=INCREASE_REAL; impor masuk naik=DECREASE_REAL; harga ekspor naik=INCREASE_DEFLATOR).
+PK_RT=Konsumsi RT KTT (sembako,elpiji,tarif angkutan,daya beli warga); PK_LNPRT=Kegiatan Lembaga Adat/Masjid/Gereja/Ormas Swadaya/Irau; PK_P=Belanja pegawai/TPP/bansos natura pemda; PMTB=Belanja modal fisik gedung Puspem/jalan/jembatan/mesin/alat berat; INVENTORY_CHANGE=Perubahan stok(stockpile batubara/gudang beras); NET_EXPORT=Ekspor minus Impor KTT (ekspor naik=INCREASE_REAL; jalan putus/ekspor turun=DECREASE_REAL; harga sawit naik=INCREASE_DEFLATOR).
 
 5. DAMPAK:
 kbli_impact: INCREASE_NTB | DECREASE_NTB | INCREASE_PRICE | DECREASE_PRICE.
 expenditure_impact: INCREASE_REAL | DECREASE_REAL | INCREASE_DEFLATOR | DECREASE_DEFLATOR.
-summary: 3-5 kalimat bahasa Indonesia baku (50-110 kata). quarter (1-4) & year ikuti periode kejadian bila eksplisit di teks, else gunakan default tanggal rilis.`;
+summary: 3-5 kalimat bahasa Indonesia baku (50-110 kata). quarter (1-4) & year ikuti teks.`;
 
 export interface ArticleClassificationInput {
   title: string;
@@ -256,6 +290,45 @@ export function buildClassificationPrompt(params: ArticleClassificationInput): s
   ]
     .filter((line): line is string => Boolean(line))
     .join('\n');
+}
+
+/**
+ * Kata kunci pemicu evaluasi tahap kedua (Rescue Judge):
+ * Menangkap sinyal 5 tipologi fenomena PDRB BPS (bencana cuaca, logistik jalan/pelabuhan,
+ * kelangkaan energi/sembako, proyek fisik/anggaran daerah, event musiman).
+ */
+export const PDRB_PHENOMENON_RESCUE_KEYWORDS_RE =
+  /\b(?:banjir|luapan|terendam|kemarau|surut|kandas|cuaca buruk|gelombang|rusak parah|ambles|longsor|tertahan|jembatan|dermaga|pelabuhan|sebawang|kmp manta|speedboat|kapal feri|jalan poros|lpg|elpiji|antre(?:an)?|solar|pertalite|bbm|sembako|pasar murah|sphp|beras|cabai|pupuk|tbs|sawit|batubara|puspem|gedung kantor|proyek fisik|lelang tender|dak fisik|apbd|tpp|thr|gaji 13|bansos|cppd|irau|panen raya)\b/i;
+
+export function shouldRunPhenomenonRescuePass(
+  classification: LlmClassificationOutput,
+  article: ArticleClassificationInput,
+): boolean {
+  if (classification.is_economic_phenomenon) return false;
+  if (classification.geographic_scope === 'OTHER_REGION_IRRELEVANT') return false;
+
+  const combinedText = `${article.title} ${article.snippetText}`;
+  return PDRB_PHENOMENON_RESCUE_KEYWORDS_RE.test(combinedText);
+}
+
+export function buildRescueJudgePrompt(
+  article: ArticleClassificationInput,
+  firstPassResult: LlmClassificationOutput,
+): string {
+  const base = buildClassificationPrompt(article);
+  return [
+    '=== EVALUASI TAHAP KEDUA (RESCUE JUDGE FENOMENA PDRB BPS) ===',
+    `Pada tahap pertama, artikel ini dinilai NON-EKONOMI dengan alasan: "${firstPassResult.rejection_reason}".`,
+    `Namun, artikel ini berlokasi di ${firstPassResult.geographic_scope} dan mengandung kata kunci pendorong neraca PDRB KTT.`,
+    '',
+    'TUGAS ANDA:',
+    'Sebagai Hakim Penyelamat Fenomena PDRB BPS KTT, tinjau kembali berdasarkan 5 TIPOLOGI FENOMENA PDRB BPS:',
+    '1. Apakah peristiwa ini dapat digunakan oleh analis Nerwilis BPS untuk menjelaskan fluktuasi produksi pertanian/tambang (KBLI A/B), gangguan jalan/angkutan (KBLI H), tekanan harga/kelangkaan pangan/energi (KBLI G), realisasi belanja proyek/fiskal (KBLI F/P), atau event budaya (KBLI I/S/T)?',
+    '2. Jika YA: set is_economic_phenomenon = true, petakan ke KBLI & Pengeluaran yang sesuai, dan berikan summary analitis.',
+    '3. Jika TIDAK (murni kriminal individu, laka lantas tunggal perorangan, duka cita perorangan): pertahankan is_economic_phenomenon = false dan jelaskan rejection_reason.',
+    '',
+    base,
+  ].join('\n');
 }
 
 function stripMarkdownJsonFence(raw: string): string {

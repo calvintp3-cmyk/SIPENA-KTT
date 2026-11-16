@@ -4,7 +4,6 @@ import { pool } from '../server/db';
 import { MultiLlmRouter } from '../server/services/llm/router';
 import {
   mapClassificationToPersistence,
-  SIPENA_SYSTEM_INSTRUCTION,
 } from '../server/services/llm/classifier';
 import { buildScraperPipelineRuntimeOptions } from '../server/utils/llm-config';
 import { safeFetchText } from '../server/utils/ssrf';
@@ -47,7 +46,10 @@ async function asyncPool<T, R>(
   const workers = Array.from({ length: concurrency }, async () => {
     while (currentIndex < items.length) {
       const idx = currentIndex++;
-      results[idx] = await fn(items[idx], idx);
+      const item = items[idx];
+      if (item !== undefined) {
+        results[idx] = await fn(item, idx);
+      }
     }
   });
 
@@ -160,8 +162,8 @@ async function main() {
     if (row.word_count < 30 && row.source_portal.toLowerCase().includes('tribun')) {
       try {
         const fetchRes = await safeFetchText(row.url, { timeoutMs: 8_000 });
-        if (fetchRes.ok && fetchRes.html) {
-          const extracted = extractArticleContent(fetchRes.html, row.source_portal);
+        if (fetchRes.body) {
+          const extracted = extractArticleContent(fetchRes.body, row.published_at, fetchRes.finalUrl);
           if (extracted.snippetText && extracted.snippetText.length > snippet.length) {
             snippet = extracted.snippetText;
             countRefetched += 1;
@@ -197,9 +199,7 @@ async function main() {
 
     while (attempts < 3) {
       try {
-        aiResult = await llmRouter.classifyArticle(classificationInput, {
-          systemInstruction: SIPENA_SYSTEM_INSTRUCTION,
-        });
+        aiResult = await llmRouter.classifyArticle(classificationInput);
         if (aiResult.ok) break;
         attempts += 1;
         const errMsg = aiResult.errorMessage ?? aiResult.error ?? 'Unknown error';

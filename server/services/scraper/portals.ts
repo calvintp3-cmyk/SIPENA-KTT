@@ -130,7 +130,7 @@ export const REGIONAL_PORTALS: ReadonlyArray<RegionalPortalConfig> = [
     sourcePortal: 'korankaltara.com',
     indexUrl: 'https://korankaltara.com/category/tana-tidung',
     allowedHosts: ['korankaltara.com', 'www.korankaltara.com'],
-    paginationPattern: 'SLASH_PAGE',
+    paginationPattern: 'QUERY_PAGE',
     maxPages: 5,
     googleNewsFallbackQuery: 'site:korankaltara.com "tana tidung"',
     itemSelectors: [
@@ -735,6 +735,27 @@ export function parseRegionalPortalIndex(
       // Abaikan JSON-LD tidak valid
     }
   });
+
+  // Strategi 0b: Ekstraksi Next.js App Router / RSC Flight Payload (mis. korankaltara.com)
+  // yang menyematkan objek artikel {"id":...,"title":"...","slug":"...",...,"createdAt":"..."}
+  if (results.length < maxItems && (html.includes('__next_f') || html.includes('"headlines":['))) {
+    const normalizedFlight = html.replace(/\\"/g, '"');
+    const rscArticleRe =
+      /"title"\s*:\s*"([^"]{15,250})"\s*,\s*"slug"\s*:\s*"([a-z0-9-]{10,220})"(?:(?!\{"id":)[\s\S]{0,1200}?"createdAt"\s*:\s*"([^"]{10,40})")?/gi;
+    for (const match of normalizedFlight.matchAll(rscArticleRe)) {
+      if (results.length >= maxItems) break;
+      const rawTitle = match[1]?.trim() ?? '';
+      const rawSlug = match[2]?.trim() ?? '';
+      const rawCreatedAt = match[3]?.trim();
+      if (!rawTitle || !rawSlug) continue;
+      try {
+        const resolvedUrl = new URL(`/${rawSlug}`, baseUrl).toString();
+        registerCandidate(resolvedUrl, rawTitle, rawCreatedAt);
+      } catch {
+        // Abaikan slug tidak valid
+      }
+    }
+  }
 
   // Strategi 1: Iterasi kontainer item berita terstruktur sesuai pola masing-masing portal
   for (const containerSelector of portal.itemSelectors) {

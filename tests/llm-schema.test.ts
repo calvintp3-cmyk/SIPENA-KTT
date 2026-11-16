@@ -10,9 +10,12 @@ import {
   VerificationStatusEnum,
 } from '#shared/enums/pdrb';
 import {
+  buildRescueJudgePrompt,
   compressArticleTextForLlm,
   mapClassificationToPersistence,
   parseAndValidateLlmJson,
+  PDRB_PHENOMENON_RESCUE_KEYWORDS_RE,
+  shouldRunPhenomenonRescuePass,
   SIPENA_SYSTEM_INSTRUCTION_COMPACT,
   SIPENA_SYSTEM_INSTRUCTION_FULL,
 } from '#server/services/llm/classifier';
@@ -178,7 +181,36 @@ describe('LLM Classifier Schema & Gemini Worker Resilience', () => {
 
     expect(SIPENA_SYSTEM_INSTRUCTION_COMPACT.length).toBeLessThan(SIPENA_SYSTEM_INSTRUCTION_FULL.length);
     expect(SIPENA_SYSTEM_INSTRUCTION_FULL).toContain('KBLI 2025');
+    expect(SIPENA_SYSTEM_INSTRUCTION_FULL).toContain('TIPOLOGI 1');
     expect(SIPENA_SYSTEM_INSTRUCTION_COMPACT).toContain('OTHER_REGION_IRRELEVANT');
+    expect(SIPENA_SYSTEM_INSTRUCTION_COMPACT).toContain('Disrupsi Alam');
+  });
+
+  it('mendeteksi kelayakan Rescue Judge tahap kedua pada berita lokal yang memuat kata kunci fenomena PDRB', () => {
+    const floodArticle = {
+      ...SAMPLE_INPUT,
+      title: 'Sungai Sesayap Meluap Rendam Puluhan Hektare Kebun Sawit di Betayau',
+      snippetText: 'Banjir luapan sungai merendam akses jalan dan perkebunan kelapa sawit rakyat sejak dua hari lalu.',
+    };
+
+    const firstPassRejected = parseAndValidateLlmJson(VALID_NON_ECONOMIC_JSON);
+    expect(shouldRunPhenomenonRescuePass(firstPassRejected, floodArticle)).toBe(true);
+
+    const rescuePrompt = buildRescueJudgePrompt(floodArticle, firstPassRejected);
+    expect(rescuePrompt).toContain('Hakim Penyelamat Fenomena PDRB BPS KTT');
+    expect(rescuePrompt).toContain('Sungai Sesayap Meluap');
+
+    // Berita kriminal murni tidak boleh lolos rescue
+    const crimeArticle = {
+      ...SAMPLE_INPUT,
+      title: 'Polres KTT Amankan Pelaku Pencurian Sepeda Motor di Tideng Pale',
+      snippetText: 'Pelaku curanmor ditangkap polisi saat bersembunyi di penginapan.',
+    };
+    expect(shouldRunPhenomenonRescuePass(firstPassRejected, crimeArticle)).toBe(false);
+
+    // Berita wilayah lain tidak boleh di-rescue
+    const otherRegionRejected = parseAndValidateLlmJson(VALID_OTHER_REGION_JSON);
+    expect(shouldRunPhenomenonRescuePass(otherRegionRejected, floodArticle)).toBe(false);
   });
 
   it('melakukan exponential backoff + jitter pada HTTP 429 dan fallback ke gemini-3.5-flash-lite', async () => {
