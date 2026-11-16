@@ -26,8 +26,10 @@ const CronTriggerBodySchema = z
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig(event);
   const providedSecret = getRequestHeader(event, 'x-cron-secret');
+  const expectedSecret =
+    config.cronSecret || process.env.NUXT_CRON_SECRET || process.env.CRON_SECRET;
 
-  if (!verifyCronSecret(providedSecret, config.cronSecret)) {
+  if (!verifyCronSecret(providedSecret, expectedSecret)) {
     throw createError({
       statusCode: 401,
       statusMessage: 'Unauthorized',
