@@ -11,7 +11,7 @@ import {
   type ArticleClassificationInput,
 } from './classifier';
 
-export const PRIMARY_GEMINI_MODEL = 'gemini-3.8-flash' as const;
+export const PRIMARY_GEMINI_MODEL = 'gemini-3.5-flash' as const;
 export const FALLBACK_GEMINI_MODEL = 'gemini-3.5-flash-lite' as const;
 
 export const GEMINI_REQUEST_TIMEOUT_MS = 15_000;

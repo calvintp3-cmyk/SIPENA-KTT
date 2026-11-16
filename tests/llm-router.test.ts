@@ -275,7 +275,7 @@ describe('MultiLlmRouter & Provider Key Configuration', () => {
       expect(result.modelUsed).toBe(`groq:${DEFAULT_GROQ_PRIMARY_MODEL}`);
     }
     expect(attemptedSlots).toEqual([
-      'gemini:gemini-3.8-flash',
+      `gemini:${PRIMARY_GEMINI_MODEL}`,
       `groq:${DEFAULT_GROQ_PRIMARY_MODEL}`,
     ]);
     expect(sleepDurations).toEqual([]);
