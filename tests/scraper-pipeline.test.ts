@@ -21,6 +21,7 @@ import {
   PRIMARY_GEMINI_MODEL,
   type GeminiInvokeFn,
 } from '#server/services/llm/gemini-client';
+import { DEFAULT_GROQ_PRIMARY_MODEL } from '#server/services/llm/router';
 import { harvestRegionalPortals, type RegionalPortalConfig } from '#server/services/scraper/portals';
 
 // In-memory state untuk memverifikasi status log PostgreSQL pada pengujian pipeline tanpa DB eksternal
@@ -617,11 +618,11 @@ describe('Scraper Pipeline Concurrency, Timeouts, Gemini Failover & Fail-Safe Re
     expect(geoIgnored?.isEconomicPhenomenon).toBe(false);
 
     const kttInserted = mockInsertedArticles.find((a) => String(a.url).includes('sesayap'));
-    expect(kttInserted?.llmModel).toBe('groq:llama-3.3-70b-versatile');
+    expect(kttInserted?.llmModel).toBe(`groq:${DEFAULT_GROQ_PRIMARY_MODEL}`);
     expect(kttInserted?.verificationStatus).toBe('PENDING');
 
-    expect(summary.providerStats['gemini:gemini-3.8-flash']?.rateLimits).toBe(1);
-    expect(summary.providerStats['groq:llama-3.3-70b-versatile']?.successes).toBe(1);
+    expect(summary.providerStats[`gemini:${PRIMARY_GEMINI_MODEL}`]?.rateLimits).toBe(1);
+    expect(summary.providerStats[`groq:${DEFAULT_GROQ_PRIMARY_MODEL}`]?.successes).toBe(1);
   });
 
   it('harvestRegionalPortals tetap memeriksa additionalIndexUrls setelah >= 5 artikel selama < maxItemsPerPortal', async () => {

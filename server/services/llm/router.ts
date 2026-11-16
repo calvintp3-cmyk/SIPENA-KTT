@@ -36,19 +36,17 @@ export type LlmProviderName =
   | 'nvidia'
   | 'openrouter';
 
-export const DEFAULT_GROQ_PRIMARY_MODEL = 'llama-3.3-70b-versatile' as const;
-export const DEFAULT_GROQ_FALLBACK_MODEL = 'llama-3.1-8b-instant' as const;
+export const DEFAULT_GROQ_PRIMARY_MODEL = 'qwen/qwen3.8-27b' as const;
+export const DEFAULT_GROQ_FALLBACK_MODEL = 'openai/gpt-oss-120b' as const;
 export const DEFAULT_CEREBRAS_MODEL = 'llama-3.3-70b' as const;
 export const DEFAULT_MISTRAL_MODEL = 'mistral-small-latest' as const;
 export const DEFAULT_NVIDIA_MODEL = 'meta/llama-3.3-70b-instruct' as const;
 export const DEFAULT_GEMINI_EMBEDDING_MODEL = 'gemini-embedding-2' as const;
 
 export const OPENROUTER_DEFAULT_FREE_MODELS = [
-  'google/gemma-4-31b-it:free',
-  'google/gemma-4-26b-a4b-it:free',
-  'qwen/qwen-2.5-72b-instruct:free',
-  'qwen/qwen3-coder:free',
   'openrouter/free',
+  'qwen/qwen-2.5-72b-instruct:free',
+  'google/gemma-4-31b-it:free',
 ] as const;
 
 export const DEFAULT_LLM_MAX_OUTPUT_TOKENS = DEFAULT_GEMINI_MAX_OUTPUT_TOKENS;
