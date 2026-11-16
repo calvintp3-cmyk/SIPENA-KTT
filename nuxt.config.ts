@@ -33,6 +33,24 @@ export default defineNuxtConfig({
     viewTransition: true,
   },
 
+  vite: {
+    build: {
+      chunkSizeWarningLimit: 800,
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (id.includes('node_modules/echarts') || id.includes('node_modules/zrender')) {
+              return 'echarts';
+            }
+            if (id.includes('node_modules/exceljs')) {
+              return 'exceljs';
+            }
+          },
+        },
+      },
+    },
+  },
+
   icon: {
     provider: 'server',
     fallbackToApi: 'server-only',

@@ -22,6 +22,7 @@ import {
   parseGdeltDocArticlesJson,
 } from '#server/services/scraper/national';
 import {
+  REGIONAL_PORTALS,
   parseRegionalPortalIndex,
   parseRegionalRssFeed,
   type DiscoveredArticleCandidate,
@@ -487,6 +488,36 @@ describe('Smart Scraper Filters, Dedup, Google News Decoder & Geo-Gate', () => {
     expect(extendedCandidates.some(c => c.title.includes('Realisasi Investasi PMTB'))).toBe(true);
     expect(extendedCandidates.some(c => c.title.includes('Panen Padi Sesayap Hilir'))).toBe(true);
     expect(extendedCandidates.some(c => c.title.includes('Berita Lama Januari'))).toBe(false);
+  });
+
+  it('memvalidasi 12 portal regional aktif dengan URL indeks, selektor, dan host resmi', () => {
+    const activePortals = REGIONAL_PORTALS.filter((p) => p.isActive !== false);
+    expect(activePortals).toHaveLength(12);
+
+    const activeIds = activePortals.map((p) => p.id);
+    expect(activeIds).toEqual(
+      expect.arrayContaining([
+        'tribun-kaltara',
+        'koran-kaltara',
+        'benuanta',
+        'radar-tarakan',
+        'pemkab-tana-tidung',
+        'pemprov-kaltara',
+        'antara-kaltara',
+        'niaga-asia',
+        'headlinews',
+        'metrokaltara',
+        'kaltim-post-kaltara',
+        'rri-kaltara',
+      ]),
+    );
+
+    for (const portal of activePortals) {
+      expect(portal.indexUrl).toMatch(/^https?:\/\//);
+      expect(portal.allowedHosts.length).toBeGreaterThan(0);
+      expect(portal.itemSelectors.length).toBeGreaterThan(0);
+      expect(portal.maxPages).toBeGreaterThanOrEqual(1);
+    }
   });
 });
 

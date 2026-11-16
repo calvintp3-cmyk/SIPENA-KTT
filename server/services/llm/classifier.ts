@@ -1,14 +1,14 @@
 // server/services/llm/classifier.ts
 import {
   ArticleSourceTypeEnum,
+  ExpenditureComponentEnum,
+  ExpenditureImpactEnum,
   EXPENDITURE_IMPACT_LABELS,
+  KbliCategoryEnum,
+  KbliImpactEnum,
   KBLI_IMPACT_LABELS,
   LlmStatusEnum,
   VerificationStatusEnum,
-  type ExpenditureComponentEnum,
-  type ExpenditureImpactEnum,
-  type KbliCategoryEnum,
-  type KbliImpactEnum,
 } from '../../../shared/enums/pdrb';
 import {
   LlmClassificationRawSchema,
@@ -380,14 +380,14 @@ export function enrichClassificationLinkages(
   if (!classification.is_economic_phenomenon) return classification;
 
   const text = `${classification.summary} ${snippetText ?? ''}`.toLowerCase();
-  let priKbli = classification.kbli_category;
-  let priKbliImpact = classification.kbli_impact;
-  let priExp = classification.expenditure_component;
-  let priExpImpact = classification.expenditure_impact;
-  let secKbli = classification.secondary_kbli_category;
-  let secKbliImpact = classification.secondary_kbli_impact;
-  let secExp = classification.secondary_expenditure_component;
-  let secExpImpact = classification.secondary_expenditure_impact;
+  let priKbli: KbliCategoryEnum | null = classification.kbli_category;
+  let priKbliImpact: KbliImpactEnum | null = classification.kbli_impact;
+  let priExp: ExpenditureComponentEnum | null = classification.expenditure_component;
+  let priExpImpact: ExpenditureImpactEnum | null = classification.expenditure_impact;
+  let secKbli: KbliCategoryEnum | null = classification.secondary_kbli_category;
+  let secKbliImpact: KbliImpactEnum | null = classification.secondary_kbli_impact;
+  let secExp: ExpenditureComponentEnum | null = classification.secondary_expenditure_component;
+  let secExpImpact: ExpenditureImpactEnum | null = classification.secondary_expenditure_impact;
 
   const isTrueEducationText =
     /\b(?:sekolah|paud|tk|sd|smp|sma|smk|siswa|pelajar|mahasiswa|guru|dosen|iain|ptkin|uins|universitas|kampus|kuliah|beasiswa|disdikbud|pembelajaran|pendidikan|bdr|putus sekolah|kkn)\b/i.test(
@@ -448,9 +448,9 @@ export function enrichClassificationLinkages(
       text,
     )
   ) {
-    priKbli = 'P' as typeof priKbli;
+    priKbli = KbliCategoryEnum.P;
     if (/\b(?:pajak alat berat)\b/i.test(text) && !secKbli) {
-      secKbli = 'B' as typeof secKbli;
+      secKbli = KbliCategoryEnum.B;
       secKbliImpact = priKbliImpact;
     }
   }
@@ -460,7 +460,7 @@ export function enrichClassificationLinkages(
     !isPrivateSupportService &&
     /\b(?:bulog|subsidi|batalyon|tni|pajak|pemkab|pemprov|pemerintah|kemenhut)\b/i.test(text)
   ) {
-    secKbli = (priKbli === 'P' ? null : 'P') as typeof secKbli;
+    secKbli = priKbli === KbliCategoryEnum.P ? null : KbliCategoryEnum.P;
     if (!secKbli) secKbliImpact = null;
   }
 
@@ -468,15 +468,15 @@ export function enrichClassificationLinkages(
   // GUARDRAIL 3 (Grup 4): Batas Institusi SNA 2008 Upah/UMK & THR Pekerja Swasta
   // =========================================================================
   if (/\b(?:umk|upah minimum|posko pengaduan thr|thr dan bhr|perusahaan melanggar)\b/i.test(text)) {
-    priExp = 'PK_RT' as typeof priExp;
-    priExpImpact = 'INCREASE_REAL' as typeof priExpImpact;
-    if (/\b(?:umk|upah minimum)\b/i.test(text) && priKbli === 'P') {
-      priKbli = 'A' as typeof priKbli;
-      secKbli = 'B' as typeof secKbli;
-      secKbliImpact = 'INCREASE_NTB' as typeof secKbliImpact;
-    } else if (/\b(?:thr|bhr)\b/i.test(text) && priKbli === 'P' && !secKbli) {
-      secKbli = 'A' as typeof secKbli;
-      secKbliImpact = 'INCREASE_NTB' as typeof secKbliImpact;
+    priExp = ExpenditureComponentEnum.PK_RT;
+    priExpImpact = ExpenditureImpactEnum.INCREASE_REAL;
+    if (/\b(?:umk|upah minimum)\b/i.test(text) && priKbli === KbliCategoryEnum.P) {
+      priKbli = KbliCategoryEnum.A;
+      secKbli = KbliCategoryEnum.B;
+      secKbliImpact = KbliImpactEnum.INCREASE_NTB;
+    } else if (/\b(?:thr|bhr)\b/i.test(text) && priKbli === KbliCategoryEnum.P && !secKbli) {
+      secKbli = KbliCategoryEnum.A;
+      secKbliImpact = KbliImpactEnum.INCREASE_NTB;
     }
   }
 

@@ -95,6 +95,90 @@ const INITIAL_KEYWORDS: InitialKeywordSeed[] = [
     description:
       'Memantau rilis IHK/inflasi BPS Kaltara dan komoditas pemicu volatile food yang berdampak pada konsumsi rumah tangga KTT.',
   },
+  {
+    keyword: 'PDAM Tirta Taka Tana Tidung',
+    defaultKbliCategory: KbliCategoryEnum.E,
+    defaultExpenditureComponent: ExpenditureComponentEnum.PK_RT,
+    description:
+      'Memantau cakupan pipa air bersih PDAM Tirta Taka dan tarif air minum rumah tangga di Tideng Pale dan sekitarnya.',
+  },
+  {
+    keyword: 'pengelolaan sampah limbah Tana Tidung',
+    defaultKbliCategory: KbliCategoryEnum.E,
+    defaultExpenditureComponent: ExpenditureComponentEnum.PK_P,
+    description:
+      'Memantau infrastruktur TPA, truk persampahan DLH, dan program kebersihan sanitasi Pemkab Tana Tidung.',
+  },
+  {
+    keyword: 'pabrik kelapa sawit CPO Kaltara',
+    defaultKbliCategory: KbliCategoryEnum.C,
+    defaultExpenditureComponent: ExpenditureComponentEnum.NET_EXPORT,
+    description:
+      'Memantau operasional dan kapasitas giling Pabrik Kelapa Sawit (PKS) serta pengolahan CPO di Kalimantan Utara.',
+  },
+  {
+    keyword: 'industri olahan IKM UMKM Tana Tidung',
+    defaultKbliCategory: KbliCategoryEnum.C,
+    defaultExpenditureComponent: ExpenditureComponentEnum.PK_RT,
+    description:
+      'Memantau sentra industri kecil menengah (IKM), olahan pangan lokal, kerajinan rotan/sesayap di Tana Tidung.',
+  },
+  {
+    keyword: 'Bankaltimtara KUR kredit Tana Tidung',
+    defaultKbliCategory: KbliCategoryEnum.L,
+    defaultExpenditureComponent: ExpenditureComponentEnum.PMTB,
+    description:
+      'Memantau penyaluran Kredit Usaha Rakyat (KUR) dan pembiayaan modal kerja Bankaltimtara untuk UMKM Tana Tidung.',
+  },
+  {
+    keyword: 'Bank Indonesia Kaltara inflasi QRIS',
+    defaultKbliCategory: KbliCategoryEnum.L,
+    defaultExpenditureComponent: ExpenditureComponentEnum.PK_RT,
+    description:
+      'Memantau asesmen moneter KPw BI Kaltara, TPID, dan transaksi digital QRIS perbankan di Kaltara/KTT.',
+  },
+  {
+    keyword: 'telekomunikasi BTS internet Tana Tidung',
+    defaultKbliCategory: KbliCategoryEnum.K,
+    defaultExpenditureComponent: ExpenditureComponentEnum.PMTB,
+    description:
+      'Memantau pembangunan tower BTS Komdigi, perluasan jaringan 4G fiber optik pedalaman Tana Tidung.',
+  },
+  {
+    keyword: 'hotel penginapan kuliner Tana Tidung',
+    defaultKbliCategory: KbliCategoryEnum.I,
+    defaultExpenditureComponent: ExpenditureComponentEnum.PK_RT,
+    description:
+      'Memantau okupansi kamar hotel/penginapan dan pergerakan resto/kuliner lokal di Tideng Pale KTT.',
+  },
+  {
+    keyword: 'perumahan ruko properti Tana Tidung',
+    defaultKbliCategory: KbliCategoryEnum.M,
+    defaultExpenditureComponent: ExpenditureComponentEnum.PMTB,
+    description:
+      'Memantau pengembangan kavling perumahan, ruko sentra ekonomi baru, dan pasar properti di Tideng Pale KTT.',
+  },
+  {
+    keyword: 'sewa alat berat kontainer Kalimantan Utara',
+    defaultKbliCategory: KbliCategoryEnum.O,
+    defaultExpenditureComponent: ExpenditureComponentEnum.PMTB,
+    description:
+      'Memantau penyewaan excavator, dump truck, ponton batubara dan alat berat penunjang konstruksi/tambang di Kaltara.',
+  },
+  {
+    keyword: 'Dana Alokasi Khusus Tana Tidung',
+    defaultKbliCategory: KbliCategoryEnum.P,
+    defaultExpenditureComponent: ExpenditureComponentEnum.PK_P,
+    description:
+      'Memantau transfer DAK fisik/nonfisik Kemenkeu untuk belanja modal dan operasional layanan Pemkab Tana Tidung.',
+  },
+  {
+    keyword: 'tambak udang bandeng perikanan Tana Tidung',
+    defaultKbliCategory: KbliCategoryEnum.A,
+    defaultExpenditureComponent: ExpenditureComponentEnum.NET_EXPORT,
+    description:
+      'Memantau panen udang windu, bandeng tambak, dan perikanan tangkap Sesayap muara untuk konsumsi dan ekspor.',
+  },
 ];
 
 const BASIC_EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

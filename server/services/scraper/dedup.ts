@@ -70,7 +70,12 @@ const INDONESIAN_DEDUP_STOPWORDS = new Set([
 const DISTINCT_NUMBER_RE = /^\d+$/;
 
 function stripMediaSuffixForDedup(rawTitle: string): string {
-  const cleaned = rawTitle.replace(/\u00a0/g, ' ').replace(/\s+/g, ' ').trim();
+  let cleaned = rawTitle.replace(/\u00a0/g, ' ').replace(/\s+/g, ' ').trim();
+  // Bersihkan prefix tag editorial umum
+  cleaned = cleaned.replace(/^(?:breaking\s+news|berita\s+terkini|update|foto|video|galeri|infografis)\s*:\s*/i, '');
+  cleaned = cleaned.replace(/^\[(?:foto|video|update|breaking)\]\s*/i, '');
+  cleaned = cleaned.replace(/\s*\[(?:foto|video|update|breaking)\]$/i, '');
+
   const dashIdx = cleaned.lastIndexOf(' - ');
   if (dashIdx > 20 && cleaned.length - dashIdx <= 45) {
     return cleaned.slice(0, dashIdx).trim();
@@ -78,6 +83,10 @@ function stripMediaSuffixForDedup(rawTitle: string): string {
   const pipeIdx = cleaned.lastIndexOf(' | ');
   if (pipeIdx > 20 && cleaned.length - pipeIdx <= 45) {
     return cleaned.slice(0, pipeIdx).trim();
+  }
+  const colonIdx = cleaned.lastIndexOf(' : ');
+  if (colonIdx > 20 && cleaned.length - colonIdx <= 30) {
+    return cleaned.slice(0, colonIdx).trim();
   }
   return cleaned;
 }

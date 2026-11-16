@@ -13,6 +13,7 @@ import {
 import type { ArticleRecord } from '#server/db/schema';
 import { generateArticlesCsvString } from '#server/services/export/csv';
 import {
+  EXPORT_BRIDGING_WORKSHEET_NAME,
   EXPORT_WORKSHEET_NAME,
   generateArticlesExcelBuffer,
   OFFICIAL_EXPORT_HEADERS,
@@ -124,6 +125,36 @@ describe('Export Excel (.xlsx) & CSV Resmi 10 Kolom Nerwilis', () => {
     expect(row3.getCell(8).value).toBe('Surat Edaran Dinas PUPR No. 12/2026');
     expect(row3.getCell(9).value).toBe('Triwulan II 2026');
     expect(row3.getCell(10).value).toBe('Menunggu Review');
+
+    // Verifikasi Sheet 2 (Dual-Sheet BPS 17 Sektor & Pengeluaran)
+    const sheet2 = wb.getWorksheet(EXPORT_BRIDGING_WORKSHEET_NAME);
+    expect(sheet2).toBeDefined();
+
+    // Verifikasi Header Tabel A & B ada
+    const tableATitle = sheet2!.getRow(1).getCell(1).text;
+    expect(tableATitle).toContain('TABEL A: MATRIKS BRIDGING KBLI 2025 KE 17 LAPANGAN USAHA PDRB BPS');
+
+    const tableAHeader = sheet2!.getRow(2).getCell(1).text;
+    expect(tableAHeader).toBe('Kode Sektor');
+
+    // Sektor A (Pertanian) harus berisi 1 fenomena dari sample1
+    const sectorARow = sheet2!.getRow(3);
+    expect(sectorARow.getCell(1).text).toBe('A');
+    expect(sectorARow.getCell(2).text).toContain('Pertanian');
+    expect(Number(sectorARow.getCell(4).value)).toBe(1);
+    expect(Number(sectorARow.getCell(5).value)).toBe(1); // Dampak (+)
+
+    // Sektor F (Konstruksi) harus berisi 1 fenomena dari sample2
+    // Baris sektor F berada di baris ke-8 (3 + index 5)
+    const sectorFRow = sheet2!.getRow(8);
+    expect(sectorFRow.getCell(1).text).toBe('F');
+    expect(sectorFRow.getCell(2).text).toContain('Konstruksi');
+    expect(Number(sectorFRow.getCell(4).value)).toBe(1);
+
+    // Verifikasi Tabel B Pengeluaran
+    const rowsText: string[] = [];
+    sheet2!.eachRow((r) => rowsText.push(r.getCell(1).text));
+    expect(rowsText.some((t) => t.includes('TABEL B: DISTRIBUSI FENOMENA PDRB SISI PENGELUARAN'))).toBe(true);
   });
 
   it('menghasilkan CSV UTF-8 BOM yang menetralkan CSV Formula Injection (=, +, -, @)', () => {

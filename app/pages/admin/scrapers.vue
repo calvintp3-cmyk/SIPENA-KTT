@@ -28,9 +28,9 @@ const isTriggeringRun = ref(false);
 const isTriggeringRetry = ref(false);
 
 const modeOptions = [
-  { label: 'Semua Sumber (4 Portal Lokal + Keyword Nasional)', value: 'ALL' },
-  { label: 'Hanya 4 Portal Regional Kaltara', value: 'REGIONAL_ONLY' },
-  { label: 'Hanya Penjaringan Keyword Nasional', value: 'NATIONAL_ONLY' },
+  { label: 'Semua Sumber (12 Portal Regional + 22 Keyword Nasional)', value: 'ALL' },
+  { label: 'Hanya 12 Portal Regional Kaltara (Tribun, Koran Kaltara, Benuanta, Radar, dll.)', value: 'REGIONAL_ONLY' },
+  { label: 'Hanya Penjaringan Keyword Nasional (Google News, Bing, GDELT)', value: 'NATIONAL_ONLY' },
 ];
 
 const queryParams = computed(() => ({

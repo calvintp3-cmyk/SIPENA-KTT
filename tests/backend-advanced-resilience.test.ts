@@ -189,7 +189,7 @@ describe('Advanced Backend Stress, Resilience & Semantic Evaluation Suite', () =
         expected: {
           geographicScope: 'KALTARA_PROVINCIAL',
           isEconomic: true,
-          expectedKbli: KbliCategoryEnum.P,
+          expectedKbli: KbliCategoryEnum.A,
           expectedExp: ExpenditureComponentEnum.PK_RT,
         },
       },

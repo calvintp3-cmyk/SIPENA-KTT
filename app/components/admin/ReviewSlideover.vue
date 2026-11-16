@@ -194,6 +194,18 @@ const secondaryExpImpactOptions = computed(() => [
   ...expenditureImpactOptions,
 ]);
 
+const bpsBridgingHint = computed(() => {
+  const cat = form.kbliCategory;
+  if (cat === 'P') return 'Bridging PDRB BPS: Sektor O (Administrasi Pemerintahan). Catatan: Pada KBLI 2020 berkode O.';
+  if (cat === 'R') return 'Bridging PDRB BPS: Sektor Q (Kesehatan & Kegiatan Sosial). Catatan: Pada KBLI 2020 berkode Q.';
+  if (cat === 'O') return 'Bridging PDRB BPS: Sektor M,N (Aktivitas Penunjang Usaha Swasta / Sewa Alat Berat).';
+  if (cat === 'Q') return 'Bridging PDRB BPS: Sektor P (Jasa Pendidikan).';
+  if (cat === 'K' || cat === 'J') return 'Bridging PDRB BPS: Sektor J (Informasi & Komunikasi).';
+  if (cat === 'L') return 'Bridging PDRB BPS: Sektor K (Jasa Keuangan & Asuransi).';
+  if (cat === 'M') return 'Bridging PDRB BPS: Sektor L (Real Estat / Properti).';
+  return null;
+});
+
 const snippetWordCount = computed(() => {
   const txt = props.article?.snippetText?.trim();
   if (!txt) return 0;
@@ -463,6 +475,12 @@ async function submitUpdate(action: 'VERIFIED' | 'IGNORED' | 'DRAFT') {
                 placeholder="Pilih kategori KBLI..."
                 class="w-full"
               />
+              <p
+                v-if="bpsBridgingHint"
+                class="mt-1 text-[11px] font-medium text-emerald-800 bg-emerald-50/80 px-2 py-0.5 rounded border border-emerald-200/70"
+              >
+                {{ bpsBridgingHint }}
+              </p>
             </UFormField>
 
             <UFormField
