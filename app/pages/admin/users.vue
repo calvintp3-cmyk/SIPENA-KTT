@@ -265,18 +265,21 @@ const columns: TableColumn<AdminUserItem>[] = [
         :title="loadError"
       />
 
-      <!-- Users Table -->
+      <!-- Users Table (Desktop >= md) & Responsive Cards (< md) -->
       <div class="saas-card rounded-2xl overflow-hidden">
         <div
-          tabindex="0"
           role="region"
           aria-label="Tabel Daftar Akses Admin dan Whitelist Google"
-          class="saas-table-scroller"
+          class="hidden md:block w-full"
         >
           <UTable
             :data="filteredUsers"
             :columns="columns"
             :loading="pending"
+            :ui="{
+              th: 'py-3 px-3.5 text-[11px] font-bold text-slate-700 bg-slate-50/90',
+              td: 'py-3 px-3.5 text-xs whitespace-normal align-middle',
+            }"
             empty="Belum ada akun staf admin yang terdaftar."
           >
             <template #staff-cell="{ row }">
@@ -406,6 +409,99 @@ const columns: TableColumn<AdminUserItem>[] = [
               </div>
             </template>
           </UTable>
+        </div>
+
+        <!-- Mobile Cards (< md) -->
+        <div class="md:hidden divide-y divide-slate-200/80">
+          <div
+            v-if="!pending && filteredUsers.length === 0"
+            class="p-6 text-center text-xs text-slate-600"
+          >
+            Belum ada akun staf admin yang terdaftar.
+          </div>
+          <div
+            v-for="u in filteredUsers"
+            :key="`mob-u-${u.id}`"
+            class="p-4 space-y-3 bg-white"
+          >
+            <div class="flex items-start justify-between gap-2">
+              <div class="flex items-center gap-2.5 min-w-0">
+                <div
+                  class="w-9 h-9 rounded-full flex items-center justify-center text-xs font-extrabold shrink-0"
+                  :class="
+                    u.role === UserRoleEnum.ADMIN
+                      ? 'bg-gradient-to-br from-blue-600 to-indigo-600 text-white'
+                      : 'bg-indigo-50 text-indigo-700 border border-indigo-200/80'
+                  "
+                >
+                  {{ u.name.trim().charAt(0).toUpperCase() || 'A' }}
+                </div>
+                <div class="min-w-0">
+                  <div class="flex items-center gap-1.5 flex-wrap">
+                    <span class="font-bold text-sm text-slate-900 truncate">{{ u.name }}</span>
+                    <UBadge v-if="u.id === user?.id" color="primary" variant="soft" size="xs">
+                      Anda
+                    </UBadge>
+                  </div>
+                  <div class="text-xs text-slate-600 break-all">{{ u.email }}</div>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-1 shrink-0">
+                <UButton
+                  size="xs"
+                  color="primary"
+                  variant="subtle"
+                  icon="i-lucide-pencil"
+                  aria-label="Edit akses staf"
+                  class="min-w-8 min-h-8"
+                  @click="() => { openEditModal(u); }"
+                />
+                <UButton
+                  size="xs"
+                  color="error"
+                  variant="ghost"
+                  icon="i-lucide-trash-2"
+                  aria-label="Hapus akses staf"
+                  class="min-w-8 min-h-8"
+                  :disabled="u.id === user?.id"
+                  @click="() => { askDelete(u); }"
+                />
+              </div>
+            </div>
+
+            <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100 text-xs">
+              <div class="flex flex-wrap items-center gap-1.5">
+                <UBadge
+                  :color="u.role === UserRoleEnum.ADMIN ? 'primary' : 'info'"
+                  variant="subtle"
+                  size="xs"
+                >
+                  {{ u.role === UserRoleEnum.ADMIN ? 'Admin Utama' : 'Operator Kurasi' }}
+                </UBadge>
+                <UBadge
+                  :color="u.hasPassword ? 'neutral' : 'info'"
+                  variant="outline"
+                  size="xs"
+                >
+                  {{ u.hasPassword ? 'OAuth + Password' : 'Google OAuth' }}
+                </UBadge>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <USwitch
+                  :model-value="u.isActive"
+                  :disabled="u.id === user?.id"
+                  :loading="togglingIds.has(u.id)"
+                  :aria-label="`Status aktif untuk ${u.email}`"
+                  @update:model-value="(val: boolean) => { void toggleActiveStatus(u, val); }"
+                />
+                <span class="text-xs font-semibold" :class="u.isActive ? 'text-emerald-700' : 'text-slate-600'">
+                  {{ u.isActive ? 'Aktif' : 'Nonaktif' }}
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 

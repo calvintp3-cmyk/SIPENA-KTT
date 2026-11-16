@@ -285,18 +285,21 @@ const columns: TableColumn<KeywordItem>[] = [
       </div>
     </div>
 
-    <!-- Keywords Table -->
+    <!-- Keywords Table (Desktop >= md) & Responsive Cards (< md) -->
     <div class="saas-card rounded-2xl overflow-hidden">
       <div
-        tabindex="0"
         role="region"
         aria-label="Tabel Master Keyword Berita Nasional"
-        class="saas-table-scroller"
+        class="hidden md:block w-full"
       >
         <UTable
           :data="filteredKeywords"
           :columns="columns"
           :loading="pending"
+          :ui="{
+            th: 'py-3 px-3.5 text-[11px] font-bold text-slate-700 bg-slate-50/90',
+            td: 'py-3 px-3.5 text-xs whitespace-normal align-top',
+          }"
           empty="Belum ada kata kunci nasional terdaftar."
         >
           <template #keyword-cell="{ row }">
@@ -376,6 +379,89 @@ const columns: TableColumn<KeywordItem>[] = [
             </div>
           </template>
         </UTable>
+      </div>
+
+      <!-- Mobile Cards (< md) -->
+      <div class="md:hidden divide-y divide-slate-200/80">
+        <div
+          v-if="!pending && filteredKeywords.length === 0"
+          class="p-6 text-center text-xs text-slate-600"
+        >
+          Belum ada kata kunci nasional terdaftar.
+        </div>
+        <div
+          v-for="kw in filteredKeywords"
+          :key="`mob-kw-${kw.id}`"
+          class="p-4 space-y-3 bg-white"
+        >
+          <div class="flex items-start justify-between gap-2">
+            <div class="min-w-0">
+              <div class="font-bold text-sm text-slate-900 break-words">{{ kw.keyword }}</div>
+              <p v-if="kw.description" class="text-xs text-slate-600 mt-0.5 leading-snug">
+                {{ kw.description }}
+              </p>
+            </div>
+            <USwitch
+              :model-value="kw.isActive"
+              :loading="togglingIds.has(kw.id)"
+              :aria-label="`Aktifkan kata kunci ${kw.keyword}`"
+              @update:model-value="(val: boolean) => { void toggleActiveStatus(kw, val); }"
+            />
+          </div>
+
+          <div class="flex flex-wrap items-center gap-1.5 text-xs">
+            <span
+              v-if="kw.defaultKbliCategory"
+              class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold border"
+              :class="getKbliClusterTheme(kw.defaultKbliCategory).pillClass"
+            >
+              {{ getKbliShortCodeName(kw.defaultKbliCategory) }}
+            </span>
+            <span
+              v-if="kw.defaultExpenditureComponent"
+              class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold border"
+              :class="getExpenditureColorTheme(kw.defaultExpenditureComponent).pillClass"
+            >
+              <span
+                class="w-1.5 h-1.5 rounded-full shrink-0"
+                :class="getExpenditureColorTheme(kw.defaultExpenditureComponent).dotClass"
+              />
+              <span>{{ getExpenditureLabel(kw.defaultExpenditureComponent, false) }}</span>
+            </span>
+            <span
+              v-if="!kw.defaultKbliCategory && !kw.defaultExpenditureComponent"
+              class="text-[11px] text-slate-500"
+            >
+              Klasifikasi Otomatis via AI
+            </span>
+          </div>
+
+          <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+            <span class="text-xs tabular-nums font-semibold text-slate-700">
+              {{ kw.articleCount }} artikel terjaring
+            </span>
+            <div class="flex items-center gap-1">
+              <UButton
+                size="xs"
+                color="primary"
+                variant="subtle"
+                icon="i-lucide-pencil"
+                aria-label="Edit kata kunci"
+                class="min-w-8 min-h-8"
+                @click="() => { openEditModal(kw); }"
+              />
+              <UButton
+                size="xs"
+                color="error"
+                variant="ghost"
+                icon="i-lucide-trash-2"
+                aria-label="Hapus kata kunci"
+                class="min-w-8 min-h-8"
+                @click="() => { askDelete(kw); }"
+              />
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 

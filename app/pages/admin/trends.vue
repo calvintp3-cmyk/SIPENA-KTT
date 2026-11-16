@@ -633,26 +633,26 @@ function handleExportXlsx() {
       </div>
 
       <div class="saas-card rounded-2xl overflow-hidden">
+        <!-- Desktop & Tablet (>= md): Tabel Tanpa Scroll Horizontal -->
         <div
-          tabindex="0"
           role="region"
           aria-label="Tabel Perbandingan Tren PDRB"
-          class="saas-table-scroller"
+          class="hidden md:block w-full"
         >
-          <table class="w-full text-left border-collapse min-w-[780px]">
+          <table class="w-full table-fixed text-left border-collapse">
             <caption class="sr-only">
               Perbandingan jumlah bukti berita terverifikasi {{ trendData.period.label }} terhadap
               {{ trendData.baseline.label }}
             </caption>
             <thead>
-              <tr class="border-b border-slate-200 bg-slate-50/70 text-xs font-semibold text-slate-600">
-                <th scope="col" class="px-4 py-3.5">Pos {{ dimension === 'kbli' ? 'KBLI (17 Sektor)' : 'Pengeluaran' }}</th>
-                <th scope="col" class="px-3 py-3.5 text-right whitespace-nowrap">{{ trendData.baseline.label }}</th>
-                <th scope="col" class="px-3 py-3.5 text-right whitespace-nowrap">{{ trendData.period.label }}</th>
-                <th scope="col" class="px-3 py-3.5 text-right">Delta</th>
-                <th scope="col" class="px-4 py-3.5">Dominan Dampak</th>
-                <th scope="col" class="px-4 py-3.5">Headline Terbaru</th>
-                <th scope="col" class="px-4 py-3.5 text-right">Arsip</th>
+              <tr class="border-b border-slate-200 bg-slate-50/70 text-[11px] font-bold uppercase tracking-wider text-slate-600">
+                <th scope="col" class="w-[27%] px-3.5 py-3">Pos {{ dimension === 'kbli' ? 'KBLI (17 Sektor)' : 'Pengeluaran' }}</th>
+                <th scope="col" class="w-[9%] px-2 py-3 text-right">{{ trendData.baseline.label }}</th>
+                <th scope="col" class="w-[9%] px-2 py-3 text-right">{{ trendData.period.label }}</th>
+                <th scope="col" class="w-[14%] px-2 py-3 text-right">Delta</th>
+                <th scope="col" class="w-[14%] px-3 py-3">Dominan Dampak</th>
+                <th scope="col" class="w-[19%] px-3 py-3">Headline Terbaru</th>
+                <th scope="col" class="w-[8%] px-3.5 py-3 text-right">Arsip</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-200/70 text-xs">
@@ -661,9 +661,9 @@ function handleExportXlsx() {
                 :key="row.code"
                 class="hover:bg-indigo-50/30 transition-colors"
               >
-                <th scope="row" class="px-4 py-3 text-left font-medium text-slate-900">
+                <th scope="row" class="px-3.5 py-3 text-left font-medium text-slate-900 min-w-0">
                   <span
-                    class="inline-block text-[11px] font-bold px-2 py-0.5 rounded-full border mr-2"
+                    class="inline-block text-[10px] font-bold px-1.5 py-0.5 rounded-full border mr-1.5"
                     :class="
                       dimension === 'kbli'
                         ? getKbliClusterTheme(row.code).pillClass
@@ -672,17 +672,17 @@ function handleExportXlsx() {
                   >
                     {{ row.code }}
                   </span>
-                  <span>{{ row.label }}</span>
+                  <span class="break-words">{{ row.label }}</span>
                 </th>
-                <td class="px-3 py-3 text-right tabular-nums text-slate-600 font-medium">
+                <td class="px-2 py-3 text-right tabular-nums text-slate-600 font-medium">
                   {{ row.baselineCount }}
                 </td>
-                <td class="px-3 py-3 text-right font-extrabold tabular-nums text-slate-900">
+                <td class="px-2 py-3 text-right font-extrabold tabular-nums text-slate-900">
                   {{ row.currentCount }}
                 </td>
-                <td class="px-3 py-3 text-right tabular-nums">
+                <td class="px-2 py-3 text-right tabular-nums">
                   <span
-                    class="inline-flex items-center px-2 py-0.5 rounded-full border text-[11px] font-bold"
+                    class="inline-flex items-center px-2 py-0.5 rounded-full border text-[10px] font-bold"
                     :class="
                       row.deltaCount > 0
                         ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
@@ -697,7 +697,7 @@ function handleExportXlsx() {
                     </template>
                   </span>
                 </td>
-                <td class="px-4 py-3">
+                <td class="px-3 py-3">
                   <UBadge
                     v-if="renderImpactBadge(row.dominantImpact)"
                     :color="renderImpactBadge(row.dominantImpact)!.color"
@@ -709,13 +709,13 @@ function handleExportXlsx() {
                   </UBadge>
                   <span v-else class="text-rose-700 font-semibold text-xs">Data Gap</span>
                 </td>
-                <td class="px-4 py-3 max-w-xs">
-                  <span v-if="row.latestHeadline" class="line-clamp-1 text-slate-700" :title="row.latestHeadline">
+                <td class="px-3 py-3 min-w-0">
+                  <span v-if="row.latestHeadline" class="line-clamp-2 text-slate-700 leading-snug" :title="row.latestHeadline">
                     {{ row.latestHeadline }}
                   </span>
-                  <span v-else class="text-slate-600 italic">Belum ada catatan</span>
+                  <span v-else class="text-slate-500 italic">Belum ada catatan</span>
                 </td>
-                <td class="px-4 py-3 text-right whitespace-nowrap">
+                <td class="px-3.5 py-3 text-right whitespace-nowrap">
                   <NuxtLink
                     :to="
                       dimension === 'kbli'
@@ -730,6 +730,79 @@ function handleExportXlsx() {
               </tr>
             </tbody>
           </table>
+        </div>
+
+        <!-- Mobile (< md): Kartu Perbandingan Tren -->
+        <div class="md:hidden divide-y divide-slate-200/80">
+          <div
+            v-for="row in filteredSortedRows"
+            :key="`mob-trend-${row.code}`"
+            class="p-4 space-y-2.5 bg-white"
+          >
+            <div class="flex items-start justify-between gap-2">
+              <div class="min-w-0">
+                <span
+                  class="inline-block text-[10px] font-bold px-2 py-0.5 rounded-full border mr-1.5"
+                  :class="
+                    dimension === 'kbli'
+                      ? getKbliClusterTheme(row.code).pillClass
+                      : getExpenditureColorTheme(row.code).pillClass
+                  "
+                >
+                  {{ row.code }}
+                </span>
+                <span class="font-bold text-xs text-slate-900">{{ row.label }}</span>
+              </div>
+              <NuxtLink
+                :to="
+                  dimension === 'kbli'
+                    ? `/admin/articles?year=${selectedYear}&quarter=${selectedQuarter}&pdrbGroup=${encodeURIComponent(row.code)}&status=VERIFIED`
+                    : `/admin/articles?year=${selectedYear}&quarter=${selectedQuarter}&expenditure=${encodeURIComponent(row.code)}&status=VERIFIED`
+                "
+                class="text-xs font-semibold text-indigo-700 shrink-0"
+              >
+                Arsip →
+              </NuxtLink>
+            </div>
+
+            <div class="grid grid-cols-3 gap-2 rounded-xl bg-slate-50 border border-slate-200/70 p-2.5 text-xs tabular-nums">
+              <div>
+                <div class="text-[10px] text-slate-500">{{ trendData.baseline.label }}</div>
+                <div class="font-semibold text-slate-700 mt-0.5">{{ row.baselineCount }}</div>
+              </div>
+              <div>
+                <div class="text-[10px] text-slate-500">{{ trendData.period.label }}</div>
+                <div class="font-extrabold text-slate-900 mt-0.5">{{ row.currentCount }}</div>
+              </div>
+              <div>
+                <div class="text-[10px] text-slate-500">Delta</div>
+                <div
+                  class="font-bold mt-0.5"
+                  :class="row.deltaCount > 0 ? 'text-emerald-700' : row.deltaCount < 0 ? 'text-rose-700' : 'text-slate-600'"
+                >
+                  {{ row.deltaCount > 0 ? `+${row.deltaCount}` : row.deltaCount }}
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between gap-2 text-xs">
+              <div>
+                <UBadge
+                  v-if="renderImpactBadge(row.dominantImpact)"
+                  :color="renderImpactBadge(row.dominantImpact)!.color"
+                  variant="subtle"
+                  size="xs"
+                  :icon="renderImpactBadge(row.dominantImpact)!.icon"
+                >
+                  {{ renderImpactBadge(row.dominantImpact)!.shortLabel }}
+                </UBadge>
+                <span v-else class="text-rose-700 font-semibold text-xs">Data Gap</span>
+              </div>
+              <span v-if="row.latestHeadline" class="text-[11px] text-slate-600 truncate max-w-[60%]">
+                {{ row.latestHeadline }}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
     </section>

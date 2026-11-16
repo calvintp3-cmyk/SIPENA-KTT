@@ -582,29 +582,29 @@ const shortExpHeaders: Record<string, string> = {
           aria-label="Matriks Heatmap 17 Sektor KBLI kali 6 Komponen Pengeluaran PDRB"
           class="saas-table-scroller"
         >
-          <table class="w-full text-left border-collapse min-w-[780px]">
+          <table class="w-full text-left border-collapse md:table-fixed">
             <caption class="sr-only">
               Distribusi silang artikel terverifikasi menurut 17 sektor KBLI dan 6 komponen
               pengeluaran PDRB pada {{ periodLabel }}
             </caption>
             <thead>
-              <tr class="border-b border-slate-200 bg-slate-50/70 text-xs font-semibold text-slate-600">
-                <th scope="col" class="px-4 py-3.5 min-w-[230px]">
+              <tr class="border-b border-slate-200 bg-slate-50/70 text-[11px] sm:text-xs font-semibold text-slate-600">
+                <th scope="col" class="px-3 sm:px-4 py-3 md:w-[32%]">
                   Lapangan Usaha (17 Sektor KBLI)
                 </th>
                 <th
                   v-for="comp in PDRB_6_EXPENDITURE_LIST"
                   :key="comp.code"
                   scope="col"
-                  class="px-3 py-3.5 text-center whitespace-nowrap"
+                  class="px-1.5 sm:px-2 py-3 text-center whitespace-nowrap md:w-[9.5%]"
                   :title="comp.official"
                 >
-                  <span class="inline-flex items-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full shrink-0" :class="getExpenditureColorTheme(comp.code).dotClass" />
+                  <span class="inline-flex items-center gap-1">
+                    <span class="w-2 h-2 rounded-full shrink-0 hidden sm:inline-block" :class="getExpenditureColorTheme(comp.code).dotClass" />
                     <span>{{ shortExpHeaders[comp.code] || comp.short }}</span>
                   </span>
                 </th>
-                <th scope="col" class="px-4 py-3.5 text-right">Total</th>
+                <th scope="col" class="px-2.5 sm:px-4 py-3 text-right md:w-[11%]">Total</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-200/70 text-xs">
@@ -613,38 +613,38 @@ const shortExpHeaders: Record<string, string> = {
                 :key="row.groupCode"
                 class="hover:bg-indigo-50/30 transition-colors"
               >
-                <th scope="row" class="px-4 py-2.5 font-medium text-slate-900 text-left bg-white sm:sticky sm:left-0">
+                <th scope="row" class="px-3 sm:px-4 py-2.5 font-medium text-slate-900 text-left bg-white min-w-0">
                   <span
-                    class="inline-block text-[11px] font-bold px-2 py-0.5 rounded-full border mr-2"
+                    class="inline-block text-[10px] sm:text-[11px] font-bold px-1.5 sm:px-2 py-0.5 rounded-full border mr-1.5"
                     :class="getKbliClusterTheme(row.groupCode).pillClass"
                   >
                     {{ row.groupCode }}
                   </span>
-                  <span>{{ row.shortName }}</span>
+                  <span class="break-words">{{ row.shortName }}</span>
                 </th>
 
                 <td
                   v-for="comp in PDRB_6_EXPENDITURE_LIST"
                   :key="comp.code"
-                  class="px-2 py-1.5 text-center"
+                  class="px-1 sm:px-1.5 py-1.5 text-center"
                 >
                   <NuxtLink
                     v-if="(row.cells[comp.code] ?? 0) > 0"
                     :to="`/admin/articles?year=${selectedYear}&quarter=${selectedQuarter}&pdrbGroup=${encodeURIComponent(row.groupCode)}&expenditure=${comp.code}&status=VERIFIED`"
-                    class="inline-flex items-center justify-center w-10 h-7 rounded-lg text-xs tabular-nums transition-colors"
+                    class="inline-flex items-center justify-center w-8 sm:w-10 h-7 rounded-lg text-xs tabular-nums transition-colors"
                     :class="heatmapCellClass(row.cells[comp.code] ?? 0)"
                   >
                     {{ row.cells[comp.code] }}
                   </NuxtLink>
                   <span
                     v-else
-                    class="inline-flex items-center justify-center w-10 h-7 rounded-lg text-xs text-slate-500"
+                    class="inline-flex items-center justify-center w-8 sm:w-10 h-7 rounded-lg text-xs text-slate-500"
                   >
                     –
                   </span>
                 </td>
 
-                <td class="px-4 py-2.5 text-right font-bold tabular-nums text-slate-900">
+                <td class="px-2.5 sm:px-4 py-2.5 text-right font-bold tabular-nums text-slate-900">
                   {{ row.totalCount }}
                 </td>
               </tr>

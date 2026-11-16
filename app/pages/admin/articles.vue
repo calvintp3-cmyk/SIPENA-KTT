@@ -1148,21 +1148,20 @@ const columns: TableColumn<AdminArticleItem>[] = [
       </template>
     </UAlert>
 
-    <!-- Bank Data Table -->
+    <!-- Bank Data Table (Desktop >= lg) & Responsive Cards (< lg) -->
     <div class="saas-card rounded-2xl overflow-hidden">
       <div
-        tabindex="0"
         role="region"
         aria-label="Tabel Bank Data Fenomena Ekonomi"
-        class="saas-table-scroller"
+        class="hidden lg:block w-full"
       >
         <UTable
           :data="archiveData?.items ?? []"
           :columns="columns"
           :loading="pending"
           :ui="{
-            th: 'py-2 px-2.5 text-[11px] font-bold text-slate-700 whitespace-nowrap bg-slate-50/90',
-            td: 'py-2 px-2.5 text-xs align-top',
+            th: 'py-2.5 px-2.5 text-[11px] font-bold text-slate-700 whitespace-nowrap bg-slate-50/90',
+            td: 'py-2.5 px-2.5 text-xs align-top whitespace-normal',
           }"
           empty="Tidak ada arsip berita yang sesuai dengan kriteria filter."
         >
@@ -1359,6 +1358,112 @@ const columns: TableColumn<AdminArticleItem>[] = [
             </div>
           </template>
         </UTable>
+      </div>
+
+      <!-- Mobile & Tablet (< lg): Daftar Kartu Arsip Berita Responsif -->
+      <div class="lg:hidden divide-y divide-slate-200/80">
+        <div
+          v-if="!pending && (archiveData?.items ?? []).length === 0"
+          class="p-6 text-center text-xs text-slate-600"
+        >
+          Tidak ada arsip berita yang sesuai dengan kriteria filter.
+        </div>
+
+        <div
+          v-for="item in archiveData?.items ?? []"
+          :key="`mob-art-${item.id}`"
+          class="p-4 space-y-2.5 bg-white hover:bg-slate-50/60 transition-colors"
+        >
+          <div class="flex items-start justify-between gap-2.5">
+            <div class="flex items-start gap-2.5 min-w-0">
+              <UCheckbox
+                v-model="selectedMap[item.id]"
+                :aria-label="`Pilih ${item.title}`"
+                size="sm"
+                class="mt-0.5 shrink-0"
+              />
+              <div class="min-w-0 space-y-1">
+                <div class="font-bold text-xs sm:text-sm text-slate-900 leading-snug break-words">
+                  {{ item.title }}
+                </div>
+                <div class="flex flex-wrap items-center gap-1.5 text-[11px] text-slate-500 tabular-nums">
+                  <span class="font-semibold text-slate-700">{{ formatDateId(item.publishedAt) }}</span>
+                  <span>•</span>
+                  <span class="truncate max-w-[160px]">{{ item.sourcePortal }}</span>
+                  <span>•</span>
+                  <span class="px-1.5 py-0.2 rounded bg-slate-100 font-bold text-slate-700">
+                    {{ formatPeriodLabel(item.quarter, item.year) }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-1 shrink-0">
+              <UButton
+                size="xs"
+                color="primary"
+                variant="subtle"
+                icon="i-lucide-pencil"
+                aria-label="Edit artikel arsip"
+                class="w-8 h-8 p-0 flex items-center justify-center cursor-pointer"
+                @click="() => { openEditDrawer(item); }"
+              />
+              <UButton
+                size="xs"
+                color="error"
+                variant="ghost"
+                icon="i-lucide-trash-2"
+                aria-label="Hapus artikel arsip"
+                class="w-8 h-8 p-0 flex items-center justify-center cursor-pointer"
+                @click="() => { askDelete(item); }"
+              />
+            </div>
+          </div>
+
+          <div class="pl-6 flex flex-wrap items-center justify-between gap-2 pt-1">
+            <div class="flex flex-wrap items-center gap-1.5">
+              <UBadge
+                :color="getVerificationStatusBadge(item.verificationStatus).color"
+                variant="subtle"
+                size="xs"
+                :icon="getVerificationStatusBadge(item.verificationStatus).icon"
+                class="text-[10px]"
+              >
+                {{ getVerificationStatusBadge(item.verificationStatus).label }}
+              </UBadge>
+
+              <span
+                v-if="item.kbliCategory"
+                class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold border"
+                :class="getKbliClusterTheme(item.kbliCategory).pillClass"
+              >
+                {{ getKbliShortCodeName(item.kbliCategory) }}
+              </span>
+
+              <span
+                v-if="item.expenditureComponent"
+                class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-slate-100 border border-slate-200 text-[10px] font-semibold text-slate-800"
+              >
+                <span
+                  class="w-1.5 h-1.5 rounded-full shrink-0"
+                  :style="{ backgroundColor: getExpenditureColorTheme(item.expenditureComponent).hex }"
+                />
+                <span>{{ getExpenditureLabel(item.expenditureComponent, false) }}</span>
+              </span>
+            </div>
+
+            <a
+              v-if="isSafeHttpUrl(item.url)"
+              :href="item.url"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="text-[11px] font-semibold text-indigo-600 hover:underline inline-flex items-center gap-0.5 shrink-0"
+            >
+              <span>Buka Sumber</span>
+              <UIcon name="i-lucide-external-link" class="w-3 h-3" />
+            </a>
+          </div>
+        </div>
       </div>
     </div>
 

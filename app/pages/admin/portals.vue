@@ -610,67 +610,101 @@ const lastRunBadge = computed(() =>
 
       <div
         v-else
-        tabindex="0"
         role="region"
         aria-label="Tabel Sumber Berita Nasional dan Input Manual"
-        class="saas-table-scroller"
       >
-        <table class="w-full text-left border-collapse min-w-[680px]">
-          <caption class="sr-only">
-            Daftar sumber berita nasional dan input manual selain portal regional utama
-          </caption>
-          <thead>
-            <tr class="border-b border-slate-200 bg-slate-50/90 text-[11px] font-semibold uppercase tracking-wider text-slate-600">
-              <th scope="col" class="py-3 px-4">Nama Portal / Sumber</th>
-              <th scope="col" class="py-3 px-4">Tipe Sumber</th>
-              <th scope="col" class="py-3 px-4 text-right">Total</th>
-              <th scope="col" class="py-3 px-4 text-right">Terverifikasi</th>
-              <th scope="col" class="py-3 px-4 text-right">Pending</th>
-              <th scope="col" class="py-3 px-4">Artikel Terbaru (WITA)</th>
-              <th scope="col" class="py-3 px-4 text-right">Aksi</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-100 text-xs">
-            <tr
-              v-for="src in portalsData.otherSources"
-              :key="`${src.sourcePortal}-${src.sourceType}`"
-              class="hover:bg-indigo-50/30 transition-colors"
-            >
-              <th scope="row" class="py-3 px-4 font-semibold text-slate-900 text-left">
-                {{ src.sourcePortal }}
-              </th>
-              <td class="py-3 px-4">
+        <!-- Desktop & Tablet (>= md): Tabel Tanpa Scroll Horizontal -->
+        <div class="hidden md:block w-full">
+          <table class="w-full table-fixed text-left border-collapse">
+            <caption class="sr-only">
+              Daftar sumber berita nasional dan input manual selain portal regional utama
+            </caption>
+            <thead>
+              <tr class="border-b border-slate-200 bg-slate-50/90 text-[11px] font-semibold uppercase tracking-wider text-slate-600">
+                <th scope="col" class="w-[34%] py-3 px-4">Nama Portal &amp; Tipe Sumber</th>
+                <th scope="col" class="w-[28%] py-3 px-3 text-right">Total / Verified / Pending</th>
+                <th scope="col" class="w-[24%] py-3 px-3">Artikel Terbaru (WITA)</th>
+                <th scope="col" class="w-[14%] py-3 px-4 text-right">Aksi</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 text-xs">
+              <tr
+                v-for="src in portalsData.otherSources"
+                :key="`${src.sourcePortal}-${src.sourceType}`"
+                class="hover:bg-indigo-50/30 transition-colors"
+              >
+                <th scope="row" class="py-3 px-4 font-semibold text-slate-900 text-left min-w-0">
+                  <div class="truncate" :title="src.sourcePortal">{{ src.sourcePortal }}</div>
+                  <div class="mt-1">
+                    <span
+                      class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium border"
+                      :class="sourceTypeBadgeClass(src.sourceType)"
+                    >
+                      {{ getSourceTypeLabel(src.sourceType) }}
+                    </span>
+                  </div>
+                </th>
+                <td class="py-3 px-3 text-right tabular-nums">
+                  <span class="font-bold text-slate-900">{{ formatNumberId(src.totalArticles) }}</span>
+                  <span class="text-slate-300 mx-1">/</span>
+                  <span class="font-semibold text-emerald-700">{{ formatNumberId(src.verifiedArticles) }} ver</span>
+                  <span class="text-slate-300 mx-1">/</span>
+                  <span class="font-semibold text-amber-700">{{ formatNumberId(src.pendingArticles) }} pend</span>
+                </td>
+                <td class="py-3 px-3 tabular-nums text-slate-600">
+                  {{ src.lastArticleAt ? formatDateTimeWita(src.lastArticleAt) : '—' }}
+                </td>
+                <td class="py-3 px-4 text-right">
+                  <NuxtLink
+                    :to="`/admin/articles?portal=${encodeURIComponent(src.sourcePortal)}`"
+                    class="min-h-8 inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-slate-200 bg-white hover:border-indigo-300 text-[11px] font-semibold text-indigo-700 transition-colors"
+                  >
+                    <span>Arsip</span>
+                    <UIcon name="i-lucide-arrow-up-right" class="w-3 h-3" />
+                  </NuxtLink>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Mobile (< md): Kartu Responsif -->
+        <div class="md:hidden divide-y divide-slate-200/80">
+          <div
+            v-for="src in portalsData.otherSources"
+            :key="`mob-${src.sourcePortal}-${src.sourceType}`"
+            class="p-4 space-y-2.5 bg-white"
+          >
+            <div class="flex items-start justify-between gap-2">
+              <div class="min-w-0">
+                <div class="font-bold text-xs text-slate-900 break-words">{{ src.sourcePortal }}</div>
                 <span
-                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium border"
+                  class="mt-1 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium border"
                   :class="sourceTypeBadgeClass(src.sourceType)"
                 >
                   {{ getSourceTypeLabel(src.sourceType) }}
                 </span>
-              </td>
-              <td class="py-3 px-4 text-right font-semibold tabular-nums text-slate-900">
-                {{ formatNumberId(src.totalArticles) }}
-              </td>
-              <td class="py-3 px-4 text-right font-semibold tabular-nums text-emerald-700">
-                {{ formatNumberId(src.verifiedArticles) }}
-              </td>
-              <td class="py-3 px-4 text-right font-semibold tabular-nums text-amber-700">
-                {{ formatNumberId(src.pendingArticles) }}
-              </td>
-              <td class="py-3 px-4 tabular-nums text-slate-600">
+              </div>
+              <NuxtLink
+                :to="`/admin/articles?portal=${encodeURIComponent(src.sourcePortal)}`"
+                class="min-h-8 inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-slate-200 bg-white text-[11px] font-semibold text-indigo-700 shrink-0"
+              >
+                <span>Arsip</span>
+                <UIcon name="i-lucide-arrow-up-right" class="w-3 h-3" />
+              </NuxtLink>
+            </div>
+            <div class="flex items-center justify-between text-xs tabular-nums text-slate-600 pt-1 border-t border-slate-100">
+              <div>
+                <strong class="text-slate-900">{{ formatNumberId(src.totalArticles) }}</strong> total •
+                <span class="text-emerald-700 font-semibold">{{ formatNumberId(src.verifiedArticles) }} ver</span> •
+                <span class="text-amber-700 font-semibold">{{ formatNumberId(src.pendingArticles) }} pend</span>
+              </div>
+              <span class="text-[11px] text-slate-500">
                 {{ src.lastArticleAt ? formatDateTimeWita(src.lastArticleAt) : '—' }}
-              </td>
-              <td class="py-3 px-4 text-right">
-                <NuxtLink
-                  :to="`/admin/articles?portal=${encodeURIComponent(src.sourcePortal)}`"
-                  class="min-h-8 inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-slate-200 bg-white hover:border-indigo-300 text-[11px] font-semibold text-indigo-700 transition-colors"
-                >
-                  <span>Arsip</span>
-                  <UIcon name="i-lucide-arrow-up-right" class="w-3 h-3" />
-                </NuxtLink>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>

@@ -1,6 +1,5 @@
 <!-- app/components/admin/ScraperLogTable.vue -->
 <script setup lang="ts">
-import type { TableColumn } from '@nuxt/ui';
 import { formatDateTimeWita } from '#shared/utils/period';
 import type { ScraperLogItem, ScraperProviderStatEntry } from '~/types/sipena';
 
@@ -37,127 +36,305 @@ function formatAvgLatency(entry: ScraperProviderStatEntry): string {
   if (!entry.calls || entry.totalLatencyMs <= 0) return '-';
   return `${Math.round(entry.totalLatencyMs / entry.calls)} ms`;
 }
-
-const columns: TableColumn<ScraperLogItem>[] = [
-  { id: 'startedAt', header: 'Waktu Mulai (WITA)' },
-  { id: 'runType', header: 'Jenis' },
-  { id: 'status', header: 'Status' },
-  { id: 'pipeline', header: 'Diambil / Dedup / Masuk' },
-  { id: 'classification', header: 'Ekon / Non / Gagal' },
-  { id: 'providers', header: 'Rute LLM' },
-  { id: 'tokens', header: 'Token LLM' },
-  { id: 'duration', header: 'Durasi' },
-  { id: 'actions', header: 'Log' },
-];
 </script>
 
 <template>
   <div>
+    <!-- Loading State -->
+    <div v-if="loading && logs.length === 0" class="p-6 space-y-3">
+      <div
+        v-for="idx in 4"
+        :key="idx"
+        class="h-14 rounded-xl bg-slate-100/80 animate-pulse border border-slate-200/60"
+      />
+    </div>
+
+    <!-- Empty State -->
     <div
-      tabindex="0"
+      v-else-if="logs.length === 0"
+      class="px-5 py-10 text-center text-xs sm:text-sm text-slate-600"
+    >
+      Belum ada riwayat eksekusi scraper.
+    </div>
+
+    <!-- Desktop & Tablet View (>= md): Tabel Padat Tanpa Horizontal Scroll -->
+    <div
+      v-else
       role="region"
       aria-label="Riwayat Eksekusi Scraper & Pipeline AI"
-      class="saas-table-scroller"
+      class="hidden md:block w-full"
     >
-      <UTable :data="logs" :columns="columns" :loading="loading" empty="Belum ada riwayat eksekusi scraper.">
-        <template #startedAt-cell="{ row }">
-          <div class="space-y-0.5">
-            <div class="text-xs font-medium tabular-nums text-slate-900">
-              {{ formatDateTimeWita(row.original.startedAt) }}
-            </div>
-            <div v-if="row.original.triggeredByName" class="text-[11px] text-slate-600">
-              Oleh: {{ row.original.triggeredByName }}
-            </div>
-          </div>
-        </template>
-
-        <template #runType-cell="{ row }">
-          <UBadge color="neutral" variant="outline" size="xs">
-            {{ getScraperRunTypeLabel(row.original.runType) }}
-          </UBadge>
-        </template>
-
-        <template #status-cell="{ row }">
-          <UBadge
-            :color="getScraperStatusBadge(row.original.status).color"
-            variant="subtle"
-            size="xs"
-            :icon="getScraperStatusBadge(row.original.status).icon"
+      <table class="w-full table-fixed border-collapse text-left text-xs">
+        <caption class="sr-only">
+          Riwayat eksekusi harian dan manual crawler beserta metrik pipeline URL, klasifikasi AI, dan pemakaian token LLM
+        </caption>
+        <thead>
+          <tr class="border-b border-slate-200/90 bg-slate-50/90 text-[11px] font-bold uppercase tracking-wider text-slate-600">
+            <th scope="col" class="w-[21%] py-3 pl-4 pr-2.5">Waktu &amp; Jenis Sesi</th>
+            <th scope="col" class="w-[14%] py-3 px-2.5">Status &amp; Durasi</th>
+            <th scope="col" class="w-[18%] py-3 px-2.5">Pipeline URL</th>
+            <th scope="col" class="w-[15%] py-3 px-2.5">Klasifikasi AI</th>
+            <th scope="col" class="w-[22%] py-3 px-2.5">Rute &amp; Token LLM</th>
+            <th scope="col" class="w-[10%] py-3 pl-2.5 pr-4 text-right">Log</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-200/70 bg-white">
+          <tr
+            v-for="log in logs"
+            :key="log.id"
+            class="hover:bg-slate-50/80 transition-colors align-top"
           >
-            {{ getScraperStatusBadge(row.original.status).label }}
-          </UBadge>
-        </template>
+            <!-- 1. Waktu & Jenis Sesi -->
+            <td class="py-3 pl-4 pr-2.5">
+              <div class="font-bold tabular-nums text-slate-900 leading-snug">
+                {{ formatDateTimeWita(log.startedAt) }}
+              </div>
+              <div class="mt-1 flex flex-wrap items-center gap-1.5">
+                <UBadge color="neutral" variant="outline" size="xs" class="text-[10px] py-0 px-1.5">
+                  {{ getScraperRunTypeLabel(log.runType) }}
+                </UBadge>
+                <span
+                  v-if="log.triggeredByName"
+                  class="text-[11px] text-slate-500 truncate max-w-[130px]"
+                  :title="`Dipicu oleh: ${log.triggeredByName}`"
+                >
+                  • {{ log.triggeredByName }}
+                </span>
+              </div>
+            </td>
 
-        <template #pipeline-cell="{ row }">
-          <div class="text-xs tabular-nums text-slate-700">
-            {{ row.original.articlesFetched }} diambil /
-            <span class="text-slate-600">{{ row.original.articlesDeduplicated }} dedup</span> /
-            <strong class="text-indigo-700">+{{ row.original.articlesInserted }} baru</strong>
+            <!-- 2. Status & Durasi -->
+            <td class="py-3 px-2.5">
+              <div>
+                <UBadge
+                  :color="getScraperStatusBadge(log.status).color"
+                  variant="subtle"
+                  size="xs"
+                  :icon="getScraperStatusBadge(log.status).icon"
+                >
+                  {{ getScraperStatusBadge(log.status).label }}
+                </UBadge>
+              </div>
+              <div class="mt-1 text-[11px] font-medium tabular-nums text-slate-600 font-mono flex items-center gap-1">
+                <UIcon name="i-lucide-timer" class="w-3 h-3 text-slate-400 shrink-0" />
+                <span>{{ formatDurationMs(log.durationMs) }}</span>
+              </div>
+            </td>
+
+            <!-- 3. Pipeline URL -->
+            <td class="py-3 px-2.5 tabular-nums">
+              <div class="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-slate-700 leading-snug">
+                <span><strong class="font-semibold text-slate-900">{{ log.articlesFetched }}</strong> diambil</span>
+                <span class="text-slate-300">•</span>
+                <span class="text-slate-600">{{ log.articlesDeduplicated }} dedup</span>
+              </div>
+              <div class="mt-1">
+                <span
+                  class="inline-flex items-center px-1.5 py-0.5 rounded-md text-[11px] font-bold"
+                  :class="
+                    log.articlesInserted > 0
+                      ? 'bg-indigo-50 text-indigo-700 border border-indigo-200/70'
+                      : 'bg-slate-100 text-slate-600'
+                  "
+                >
+                  +{{ log.articlesInserted }} artikel baru
+                </span>
+              </div>
+            </td>
+
+            <!-- 4. Klasifikasi AI -->
+            <td class="py-3 px-2.5 tabular-nums">
+              <div class="flex flex-wrap items-center gap-1 leading-snug">
+                <span class="text-emerald-700 font-bold">{{ log.economicCount }} Ekon</span>
+                <span class="text-slate-300">/</span>
+                <span class="text-slate-600 font-medium">{{ log.nonEconomicCount }} Non</span>
+              </div>
+              <div class="mt-1">
+                <span
+                  v-if="log.llmFailedCount > 0"
+                  class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-rose-50 text-rose-700 border border-rose-200/80 text-[10px] font-bold"
+                >
+                  <UIcon name="i-lucide-alert-circle" class="w-3 h-3 shrink-0" />
+                  <span>{{ log.llmFailedCount }} gagal AI</span>
+                </span>
+                <span v-else class="text-[11px] text-slate-500">
+                  0 gagal AI
+                </span>
+              </div>
+            </td>
+
+            <!-- 5. Rute & Token LLM -->
+            <td class="py-3 px-2.5">
+              <div
+                v-if="getProviderEntries(log).length > 0"
+                class="flex flex-wrap items-center gap-1"
+              >
+                <span
+                  v-for="entry in getProviderEntries(log).slice(0, 2)"
+                  :key="entry.slotId"
+                  class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full border text-[10px] font-semibold tabular-nums max-w-full truncate"
+                  :class="formatLlmProviderBadge(`${entry.provider}:${entry.model}`).pillClass"
+                  :title="`${entry.slotId} (${entry.model}) • Sukses: ${entry.successes}/${entry.calls}, 429: ${entry.rateLimits}, Gagal: ${entry.failures}`"
+                >
+                  <span class="truncate">{{ formatLlmProviderBadge(`${entry.provider}:${entry.model}`).shortLabel }}</span>
+                  <span class="opacity-80 shrink-0">{{ entry.successes }}/{{ entry.calls }}</span>
+                </span>
+                <span
+                  v-if="getProviderEntries(log).length > 2"
+                  class="inline-flex items-center px-1.5 py-0.5 rounded-full bg-slate-100 border border-slate-200 text-[10px] font-bold text-slate-700 tabular-nums"
+                  :title="getProviderEntries(log).slice(2).map((e) => `${e.slotId}: ${e.successes}/${e.calls}`).join(', ')"
+                >
+                  +{{ getProviderEntries(log).length - 2 }}
+                </span>
+              </div>
+              <div v-else class="text-[11px] text-slate-400">
+                Tanpa panggilan LLM
+              </div>
+
+              <div class="mt-1 text-[11px] tabular-nums text-slate-600 font-mono truncate">
+                <strong class="font-semibold text-slate-900">{{ formatNumberId(log.totalTokens) }} tk</strong>
+                <span class="text-slate-400 mx-1">•</span>
+                <span>{{ formatNumberId(log.totalInputTokens) }} in / {{ formatNumberId(log.totalOutputTokens) }} out</span>
+              </div>
+            </td>
+
+            <!-- 6. Aksi Detail -->
+            <td class="py-3 pl-2.5 pr-4 text-right">
+              <UButton
+                size="xs"
+                color="primary"
+                variant="subtle"
+                icon="i-solar-document-text-bold-duotone"
+                class="min-h-8 cursor-pointer"
+                @click="() => { openDetail(log); }"
+              >
+                <span>Detail</span>
+                <span v-if="log.errorSummary?.length" class="ml-0.5 font-bold tabular-nums text-rose-600">
+                  ({{ log.errorSummary.length }})
+                </span>
+              </UButton>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Mobile View (< md): Daftar Kartu Responsif Tanpa Scroll Horizontal -->
+    <div
+      v-if="logs.length > 0"
+      role="region"
+      aria-label="Daftar Riwayat Eksekusi Scraper Mobile"
+      class="md:hidden divide-y divide-slate-200/80"
+    >
+      <div
+        v-for="log in logs"
+        :key="`mob-${log.id}`"
+        class="p-4 space-y-3 bg-white hover:bg-slate-50/60 transition-colors"
+      >
+        <!-- Baris Atas: Waktu & Status -->
+        <div class="flex items-start justify-between gap-2">
+          <div class="min-w-0">
+            <div class="text-xs font-bold tabular-nums text-slate-900">
+              {{ formatDateTimeWita(log.startedAt) }}
+            </div>
+            <div class="mt-1 flex flex-wrap items-center gap-1.5">
+              <UBadge color="neutral" variant="outline" size="xs" class="text-[10px]">
+                {{ getScraperRunTypeLabel(log.runType) }}
+              </UBadge>
+              <span v-if="log.triggeredByName" class="text-[11px] text-slate-500 truncate">
+                • {{ log.triggeredByName }}
+              </span>
+            </div>
           </div>
-        </template>
 
-        <template #classification-cell="{ row }">
-          <div class="text-xs tabular-nums">
-            <span class="text-emerald-700 font-semibold">{{ row.original.economicCount }} Ekon</span>
-            /
-            <span class="text-slate-600">{{ row.original.nonEconomicCount }} Non</span>
-            <span v-if="row.original.llmFailedCount > 0" class="text-rose-600 font-semibold ml-1">
-              (+{{ row.original.llmFailedCount }}!)
-            </span>
-          </div>
-        </template>
-
-        <template #providers-cell="{ row }">
-          <div
-            v-if="getProviderEntries(row.original).length > 0"
-            class="flex flex-wrap items-center gap-1 max-w-[230px]"
-          >
-            <span
-              v-for="entry in getProviderEntries(row.original)"
-              :key="entry.slotId"
-              class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[11px] font-semibold tabular-nums"
-              :class="formatLlmProviderBadge(`${entry.provider}:${entry.model}`).pillClass"
-              :title="`${entry.slotId} (${entry.model}) • 429: ${entry.rateLimits}, Gagal: ${entry.failures}`"
+          <div class="flex flex-col items-end gap-1 shrink-0">
+            <UBadge
+              :color="getScraperStatusBadge(log.status).color"
+              variant="subtle"
+              size="xs"
+              :icon="getScraperStatusBadge(log.status).icon"
             >
-              <span>{{ formatLlmProviderBadge(`${entry.provider}:${entry.model}`).shortLabel }}</span>
-              <span class="opacity-75">{{ entry.successes }}/{{ entry.calls }}</span>
+              {{ getScraperStatusBadge(log.status).label }}
+            </UBadge>
+            <span class="text-[11px] font-mono tabular-nums text-slate-500">
+              {{ formatDurationMs(log.durationMs) }}
             </span>
           </div>
-          <span v-else class="text-xs text-slate-500">—</span>
-        </template>
+        </div>
 
-        <template #tokens-cell="{ row }">
-          <div class="text-xs font-semibold tabular-nums text-slate-900">
-            {{ formatNumberId(row.original.totalTokens) }} tk
+        <!-- Baris Tengah: 2 Kolom Pipeline & Klasifikasi -->
+        <div class="grid grid-cols-2 gap-2.5 rounded-xl bg-slate-50/90 border border-slate-200/70 p-2.5 text-xs tabular-nums">
+          <div>
+            <div class="text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+              Pipeline URL
+            </div>
+            <div class="mt-0.5 text-slate-700">
+              {{ log.articlesFetched }} ambil • {{ log.articlesDeduplicated }} dedup
+            </div>
+            <div class="font-bold text-indigo-700 mt-0.5">
+              +{{ log.articlesInserted }} baru
+            </div>
           </div>
-          <div class="text-[11px] tabular-nums text-slate-600">
-            {{ formatNumberId(row.original.totalInputTokens) }} in /
-            {{ formatNumberId(row.original.totalOutputTokens) }} out
+
+          <div>
+            <div class="text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+              Klasifikasi AI
+            </div>
+            <div class="mt-0.5">
+              <span class="font-bold text-emerald-700">{{ log.economicCount }} Ekon</span>
+              <span class="text-slate-400 mx-1">/</span>
+              <span class="text-slate-700">{{ log.nonEconomicCount }} Non</span>
+            </div>
+            <div
+              class="mt-0.5 text-[11px] font-semibold"
+              :class="log.llmFailedCount > 0 ? 'text-rose-600' : 'text-slate-500'"
+            >
+              {{ log.llmFailedCount > 0 ? `+${log.llmFailedCount} gagal AI` : '0 gagal AI' }}
+            </div>
           </div>
-        </template>
+        </div>
 
-        <template #duration-cell="{ row }">
-          <span class="text-xs font-medium tabular-nums text-slate-700">
-            {{ formatDurationMs(row.original.durationMs) }}
-          </span>
-        </template>
+        <!-- Baris Bawah: Rute LLM, Token & Tombol Detail -->
+        <div class="flex items-center justify-between gap-2 pt-0.5">
+          <div class="min-w-0 flex-1 space-y-1">
+            <div v-if="getProviderEntries(log).length > 0" class="flex flex-wrap items-center gap-1">
+              <span
+                v-for="entry in getProviderEntries(log).slice(0, 2)"
+                :key="entry.slotId"
+                class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[10px] font-semibold tabular-nums"
+                :class="formatLlmProviderBadge(`${entry.provider}:${entry.model}`).pillClass"
+              >
+                <span>{{ formatLlmProviderBadge(`${entry.provider}:${entry.model}`).shortLabel }}</span>
+                <span class="opacity-75">{{ entry.successes }}/{{ entry.calls }}</span>
+              </span>
+              <span
+                v-if="getProviderEntries(log).length > 2"
+                class="px-1.5 py-0.5 rounded-full bg-slate-100 border border-slate-200 text-[10px] font-bold text-slate-700"
+              >
+                +{{ getProviderEntries(log).length - 2 }}
+              </span>
+            </div>
+            <div class="text-[11px] font-mono tabular-nums text-slate-600">
+              <strong class="text-slate-900">{{ formatNumberId(log.totalTokens) }} tk</strong>
+              ({{ formatNumberId(log.totalInputTokens) }} in / {{ formatNumberId(log.totalOutputTokens) }} out)
+            </div>
+          </div>
 
-        <template #actions-cell="{ row }">
           <UButton
             size="sm"
             color="primary"
             variant="subtle"
             icon="i-solar-document-text-bold-duotone"
-            class="min-h-8"
-            @click="() => { openDetail(row.original); }"
+            class="min-h-9 shrink-0 cursor-pointer"
+            @click="() => { openDetail(log); }"
           >
             Detail
-            <span v-if="row.original.errorSummary?.length" class="ml-1 font-bold tabular-nums text-rose-600">
-              ({{ row.original.errorSummary.length }})
+            <span v-if="log.errorSummary?.length" class="ml-1 font-bold tabular-nums text-rose-600">
+              ({{ log.errorSummary.length }})
             </span>
           </UButton>
-        </template>
-      </UTable>
+        </div>
+      </div>
     </div>
 
     <!-- Modal Detail Log & Error Summary -->
@@ -165,11 +342,11 @@ const columns: TableColumn<ScraperLogItem>[] = [
       v-model:open="detailModalOpen"
       title="Detail Eksekusi Scraper"
       :description="selectedLog ? formatDateTimeWita(selectedLog.startedAt) : ''"
-      :ui="{ content: 'max-w-2xl' }"
+      :ui="{ content: 'max-w-2xl w-[calc(100vw-1.5rem)]' }"
     >
       <template #body>
         <div v-if="selectedLog" class="space-y-4">
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 text-xs">
             <div class="rounded-xl bg-slate-50/70 border border-slate-200/90 p-3">
               <div class="text-slate-600 font-medium">Portal / Keyword</div>
               <div class="font-extrabold text-slate-900 mt-0.5 tabular-nums">
@@ -211,52 +388,48 @@ const columns: TableColumn<ScraperLogItem>[] = [
 
             <div
               v-else
-              tabindex="0"
               role="region"
               aria-label="Rincian pemakaian per slot penyedia LLM"
-              class="saas-table-scroller rounded-xl border border-slate-200/80"
+              class="rounded-xl border border-slate-200/80 overflow-hidden"
             >
-              <table class="min-w-full divide-y divide-slate-200 text-left text-xs">
+              <table class="w-full table-fixed divide-y divide-slate-200 text-left text-xs">
                 <caption class="sr-only">
                   Rincian panggilan, keberhasilan, HTTP 429, latensi rata-rata, dan token per slot LLM pada sesi ini
                 </caption>
                 <thead class="bg-slate-50/70 text-[11px] font-semibold text-slate-600">
                   <tr>
-                    <th scope="col" class="px-3 py-2">Slot / Model</th>
-                    <th scope="col" class="px-3 py-2 text-right">Calls</th>
-                    <th scope="col" class="px-3 py-2 text-right">Sukses / Gagal</th>
-                    <th scope="col" class="px-3 py-2 text-right">429</th>
-                    <th scope="col" class="px-3 py-2 text-right">Latensi</th>
-                    <th scope="col" class="px-3 py-2 text-right">Token</th>
+                    <th scope="col" class="w-[36%] px-3 py-2">Slot / Model</th>
+                    <th scope="col" class="w-[14%] px-2 py-2 text-right">Calls</th>
+                    <th scope="col" class="w-[18%] px-2 py-2 text-right">Sukses/Gagal</th>
+                    <th scope="col" class="w-[14%] px-2 py-2 text-right hidden sm:table-cell">Latensi</th>
+                    <th scope="col" class="w-[18%] px-3 py-2 text-right">Token</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 bg-white">
                   <tr v-for="entry in getProviderEntries(selectedLog)" :key="entry.slotId">
-                    <td class="px-3 py-2">
+                    <td class="px-3 py-2 min-w-0">
                       <span
-                        class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[11px] font-semibold"
+                        class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[10px] font-semibold max-w-full truncate"
                         :class="formatLlmProviderBadge(`${entry.provider}:${entry.model}`).pillClass"
                       >
-                        {{ formatLlmProviderBadge(`${entry.provider}:${entry.model}`).shortLabel }}
+                        <span class="truncate">{{ formatLlmProviderBadge(`${entry.provider}:${entry.model}`).shortLabel }}</span>
                       </span>
-                      <div class="text-[11px] text-slate-600 mt-0.5">{{ entry.slotId }}</div>
+                      <div class="text-[10px] text-slate-500 mt-0.5 truncate">{{ entry.slotId }}</div>
                     </td>
-                    <td class="px-3 py-2 text-right tabular-nums font-semibold text-slate-900">
+                    <td class="px-2 py-2 text-right tabular-nums font-semibold text-slate-900">
                       {{ formatNumberId(entry.calls) }}
+                      <div v-if="entry.rateLimits > 0" class="text-[10px] text-amber-700 font-medium">
+                        {{ entry.rateLimits }}x 429
+                      </div>
                     </td>
-                    <td class="px-3 py-2 text-right tabular-nums">
+                    <td class="px-2 py-2 text-right tabular-nums">
                       <span class="font-semibold text-emerald-700">{{ formatNumberId(entry.successes) }}</span>
                       /
                       <span :class="entry.failures > 0 ? 'font-semibold text-rose-600' : 'text-slate-600'">
                         {{ formatNumberId(entry.failures) }}
                       </span>
                     </td>
-                    <td class="px-3 py-2 text-right tabular-nums">
-                      <span :class="entry.rateLimits > 0 ? 'font-semibold text-amber-700' : 'text-slate-600'">
-                        {{ formatNumberId(entry.rateLimits) }}
-                      </span>
-                    </td>
-                    <td class="px-3 py-2 text-right tabular-nums text-slate-700">
+                    <td class="px-2 py-2 text-right tabular-nums text-slate-700 hidden sm:table-cell">
                       {{ formatAvgLatency(entry) }}
                     </td>
                     <td class="px-3 py-2 text-right tabular-nums font-semibold text-indigo-700">
@@ -288,12 +461,12 @@ const columns: TableColumn<ScraperLogItem>[] = [
                 class="rounded-xl border border-rose-200/80 bg-rose-50/50 p-3 text-xs space-y-1"
               >
                 <div class="flex items-center justify-between gap-2">
-                  <span class="font-semibold text-slate-900">{{ entry.source }}</span>
-                  <UBadge color="error" variant="subtle" size="xs">
+                  <span class="font-semibold text-slate-900 break-words min-w-0">{{ entry.source }}</span>
+                  <UBadge color="error" variant="subtle" size="xs" class="shrink-0">
                     {{ entry.stage }}
                   </UBadge>
                 </div>
-                <p class="text-slate-700 leading-relaxed">{{ entry.message }}</p>
+                <p class="text-slate-700 leading-relaxed break-words">{{ entry.message }}</p>
                 <div v-if="entry.url" class="text-[11px] text-slate-600 break-all">
                   {{ entry.url }}
                 </div>
@@ -313,4 +486,3 @@ const columns: TableColumn<ScraperLogItem>[] = [
     </UModal>
   </div>
 </template>
-

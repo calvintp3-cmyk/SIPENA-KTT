@@ -33,6 +33,7 @@
     color: var(--color-ink-primary);
     font-family: var(--font-sans);
     overscroll-behavior: none;
+    overflow-x: clip;
     overflow-wrap: break-word;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
