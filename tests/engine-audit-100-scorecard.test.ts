@@ -19,7 +19,6 @@ import {
 import {
   evaluateGeographicRelevance,
   KTT_ANCHOR_RE,
-  KTT_ECONOMIC_ENTITY_RE,
   KTT_LOGISTICS_CORRIDOR_RE,
 } from '#server/services/scraper/geo-filter';
 import {
@@ -226,16 +225,16 @@ describe('Engine Audit 100/100 Scorecard Suite (8 Engineering Axes)', () => {
   });
 
   // =========================================================================
-  // SUMBU 8: JANGKAR ENTITAS BISNIS & KORIDOR TRANSPORTASI KTT
+  // SUMBU 8: JANGKAR GEOGRAFIS & SIMPUL TRANSPORTASI RESMI KTT
   // =========================================================================
-  describe('Sumbu 8: Geographic Relevance & Corporate Entity Anchors', () => {
-    it('meloloskan rilis pers korporasi tambang KTT (PT Mandiri Herindo Adiperkasa) dengan dateline luar kota', () => {
+  describe('Sumbu 8: Geographic Relevance & Administrative/Transport Anchors', () => {
+    it('meloloskan berita penyeberangan feri logistik rute Tarakan–Sebawang (KTT) dengan dateline luar kota', () => {
       const result = evaluateGeographicRelevance({
-        title: 'PT Mandiri Herindo Adiperkasa Tambah 20 Unit Hauler Tambang di Sesayap',
+        title: 'KMP Manta Tambah Trip Penyeberangan Feri Rute Tarakan ke Sebawang',
         snippetText:
-          'BALIKPAPAN — PT Mandiri Herindo Adiperkasa Tbk (MHA) memperkuat armada pengangkutan batubara di area konsesi Kabupaten Tana Tidung.',
-        url: 'https://kaltimpost.jawapos.com/balikpapan/mha-tambah-armada',
-        sourceType: ArticleSourceTypeEnum.NATIONAL,
+          'TARAKAN — ASDP menambah jadwal keberangkatan kapal feri penyeberangan menuju Pelabuhan Sebawang Kabupaten Tana Tidung guna memperlancar arus logistik sembako.',
+        url: 'https://radartarakan.jawapos.com/tarakan/feri-tarakan-sebawang',
+        sourceType: ArticleSourceTypeEnum.REGIONAL,
       });
 
       expect(result.decision).toBe('ALLOW_KTT_ANCHOR');
