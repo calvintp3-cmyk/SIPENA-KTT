@@ -12,9 +12,64 @@ export interface GeographicRelevanceResult {
   reason: string;
 }
 
-// Jangkar geografis mutlak Kabupaten Tana Tidung (wilayah administratif, kecamatan, desa, ibukota, pelabuhan/dermaga resmi KTT)
+// ============================================================================
+// REFERENSI MASTER WILAYAH BPS & KEMENDAGRI (SIG BRIDGING CODE BPS 6503 / 65.04)
+// ============================================================================
+
+// 5 Kecamatan Resmi Kabupaten Tana Tidung
+export const KTT_DISTRICTS = [
+  'sesayap',
+  'sesayap hilir',
+  'tana lia',
+  'betayau',
+  'muruk rian',
+] as const;
+
+// 32 Desa Resmi di Kabupaten Tana Tidung (Master BPS 6503 / Kemendagri 65.04)
+export const KTT_VILLAGES = [
+  // 1. Kec. Sesayap (7 desa)
+  'gunawan',
+  'limbu sedulun',
+  'sebawang',
+  'sebidai',
+  'sedulun',
+  'tideng pale',
+  'tideng pale timur',
+  // 2. Kec. Sesayap Hilir (8 desa)
+  'badan bikis',
+  'bandan bikis',
+  'bebatu',
+  'menjelutung',
+  'seludau',
+  'sengkong',
+  'sepala dalung',
+  'sesayap',
+  'sesayap selor',
+  // 3. Kec. Tana Lia (5 desa)
+  'sambungan',
+  'sambungan selatan',
+  'tanah merah',
+  'tanah merah barat',
+  'tengku dacing',
+  // 4. Kec. Betayau (6 desa)
+  'bebakung',
+  'buong baru',
+  'kujau',
+  'maning',
+  'mendupo',
+  'periuk',
+  // 5. Kec. Muruk Rian (6 desa)
+  'belayan ari',
+  'kapuak',
+  'rian',
+  'rian rayo',
+  'sapari',
+  'seputuk',
+] as const;
+
+// Jangkar geografis mutlak Kabupaten Tana Tidung (wilayah administratif, 5 kecamatan, 32 desa, ibukota, pelabuhan/dermaga resmi KTT)
 export const KTT_ANCHOR_RE =
-  /\b(?:tana\s*tidung|tideng\s*pale|sesayap(?:\s+hilir)?|tana\s+lia|betayau|muruk\s*rian|sepala\s+dalung|buong\s+baru|bebatu|sebawang|ktt|upun\s+taka|akhmad\s+berahim|tirta\s+taka|puspem\s+ktt|desa\s+tideng\s+pale|seputuk|kapuak|rabanau|sedulun|limbu\s+sedulun|gunung\s+riang|pelabuhan\s+(?:bebatu|sebawang|tideng\s+pale)|dermaga\s+(?:tideng\s+pale|sesayap)|sungai\s+sesayap|pemkab\s+(?:tana\s+tidung|ktt)|dprd\s+(?:tana\s+tidung|ktt))\b/i;
+  /\b(?:tana\s*tidung|ktt|bumi\s+upun\s+taka|upun\s+taka|tideng\s*pale|puspem\s+ktt|sesayap(?:\s+hilir)?|tana\s+lia|betayau|muruk\s*rian|gunawan|limbu\s+sedulun|sebawang|sebidai|sedulun|tideng\s+pale(?:\s+timur)?|ba[n]?dan\s+bikis|bebatu|menjelutung|seludau|sengkong|sepala\s+dalung|sesayap\s+selor|sambungan(?:\s+selatan)?|tanah\s+merah(?:\s+barat)?|tengku\s+dacing|bebakung|buong\s+baru|kujau|maning|mendupo|periuk|belayan\s+ari|kapuak|rian(?:\s+rayo)?|sapari|seputuk|pelabuhan\s+(?:bebatu|sebawang|tideng\s+pale)|dermaga\s+(?:tideng\s+pale|sesayap)|sungai\s+sesayap|pemkab\s+(?:tana\s+tidung|ktt)|dprd\s+(?:tana\s+tidung|ktt)|rsud\s+akhmad\s+berahim|akhmad\s+berahim|pdam\s+tirta\s+taka|tirta\s+taka)\b/i;
 
 // Koridor transportasi resmi yang menghubungkan Kab. Tana Tidung (Tideng Pale / Sebawang / Sesayap)
 export const KTT_LOGISTICS_CORRIDOR_RE =

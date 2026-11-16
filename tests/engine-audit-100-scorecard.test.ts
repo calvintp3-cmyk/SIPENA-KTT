@@ -19,7 +19,9 @@ import {
 import {
   evaluateGeographicRelevance,
   KTT_ANCHOR_RE,
+  KTT_DISTRICTS,
   KTT_LOGISTICS_CORRIDOR_RE,
+  KTT_VILLAGES,
 } from '#server/services/scraper/geo-filter';
 import {
   ArticleSourceTypeEnum,
@@ -262,6 +264,17 @@ describe('Engine Audit 100/100 Scorecard Suite (8 Engineering Axes)', () => {
       });
 
       expect(result.decision).toBe('DROP_OTHER_REGENCY_LOCAL');
+    });
+
+    it('mengenali seluruh 5 kecamatan dan 32 desa resmi KTT (Master BPS 6503 / Kemendagri 65.04)', () => {
+      expect(KTT_DISTRICTS.length).toBe(5);
+      expect(KTT_VILLAGES.length).toBe(33); // 32 desa + 1 alias varian ejaan (badan bikis & bandan bikis)
+      for (const district of KTT_DISTRICTS) {
+        expect(KTT_ANCHOR_RE.test(`berita seputar ${district}`)).toBe(true);
+      }
+      for (const village of KTT_VILLAGES) {
+        expect(KTT_ANCHOR_RE.test(`kegiatan di desa ${village} lancar`)).toBe(true);
+      }
     });
   });
 });
