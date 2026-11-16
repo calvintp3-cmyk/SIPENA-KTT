@@ -102,6 +102,15 @@ const CONTENT_CONTAINER_SELECTORS = [
   '.entry-content',
   '.post-content',
   '.read__content',
+  '.konten',
+  '.artikel-lead',
+  '.artikel-isi',
+  '.jeg_post_content',
+  '.td-post-content',
+  '.single-post-content',
+  '.detail-content',
+  '.news-detail',
+  '.read__article',
   '.side-article',
   '.txt-article',
   '.detail__body-text',
@@ -195,7 +204,12 @@ export function trimToWordAndCharBudget(
   let lastSentenceBreak = -1;
   for (let i = candidate.length - 1; i >= minCutCharIdx; i -= 1) {
     const ch = candidate[i];
-    if (ch === '.' || ch === '!' || ch === '?') {
+    const isExclamationOrQuestion = ch === '!' || ch === '?';
+    const isSentenceDot =
+      ch === '.' &&
+      !(i > 0 && /\d/.test(candidate[i - 1] ?? '') && i + 1 < candidate.length && /\d/.test(candidate[i + 1] ?? ''));
+
+    if (isExclamationOrQuestion || isSentenceDot) {
       const beforeBreak = candidate.slice(0, i + 1);
       if (countWords(beforeBreak) >= minPreferredWords) {
         lastSentenceBreak = i + 1;
@@ -484,6 +498,13 @@ export function normalizeToFullPageArticleUrl(rawUrl: string): string {
         return parsed.toString();
       }
     }
+    // Jawa Pos Network (Radar Tarakan, Pro Kaltara, dll.): ?page=all
+    if (host === 'jawapos.com' || host.endsWith('.jawapos.com')) {
+      if (parsed.searchParams.get('page') !== 'all') {
+        parsed.searchParams.set('page', 'all');
+        return parsed.toString();
+      }
+    }
     return rawUrl;
   } catch {
     return rawUrl;
@@ -640,15 +661,65 @@ function findTribunRawTextInScripts($: CheerioAPI): string | null {
   return null;
 }
 
-function extractNextFullPageUrl(
+/**
+ * Memastikan bahwa kandidat link paginasi benar-benar mengarah ke halaman berikutnya
+ * dari artikel yang SAMA (bukan navigasi ke postingan/berita lain seperti rel="next" WordPress).
+ */
+export function isSameArticlePaginationUrl(
+  baseUrl: string | null | undefined,
+  candidateUrl: string | null | undefined,
+): boolean {
+  if (!baseUrl || !candidateUrl) return false;
+  try {
+    const base = new URL(baseUrl);
+    const candidate = new URL(candidateUrl);
+
+    // Host domain harus sama persis
+    const baseHost = base.hostname.toLowerCase().replace(/^www\./, '');
+    const candHost = candidate.hostname.toLowerCase().replace(/^www\./, '');
+    if (baseHost !== candHost) return false;
+
+    // Normalisasi pathname
+    const basePath = base.pathname.replace(/\/+$/, '').toLowerCase();
+    const candPath = candidate.pathname.replace(/\/+$/, '').toLowerCase();
+
+    // 1. Pathname persis sama dan memiliki query param paginasi internal (?page=, ?p=, ?paged=, ?single=, ?show=, dll)
+    if (basePath === candPath) {
+      const pageQuery =
+        candidate.searchParams.get('page') ||
+        candidate.searchParams.get('p') ||
+        candidate.searchParams.get('paged') ||
+        candidate.searchParams.get('single') ||
+        candidate.searchParams.get('show') ||
+        candidate.searchParams.get('showpage');
+      return Boolean(pageQuery);
+    }
+
+    // 2. Candidate pathname merupakan ekstensi numerik halaman dari base pathname
+    // Contoh: basePath = /2026/03/berita-ktt, candPath = /2026/03/berita-ktt/2 atau /2026/03/berita-ktt/page/2
+    if (candPath.startsWith(basePath)) {
+      const remainder = candPath.slice(basePath.length);
+      if (/^\/(?:page\/|part\/)?\d+$/i.test(remainder)) {
+        return true;
+      }
+    }
+
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+export function extractNextFullPageUrl(
   $: CheerioAPI,
   baseUrl?: string | null,
   canonicalUrl?: string | null,
 ): string | null {
+  const referenceBase = baseUrl || canonicalUrl || undefined;
+
   const resolveAnchorHref = (rawHref: string | undefined): string | null => {
     const trimmed = rawHref?.trim();
     if (!trimmed || trimmed.startsWith('#') || /^javascript:/i.test(trimmed)) return null;
-    const referenceBase = baseUrl || canonicalUrl || undefined;
     try {
       const resolved = referenceBase ? new URL(trimmed, referenceBase) : new URL(trimmed);
       if (resolved.protocol !== 'http:' && resolved.protocol !== 'https:') {
@@ -657,7 +728,12 @@ function extractNextFullPageUrl(
       if (baseUrl && resolved.toString() === baseUrl) {
         return null;
       }
-      return resolved.toString();
+      const resolvedStr = resolved.toString();
+      // Safeguard: Wajib validasi isSameArticlePaginationUrl jika referenceBase tersedia
+      if (referenceBase && !isSameArticlePaginationUrl(referenceBase, resolvedStr)) {
+        return null;
+      }
+      return resolvedStr;
     } catch {
       return null;
     }
@@ -670,8 +746,6 @@ function extractNextFullPageUrl(
     'a[href*="single=1"]',
     '.paging a[href*="all"]',
     '.pagination a[href*="all"]',
-    'link[rel="next"]',
-    'a[rel="next"]',
     '.paging a.next',
     '.page-numbers a.next',
     '.pagination a.next',
@@ -798,6 +872,10 @@ export function extractArticleContent(
 
   const container = bestContainer;
 
+  // Konversi tag <br> menjadi pemisah baris ganda agar konten berbasis div / br (misal Radar Tarakan / Pemkab KTT)
+  // dapat diekstrak menjadi beberapa baris kalimat terpisah
+  container.find('br').replaceWith('\n\n');
+
   const paragraphs: string[] = [];
   container.find('p').each((_idx, el) => {
     const text = cleanText($(el).text());
@@ -811,9 +889,9 @@ export function extractArticleContent(
   if (!domResult.isValidContent) {
     const fallbackLines = container
       .text()
-      .split(/\n+/)
+      .split(/\r?\n+/)
       .map(cleanText)
-      .filter((line) => line.length >= 25);
+      .filter((line) => line.length >= 20 && !isPureDatelineOrNoiseParagraph(line));
     const fallbackResult = accumulateParagraphsToThreshold(fallbackLines);
     if (fallbackResult.wordCount > domResult.wordCount) {
       domResult = fallbackResult;

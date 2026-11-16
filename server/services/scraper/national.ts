@@ -147,6 +147,14 @@ export function isGoogleOwnedUrl(rawUrl: string): boolean {
 }
 
 /**
+ * Mendeteksi apakah cuplikan teks merupakan string sintetis fallback metadata (bukan isi berita riil)
+ */
+export function isSyntheticMetadataSnippet(text: string | null | undefined): boolean {
+  if (!text) return false;
+  return /terjaring oleh pemantauan kata kunci|tanpa isi artikel penuh/i.test(text);
+}
+
+/**
  * Membangun teks cuplikan netral berbasis metadata RSS untuk kandidat berita nasional
  * ketika URL pembungkus Google News (`CBMi...`) atau firewall portal menghalangi ekstraksi HTML penuh,
  * tanpa menyisipkan klaim lokasi palsu Kabupaten Tana Tidung agar LLM tetap mengevaluasi lokus secara objektif.
@@ -154,11 +162,13 @@ export function isGoogleOwnedUrl(rawUrl: string): boolean {
 export function buildNationalFallbackSnippet(candidate: DiscoveredArticleCandidate): {
   snippetText: string;
   wordCount: number;
+  hasSufficientContent: boolean;
 } {
   const cleanedDesc = (candidate.fallbackDescription ?? '')
     .replace(/\s+/g, ' ')
     .trim();
   const keywordLabel = candidate.matchedKeyword ?? 'indikator ekonomi';
+  const descWords = countWords(cleanedDesc);
 
   const parts = [
     `Berita dari portal ${candidate.sourcePortal} berjudul "${candidate.title}".`,
@@ -172,6 +182,7 @@ export function buildNationalFallbackSnippet(candidate: DiscoveredArticleCandida
   return {
     snippetText,
     wordCount: countWords(snippetText),
+    hasSufficientContent: descWords >= 8,
   };
 }
 

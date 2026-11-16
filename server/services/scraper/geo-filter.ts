@@ -14,7 +14,15 @@ export interface GeographicRelevanceResult {
 
 // Jangkar geografis mutlak Kabupaten Tana Tidung (kecamatan, ibu kota, ikon instansi lokal)
 export const KTT_ANCHOR_RE =
-  /\b(?:tana\s*tidung|tideng\s*pale|sesayap(?:\s+hilir)?|tana\s+lia|betayau|muruk\s*rian|sepala\s+dalung|buong\s+baru|bebatu|ktt|upun\s+taka|akhmad\s+berahim|tirta\s+taka|puspem\s+ktt)\b/i;
+  /\b(?:tana\s*tidung|tideng\s*pale|sesayap(?:\s+hilir)?|tana\s+lia|betayau|muruk\s*rian|sepala\s+dalung|buong\s+baru|bebatu|ktt|upun\s+taka|akhmad\s+berahim|tirta\s+taka|puspem\s+ktt|desa\s+tideng\s+pale|seputuk|kapuak|rabanau|sedulun|limbu\s+sedulun|gunung\s+riang)\b/i;
+
+// Entitas korporasi ekonomi, perkebunan, pertambangan, dan infrastruktur strategis di Kab. Tana Tidung
+export const KTT_ECONOMIC_ENTITY_RE =
+  /\b(?:mandiri\s+herindo(?:\s+adiperkasa)?|pt\s+mha|pipit\s+mutiara\s+jaya|pt\s+pmj|kayan\s+islani|adindo\s+hutani\s+lestari|pt\s+ahl|mitra\s+tanjung\s+selor|pdam\s+tirta\s+taka|rsud\s+akhmad\s+berahim|pelabuhan\s+bebatu|pelabuhan\s+sesayap|sungai\s+sesayap|sungai\s+tana\s+lia|puspem\s+ktt|upun\s+taka|dprd\s+ktt|dprd\s+tana\s+tidung|pemkab\s+tana\s+tidung|ibrahim\s+ali|hendrik|sabaruddin)\b/i;
+
+// Koridor logistik dan perhubungan air/sungai yang menghubungkan KTT ke Tarakan/Kaltara
+export const KTT_LOGISTICS_CORRIDOR_RE =
+  /\b(?:speedboat\s+(?:tarakan[-–\s]+tideng\s+pale|tideng\s+pale[-–\s]+tarakan|tarakan[-–\s]+sesayap)|feri\s+(?:juata[-–\s]+sebuku|tarakan[-–\s]+ktt|tarakan[-–\s]+tana\s+tidung)|pelabuhan\s+tengkayu\s+i|dermaga\s+tideng\s+pale|dermaga\s+sesayap)\b/i;
 
 // Kebijakan/data makro tingkat Provinsi Kaltara yang bertransmisi ke seluruh kab/kota termasuk KTT
 const KALTARA_PROVINCIAL_MACRO_RE =
@@ -71,11 +79,15 @@ export function evaluateGeographicRelevance(input: {
     };
   }
 
-  // 2. Jalur A: Ada jangkar eksplisit Kabupaten Tana Tidung pada judul/isi
-  if (KTT_ANCHOR_RE.test(combinedText)) {
+  // 2. Jalur A: Ada jangkar eksplisit lokus, korporasi strategis, atau koridor logistik Kab. Tana Tidung
+  if (
+    KTT_ANCHOR_RE.test(combinedText) ||
+    KTT_ECONOMIC_ENTITY_RE.test(combinedText) ||
+    KTT_LOGISTICS_CORRIDOR_RE.test(combinedText)
+  ) {
     return {
       decision: 'ALLOW_KTT_ANCHOR',
-      reason: 'Artikel menyebut langsung lokus Kabupaten Tana Tidung/kecamatan KTT.',
+      reason: 'Artikel menyebut langsung lokus, entitas usaha strategis, atau koridor logistik Kab. Tana Tidung.',
     };
   }
 

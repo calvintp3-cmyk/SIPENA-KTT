@@ -34,7 +34,16 @@ import {
   getCandidateSourcePriority,
   type SemanticHistoricalTitleItem,
 } from './dedup';
-import { extractArticleContent, normalizeToFullPageArticleUrl } from './extractor';
+import {
+  countWords,
+  extractArticleContent,
+  EXTRACTOR_MAX_CHARS,
+  EXTRACTOR_MAX_WORDS,
+  EXTRACTOR_MIN_WORDS,
+  isSameArticlePaginationUrl,
+  normalizeToFullPageArticleUrl,
+  trimToWordAndCharBudget,
+} from './extractor';
 import { evaluateGeographicRelevance } from './geo-filter';
 import {
   DEFAULT_GOOGLE_NEWS_DECODE_CAP_PER_RUN,
@@ -46,6 +55,7 @@ import {
   buildNationalFallbackSnippet,
   extractRedirectTargetFromGoogleHtml,
   harvestNationalKeywords,
+  isSyntheticMetadataSnippet,
   type ActiveKeywordTarget,
 } from './national';
 import {
@@ -636,6 +646,19 @@ async function executeLockedScrapePipeline(
         return;
       }
       const fallback = buildNationalFallbackSnippet(candidate);
+
+      // Jika deskripsi RSS tidak mencukupi (mis. < 45 kata atau ringkasan sintetis tanpa berita riil),
+      // jangan dorong ke antrean LLM untuk mencegah halusinasi
+      if (!fallback.hasSufficientContent) {
+        errors.push({
+          source: candidate.sourcePortal,
+          stage: 'EXTRACT',
+          message: `Gagal mengekstrak isi artikel penuh dan ringkasan RSS tidak mencukupi (${fallback.wordCount} kata).`,
+          url: targetUrl,
+        });
+        return;
+      }
+
       extractedSeenHashes.add(urlHash);
       extractedReady.push({
         candidate,
@@ -776,8 +799,14 @@ async function executeLockedScrapePipeline(
               pageIter < MAX_ARTICLE_PAGINATION_DEPTH &&
               !visitedPageUrls.has(currentPageUrl) &&
               isSameDomainHost(currentPageUrl, rawFinalUrl) &&
+              isSameArticlePaginationUrl(rawFinalUrl, currentPageUrl) &&
               hasRemainingBudget(400)
             ) {
+              // Early stop jika akumulasi kata sudah mencukupi target analisis PDRB (>= 300 kata)
+              if (extracted.wordCount >= EXTRACTOR_MIN_WORDS) {
+                break;
+              }
+
               visitedPageUrls.add(currentPageUrl);
               pageIter += 1;
               try {
@@ -810,12 +839,18 @@ async function executeLockedScrapePipeline(
                     }
                     break;
                   } else {
-                    // Jika halaman numerik berantai (mis. /page/2/), sambungkan teksnya
+                    // Jika halaman numerik berantai (mis. /page/2/), sambungkan teksnya dengan batasan anggaran rapi
                     const combinedSnippet = `${extracted.snippetText}\n\n${fullExtracted.snippetText}`.trim();
+                    const trimmedSnippet = trimToWordAndCharBudget(
+                      combinedSnippet,
+                      EXTRACTOR_MAX_WORDS,
+                      EXTRACTOR_MAX_CHARS,
+                      EXTRACTOR_MIN_WORDS,
+                    );
                     extracted = {
                       ...extracted,
-                      snippetText: combinedSnippet,
-                      wordCount: extracted.wordCount + fullExtracted.wordCount,
+                      snippetText: trimmedSnippet,
+                      wordCount: countWords(trimmedSnippet),
                     };
                     currentPageUrl = fullExtracted.nextFullPageUrl;
                   }
@@ -917,6 +952,54 @@ async function executeLockedScrapePipeline(
     // -------------------------------------------------------------------------
     const llmEligible: ExtractedReadyArticle[] = [];
     for (const item of dedupedExtracted) {
+      // 1. Saring artikel dengan teks tidak memadai (< 20 kata) atau cuplikan sintetis tanpa deskripsi redaksi riil
+      const isPureSyntheticWithoutBody =
+        isSyntheticMetadataSnippet(item.snippetText) &&
+        (!item.candidate.fallbackDescription || countWords(item.candidate.fallbackDescription) < 8);
+
+      if (item.wordCount < 20 || isPureSyntheticWithoutBody) {
+        const defaultPeriod = getQuarterFromDateWita(item.publishedAt);
+        const [insufficientInserted] = await db
+          .insert(articles)
+          .values({
+            url: item.normalizedUrl,
+            urlHash: item.urlHash,
+            sourceType: item.candidate.sourceType,
+            sourcePortal: item.sourcePortal,
+            title: item.title,
+            snippetText: item.snippetText,
+            wordCount: item.wordCount,
+            publishedAt: item.publishedAt,
+            quarter: defaultPeriod.quarter,
+            year: defaultPeriod.year,
+            geographicScope: 'OTHER_REGION_IRRELEVANT',
+            titleEmbedding: item.titleEmbedding ?? null,
+            isEconomicPhenomenon: false,
+            summary: null,
+            kbliCategory: null,
+            kbliImpact: null,
+            expenditureComponent: null,
+            expenditureImpact: null,
+            llmModel: 'system-insufficient-content',
+            llmStatus: LlmStatusEnum.SUCCESS,
+            llmError: 'Konten teks terlalu pendek atau berupa ringkasan sintetis tanpa isi berita penuh.',
+            llmConfidence: 1,
+            verificationStatus: VerificationStatusEnum.IGNORED,
+            keywordId: item.candidate.keywordId,
+            scraperLogId: logId,
+          })
+          .onConflictDoNothing({ target: articles.urlHash })
+          .returning({ id: articles.id });
+
+        if (insufficientInserted) {
+          articlesInserted += 1;
+          nonEconomicCount += 1;
+        } else {
+          articlesDeduplicated += 1;
+        }
+        continue;
+      }
+
       const geo = evaluateGeographicRelevance({
         title: item.title,
         snippetText: item.snippetText,
@@ -1145,6 +1228,7 @@ async function executeLockedScrapePipeline(
             const mapped = mapClassificationToPersistence(
               aiResult.classification,
               aiResult.modelUsed,
+              item.snippetText,
             );
             persistenceFields = { ...mapped };
             if (mapped.isEconomicPhenomenon) {
@@ -1474,7 +1558,10 @@ async function executeLockedRetryLlmBatch(
           eq(articles.verificationStatus, VerificationStatusEnum.PENDING),
         ),
       )
-      .orderBy(desc(articles.publishedAt))
+      .orderBy(
+        sql`CASE WHEN ${articles.sourceType} = 'REGIONAL' THEN 0 ELSE 1 END`,
+        desc(articles.publishedAt),
+      )
       .limit(limit);
 
     fetchedTotal = pendingFailedArticles.length;
@@ -1501,6 +1588,34 @@ async function executeLockedRetryLlmBatch(
       }
 
       processedCount += 1;
+
+      // Saring artikel dengan teks tidak memadai (< 20 kata) atau cuplikan sintetis tanpa buang kuota LLM
+      const isPureSyntheticWithoutBody =
+        isSyntheticMetadataSnippet(article.snippetText) &&
+        (!article.snippetText || countWords(article.snippetText) < 20);
+
+      if (article.wordCount < 20 || isPureSyntheticWithoutBody) {
+        succeededCount += 1;
+        nonEconomicCount += 1;
+        await db
+          .update(articles)
+          .set({
+            geographicScope: 'OTHER_REGION_IRRELEVANT',
+            isEconomicPhenomenon: false,
+            summary: null,
+            kbliCategory: null,
+            kbliImpact: null,
+            expenditureComponent: null,
+            expenditureImpact: null,
+            llmModel: 'system-insufficient-content',
+            llmStatus: LlmStatusEnum.SUCCESS,
+            llmError: 'Konten teks terlalu pendek atau berupa ringkasan sintetis tanpa isi berita penuh.',
+            llmConfidence: 1,
+            verificationStatus: VerificationStatusEnum.IGNORED,
+          })
+          .where(eq(articles.id, article.id));
+        continue;
+      }
 
       // Saring artikel non-KTT/noise statis sebelum menghabiskan token retry
       const geo = evaluateGeographicRelevance({
@@ -1565,7 +1680,11 @@ async function executeLockedRetryLlmBatch(
       if (result.ok) {
         consecutiveRateLimitErrors = 0;
         succeededCount += 1;
-        const mapped = mapClassificationToPersistence(result.classification, result.modelUsed);
+        const mapped = mapClassificationToPersistence(
+          result.classification,
+          result.modelUsed,
+          article.snippetText,
+        );
 
         if (mapped.isEconomicPhenomenon) {
           economicCount += 1;

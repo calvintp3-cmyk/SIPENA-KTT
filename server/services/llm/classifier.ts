@@ -49,7 +49,7 @@ ATURAN FENOMENA EKONOMI (is_economic_phenomenon):
 KAMUS KATEGORI KBLI 2025 (PERATURAN BPS NO. 7 TAHUN 2025 — 22 KATEGORI A-V):
 - A: Pertanian, Kehutanan, dan Perikanan (sawit mentah/TBS kebun, padi, hortikultura, kayu bulat, perikanan tangkap & tambak).
 - B: Pertambangan dan Penggalian (batubara termasuk pencucian/benefisiasi, migas, kuari pasir/batu/sirtu).
-- C: Industri (KBLI 2025: pengolahan TBS->CPO di PKS, kayu lapis/chipmill, industri makanan-minuman/IKM olahan).
+- C: Industri Pengolahan (KBLI 2025: pengolahan TBS->CPO di PKS, kayu lapis/chipmill, industri makanan-minuman/IKM olahan).
 - D: Penyediaan Listrik, Gas, Uap/Air Panas, dan Udara Dingin (pembangkit PLTD/PLTS/EBT, transmisi/pasokan listrik PLN, perdagangan karbon sektor energi).
 - E: Penyediaan Air; Pengelolaan Air Limbah, Penanganan Limbah, dan Remediasi (PDAM Tirta Taka, SPAM, persampahan).
 - F: Konstruksi (pembangunan fisik Puspem KTT, jalan poros, jembatan, irigasi, pelabuhan, serta konstruksi gedung sekolah/RSUD).
@@ -62,19 +62,19 @@ KAMUS KATEGORI KBLI 2025 (PERATURAN BPS NO. 7 TAHUN 2025 — 22 KATEGORI A-V):
 - M: Aktivitas Real Estat (pengembang perumahan, sewa lahan/ruko/gedung/gudang penyimpanan mandiri, kawasan industri).
 - N: Aktivitas Profesional, Ilmiah, dan Teknis (konsultan perencana teknik/AMDAL, akuntan, hukum, survei/sertifikasi).
 - O: Aktivitas Administratif dan Penunjang Usaha (penyewaan alat berat/armada, biro perjalanan, outsourcing tenaga kerja, kebersihan).
-- P: Administrasi Pemerintahan dan Pertahanan, serta Jaminan Sosial Wajib (operasional umum Pemkab KTT, realisasi APBD/LRA umum, TKD/DBH/DAK/DAU, pajak/retribusi daerah).
+- P: Administrasi Pemerintahan dan Pertahanan, serta Jaminan Sosial Wajib (operasional umum Pemkab KTT, realisasi APBD/LRA umum, program bansos/cadangan pangan dinas daerah, TKD/DBH/DAK/DAU, pajak/retribusi daerah).
 - Q: Pendidikan (Golongan Pokok 85 KBLI: HANYA untuk aktivitas pengajaran, sekolah formal/non-formal, PAUD, SD-SMA, perguruan tinggi/IAIN, pelatihan vokasi/BLK, dan beasiswa pendidikan). DILARANG memasukkan bantuan sosial kebakaran, bencana, atau sembako ke Kategori Q.
 - R: Aktivitas Kesehatan Manusia dan Aktivitas Sosial (Golongan Pokok 86 Kesehatan, 87 Perawatan Residensial, dan 88 Aktivitas Sosial Tanpa Akomodasi: layanan RSUD Akhmad Berahim, puskesmas, klinik medis, penanggulangan ISPA, serta SELURUH BANTUAN SOSIAL korban bencana/kebakaran, santunan sosial, bantuan sembako dhuafa, dan perlindungan sosial masyarakat).
 - S: Kesenian, Olahraga, dan Rekreasi (Festival Budaya Irau, daya tarik wisata, olahraga, pertunjukan hiburan).
-- T: Aktivitas Jasa Lainnya (ormas, rumah ibadah, salon/laundry, serta bengkel/reparasi mobil & sepeda motor).
+- T: Aktivitas Jasa Lainnya (ormas keagamaan/lembaga adat, rumah ibadah, salon/laundry, serta bengkel/reparasi mobil & sepeda motor).
 - U: Aktivitas Rumah Tangga Sebagai Pemberi Kerja dan Produksi Rumah Tangga untuk Keperluan Sendiri.
 - V: Aktivitas Badan Internasional dan Badan Ekstra Internasional Lainnya.
 
 ATURAN PEMBATASAN PRODUKSI & PENANGANAN BANTUAN SOSIAL (PEDOMAN PDRB BPS):
-1. Bantuan Sosial vs Pendidikan:
-   - Bantuan sosial bencana (kebakaran, banjir), bantuan tunai lansia/fakir miskin, bantuan logistik sembako musibah WAJIB masuk Kategori R (Aktivitas Sosial Tanpa Akomodasi / KBLI 88), BUKAN Q.
-   - Kategori Q HANYA untuk urusan kurikulum, operasional sekolah, beasiswa mahasiswa/siswa, dan guru/dosen.
-   - Sisi Pengeluaran Bantuan Sosial: Jika disalurkan/dibiayai dari belanja bansos APBD pemda -> komponen utamanya adalah PK_P (Pengeluaran Konsumsi Pemerintah sebagai biaya antara/social transfers in kind) atau dampak sekunder PK_RT (memperkuat konsumsi rumah tangga penerima bantuan).
+1. Bantuan Sosial Pemda & Biaya Antara:
+   - Program Bantuan Sosial Pemkab/APBD: Penyaluran beras bansos, sembako, atau BLT oleh Dinsos/Pemkab KTT dipetakan ke Kategori P (Administrasi Pemerintahan) atau R (Aktivitas Sosial KBLI 88), dengan komponen pengeluaran primer PK_P (social transfers in kind APBD) dan komponen sekunder PK_RT (memperkuat konsumsi rumah tangga).
+   - Bantuan bibit sawit, benih padi, atau pupuk dari Dinas Pertanian Pemkab KTT kepada petani/nelayan merupakan BIAYA ANTARA (intermediate input) produksi Kategori A, BUKAN konsumsi akhir rumah tangga; sisi pengeluaran adalah PK_P (hibah barang pemerintah).
+   - Pengadaan alat berat, kapal nelayan, atau traktor berumur pakai > 1 tahun MASUK PMTB (barang modal fisik).
 2. Unit Pemerintah Non-Administrasi: Proyek pembangunan fisik gedung sekolah, gedung RSUD, atau gedung koperasi desa MASUK F (Konstruksi) dan PMTB, BUKAN Q atau R. Operasional pengajaran = Q; operasional medis RSUD dan penanganan bansos darurat = R; tata kelola umum/gaji ASN/DBH = P.
 3. Jasa Intermediasi Digital: Platform e-commerce ritel masuk G, kurir/ojol logistik masuk H, OTA reservasi hotel masuk I (bukan K).
 4. Bahan Mentah vs Olahan: TBS kelapa sawit mentah/kayu bulat/ikan segar = A; pengolahan pabrik CPO/PKS/kayu lapis = C.
@@ -83,11 +83,11 @@ ATURAN PEMBATASAN PRODUKSI & PENANGANAN BANTUAN SOSIAL (PEDOMAN PDRB BPS):
 
 ATURAN 6 KOMPONEN PENGELUARAN & PROKSI SPESIFIK KTT:
 - PK_RT: Belanja konsumsi akhir rumah tangga di KTT (sembako, listrik/air rumah tangga, sandang, bahan pokok, transportasi harian). DILARANG dipakai untuk ekspor komoditas mentah (batubara/CPO/TBS).
-- PK_LNPRT: Operasional organisasi non-profit yang melayani rumah tangga (kegiatan sosial ormas keagamaan/masjid/gereja, lembaga adat, PMI, parpol, LSM swadaya murni). Jika pembiayaan bersumber dari APBD pemda, utamakan PK_P.
+- PK_LNPRT: Operasional organisasi non-profit yang melayani rumah tangga di KTT. Mencakup: kegiatan swadaya Lembaga Adat Tidung/Dayak (upacara adat, bersih desa, musyawarah adat), peribadatan/kegiatan sosial ormas keagamaan (MUI, PHBI, DKM Masjid, PGI/Gereja), PMI, Baznas/LAZ non-APBD, serikat buruh sawit/tambang, paguyuban kedaerahan, ormas kepemudaan swadaya yang TIDAK dibiayai belanja langsung APBD.
 - PK_P: Belanja operasional pemerintah daerah (gaji/TPP ASN, belanja barang/jasa kantor, belanja bansos/hibah tanggap darurat APBD, BOS/BOK daerah).
 - PMTB: Pembentukan Modal Tetap Bruto / investasi fisik kapital (belanja modal APBD gedung/jalan/jembatan/pelabuhan, pengadaan mesin/genset PLN/alat berat, kendaraan bermotor baru BBNKB, pembangunan gedung koperasi/RSUD, investasi swasta LKPM).
-- INVENTORY_CHANGE: Perubahan stok barang (penumpukan/pengosongan stockpile batubara perusahaan tambang = S_akhir - S_awal, persediaan beras di gudang Bulog).
-- NET_EXPORT: Arus barang/jasa keluar KTT (pengapalan tongkang batubara, CPO/TBS sawit, kayu log/olahan keluar daerah, penjualan kipas batik ke luar pulau) dikurangi arus barang impor masuk KTT (bongkar muat kapal logistik/feri di pelabuhan Sesayap).
+- INVENTORY_CHANGE: Perubahan stok atau persediaan barang/komoditas di KTT (akumulasi penumpukan atau pengosongan stockpile batubara perusahaan tambang di pelabuhan Sesayap/Bebatu = S_akhir - S_awal, persediaan beras di gudang Bulog/Cadangan Beras Pemerintah Daerah KTT, atau penumpukan log kayu akasia di logpond).
+- NET_EXPORT: Arus barang/jasa keluar KTT (pengapalan tongkang batubara, CPO/TBS sawit, kayu log/olahan keluar daerah, penjualan produk kerajinan ke luar pulau) dikurangi arus barang impor masuk KTT (bongkar muat kapal logistik/feri di pelabuhan Sesayap).
   -> ATURAN TANDA DAMPAK NET_EXPORT:
      * Kenaikan volume ekspor/pengapalan komoditas keluar KTT => INCREASE_REAL.
      * Penurunan ekspor komoditas keluar KTT => DECREASE_REAL.
@@ -104,8 +104,8 @@ ATURAN DUA SUMBU DAMPAK (VOLUME RIIL/ADHK VS HARGA/ADHB):
   * INCREASE_DEFLATOR / DECREASE_DEFLATOR: Perubahan indeks harga implisit belanja / inflasi indeks harga konsumen (IHK).
 
 ATURAN SEKTOR SEKUNDER (INTER-INDUSTRY LINKAGE):
-- secondary_kbli_category & secondary_kbli_impact: Diisi HANYA apabila peristiwa ekonomi memiliki dampak limpahan terukur ke sektor kedua (misal: pembangunan fisik pabrik kelapa sawit berdampak utama pada F Konstruksi dan dampak sekunder pada C Industri; bencana banjir merusak panen padi A Pertanian utama dan memutus jalan H Transportasi sekunder). Jika murni hanya berdampak pada 1 sektor, wajib diisi null.
-- secondary_expenditure_component & secondary_expenditure_impact: Diisi HANYA jika terdapat komponen pengeluaran kedua yang terimbas (misal investasi modal fisik PMTB utama dan potensi ekspor komoditas NET_EXPORT sekunder). Jika tidak ada, wajib diisi null.
+- secondary_kbli_category & secondary_kbli_impact: Diisi HANYA apabila peristiwa ekonomi memiliki dampak limpahan terukur ke sektor kedua (misal: pembangunan fisik pabrik kelapa sawit berdampak utama pada F Konstruksi dan dampak sekunder pada C Industri; bantuan sembako Pemkab berdampak primer pada P/R dan sekunder pada G/A; bencana banjir merusak panen padi A Pertanian utama dan memutus jalan H Transportasi sekunder). Jika murni hanya berdampak pada 1 sektor, wajib diisi null.
+- secondary_expenditure_component & secondary_expenditure_impact: Diisi HANYA jika terdapat komponen pengeluaran kedua yang terimbas (misal investasi modal fisik PMTB utama dan potensi ekspor komoditas NET_EXPORT sekunder; bansos APBD PK_P utama dan daya beli PK_RT sekunder). Jika tidak ada, wajib diisi null.
 
 ATURAN PENULISAN summary & quarter/year:
 - summary: 3-5 kalimat bahasa Indonesia baku (50-110 kata) memuat peristiwa, pelaku & kecamatan/lokus, angka/nilai bila ada di teks, serta mekanisme dampaknya ke PDRB KTT.
@@ -116,7 +116,9 @@ CONTOH KALIBRASI (FEW-SHOT):
 2. "Pemkab Nunukan Salurkan Subsidi Ongkos Angkut Udara Krayan Rp 912 Juta" (tidak ada penyebutan KTT) -> geographic_scope="OTHER_REGION_IRRELEVANT", is_economic_phenomenon=false, seluruh kbli/expenditure=null.
 3. "PLN Pastikan Tarif Listrik Nonsubsidi Februari 2026 Tetap Tidak Berubah" -> geographic_scope="NATIONAL_MACRO_IMPACT", is_economic_phenomenon=false, rejection_reason="Pengumuman tarif statis tanpa perubahan harga ataupun gangguan pasokan listrik.", seluruh kbli/expenditure=null.
 4. Berita April melaporkan "Realisasi Proyek Jalan Poros & Gedung Puspem KTT Triwulan I 2026 Capai Rp 120 Miliar" -> geographic_scope="KTT_LOCAL", is_economic_phenomenon=true, kbli_category="F", kbli_impact="INCREASE_NTB", expenditure_component="PMTB", expenditure_impact="INCREASE_REAL", quarter=1, year=2026.
-5. "Pemkab Tana Tidung Cairkan TPP ASN dan Operasional RSUD Akhmad Berahim" -> geographic_scope="KTT_LOCAL", is_economic_phenomenon=true, kbli_category="P" (atau "R" jika fokus layanan RSUD), kbli_impact="INCREASE_NTB", expenditure_component="PK_P", expenditure_impact="INCREASE_REAL".`;
+5. "Pemkab Tana Tidung Cairkan TPP ASN dan Operasional RSUD Akhmad Berahim" -> geographic_scope="KTT_LOCAL", is_economic_phenomenon=true, kbli_category="P" (atau "R" jika fokus layanan RSUD), kbli_impact="INCREASE_NTB", expenditure_component="PK_P", expenditure_impact="INCREASE_REAL".
+6. "Lembaga Adat Tidung dan Dayak Gelar Upacara Ritual Bersih Desa Mandiri di Sesayap Hilir" -> geographic_scope="KTT_LOCAL", is_economic_phenomenon=true, kbli_category="T", kbli_impact="INCREASE_NTB", expenditure_component="PK_LNPRT", expenditure_impact="INCREASE_REAL".
+7. "Penumpukan Batubara di Stockpile Bebatu Tembus 50 Ribu Ton Imbas Pasang Surut Sungai" -> geographic_scope="KTT_LOCAL", is_economic_phenomenon=true, kbli_category="B", kbli_impact="INCREASE_NTB", expenditure_component="INVENTORY_CHANGE", expenditure_impact="INCREASE_REAL".`;
 
 export const SIPENA_SYSTEM_INSTRUCTION = SIPENA_SYSTEM_INSTRUCTION_FULL;
 
@@ -134,10 +136,10 @@ export const SIPENA_SYSTEM_INSTRUCTION_COMPACT = `Analis PDRB BPS Kab. Tana Tidu
 - false jika tarif/harga TETAP/stagnan (Delta=0), rekap grafik historis tanpa kejadian baru, seremonial murni/apel/rapat, suksesi/pelantikan/pergantian/kematian pejabat daerah (misal kades meninggal/Pj Kades dilantik) tanpa komitmen anggaran proyek terukur, kriminalitas, duka cita, olahraga -> set 4 field PDRB=null & isi rejection_reason.
 
 3. KBLI 2025 (A-V):
-A=Pertanian/Kehutanan/Perikanan(TBS mentah,ikan,kayu); B=Pertambangan/Penggalian(batubara,migas,kuari); C=Industri(PKS CPO,chipmill,IKM olahan/bantuan mesin UMKM); D=Listrik/Gas/PJU/Lampu Jalan; E=Air/PDAM/Limbah; F=Konstruksi(termasuk bangun gedung sekolah/RSUD/jalan); G=Perdagangan Besar/Eceran(sembako,BBM,bantuan modal dagang,tanpa bengkel); H=Transportasi/Gudang(pelabuhan,speedboat,SOA,kurir); I=Akomodasi/Makan Minum; J=Penerbitan/Penyiaran/Konten; K=Telekomunikasi/IT/BTS/Internet; L=Keuangan/Asuransi/KUR; M=Real Estat; N=Jasa Profesional/Konsultan/Teknis; O=Jasa Administratif/Sewa Alat Berat/Travel; P=Adm Pemerintahan/APBD/DBH/Pajak(bukan PJU/bansos); Q=Pendidikan murni (pengajaran/sekolah/beasiswa; DILARANG untuk bansos bencana); R=Kesehatan RSUD & SELURUH BANSOS bencana/santunan sosial dhuafa; S=Kesenian/Wisata/Olahraga; T=Jasa Lainnya(Ormas,Rumah Ibadah,Salon,Bengkel/Reparasi Motor-Mobil); U=Jasa Rumah Tangga; V=Badan Internasional.
+A=Pertanian/Kehutanan/Perikanan(TBS mentah,ikan,kayu,bantuan bibit/pupuk); B=Pertambangan/Penggalian(batubara,migas,kuari); C=Industri(PKS CPO,chipmill,IKM olahan/bantuan mesin UMKM); D=Listrik/Gas/PJU/Lampu Jalan; E=Air/PDAM/Limbah; F=Konstruksi(termasuk bangun gedung sekolah/RSUD/jalan); G=Perdagangan Besar/Eceran(sembako,BBM,bantuan modal dagang,tanpa bengkel); H=Transportasi/Gudang(pelabuhan,speedboat,SOA,kurir); I=Akomodasi/Makan Minum; J=Penerbitan/Penyiaran/Konten; K=Telekomunikasi/IT/BTS/Internet; L=Keuangan/Asuransi/KUR; M=Real Estat; N=Jasa Profesional/Konsultan/Teknis; O=Jasa Administratif/Sewa Alat Berat/Travel; P=Adm Pemerintahan/APBD/DBH/Pajak/Bansos Beras Pemkab; Q=Pendidikan murni (pengajaran/sekolah/beasiswa; DILARANG untuk bansos bencana); R=Kesehatan RSUD & Aktivitas Sosial (santunan dhuafa/bencana); S=Kesenian/Wisata/Olahraga; T=Jasa Lainnya(Ormas,Lembaga Adat,Rumah Ibadah,Salon,Bengkel/Reparasi Motor-Mobil); U=Jasa Rumah Tangga; V=Badan Internasional.
 
 4. PENGELUARAN (6 KOMPONEN):
-PK_RT=Konsumsi RT KTT (bukan ekspor sawit/batubara); PK_LNPRT=Operasional Masjid/Ormas/Adat; PK_P=Belanja pegawai/barang-jasa operasional OPD & BOS/bansos; PMTB=Belanja modal/konstruksi/mesin/alat berat/BBNKB/LKPM; INVENTORY_CHANGE=Perubahan stok(stockpile batubara/Bulog); NET_EXPORT=Ekspor keluar minus Impor masuk KTT (ekspor naik=INCREASE_REAL; impor masuk naik=DECREASE_REAL; harga ekspor naik=INCREASE_DEFLATOR).
+PK_RT=Konsumsi RT KTT (bukan ekspor sawit/batubara); PK_LNPRT=Operasional Lembaga Adat/Masjid/Gereja/Ormas Swadaya; PK_P=Belanja pegawai/barang-jasa operasional OPD & bansos/hibah pemda; PMTB=Belanja modal/konstruksi/mesin/alat berat/BBNKB/LKPM; INVENTORY_CHANGE=Perubahan stok(stockpile batubara Sesayap/gudang beras Bulog); NET_EXPORT=Ekspor keluar minus Impor masuk KTT (ekspor naik=INCREASE_REAL; impor masuk naik=DECREASE_REAL; harga ekspor naik=INCREASE_DEFLATOR).
 
 5. DAMPAK:
 kbli_impact: INCREASE_NTB | DECREASE_NTB | INCREASE_PRICE | DECREASE_PRICE.
@@ -159,7 +161,8 @@ export interface ArticleClassificationInput {
 
 /**
  * Memampatkan cuplikan teks berita yang disimpan (300-450 kata) ke anggaran optimal pra-LLM
- * (default <= 290 kata / <= 1.900 karakter) agar hemat TPM/TPD Groq & OpenRouter serta tetap memotong rapi di akhir kalimat.
+ * (default <= 360 kata / <= 2.400 karakter) dengan memprioritaskan kalimat berkepadatan data
+ * kuantitatif (angka, nominal Rp, ton, %, komoditas) dan memotong rapi di batas kalimat.
  */
 export function compressArticleTextForLlm(
   rawText: string,
@@ -174,6 +177,47 @@ export function compressArticleTextForLlm(
     return cleaned;
   }
 
+  // Pisahkan kalimat berdasarkan tanda baca akhir kalimat (.!?) yang diikuti spasi
+  // Menghindari pemecahan keliru pada angka desimal / pemisah ribuan seperti 18.500 atau 3.5
+  const rawSentences = cleaned.split(/(?<=[.!?])\s+(?=[A-Z0-9"']|$)/g);
+  const NUMERIC_ECONOMIC_RE =
+    /\b(?:\d+|rp|rupiah|persen|%|miliar|juta|triliun|ton|kg|pdrb|inflasi|ihk|ntb|panen|ekspor|impor|anggaran|sawit|batubara)\b/i;
+
+  const prioritizedSentences: string[] = [];
+  const normalSentences: string[] = [];
+  for (const s of rawSentences) {
+    const trimmed = s.trim();
+    if (!trimmed) continue;
+    if (NUMERIC_ECONOMIC_RE.test(trimmed)) {
+      prioritizedSentences.push(trimmed);
+    } else {
+      normalSentences.push(trimmed);
+    }
+  }
+
+  // Gabungkan dengan mendahulukan kalimat berkepadatan data ekonomi
+  const orderedSentences = [...prioritizedSentences, ...normalSentences];
+  const keptSentences: string[] = [];
+  let runningWords = 0;
+  let runningChars = 0;
+
+  for (const s of orderedSentences) {
+    const sWords = s.split(/\s+/).filter(Boolean).length;
+    if (runningWords + sWords > maxWords || runningChars + s.length > maxChars) {
+      if (keptSentences.length === 0) {
+        keptSentences.push(s);
+      }
+      break;
+    }
+    keptSentences.push(s);
+    runningWords += sWords;
+    runningChars += s.length + 1;
+  }
+
+  if (keptSentences.length > 0) {
+    return keptSentences.join(' ').trim();
+  }
+
   const kept: string[] = [];
   let charCount = 0;
   for (const word of words) {
@@ -184,16 +228,7 @@ export function compressArticleTextForLlm(
     charCount = nextLength;
   }
 
-  const candidate = kept.join(' ');
-  const minSentenceCutIdx = Math.floor(candidate.length * 0.6);
-  for (let i = candidate.length - 1; i >= minSentenceCutIdx; i -= 1) {
-    const ch = candidate[i];
-    if (ch === '.' || ch === '!' || ch === '?') {
-      return candidate.slice(0, i + 1).trim();
-    }
-  }
-
-  return candidate;
+  return kept.join(' ').trim();
 }
 
 export function buildClassificationPrompt(params: ArticleClassificationInput): string {
@@ -253,10 +288,88 @@ export function parseAndValidateLlmJson(rawText: string): LlmClassificationOutpu
   };
 }
 
-export function mapClassificationToPersistence(
+/**
+ * Melengkapi dan memperkuat relasi keterkaitan sekunder (inter-industry linkage & expenditure linkage)
+ * berdasarkan fakta teks berita dan konsistensi metodologi PDRB BPS.
+ */
+export function enrichClassificationLinkages(
   classification: LlmClassificationOutput,
+  snippetText?: string | null,
+): LlmClassificationOutput {
+  if (!classification.is_economic_phenomenon) return classification;
+
+  const text = `${classification.summary} ${snippetText ?? ''}`.toLowerCase();
+  let secKbli = classification.secondary_kbli_category;
+  let secKbliImpact = classification.secondary_kbli_impact;
+  let secExp = classification.secondary_expenditure_component;
+  let secExpImpact = classification.secondary_expenditure_impact;
+
+  // 1. Kasus Bansos / BLT Pemkab: jika primer P dan belanja PK_P, kaitkan sekunder ke R dan PK_RT
+  if (
+    classification.kbli_category === 'P' &&
+    classification.expenditure_component === 'PK_P' &&
+    /bansos|bantuan sosial|sembako|blt|cadangan beras|dhuafa|kemiskinan|korban/i.test(text)
+  ) {
+    if (!secKbli) {
+      secKbli = 'R' as typeof classification.kbli_category;
+      secKbliImpact = classification.kbli_impact;
+    }
+    if (!secExp) {
+      secExp = 'PK_RT' as typeof classification.expenditure_component;
+      secExpImpact = 'INCREASE_REAL' as typeof classification.expenditure_impact;
+    }
+  }
+
+  // 2. Kasus Proyek Fisik Konstruksi APBD Pemkab: F + PMTB dengan keterkaitan ke P
+  if (
+    classification.kbli_category === 'F' &&
+    classification.expenditure_component === 'PMTB' &&
+    /pemkab|apbd|dinas pu|pemerintah kabupaten|dinas perhubungan/i.test(text)
+  ) {
+    if (!secKbli) {
+      secKbli = 'P' as typeof classification.kbli_category;
+      secKbliImpact = classification.kbli_impact;
+    }
+  }
+
+  // 3. Kasus Bantuan Bibit/Pupuk Pertanian dari Pemkab: A + PK_P dengan sekunder P
+  if (
+    classification.kbli_category === 'A' &&
+    /bantuan bibit|bantuan pupuk|benih padi|bibit sawit|dinas pertanian/i.test(text) &&
+    /pemkab|apbd|pemerintah kabupaten/i.test(text)
+  ) {
+    if (!secKbli) {
+      secKbli = 'P' as typeof classification.kbli_category;
+      secKbliImpact = classification.kbli_impact;
+    }
+  }
+
+  // Hindari duplikasi sekunder persis sama dengan primer
+  if (secKbli === classification.kbli_category) {
+    secKbli = null;
+    secKbliImpact = null;
+  }
+  if (secExp === classification.expenditure_component) {
+    secExp = null;
+    secExpImpact = null;
+  }
+
+  return {
+    ...classification,
+    secondary_kbli_category: secKbli,
+    secondary_kbli_impact: secKbli ? secKbliImpact : null,
+    secondary_expenditure_component: secExp,
+    secondary_expenditure_impact: secExp ? secExpImpact : null,
+  };
+}
+
+export function mapClassificationToPersistence(
+  rawClassification: LlmClassificationOutput,
   llmModel: string,
+  snippetText?: string | null,
 ) {
+  const classification = enrichClassificationLinkages(rawClassification, snippetText);
+
   if (
     !classification.is_economic_phenomenon ||
     classification.geographic_scope === 'OTHER_REGION_IRRELEVANT'
