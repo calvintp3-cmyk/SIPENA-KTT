@@ -224,6 +224,88 @@ describe('Engine Audit 100/100 Scorecard Suite (8 Engineering Axes)', () => {
       expect(persisted.secondaryExpenditureImpact).toBeNull();
       expect(persisted.verificationStatus).toBe(VerificationStatusEnum.PENDING);
     });
+
+    it('enrichClassificationLinkages mengoreksi kontaminasi KBLI 2009 (Q->R untuk RSUD/Bencana, O->P untuk Pemda) serta batas institusi SNA 2008 (UMK/THR/Bansos/Zakat/Wisata -> PK_RT)', () => {
+      // Grup 1: RSUD masuk Q -> otomatis dikoreksi ke R
+      const rsudInput: LlmClassificationOutput = {
+        geographic_scope: 'KTT_LOCAL',
+        is_economic_phenomenon: true,
+        rejection_reason: null,
+        summary: 'RSUD Akhmad Berahim Tana Tidung bertransformasi dilengkapi lift dan fasilitas medis.',
+        kbli_category: KbliCategoryEnum.Q,
+        kbli_impact: KbliImpactEnum.INCREASE_NTB,
+        expenditure_component: ExpenditureComponentEnum.PMTB,
+        expenditure_impact: ExpenditureImpactEnum.INCREASE_REAL,
+        secondary_kbli_category: KbliCategoryEnum.F,
+        secondary_kbli_impact: KbliImpactEnum.INCREASE_NTB,
+        secondary_expenditure_component: ExpenditureComponentEnum.PK_P,
+        secondary_expenditure_impact: ExpenditureImpactEnum.INCREASE_REAL,
+        quarter: 2,
+        year: 2026,
+        confidence: 0.95,
+      };
+      expect(enrichClassificationLinkages(rsudInput).kbli_category).toBe(KbliCategoryEnum.R);
+
+      // Grup 2: Kebijakan Pemda (TPP ASN / Pajak Alat Berat / Tera) masuk O -> dikoreksi ke P
+      const pemdaInput: LlmClassificationOutput = {
+        ...rsudInput,
+        summary: 'Pemkab Tana Tidung menetapkan pemotongan TPP ASN sebesar 20 persen pasca efisiensi anggaran.',
+        kbli_category: KbliCategoryEnum.O,
+        kbli_impact: KbliImpactEnum.DECREASE_NTB,
+        expenditure_component: ExpenditureComponentEnum.PK_P,
+        expenditure_impact: ExpenditureImpactEnum.DECREASE_REAL,
+      };
+      expect(enrichClassificationLinkages(pemdaInput).kbli_category).toBe(KbliCategoryEnum.P);
+
+      // Grup 3: Bantuan Korban Bencana Kebakaran masuk Q -> dikoreksi ke R
+      const bencanaInput: LlmClassificationOutput = {
+        ...rsudInput,
+        summary: 'PT MIP menyalurkan bantuan sembako peduli korban kebakaran di Tana Tidung.',
+        kbli_category: KbliCategoryEnum.Q,
+        expenditure_component: ExpenditureComponentEnum.PK_RT,
+        secondary_kbli_category: null,
+      };
+      expect(enrichClassificationLinkages(bencanaInput).kbli_category).toBe(KbliCategoryEnum.R);
+
+      // Grup 4: UMK & THR Pekerja Swasta masuk PK_P -> dikoreksi ke PK_RT & KBLI A (sekunder B)
+      const umkInput: LlmClassificationOutput = {
+        ...rsudInput,
+        summary: 'Disnakertrans Tana Tidung menetapkan UMK Rp 3,87 juta dan belum ada laporan perusahaan melanggar.',
+        kbli_category: KbliCategoryEnum.P,
+        expenditure_component: ExpenditureComponentEnum.PK_P,
+      };
+      const umkFixed = enrichClassificationLinkages(umkInput);
+      expect(umkFixed.kbli_category).toBe(KbliCategoryEnum.A);
+      expect(umkFixed.secondary_kbli_category).toBe(KbliCategoryEnum.B);
+      expect(umkFixed.expenditure_component).toBe(ExpenditureComponentEnum.PK_RT);
+
+      // Grup 5: Zakat Profesi ASN ke Baznas & Perlinsos Bansos -> dikoreksi ke PK_RT (INCREASE_REAL)
+      const zakatInput: LlmClassificationOutput = {
+        ...rsudInput,
+        summary: 'ASN Muslim Pemkab Tana Tidung berpendapatan di atas Rp 7 juta wajib bayar zakat profesi ke Baznas.',
+        kbli_category: KbliCategoryEnum.P,
+        kbli_impact: KbliImpactEnum.DECREASE_NTB,
+        expenditure_component: ExpenditureComponentEnum.PK_RT,
+        expenditure_impact: ExpenditureImpactEnum.DECREASE_REAL,
+      };
+      const zakatFixed = enrichClassificationLinkages(zakatInput);
+      expect(zakatFixed.kbli_category).toBe(KbliCategoryEnum.T);
+      expect(zakatFixed.kbli_impact).toBe(KbliImpactEnum.INCREASE_NTB);
+      expect(zakatFixed.expenditure_component).toBe(ExpenditureComponentEnum.PK_RT);
+      expect(zakatFixed.secondary_expenditure_component).toBe(ExpenditureComponentEnum.PK_LNPRT);
+
+      // Grup 6: Wisata Alam Umum (Air Terjun Gunung Rian) masuk PK_LNPRT -> dikoreksi ke PK_RT
+      const wisataInput: LlmClassificationOutput = {
+        ...rsudInput,
+        summary: 'Air Terjun Gunung Rian menjadi primadona wisata alam Tana Tidung yang ramai dikunjungi wisatawan.',
+        kbli_category: KbliCategoryEnum.S,
+        expenditure_component: ExpenditureComponentEnum.PK_LNPRT,
+        secondary_expenditure_component: null,
+      };
+      const wisataFixed = enrichClassificationLinkages(wisataInput);
+      expect(wisataFixed.expenditure_component).toBe(ExpenditureComponentEnum.PK_RT);
+      expect(wisataFixed.secondary_expenditure_component).toBe(ExpenditureComponentEnum.PK_LNPRT);
+    });
   });
 
   // =========================================================================

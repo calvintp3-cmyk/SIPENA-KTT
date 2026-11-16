@@ -10,6 +10,7 @@ import {
 import {
   buildClassificationPrompt,
   buildRescueJudgePrompt,
+  enrichClassificationLinkages,
   parseAndValidateLlmJson,
   shouldRunPhenomenonRescuePass,
   SIPENA_SYSTEM_INSTRUCTION_COMPACT,
@@ -1158,9 +1159,14 @@ export class MultiLlmRouter {
             }
           }
 
+          const guardedClassification = enrichClassificationLinkages(
+            finalClassification,
+            `${article.title} ${article.snippetText}`,
+          );
+
           return {
             ok: true,
-            classification: finalClassification,
+            classification: guardedClassification,
             usage: totalUsage,
             modelUsed: slot.slotId,
             providerUsed: slot.provider,
