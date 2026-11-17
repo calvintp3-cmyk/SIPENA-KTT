@@ -23,10 +23,13 @@ function loadDotenvSafe(envFilePath) {
 const envPath = path.join(__dirname, '.env');
 const parsedEnv = loadDotenvSafe(envPath);
 
+const appName = process.env.PM2_APP_NAME || (__dirname.includes('staging') ? 'sipena-ktt-staging' : 'sipena-ktt');
+const logPrefix = appName === 'sipena-ktt-staging' ? 'sipena-staging' : 'sipena';
+
 module.exports = {
   apps: [
     {
-      name: 'sipena-ktt',
+      name: appName,
       cwd: __dirname,
       script: '.output/server/index.mjs',
       // Wajib fork mode + 1 instance agar Nitro scheduledTasks (04:00 & 06:30 WITA) tidak berjalan ganda
@@ -122,8 +125,8 @@ module.exports = {
           ? { NUXT_GOOGLE_REDIRECT_URI: parsedEnv.GOOGLE_REDIRECT_URI }
           : {}),
       },
-      out_file: '/var/log/sipena/sipena-out.log',
-      error_file: '/var/log/sipena/sipena-error.log',
+      out_file: `/var/log/sipena/${logPrefix}-out.log`,
+      error_file: `/var/log/sipena/${logPrefix}-error.log`,
       merge_logs: true,
       log_date_format: 'YYYY-MM-DD HH:mm:ss Z',
     },
