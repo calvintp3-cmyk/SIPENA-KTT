@@ -66,3 +66,28 @@ sudo nginx -t && sudo systemctl reload nginx
 curl -s http://127.0.0.1:3002/api/health
 curl -sI https://sipena6503.caplinlab.my.id/
 ```
+
+---
+
+## Environment Staging (`staging.sipena6503.caplinlab.my.id`)
+
+Lingkungan staging berjalan secara terisolasi penuh dari production:
+- **Branch Git**: `staging`
+- **Direktori VPS**: `/var/www/sipena-ktt-staging`
+- **Database PostgreSQL**: `sipena_ktt_staging` (terpisah dari DB produksi `sipena_ktt`)
+- **PM2 Service**: `sipena-ktt-staging` (Port `3003`)
+- **Nginx Config**: `/etc/nginx/sites-available/sipena-staging`
+- **Cron internal**: Di-disable (`ENABLE_NITRO_CRON=false`) agar kuota LLM & scraping terjadwal tidak berjalan dobel.
+
+### Cara Redeploy Staging Cepat:
+Setelah commit & push perubahan ke branch `staging`:
+```bash
+ssh admin.biznet@103.58.100.169 "cd /var/www/sipena-ktt-staging && bash deploy/redeploy-staging-vps.sh"
+```
+Atau manual di VPS:
+```bash
+cd /var/www/sipena-ktt-staging
+git pull origin staging
+npm run build
+pm2 restart sipena-ktt-staging --update-env
+```
