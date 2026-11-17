@@ -60,6 +60,8 @@ export default defineEventHandler(async (event) => {
       body.secondaryExpenditureImpact !== undefined
         ? body.secondaryExpenditureImpact
         : existing.secondaryExpenditureImpact,
+    subdistrict: body.subdistrict !== undefined ? body.subdistrict : existing.subdistrict,
+    curatorNotes: body.curatorNotes !== undefined ? body.curatorNotes : existing.curatorNotes,
     quarter: body.quarter ?? existing.quarter,
     year: body.year ?? existing.year,
     verificationStatus: body.verificationStatus ?? existing.verificationStatus,

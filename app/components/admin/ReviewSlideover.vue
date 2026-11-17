@@ -74,10 +74,21 @@ const form = reactive({
   secondaryKbliImpact: '' as KbliImpactEnum | '',
   secondaryExpenditureComponent: '' as ExpenditureComponentEnum | '',
   secondaryExpenditureImpact: '' as ExpenditureImpactEnum | '',
+  subdistrict: '',
+  curatorNotes: '',
   quarter: defaultPeriod.quarter as PdrbQuarter,
   year: defaultPeriod.year,
   isEconomicPhenomenon: true,
 });
+
+const subdistrictOptions = [
+  { label: 'Tidak Ditentukan / Makro KTT', value: '' },
+  { label: 'Kec. Sesayap', value: 'Sesayap' },
+  { label: 'Kec. Sesayap Hilir', value: 'Sesayap Hilir' },
+  { label: 'Kec. Tana Lia', value: 'Tana Lia' },
+  { label: 'Kec. Betayau', value: 'Betayau' },
+  { label: 'Kec. Muruk Rian', value: 'Muruk Rian' },
+];
 
 const submittingAction = ref<'VERIFIED' | 'IGNORED' | 'DRAFT' | null>(null);
 const validationAlert = ref<string | null>(null);
@@ -103,6 +114,8 @@ watch(
     form.secondaryKbliImpact = nextArticle.secondaryKbliImpact ?? '';
     form.secondaryExpenditureComponent = nextArticle.secondaryExpenditureComponent ?? '';
     form.secondaryExpenditureImpact = nextArticle.secondaryExpenditureImpact ?? '';
+    form.subdistrict = nextArticle.subdistrict ?? '';
+    form.curatorNotes = nextArticle.curatorNotes ?? '';
     form.quarter = nextArticle.quarter as PdrbQuarter;
     form.year = nextArticle.year;
     form.isEconomicPhenomenon = nextArticle.isEconomicPhenomenon ?? true;
@@ -267,6 +280,8 @@ async function submitUpdate(action: 'VERIFIED' | 'IGNORED' | 'DRAFT') {
       secondaryKbliImpact: form.secondaryKbliImpact || null,
       secondaryExpenditureComponent: form.secondaryExpenditureComponent || null,
       secondaryExpenditureImpact: form.secondaryExpenditureImpact || null,
+      subdistrict: form.subdistrict || null,
+      curatorNotes: form.curatorNotes.trim() || null,
       quarter: form.quarter,
       year: Number(form.year),
       ...(nextStatus ? { verificationStatus: nextStatus } : {}),
@@ -588,6 +603,28 @@ async function submitUpdate(action: 'VERIFIED' | 'IGNORED' | 'DRAFT') {
               />
             </UFormField>
           </div>
+        </div>
+
+        <!-- Lokus Kecamatan KTT & Catatan Kurator Nerwilis -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <UFormField label="Lokus Kecamatan KTT" class="sm:col-span-1">
+            <USelect
+              v-model="form.subdistrict"
+              :items="subdistrictOptions"
+              value-key="value"
+              label-key="label"
+              placeholder="Pilih kecamatan..."
+              class="w-full"
+            />
+          </UFormField>
+
+          <UFormField label="Catatan Kurator Nerwilis (Opsional)" class="sm:col-span-2">
+            <UInput
+              v-model="form.curatorNotes"
+              placeholder="Contoh: Konfirmasi ke Dinas PUPR saat rekonsiliasi..."
+              class="w-full"
+            />
+          </UFormField>
         </div>
 
         <!-- Periode & Status Fenomena Ekonomi -->

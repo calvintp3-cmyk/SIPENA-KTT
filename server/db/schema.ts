@@ -221,6 +221,8 @@ export const articles = pgTable(
 
     // Hasil Klasifikasi AI / Kurasi Admin
     geographicScope: text('geographic_scope'),
+    subdistrict: text('subdistrict'), // mis. 'Sesayap', 'Sesayap Hilir', 'Tana Lia', 'Betayau', 'Muruk Rian'
+    curatorNotes: text('curator_notes'), // Catatan bebas tim Nerwilis untuk rekonsiliasi / BRS
     isEconomicPhenomenon: boolean('is_economic_phenomenon'), // null bila LLM gagal & belum ditinjau manual
     summary: text('summary'), // Ringkasan berita 2-3 kalimat baku bahasa Indonesia
     kbliCategory: kbliCategoryPgEnum('kbli_category'),
@@ -285,6 +287,7 @@ export const articles = pgTable(
     index('articles_source_portal_idx').on(t.sourcePortal, t.publishedAt.desc()),
     index('articles_source_type_period_idx').on(t.sourceType, t.year, t.quarter, t.publishedAt.desc()),
     index('articles_geo_scope_period_idx').on(t.geographicScope, t.year, t.quarter),
+    index('articles_subdistrict_idx').on(t.subdistrict),
 
     // Indeks Wajib seluruh Foreign Key (PostgreSQL tidak mengindeks FK secara otomatis)
     index('articles_keyword_id_idx').on(t.keywordId),

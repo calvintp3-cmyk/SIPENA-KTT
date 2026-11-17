@@ -308,3 +308,107 @@ export function buildSynthesisDocxBytes(input: BuildSynthesisDocxInput): Uint8Ar
   ]);
 }
 
+export interface FullQuarterSectionDraft {
+  dimension: 'kbli' | 'expenditure';
+  code: string;
+  title: string;
+  markdown: string;
+  citations: DocxCitationEntry[];
+  updatedAtText?: string;
+}
+
+export interface BuildFullQuarterDocxInput {
+  year: number;
+  quarter: number;
+  periodLabel: string;
+  compiledAtText: string;
+  sections: FullQuarterSectionDraft[];
+  totalArticlesCount?: number;
+}
+
+function buildFullQuarterDocxXml(input: BuildFullQuarterDocxInput): string {
+  const kbliSections = input.sections.filter((s) => s.dimension === 'kbli');
+  const expSections = input.sections.filter((s) => s.dimension === 'expenditure');
+
+  const coverHeaderXml = [
+    `<w:p><w:pPr><w:jc w:val="center"/><w:spacing w:after="40"/></w:pPr>${renderRunXml('BADAN PUSAT STATISTIK KABUPATEN TANA TIDUNG', { bold: true, sizeHalfPt: 22, colorHex: '1E3A8A' })}</w:p>`,
+    `<w:p><w:pPr><w:jc w:val="center"/><w:spacing w:after="160"/></w:pPr>${renderRunXml('Fungsi Neraca Wilayah dan Analisis Statistik (Nerwilis)', { bold: true, sizeHalfPt: 18, colorHex: '475569' })}</w:p>`,
+    `<w:p><w:pPr><w:jc w:val="center"/><w:spacing w:after="120"/></w:pPr>${renderRunXml('BUKU KOMPILASI CATATAN FENOMENA PDRB', { bold: true, sizeHalfPt: 36, colorHex: '0F172A' })}</w:p>`,
+    `<w:p><w:pPr><w:jc w:val="center"/><w:spacing w:after="180"/></w:pPr>${renderRunXml(`Kabupaten Tana Tidung • ${input.periodLabel}`, { bold: true, sizeHalfPt: 26, colorHex: '3730A3' })}</w:p>`,
+    `<w:p><w:pPr><w:pBdr><w:bottom w:val="single" w:sz="12" w:space="12" w:color="3B82F6"/></w:pBdr><w:spacing w:after="240"/></w:pPr>${renderRunXml(`Dokumen resmi kompilasi fenomena ekonomi triwulanan yang dihimpun dan dikurasi melalui SIPENA KTT untuk keperluan Rekonsiliasi PDRB dan penyusunan Berita Resmi Statistik (BRS). Tanggal cetak/kompilasi: ${input.compiledAtText}. Total sektor terisi: ${input.sections.length} sektor.`, { italic: true, sizeHalfPt: 19, colorHex: '64748B' })}</w:p>`,
+  ].join('');
+
+  function renderSectionBlock(sec: FullQuarterSectionDraft, index: number, prefix: string): string {
+    const blocks = parseBrsMarkdown(sec.markdown);
+    const bodyXml = blocks.map(renderBlockToWordXml).join('');
+    const updateInfo = sec.updatedAtText ? ` • Terakhir diperbarui: ${sec.updatedAtText}` : '';
+
+    const header = [
+      `<w:p><w:pPr><w:spacing w:before="240" w:after="60"/><w:keepNext/></w:pPr>${renderRunXml(`${prefix}.${index} [${sec.code}] ${sec.title}`, { bold: true, sizeHalfPt: 26, colorHex: '1E3A8A' })}</w:p>`,
+      updateInfo ? `<w:p><w:pPr><w:spacing w:after="120"/></w:pPr>${renderRunXml(updateInfo, { italic: true, sizeHalfPt: 18, colorHex: '64748B' })}</w:p>` : '',
+    ].join('');
+
+    const citationsXml =
+      sec.citations.length > 0
+        ? [
+            `<w:p><w:pPr><w:pBdr><w:top w:val="single" w:sz="4" w:space="6" w:color="E2E8F0"/></w:pBdr><w:spacing w:before="160" w:after="80"/><w:keepNext/></w:pPr>${renderRunXml(`Referensi Berita Sektor ${sec.code}:`, { bold: true, sizeHalfPt: 20, colorHex: '334155' })}</w:p>`,
+            ...sec.citations.map((c) => {
+              const urlSuffix = c.url ? ` — ${c.url}` : '';
+              const line = `[${c.index}] ${c.title} (${c.sourcePortal}, ${c.publishedAtText})${urlSuffix}`;
+              return `<w:p><w:pPr><w:ind w:left="360" w:hanging="360"/><w:spacing w:after="60" w:line="260" w:lineRule="auto"/></w:pPr>${renderRunXml(line, { sizeHalfPt: 18, colorHex: '475569' })}</w:p>`;
+            }),
+          ].join('')
+        : '';
+
+    const divider = `<w:p><w:pPr><w:pBdr><w:bottom w:val="single" w:sz="6" w:space="8" w:color="CBD5E1"/></w:pBdr><w:spacing w:before="140" w:after="180"/></w:pPr></w:p>`;
+    return `${header}${bodyXml}${citationsXml}${divider}`;
+  }
+
+  const kbliPartXml =
+    kbliSections.length > 0
+      ? [
+          `<w:p><w:pPr><w:spacing w:before="300" w:after="160"/><w:keepNext/></w:pPr>${renderRunXml('BAGIAN I: PDRB SISI LAPANGAN USAHA (17 SEKTOR KBLI)', { bold: true, sizeHalfPt: 28, colorHex: '0F172A' })}</w:p>`,
+          ...kbliSections.map((sec, idx) => renderSectionBlock(sec, idx + 1, 'A')),
+        ].join('')
+      : '';
+
+  const expPartXml =
+    expSections.length > 0
+      ? [
+          `<w:p><w:pPr><w:spacing w:before="360" w:after="160"/><w:keepNext/></w:pPr>${renderRunXml('BAGIAN II: PDRB SISI PENGELUARAN (KOMPONEN PDRB)', { bold: true, sizeHalfPt: 28, colorHex: '0F172A' })}</w:p>`,
+          ...expSections.map((sec, idx) => renderSectionBlock(sec, idx + 1, 'B')),
+        ].join('')
+      : '';
+
+  const emptyPlaceholderXml =
+    input.sections.length === 0
+      ? `<w:p><w:pPr><w:spacing w:before="240" w:after="240"/></w:pPr>${renderRunXml('Belum ada draf narasi fenomena yang tersimpan untuk periode ini. Silakan generate draf melalui menu Sintesis Fenomena di SIPENA KTT.', { italic: true, sizeHalfPt: 22, colorHex: '64748B' })}</w:p>`
+      : '';
+
+  return [
+    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>',
+    '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">',
+    '<w:body>',
+    coverHeaderXml,
+    emptyPlaceholderXml,
+    kbliPartXml,
+    expPartXml,
+    '<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440"/></w:sectPr>',
+    '</w:body>',
+    '</w:document>',
+  ].join('');
+}
+
+export function buildFullQuarterBrsDocxBytes(input: BuildFullQuarterDocxInput): Uint8Array {
+  const encoder = new TextEncoder();
+  const documentXml = buildFullQuarterDocxXml(input);
+
+  return buildStoreZip([
+    { name: '[Content_Types].xml', data: encoder.encode(CONTENT_TYPES_XML) },
+    { name: '_rels/.rels', data: encoder.encode(ROOT_RELS_XML) },
+    { name: 'word/_rels/document.xml.rels', data: encoder.encode(DOCUMENT_RELS_XML) },
+    { name: 'word/document.xml', data: encoder.encode(documentXml) },
+  ]);
+}
+
+

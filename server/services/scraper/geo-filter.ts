@@ -197,3 +197,68 @@ export function evaluateGeographicRelevance(input: {
     reason: 'Kandidat relevan di tingkat Provinsi Kalimantan Utara atau kebijakan makro nasional.',
   };
 }
+
+// ============================================================================
+// 5 KECAMATAN RESMI KABUPATEN TANA TIDUNG & RESOLVER LOKUS
+// ============================================================================
+
+export const KTT_SUBDISTRICT_NAMES = [
+  'Sesayap',
+  'Sesayap Hilir',
+  'Tana Lia',
+  'Betayau',
+  'Muruk Rian',
+] as const;
+
+export type KttSubdistrictName = (typeof KTT_SUBDISTRICT_NAMES)[number];
+
+const SESAYAP_HILIR_RE =
+  /\b(?:sesayap\s+hilir|sesayap\s+selor|bebatu|pelabuhan\s+bebatu|menjelutung|seludau|sengkong|sepala\s+dalung|ba[n]?dan\s+bikis)\b/i;
+
+const TANA_LIA_RE =
+  /\b(?:tana\s+lia|tanah\s+merah(?:\s+barat)?|tengku\s+dacing|sambungan(?:\s+selatan)?)\b/i;
+
+const BETAYAU_RE =
+  /\b(?:betayau|bebakung|buong\s+baru|kujau|maning|mendupo|periuk)\b/i;
+
+const MURUK_RIAN_RE =
+  /\b(?:muruk\s*rian|belayan\s+ari|kapuak|rian\s+rayo|sapari|seputuk|desa\s+rian)\b/i;
+
+const SESAYAP_RE =
+  /\b(?:sesayap(?!\s+(?:hilir|selor))|tideng\s*pale(?:\s+timur)?|sebawang|pelabuhan\s+sebawang|sedulun|limbu\s+sedulun|gunawan|sebidai|dermaga\s+tideng\s+pale|pusat\s+pemerintahan(?:\s+ktt)?|puspem(?:\s+ktt)?|rsud\s+akhmad\s+berahim|akhmad\s+berahim)\b/i;
+
+/**
+ * Mendeteksi kecamatan spesifik (lokus) di Kabupaten Tana Tidung dari teks judul dan cuplikan berita.
+ * Mengembalikan salah satu dari 5 nama kecamatan resmi, atau null jika berita berskala umum/makro.
+ */
+export function detectKttSubdistrict(
+  title: string,
+  snippetText?: string | null,
+): KttSubdistrictName | null {
+  const combined = `${title || ''} ${snippetText || ''}`.trim();
+  if (!combined) return null;
+
+  // 1. Cek Sesayap Hilir lebih dulu sebelum Sesayap untuk mencegah ambiguitas kata 'Sesayap'
+  if (SESAYAP_HILIR_RE.test(combined)) {
+    return 'Sesayap Hilir';
+  }
+  // 2. Cek Tana Lia
+  if (TANA_LIA_RE.test(combined)) {
+    return 'Tana Lia';
+  }
+  // 3. Cek Betayau
+  if (BETAYAU_RE.test(combined)) {
+    return 'Betayau';
+  }
+  // 4. Cek Muruk Rian
+  if (MURUK_RIAN_RE.test(combined)) {
+    return 'Muruk Rian';
+  }
+  // 5. Cek Sesayap
+  if (SESAYAP_RE.test(combined)) {
+    return 'Sesayap';
+  }
+
+  return null;
+}
+

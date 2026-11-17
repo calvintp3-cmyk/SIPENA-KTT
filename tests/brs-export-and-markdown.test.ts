@@ -5,7 +5,7 @@ import {
   renderSafeBrsHtml,
   tokenizeBrsInline,
 } from '#shared/utils/markdown-brs';
-import { buildSynthesisDocxBytes } from '#shared/utils/docx-export';
+import { buildFullQuarterBrsDocxBytes, buildSynthesisDocxBytes } from '#shared/utils/docx-export';
 
 describe('BRS Markdown parser & citation tokenizer', () => {
   it('parses headings, bullet/ordered lists, blockquotes, GFM tables, and multi-citations safely', () => {
@@ -140,6 +140,56 @@ describe('OOXML .docx generator (pure TypeScript PKZIP + WordprocessingML)', () 
     expect(fullAscii).toContain('Harga Sawit Tana Tidung Menguat &amp; Stabil');
     expect(fullAscii).toContain('&lt;uji&gt; &amp; ekspor komoditas');
     expect(fullAscii).toContain('https://example.com/berita-1?a=1&amp;b=2');
+  });
+
+  it('compiles full-quarter BRS compilation docx with multi-sector sections & cover metadata', () => {
+    const bytes = buildFullQuarterBrsDocxBytes({
+      year: 2026,
+      quarter: 4,
+      periodLabel: 'Triwulan IV 2026',
+      compiledAtText: '17 Nov 2026 14:00 WITA',
+      sections: [
+        {
+          dimension: 'kbli',
+          code: 'A',
+          title: 'Pertanian, Kehutanan, dan Perikanan',
+          markdown: '### Dinamika Sektor A\nProduksi kelapa sawit di Tideng Pale dan Sebawang mencatat kenaikan signifikan.',
+          citations: [
+            {
+              index: 1,
+              title: 'Panen Sawit Raya di Tideng Pale',
+              sourcePortal: 'kaltara.antaranews.com',
+              publishedAtText: '10 Okt 2026',
+              url: 'https://kaltara.antaranews.com/sawit-ktt',
+            },
+          ],
+          updatedAtText: '17 Nov 2026',
+        },
+        {
+          dimension: 'expenditure',
+          code: 'PK_RT',
+          title: 'Pengeluaran Konsumsi Rumah Tangga',
+          markdown: 'Konsumsi rumah tangga didorong oleh peningkatan belanja bahan pokok.',
+          citations: [],
+          updatedAtText: '17 Nov 2026',
+        },
+      ],
+    });
+
+    expect(bytes).toBeInstanceOf(Uint8Array);
+    expect(bytes[0]).toBe(0x50); // P
+    expect(bytes[1]).toBe(0x4b); // K
+    expect(bytes[2]).toBe(0x03);
+    expect(bytes[3]).toBe(0x04);
+
+    const fullAscii = new TextDecoder('utf-8', { fatal: false }).decode(bytes);
+    expect(fullAscii).toContain('BUKU KOMPILASI CATATAN FENOMENA PDRB');
+    expect(fullAscii).toContain('Kabupaten Tana Tidung • Triwulan IV 2026');
+    expect(fullAscii).toContain('BAGIAN I: PDRB SISI LAPANGAN USAHA (17 SEKTOR KBLI)');
+    expect(fullAscii).toContain('BAGIAN II: PDRB SISI PENGELUARAN (KOMPONEN PDRB)');
+    expect(fullAscii).toContain('Pertanian, Kehutanan, dan Perikanan');
+    expect(fullAscii).toContain('Pengeluaran Konsumsi Rumah Tangga');
+    expect(fullAscii).toContain('Panen Sawit Raya di Tideng Pale');
   });
 });
 

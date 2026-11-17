@@ -74,6 +74,9 @@ export default defineEventHandler(async (event) => {
   if (query.geographicScope) {
     conditions.push(eq(articles.geographicScope, query.geographicScope));
   }
+  if (query.subdistrict) {
+    conditions.push(eq(articles.subdistrict, query.subdistrict));
+  }
   if (query.impactMacro) {
     if (query.impactMacro === 'EXPANSION') {
       conditions.push(
@@ -154,6 +157,7 @@ export default defineEventHandler(async (event) => {
         secondaryKbliImpact: articles.secondaryKbliImpact,
         secondaryExpenditureComponent: articles.secondaryExpenditureComponent,
         secondaryExpenditureImpact: articles.secondaryExpenditureImpact,
+        subdistrict: articles.subdistrict,
         publishedAt: articles.publishedAt,
         quarter: articles.quarter,
         year: articles.year,

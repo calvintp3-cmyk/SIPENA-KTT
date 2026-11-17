@@ -44,7 +44,7 @@ import {
   normalizeToFullPageArticleUrl,
   trimToWordAndCharBudget,
 } from './extractor';
-import { evaluateGeographicRelevance } from './geo-filter';
+import { detectKttSubdistrict, evaluateGeographicRelevance } from './geo-filter';
 import {
   DEFAULT_GOOGLE_NEWS_DECODE_CAP_PER_RUN,
   DEFAULT_GOOGLE_NEWS_DECODE_DELAY_MS,
@@ -1086,6 +1086,7 @@ async function executeLockedScrapePipeline(
             quarter: defaultPeriod.quarter,
             year: defaultPeriod.year,
             geographicScope: null,
+            subdistrict: detectKttSubdistrict(item.title, item.snippetText),
             titleEmbedding: item.titleEmbedding ?? null,
             isEconomicPhenomenon: null,
             summary: null,
@@ -1303,6 +1304,7 @@ async function executeLockedScrapePipeline(
             quarter: persistenceFields.quarter,
             year: persistenceFields.year,
             geographicScope: persistenceFields.geographicScope,
+            subdistrict: detectKttSubdistrict(item.title, item.snippetText),
             titleEmbedding: item.titleEmbedding ?? null,
             isEconomicPhenomenon: persistenceFields.isEconomicPhenomenon,
             summary: persistenceFields.summary,

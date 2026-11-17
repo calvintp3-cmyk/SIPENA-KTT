@@ -169,6 +169,13 @@ async function handleCopyArticleLink() {
             <span class="w-1.5 h-1.5 rounded-full" :class="scopeMeta.dotClass" />
             {{ scopeMeta.shortLabel }}
           </span>
+          <span
+            v-if="article.subdistrict"
+            class="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full border bg-emerald-50 text-emerald-800 border-emerald-200"
+          >
+            <UIcon name="i-lucide-map-pin" class="w-3 h-3 text-emerald-600" />
+            <span>Kec. {{ article.subdistrict }}</span>
+          </span>
           <span class="text-xs font-medium tabular-nums text-slate-600">
             {{ formatDateTimeWita(article.publishedAt) }}
           </span>

@@ -375,6 +375,8 @@ describe('Advanced Backend Stress, Resilience & Semantic Evaluation Suite', () =
         updatedAt: new Date(),
         keywordId: null,
         scraperLogId: null,
+        subdistrict: 'Sesayap',
+        curatorNotes: null,
       };
 
       // Buat array 30.000 baris (simulasi 3 tahun penuh pengumpulan data)
@@ -404,9 +406,9 @@ describe('Advanced Backend Stress, Resilience & Semantic Evaluation Suite', () =
       // Durasi wajar untuk 30.000 baris Excel beranotasi lengkap (< 20 detik)
       expect(elapsedMs).toBeLessThan(20_000);
 
-      // Verifikasi sel baris pertama memiliki format 10 kolom beranotasi lengkap
+      // Verifikasi sel baris pertama memiliki format 12 kolom beranotasi lengkap
       const sampleRow = formatArticleExportRow(massiveRows[0]!);
-      expect(sampleRow.length).toBe(10);
+      expect(sampleRow.length).toBe(12);
       expect(sampleRow[2]).toContain('(Sekunder: C - Industri');
       expect(sampleRow[4]).toContain('(Sekunder: PK-RT)');
     }, 25_000); // 25s timeout untuk test skala masif

@@ -95,6 +95,12 @@ export const PublicArticlesQuerySchema = z.object({
     (v) => (v === '' || v === 'ALL' || v === null || v === undefined ? undefined : v),
     ImpactMacroFilterSchema.optional(),
   ),
+  subdistrict: z
+    .string()
+    .trim()
+    .max(100)
+    .optional()
+    .transform((v) => (v === '' || v === 'ALL' ? undefined : v)),
   from: optionalDateStr,
   to: optionalDateStr,
   sort: z.preprocess(
@@ -170,6 +176,12 @@ export const AdminArticlesQuerySchema = z.object({
   ),
   expenditure: optionalEnum(ExpenditureComponentEnum),
   expenditureImpact: optionalEnum(ExpenditureImpactEnum),
+  subdistrict: z
+    .string()
+    .trim()
+    .max(100)
+    .optional()
+    .transform((v) => (v === '' || v === 'ALL' ? undefined : v)),
   portal: z
     .string()
     .trim()
@@ -220,6 +232,12 @@ export const ExportArticlesQuerySchema = z.object({
   ),
   expenditure: optionalEnum(ExpenditureComponentEnum),
   expenditureImpact: optionalEnum(ExpenditureImpactEnum),
+  subdistrict: z
+    .string()
+    .trim()
+    .max(100)
+    .optional()
+    .transform((v) => (v === '' || v === 'ALL' ? undefined : v)),
   portal: z
     .string()
     .trim()
@@ -286,6 +304,8 @@ export const CreateManualArticleSchema = z.object({
   secondaryKbliImpact: optionalEnum(KbliImpactEnum),
   secondaryExpenditureComponent: optionalEnum(ExpenditureComponentEnum),
   secondaryExpenditureImpact: optionalEnum(ExpenditureImpactEnum),
+  subdistrict: z.string().trim().max(100).nullable().optional(),
+  curatorNotes: z.string().trim().max(2000).nullable().optional(),
   quarter: optionalQuarter,
   year: optionalPositiveInt(2000, 2100),
   verifyImmediately: z.boolean().optional().default(true),
@@ -304,6 +324,8 @@ export const UpdateArticleReviewSchema = z
     secondaryKbliImpact: z.enum(KbliImpactEnum).nullable().optional(),
     secondaryExpenditureComponent: z.enum(ExpenditureComponentEnum).nullable().optional(),
     secondaryExpenditureImpact: z.enum(ExpenditureImpactEnum).nullable().optional(),
+    subdistrict: z.string().trim().max(100).nullable().optional(),
+    curatorNotes: z.string().trim().max(2000).nullable().optional(),
     quarter: optionalQuarter,
     year: optionalPositiveInt(2000, 2100),
     verificationStatus: z.enum(VerificationStatusEnum).optional(),

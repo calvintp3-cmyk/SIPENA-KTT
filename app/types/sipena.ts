@@ -352,6 +352,7 @@ export interface PublicArticleItem {
   secondaryKbliImpact?: KbliImpactEnum | null;
   secondaryExpenditureComponent?: ExpenditureComponentEnum | null;
   secondaryExpenditureImpact?: ExpenditureImpactEnum | null;
+  subdistrict?: string | null;
   publishedAt: string;
   quarter: number;
   year: number;
@@ -383,6 +384,8 @@ export interface AdminArticleItem {
   secondaryKbliImpact?: KbliImpactEnum | null;
   secondaryExpenditureComponent?: ExpenditureComponentEnum | null;
   secondaryExpenditureImpact?: ExpenditureImpactEnum | null;
+  subdistrict?: string | null;
+  curatorNotes?: string | null;
   publishedAt: string;
   quarter: number;
   year: number;

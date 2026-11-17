@@ -7,7 +7,7 @@ import {
   deduplicateCandidatesByTitle,
   deduplicateCandidatesWithSemantics,
 } from '#server/services/scraper/dedup';
-import { evaluateGeographicRelevance } from '#server/services/scraper/geo-filter';
+import { detectKttSubdistrict, evaluateGeographicRelevance } from '#server/services/scraper/geo-filter';
 import {
   buildFbv4jeFormBody,
   decodeGoogleNewsUrlFromHtml,
@@ -239,6 +239,34 @@ describe('Smart Scraper Filters, Dedup, Google News Decoder & Geo-Gate', () => {
         sourceType: ArticleSourceTypeEnum.NATIONAL,
       }).decision,
     ).toBe('DROP_OTHER_REGENCY_LOCAL');
+  });
+
+  it('detectKttSubdistrict mengekstrak lokus 5 kecamatan resmi KTT dan membedakan Sesayap Hilir vs Sesayap', () => {
+    // 1. Sesayap Hilir
+    expect(detectKttSubdistrict('Aktivitas Bongkar Muat Feri di Pelabuhan Bebatu Meningkat')).toBe('Sesayap Hilir');
+    expect(detectKttSubdistrict('Panen Raya Udang Tambak di Desa Menjelutung')).toBe('Sesayap Hilir');
+    expect(detectKttSubdistrict('Pembangunan Dermaga Baru di Sesayap Hilir')).toBe('Sesayap Hilir');
+
+    // 2. Sesayap
+    expect(detectKttSubdistrict('Pedagang Pasar Induk Tideng Pale Sambut Baik Normalisasi Pasokan Beras')).toBe('Sesayap');
+    expect(detectKttSubdistrict('Arus Logistik Pelabuhan Sebawang Berjalan Lancar')).toBe('Sesayap');
+    expect(detectKttSubdistrict('Pusat Pemerintahan KTT Gelar Operasi Pasar Murah')).toBe('Sesayap');
+
+    // 3. Tana Lia
+    expect(detectKttSubdistrict('Sentra Pertanian Tanah Merah Tana Lia Catat Kenaikan Produksi')).toBe('Tana Lia');
+    expect(detectKttSubdistrict('Perbaikan Akses Jalan Menuju Tengku Dacing')).toBe('Tana Lia');
+
+    // 4. Betayau
+    expect(detectKttSubdistrict('Petani Kelapa Sawit Desa Kujau Betayau Terima Bantuan Bibit')).toBe('Betayau');
+    expect(detectKttSubdistrict('Realisasi Perbaikan Saluran Irigasi di Desa Bebakung')).toBe('Betayau');
+
+    // 5. Muruk Rian
+    expect(detectKttSubdistrict('Jalan Poros Penghubung Muruk Rian dan Seputuk Mulai Diaspal')).toBe('Muruk Rian');
+    expect(detectKttSubdistrict('Warga Belayan Ari Gotong Royong Buka Lahan Padi')).toBe('Muruk Rian');
+
+    // 6. Umum / Makro (null)
+    expect(detectKttSubdistrict('Pemprov Kaltara dan BI Perkuat Pengendalian Inflasi Daerah')).toBeNull();
+    expect(detectKttSubdistrict('Kabupaten Tana Tidung Tetapkan APBD Perubahan')).toBeNull();
   });
 
   it('title-filter, Bing News parser, dan buildNationalFallbackSnippet menjaga netralitas lokus serta menyaring noise statis', () => {

@@ -1002,8 +1002,15 @@ function openDetailModal(article: PublicArticleItem) {
                       >
                         {{ article.title }}
                       </button>
-                      <div class="text-[11px] text-slate-500 font-medium">
-                        {{ article.sourcePortal }}
+                      <div class="flex items-center gap-2 text-[11px] text-slate-500 font-medium">
+                        <span>{{ article.sourcePortal }}</span>
+                        <span
+                          v-if="article.subdistrict"
+                          class="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[9px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200"
+                        >
+                          <UIcon name="i-lucide-map-pin" class="w-2.5 h-2.5" />
+                          <span>Kec. {{ article.subdistrict }}</span>
+                        </span>
                       </div>
                     </td>
                     <td class="px-3.5 py-3 align-top space-y-1">

@@ -8,7 +8,11 @@ import {
   type ExpenditureComponentMeta,
   type Pdrb17SectorMeta,
 } from '#shared/enums/pdrb';
-import { buildSynthesisDocxBytes } from '#shared/utils/docx-export';
+import {
+  buildFullQuarterBrsDocxBytes,
+  buildSynthesisDocxBytes,
+  type FullQuarterSectionDraft,
+} from '#shared/utils/docx-export';
 import { parseBrsMarkdown, type BrsMarkdownBlock } from '#shared/utils/markdown-brs';
 import { formatDateId, formatDateTimeWita, toRomanQuarter } from '#shared/utils/period';
 import type {
@@ -837,6 +841,96 @@ function printNarrativeSheet() {
   window.print();
 }
 
+function downloadFullQuarterBookDocx() {
+  if (!import.meta.client) return;
+
+  const draftsMap = new Map<string, FullQuarterSectionDraft>();
+
+  // 1. Masukkan semua draf yang tersimpan di database PostgreSQL
+  for (const d of savedDrafts.value) {
+    const key = `${d.dimension}-${d.targetCode}`;
+    draftsMap.set(key, {
+      dimension: d.dimension,
+      code: d.targetCode,
+      title: d.targetLabel || d.title,
+      markdown: d.narrativeMarkdown,
+      citations: (d.citations ?? []).map((c: SynthesisCitationItem) => ({
+        index: c.index,
+        title: c.title,
+        sourcePortal: c.sourcePortal,
+        publishedAtText: formatDateId(c.publishedAt),
+        url: c.url,
+      })),
+      updatedAtText: d.updatedAt ? formatDateTimeWita(d.updatedAt) : undefined,
+    });
+  }
+
+  // 2. Jika ada draf aktif di editor saat ini, gunakan versi terbarunya
+  if (editableMarkdown.value.trim() && currentTargetLabel.value) {
+    const activeKey = `${dimension.value}-${targetCode.value}`;
+    draftsMap.set(activeKey, {
+      dimension: dimension.value,
+      code: targetCode.value,
+      title: currentTargetLabel.value,
+      markdown: editableMarkdown.value,
+      citations: (result.value?.citations ?? []).map((c: SynthesisCitationItem) => ({
+        index: c.index,
+        title: c.title,
+        sourcePortal: c.sourcePortal,
+        publishedAtText: formatDateId(c.publishedAt),
+        url: c.url,
+      })),
+      updatedAtText: 'Draf Aktif Studio',
+    });
+  }
+
+  const sections = Array.from(draftsMap.values());
+  if (sections.length === 0) {
+    toast.add({
+      title: 'Belum Ada Draf Fenomena',
+      description: 'Silakan susun atau simpan minimal 1 draf narasi sektor terlebih dahulu.',
+      color: 'warning',
+      icon: 'i-lucide-alert-circle',
+    });
+    return;
+  }
+
+  // Urutkan Lapangan Usaha A-Z, lalu Pengeluaran
+  sections.sort((a, b) => {
+    if (a.dimension !== b.dimension) {
+      return a.dimension === 'kbli' ? -1 : 1;
+    }
+    return a.code.localeCompare(b.code);
+  });
+
+  const bytes = buildFullQuarterBrsDocxBytes({
+    year: selectedYear.value,
+    quarter: selectedQuarter.value,
+    periodLabel: periodLabel.value,
+    compiledAtText: formatDateTimeWita(new Date().toISOString()),
+    sections,
+  });
+
+  const blob = new Blob([new Uint8Array(bytes)], {
+    type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `SIPENA-Buku-Fenomena-PDRB-${selectedYear.value}-TW${selectedQuarter.value}-KTT.docx`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  toast.add({
+    title: 'Buku Fenomena Berhasil Diunduh',
+    description: `Buku kompilasi ${sections.length} sektor berhasil diekspor ke Word (.docx)`,
+    color: 'success',
+    icon: 'i-lucide-check-circle',
+  });
+}
+
 const manualModalOpen = ref(false);
 </script>
 
@@ -868,6 +962,16 @@ const manualModalOpen = ref(false);
           >
             <UIcon name="i-solar-history-2-bold-duotone" class="w-4 h-4 text-blue-700" />
             <span class="tabular-nums font-mono">Riwayat Draf ({{ savedDrafts.length }})</span>
+          </button>
+
+          <button
+            type="button"
+            class="min-h-9 px-3.5 rounded-xl border border-indigo-200 bg-indigo-50/70 hover:bg-indigo-100/70 text-xs font-semibold text-indigo-900 inline-flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
+            title="Kompilasi seluruh sektor KBLI & Pengeluaran triwulan ini ke satu dokumen Word (.docx) utuh"
+            @click="() => { downloadFullQuarterBookDocx(); }"
+          >
+            <UIcon name="i-lucide-book-open" class="w-4 h-4 text-indigo-700" />
+            <span>Buku Triwulan (.docx)</span>
           </button>
 
           <button

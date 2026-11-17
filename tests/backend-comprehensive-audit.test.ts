@@ -88,6 +88,8 @@ function createSampleArticle(overrides: Partial<ArticleRecord> = {}): ArticleRec
     createdBy: null,
     createdAt: new Date('2026-11-10T04:10:00.000Z'),
     updatedAt: new Date('2026-11-10T05:00:00.000Z'),
+    subdistrict: null,
+    curatorNotes: null,
     ...overrides,
   };
 }
@@ -452,20 +454,24 @@ describe('Comprehensive Backend Audit Suite (6 Engineering Axes)', () => {
       expect(sanitizeExcelCellValue('Berita Normal')).toBe('Berita Normal');
     });
 
-    it('enriches export rows with secondary sector and expenditure annotations without altering 10-column layout', () => {
+    it('enriches export rows with secondary sector, expenditure annotations, subdistrict locus, and curator notes (12-column layout)', () => {
       const sample = createSampleArticle({
         kbliCategory: KbliCategoryEnum.F,
         secondaryKbliCategory: KbliCategoryEnum.G,
         expenditureComponent: ExpenditureComponentEnum.PMTB,
         secondaryExpenditureComponent: ExpenditureComponentEnum.PK_RT,
+        subdistrict: 'Sesayap',
+        curatorNotes: 'Konfirmasi Dinas PU',
       });
 
       const row = formatArticleExportRow(sample);
-      expect(row.length).toBe(10);
+      expect(row.length).toBe(12);
       expect(row[2]).toContain('Konstruksi');
       expect(row[2]).toContain('(Sekunder: G - Perdagangan Besar dan Eceran');
       expect(row[4]).toContain('PMTB');
       expect(row[4]).toContain('(Sekunder: PK-RT)');
+      expect(row[10]).toBe('Kec. Sesayap');
+      expect(row[11]).toBe('Konfirmasi Dinas PU');
     });
 
     it('generates 1,000-row Excel (.xlsx) and CSV exports within <2.5s without memory spikes', async () => {

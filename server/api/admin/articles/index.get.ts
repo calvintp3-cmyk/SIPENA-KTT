@@ -42,6 +42,8 @@ export default defineEventHandler(async (event) => {
         secondaryKbliImpact: articles.secondaryKbliImpact,
         secondaryExpenditureComponent: articles.secondaryExpenditureComponent,
         secondaryExpenditureImpact: articles.secondaryExpenditureImpact,
+        subdistrict: articles.subdistrict,
+        curatorNotes: articles.curatorNotes,
         llmModel: articles.llmModel,
         llmStatus: articles.llmStatus,
         llmError: articles.llmError,

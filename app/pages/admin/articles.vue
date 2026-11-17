@@ -49,6 +49,7 @@ const filters = reactive({
   kbli: 'ALL',
   expenditure: 'ALL',
   portal: 'ALL',
+  subdistrict: 'ALL' as 'ALL' | string,
   status: 'ALL',
   llmStatus: 'ALL',
   isEconomic: 'ALL',
@@ -197,6 +198,7 @@ const queryParams = computed(() => {
   }
   if (filters.expenditure !== 'ALL') qObj.expenditure = filters.expenditure;
   if (filters.portal !== 'ALL') qObj.portal = filters.portal;
+  if (filters.subdistrict !== 'ALL') qObj.subdistrict = filters.subdistrict;
   if (filters.status !== 'ALL') qObj.status = filters.status;
   if (filters.llmStatus !== 'ALL') qObj.llmStatus = filters.llmStatus;
   if (filters.isEconomic !== 'ALL') qObj.isEconomic = filters.isEconomic;
@@ -277,6 +279,15 @@ const economicFilterItems: SelectOptionItem<string>[] = [
   { label: 'Semua Relevansi', value: 'ALL' },
   { label: 'Fenomena Ekonomi', value: 'true' },
   { label: 'Non-Ekonomi', value: 'false' },
+];
+
+const subdistrictFilterItems: SelectOptionItem<string>[] = [
+  { label: 'Semua Lokus / Kecamatan', value: 'ALL' },
+  { label: 'Kec. Sesayap', value: 'Sesayap' },
+  { label: 'Kec. Sesayap Hilir', value: 'Sesayap Hilir' },
+  { label: 'Kec. Tana Lia', value: 'Tana Lia' },
+  { label: 'Kec. Betayau', value: 'Betayau' },
+  { label: 'Kec. Muruk Rian', value: 'Muruk Rian' },
 ];
 
 const portalFilterItems = computed<SelectOptionItem<string>[]>(() => {
@@ -373,6 +384,7 @@ function resetFilters() {
   filters.kbli = 'ALL';
   filters.expenditure = 'ALL';
   filters.portal = 'ALL';
+  filters.subdistrict = 'ALL';
   filters.status = 'ALL';
   filters.llmStatus = 'ALL';
   filters.isEconomic = 'ALL';
@@ -457,6 +469,7 @@ const advancedFilterActiveCount = computed(() => {
   if (filters.pdrbGroup !== 'ALL' || filters.kbli !== 'ALL') count++;
   if (filters.expenditure !== 'ALL') count++;
   if (filters.portal !== 'ALL') count++;
+  if (filters.subdistrict !== 'ALL') count++;
   if (filters.isEconomic !== 'ALL') count++;
   if (filters.from || filters.to) count++;
   return count;
@@ -936,6 +949,21 @@ const columns: TableColumn<AdminArticleItem>[] = [
                   class="w-full"
                 />
               </div>
+
+              <div>
+                <label for="articles-filter-subdistrict" class="block text-[11px] font-semibold text-slate-700 mb-1">
+                  Lokus Kecamatan (KTT)
+                </label>
+                <USelect
+                  id="articles-filter-subdistrict"
+                  v-model="filters.subdistrict"
+                  :items="subdistrictFilterItems"
+                  value-key="value"
+                  label-key="label"
+                  size="sm"
+                  class="w-full"
+                />
+              </div>
             </div>
           </div>
 
@@ -1216,6 +1244,25 @@ const columns: TableColumn<AdminArticleItem>[] = [
                   <UIcon name="i-lucide-external-link" class="w-2.5 h-2.5 shrink-0" />
                 </a>
                 <span v-else class="truncate max-w-[200px]">{{ row.original.url }}</span>
+              </div>
+
+              <!-- Lokus Kecamatan KTT & Catatan Kurator -->
+              <div v-if="row.original.subdistrict || row.original.curatorNotes" class="flex flex-wrap items-center gap-1 pt-0.5">
+                <span
+                  v-if="row.original.subdistrict"
+                  class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200"
+                >
+                  <UIcon name="i-lucide-map-pin" class="w-2.5 h-2.5" />
+                  <span>Kec. {{ row.original.subdistrict }}</span>
+                </span>
+                <span
+                  v-if="row.original.curatorNotes"
+                  class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-medium bg-amber-50 text-amber-800 border border-amber-200 truncate max-w-[200px]"
+                  :title="`Catatan Kurator: ${row.original.curatorNotes}`"
+                >
+                  <UIcon name="i-lucide-message-square" class="w-2.5 h-2.5 text-amber-600 shrink-0" />
+                  <span class="truncate">{{ row.original.curatorNotes }}</span>
+                </span>
               </div>
             </div>
           </template>

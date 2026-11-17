@@ -34,6 +34,8 @@ function makeSampleArticle(overrides: Partial<ArticleRecord> = {}): ArticleRecor
     quarter: 4,
     year: 2026,
     geographicScope: null,
+    subdistrict: 'Sesayap',
+    curatorNotes: 'Konfirmasi PUPR',
     titleEmbedding: null,
     isEconomicPhenomenon: true,
     summary:
@@ -86,7 +88,7 @@ describe('Export Excel (.xlsx) & CSV Resmi 10 Kolom Nerwilis', () => {
     expect(sheet).toBeDefined();
 
     const headerValues = [];
-    for (let col = 1; col <= 10; col += 1) {
+    for (let col = 1; col <= OFFICIAL_EXPORT_HEADERS.length; col += 1) {
       headerValues.push(sheet!.getRow(1).getCell(col).text);
     }
 
@@ -101,6 +103,8 @@ describe('Export Excel (.xlsx) & CSV Resmi 10 Kolom Nerwilis', () => {
       'Sumber Berita (URL)',
       'Periode Berita',
       'Status Verifikasi',
+      'Lokus / Kecamatan (KTT)',
+      'Catatan Kurator',
     ]);
     expect(headerValues).toEqual([...OFFICIAL_EXPORT_HEADERS]);
 
@@ -118,6 +122,8 @@ describe('Export Excel (.xlsx) & CSV Resmi 10 Kolom Nerwilis', () => {
     });
     expect(row2.getCell(9).value).toBe('Triwulan IV 2026');
     expect(row2.getCell(10).value).toBe('Terverifikasi');
+    expect(row2.getCell(11).value).toBe('Kec. Sesayap');
+    expect(row2.getCell(12).value).toBe('Konfirmasi PUPR');
 
     const row3 = sheet!.getRow(3);
     expect(row3.getCell(1).value).toBe('01/04/2026');

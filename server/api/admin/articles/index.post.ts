@@ -10,6 +10,7 @@ import { getQuarterFromDateWita, WITA_UTC_OFFSET } from '../../../../shared/util
 import { db } from '../../../db';
 import { articles } from '../../../db/schema';
 import { countWords } from '../../../services/scraper/extractor';
+import { detectKttSubdistrict } from '../../../services/scraper/geo-filter';
 import { invalidateOverviewCache } from '../../../utils/overview-cache';
 import { parseBodyWithSchema } from '../../../utils/request';
 import { requireAdminSession } from '../../../utils/session';
@@ -45,6 +46,11 @@ export default defineEventHandler(async (event) => {
   const verificationStatus = body.verifyImmediately
     ? VerificationStatusEnum.VERIFIED
     : VerificationStatusEnum.PENDING;
+  const subdistrict =
+    body.subdistrict !== undefined
+      ? body.subdistrict
+      : detectKttSubdistrict(body.title, body.snippetText);
+  const curatorNotes = body.curatorNotes ?? null;
 
   try {
     const [created] = await db
@@ -60,6 +66,8 @@ export default defineEventHandler(async (event) => {
         publishedAt: publishedAtDate,
         quarter,
         year,
+        subdistrict,
+        curatorNotes,
         isEconomicPhenomenon: true,
         summary: body.summary,
         kbliCategory: body.kbliCategory,

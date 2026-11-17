@@ -72,6 +72,8 @@ export const OFFICIAL_EXPORT_HEADERS = [
   'Sumber Berita (URL)',
   'Periode Berita',
   'Status Verifikasi',
+  'Lokus / Kecamatan (KTT)',
+  'Catatan Kurator',
 ] as const;
 
 export type ExportRowTuple = [
@@ -85,9 +87,11 @@ export type ExportRowTuple = [
   string, // 8. Sumber Berita (URL)
   string, // 9. Periode Berita (Triwulan & Tahun)
   string, // 10. Status Verifikasi
+  string, // 11. Lokus / Kecamatan (KTT)
+  string, // 12. Catatan Kurator
 ];
 
-const COLUMN_WIDTHS = [18, 42, 34, 24, 32, 28, 55, 40, 18, 18] as const;
+const COLUMN_WIDTHS = [18, 42, 34, 24, 32, 28, 55, 40, 18, 18, 22, 35] as const;
 
 export function sanitizeExcelCellValue(rawValue: string): string {
   if (typeof rawValue !== 'string') return rawValue;
@@ -140,6 +144,8 @@ export function formatArticleExportRow(article: ArticleRecord): ExportRowTuple {
     article.url,
     formatPeriodLabel(article.quarter, article.year),
     VERIFICATION_STATUS_LABELS[article.verificationStatus] ?? article.verificationStatus,
+    article.subdistrict ? `Kec. ${article.subdistrict}` : '-',
+    article.curatorNotes ?? '-',
   ];
 }
 
@@ -318,7 +324,8 @@ export async function generateArticlesExcelBuffer(
         color: { argb: 'FF0F172A' },
       };
 
-      const isCentered = colNumber === 1 || colNumber === 9 || colNumber === 10;
+      const isCentered =
+        colNumber === 1 || colNumber === 9 || colNumber === 10 || colNumber === 11;
       cell.alignment = {
         vertical: 'top',
         horizontal: isCentered ? 'center' : 'left',

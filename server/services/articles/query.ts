@@ -26,6 +26,7 @@ export type ArticleFilterInput = Partial<
     | 'expenditure'
     | 'expenditureImpact'
     | 'portal'
+    | 'subdistrict'
     | 'from'
     | 'to'
     | 'q'
@@ -70,6 +71,9 @@ export function buildAdminArticleFilters(filter: ArticleFilterInput): SQL | unde
   }
   if (filter.geographicScope) {
     conditions.push(eq(articles.geographicScope, filter.geographicScope));
+  }
+  if (filter.subdistrict) {
+    conditions.push(eq(articles.subdistrict, filter.subdistrict));
   }
   if (filter.year !== undefined) {
     conditions.push(eq(articles.year, filter.year));

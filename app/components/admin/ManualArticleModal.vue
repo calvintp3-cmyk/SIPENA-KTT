@@ -64,6 +64,15 @@ const secondaryExpImpactOptions = computed(() => [
   ...expenditureImpactOptions,
 ]);
 
+const subdistrictOptions = [
+  { value: null, label: '— Deteksi Otomatis dari Teks / Judul —' },
+  { value: 'Sesayap', label: 'Kec. Sesayap' },
+  { value: 'Sesayap Hilir', label: 'Kec. Sesayap Hilir' },
+  { value: 'Tana Lia', label: 'Kec. Tana Lia' },
+  { value: 'Betayau', label: 'Kec. Betayau' },
+  { value: 'Muruk Rian', label: 'Kec. Muruk Rian' },
+];
+
 const modalOpen = computed({
   get: () => props.open,
   set: (v: boolean) => emit('update:open', v),
@@ -93,6 +102,8 @@ const formState = reactive<CreateManualArticleInput>({
   secondaryExpenditureImpact: null,
   quarter: currentPeriod.quarter,
   year: currentPeriod.year,
+  subdistrict: null,
+  curatorNotes: '',
   verifyImmediately: true,
 });
 
@@ -192,6 +203,8 @@ function resetForm() {
   formState.secondaryExpenditureImpact = null;
   formState.quarter = props.defaultQuarter ?? period.quarter;
   formState.year = props.defaultYear ?? period.year;
+  formState.subdistrict = null;
+  formState.curatorNotes = '';
   formState.verifyImmediately = true;
   submitError.value = null;
 }
@@ -450,6 +463,27 @@ async function handleSubmit(event: FormSubmitEvent<CreateManualArticleInput>) {
               />
             </UFormField>
           </div>
+        </div>
+
+        <!-- Lokus & Catatan Kurator Nerwilis -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3.5 bg-slate-50/70 rounded-xl border border-slate-200/80">
+          <UFormField label="Lokus / Kecamatan KTT" name="subdistrict" description="Jika dikosongkan, sistem mendeteksi otomatis dari teks">
+            <USelect
+              v-model="formState.subdistrict"
+              :items="subdistrictOptions"
+              value-key="value"
+              label-key="label"
+              class="w-full"
+            />
+          </UFormField>
+
+          <UFormField label="Catatan Kurator / Rekonsiliasi (Opsional)" name="curatorNotes" description="Catatan internal tim Nerwilis untuk BRS/PDRB">
+            <UInput
+              v-model="formState.curatorNotes"
+              placeholder="Contoh: Konfirmasi ke Dinas PU terkait nilai SP2D"
+              class="w-full"
+            />
+          </UFormField>
         </div>
 
         <UCheckbox
