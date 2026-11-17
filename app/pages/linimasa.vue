@@ -39,18 +39,6 @@ const {
   totalVerifiedInPeriod,
 } = usePublicPortalState();
 
-useSeoMeta({
-  title: () =>
-    `Linimasa Dinamika Ekonomi TW ${toRomanQuarter(selectedQuarter.value)} ${selectedYear.value} — SIPENA KTT`,
-  ogTitle: () =>
-    `Linimasa Dinamika Ekonomi TW ${toRomanQuarter(selectedQuarter.value)} ${selectedYear.value} — SIPENA KTT`,
-  description:
-    'Rekam jejak dinamika sektor usaha, pergerakan harga, dan aktivitas ekonomi Kabupaten Tana Tidung secara terkurasi dan transparan.',
-  ogDescription:
-    'Rekam jejak dinamika sektor usaha, pergerakan harga, dan aktivitas ekonomi Kabupaten Tana Tidung secara terkurasi dan transparan.',
-  ogType: 'website',
-});
-
 const {
   getKbliShortCodeName,
   getKbliImpactBadge,
@@ -120,6 +108,18 @@ function parseListParam(raw: unknown): string[] {
 
 const selectedYear = ref<number>(parseYear(route.query.year));
 const selectedQuarter = ref<PdrbQuarter>(parseQuarter(route.query.quarter));
+
+useSeoMeta({
+  title: () =>
+    `Linimasa Dinamika Ekonomi TW ${toRomanQuarter(selectedQuarter.value)} ${selectedYear.value} — SIPENA KTT`,
+  ogTitle: () =>
+    `Linimasa Dinamika Ekonomi TW ${toRomanQuarter(selectedQuarter.value)} ${selectedYear.value} — SIPENA KTT`,
+  description:
+    'Rekam jejak dinamika sektor usaha, pergerakan harga, dan aktivitas ekonomi Kabupaten Tana Tidung secara terkurasi dan transparan.',
+  ogDescription:
+    'Rekam jejak dinamika sektor usaha, pergerakan harga, dan aktivitas ekonomi Kabupaten Tana Tidung secara terkurasi dan transparan.',
+  ogType: 'website',
+});
 const selectedPdrbGroups = ref<string[]>(parseListParam(route.query.pdrbGroup));
 const selectedExpenditures = ref<string[]>(parseListParam(route.query.expenditure));
 const selectedSourceType = ref<string>(strParam(route.query.sourceType, 'ALL'));
@@ -1006,7 +1006,7 @@ function openDetailModal(article: PublicArticleItem) {
                         <span>{{ article.sourcePortal }}</span>
                         <span
                           v-if="article.subdistrict"
-                          class="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[9px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200"
+                          class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200"
                         >
                           <UIcon name="i-lucide-map-pin" class="w-2.5 h-2.5" />
                           <span>Kec. {{ article.subdistrict }}</span>
