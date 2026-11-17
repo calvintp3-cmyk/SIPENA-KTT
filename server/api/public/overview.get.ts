@@ -1,6 +1,6 @@
 // server/api/public/overview.get.ts
 import { and, count, desc, eq, max } from 'drizzle-orm';
-import { defineEventHandler, setResponseHeader } from 'h3';
+import { createError, defineEventHandler, setResponseHeader } from 'h3';
 import {
   ArticleSourceTypeEnum,
   EXPENDITURE_COMPONENT_LABELS,
@@ -20,9 +20,23 @@ import {
 import { db } from '../../db';
 import { articles } from '../../db/schema';
 import { getCachedOverview, setCachedOverview } from '../../utils/overview-cache';
+import { checkPublicApiRateLimit, getClientIp } from '../../utils/rate-limit';
 import { parseQueryWithSchema } from '../../utils/request';
 
 export default defineEventHandler(async (event) => {
+  const clientIp = getClientIp(event);
+  const rateLimit = checkPublicApiRateLimit(clientIp);
+  setResponseHeader(event, 'X-RateLimit-Limit', '60');
+  setResponseHeader(event, 'X-RateLimit-Remaining', String(rateLimit.remaining));
+  if (!rateLimit.allowed) {
+    setResponseHeader(event, 'Retry-After', rateLimit.retryAfterSeconds);
+    throw createError({
+      statusCode: 429,
+      statusMessage: 'Too Many Requests',
+      message: `Terlalu banyak permintaan ke portal publik. Silakan coba lagi dalam ${rateLimit.retryAfterSeconds} detik.`,
+    });
+  }
+
   const query = parseQueryWithSchema(event, PublicOverviewQuerySchema);
   const currentPeriod = getCurrentQuarterYearWita();
 

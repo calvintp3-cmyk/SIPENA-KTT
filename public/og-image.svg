@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="630" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0F172A"/>
+      <stop offset="45%" stop-color="#1E293B"/>
+      <stop offset="100%" stop-color="#0B132B"/>
+    </linearGradient>
+    <linearGradient id="aurora" x1="200" y1="0" x2="1000" y2="630" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#1D4ED8" stop-opacity="0.5"/>
+      <stop offset="50%" stop-color="#4F46E5" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#059669" stop-opacity="0.25"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#38BDF8"/>
+      <stop offset="50%" stop-color="#818CF8"/>
+      <stop offset="100%" stop-color="#34D399"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background Canvas -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="url(#aurora)"/>
+
+  <!-- Decorative Grid Overlay -->
+  <g opacity="0.08" stroke="#FFFFFF" stroke-width="1">
+    <line x1="0" y1="105" x2="1200" y2="105"/>
+    <line x1="0" y1="210" x2="1200" y2="210"/>
+    <line x1="0" y1="315" x2="1200" y2="315"/>
+    <line x1="0" y1="420" x2="1200" y2="420"/>
+    <line x1="0" y1="525" x2="1200" y2="525"/>
+    <line x1="200" y1="0" x2="200" y2="630"/>
+    <line x1="400" y1="0" x2="400" y2="630"/>
+    <line x1="600" y1="0" x2="600" y2="630"/>
+    <line x1="800" y1="0" x2="800" y2="630"/>
+    <line x1="1000" y1="0" x2="1000" y2="630"/>
+  </g>
+
+  <!-- Decorative Top Banner -->
+  <rect x="80" y="70" width="460" height="42" rx="21" fill="#1E293B" stroke="#334155" stroke-width="1.5"/>
+  <circle cx="106" cy="91" r="7" fill="#3B82F6"/>
+  <text x="126" y="96" fill="#94A3B8" font-family="Plus Jakarta Sans, Inter, sans-serif" font-size="14" font-weight="700" letter-spacing="1">BPS KABUPATEN TANA TIDUNG • FUNGSI NERWILIS</text>
+
+  <!-- Brand Typography -->
+  <text x="80" y="210" fill="#F8FAFC" font-family="Plus Jakarta Sans, Inter, sans-serif" font-size="76" font-weight="900" letter-spacing="-2">
+    SIPENA <tspan fill="url(#accent)">KTT</tspan>
+  </text>
+
+  <!-- Tagline -->
+  <text x="80" y="275" fill="#E2E8F0" font-family="Plus Jakarta Sans, Inter, sans-serif" font-size="32" font-weight="700">
+    Sistem Pemantauan Fenomena Ekonomi Daerah
+  </text>
+  <text x="80" y="325" fill="#94A3B8" font-family="Inter, sans-serif" font-size="21" font-weight="400">
+    Rekam jejak dinamika 17 sektor usaha KBLI, 6 komponen pengeluaran, dan pergerakan harga
+  </text>
+  <text x="80" y="358" fill="#94A3B8" font-family="Inter, sans-serif" font-size="21" font-weight="400">
+    Kabupaten Tana Tidung secara terkurasi, transparan, dan berakar pada fakta lapangan.
+  </text>
+
+  <!-- Badges / Pillars -->
+  <g transform="translate(80, 430)">
+    <!-- Pill 1 -->
+    <rect x="0" y="0" width="220" height="54" rx="14" fill="#0F172A" stroke="#2563EB" stroke-width="1.5"/>
+    <text x="24" y="33" fill="#60A5FA" font-family="Inter, sans-serif" font-size="16" font-weight="700">17 Sektor Usaha KBLI</text>
+
+    <!-- Pill 2 -->
+    <rect x="236" y="0" width="230" height="54" rx="14" fill="#0F172A" stroke="#059669" stroke-width="1.5"/>
+    <text x="260" y="33" fill="#34D399" font-family="Inter, sans-serif" font-size="16" font-weight="700">6 Komponen PDRB</text>
+
+    <!-- Pill 3 -->
+    <rect x="482" y="0" width="250" height="54" rx="14" fill="#0F172A" stroke="#D97706" stroke-width="1.5"/>
+    <text x="506" y="33" fill="#FBBF24" font-family="Inter, sans-serif" font-size="16" font-weight="700">Multi-LLM Intelligence</text>
+
+    <!-- Pill 4 -->
+    <rect x="748" y="0" width="240" height="54" rx="14" fill="#0F172A" stroke="#7C3AED" stroke-width="1.5"/>
+    <text x="772" y="33" fill="#C084FC" font-family="Inter, sans-serif" font-size="16" font-weight="700">Kurasi Nerwilis BPS</text>
+  </g>
+
+  <!-- Right Decorative Chart Graphics -->
+  <g transform="translate(880, 110)">
+    <rect width="240" height="260" rx="24" fill="#1E293B" stroke="#334155" stroke-width="2" opacity="0.9"/>
+    <path d="M30 200 L80 150 L130 170 L210 70" stroke="#38BDF8" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="210" cy="70" r="10" fill="#F59E0B" stroke="#FFFFFF" stroke-width="3"/>
+    <rect x="30" y="215" width="40" height="18" rx="4" fill="#334155"/>
+    <rect x="85" y="215" width="40" height="18" rx="4" fill="#334155"/>
+    <rect x="140" y="215" width="40" height="18" rx="4" fill="#334155"/>
+  </g>
+
+  <!-- Footer Meta -->
+  <text x="80" y="565" fill="#64748B" font-family="JetBrains Mono, monospace" font-size="15" font-weight="500">
+    sipena6503.caplinlab.my.id • BPS Kabupaten Tana Tidung (Provinsi Kalimantan Utara)
+  </text>
+</svg>

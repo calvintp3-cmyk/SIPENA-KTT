@@ -128,6 +128,8 @@ export interface DashboardGapTileItem {
   kbliCodes: KbliCategoryEnum[];
   primaryKbliCode: KbliCategoryEnum;
   count: number;
+  primaryCount: number;
+  secondaryCount: number;
   sharePercent: number;
   isGap: boolean;
   isThin: boolean;
@@ -190,6 +192,11 @@ export interface TrendComparisonRow {
   baselineCount: number;
   deltaCount: number;
   deltaPercent: number | null;
+  currentSharePercent: number;
+  baselineSharePercent: number;
+  deltaSharePercent: number | null;
+  netBalanceIndex: number | null;
+  baselineNetBalanceIndex: number | null;
   dominantImpact: string | null;
   latestHeadline: string | null;
   isGap: boolean;
@@ -202,11 +209,13 @@ export interface AdminTrendsResponse {
     year: number;
     quarter: 1 | 2 | 3 | 4;
     label: string;
+    shortLabel: string;
   };
   baseline: {
     year: number;
     quarter: 1 | 2 | 3 | 4;
     label: string;
+    shortLabel: string;
   };
   kpi: {
     currentTotal: number;

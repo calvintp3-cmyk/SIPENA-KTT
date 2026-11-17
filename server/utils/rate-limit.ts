@@ -6,22 +6,36 @@ const MAX_ATTEMPTS = 10;
 const CLEANUP_INTERVAL_BUCKETS = 250;
 const MAX_TRACKED_BUCKETS = 5_000;
 
+const PUBLIC_WINDOW_MS = 60 * 1000; // 1 menit
+const PUBLIC_MAX_REQUESTS = 60; // 60 request/menit
+
 interface RateLimitBucket {
   timestamps: number[];
 }
 
 const loginAttemptsByIp = new Map<string, RateLimitBucket>();
+const publicRequestsByIp = new Map<string, RateLimitBucket>();
 
 function pruneStaleBuckets(now: number): void {
-  if (loginAttemptsByIp.size < CLEANUP_INTERVAL_BUCKETS) {
+  if (loginAttemptsByIp.size < CLEANUP_INTERVAL_BUCKETS && publicRequestsByIp.size < CLEANUP_INTERVAL_BUCKETS) {
     return;
   }
 
-  const cutoff = now - WINDOW_MS;
+  const cutoffLogin = now - WINDOW_MS;
   for (const [key, bucket] of loginAttemptsByIp.entries()) {
-    const fresh = bucket.timestamps.filter((ts) => ts > cutoff);
+    const fresh = bucket.timestamps.filter((ts) => ts > cutoffLogin);
     if (fresh.length === 0) {
       loginAttemptsByIp.delete(key);
+    } else {
+      bucket.timestamps = fresh;
+    }
+  }
+
+  const cutoffPub = now - PUBLIC_WINDOW_MS;
+  for (const [key, bucket] of publicRequestsByIp.entries()) {
+    const fresh = bucket.timestamps.filter((ts) => ts > cutoffPub);
+    if (fresh.length === 0) {
+      publicRequestsByIp.delete(key);
     } else {
       bucket.timestamps = fresh;
     }
@@ -33,6 +47,16 @@ function pruneStaleBuckets(now: number): void {
     let evicted = 0;
     for (const key of loginAttemptsByIp.keys()) {
       loginAttemptsByIp.delete(key);
+      evicted += 1;
+      if (evicted >= excess) break;
+    }
+  }
+
+  if (publicRequestsByIp.size > MAX_TRACKED_BUCKETS) {
+    const excess = publicRequestsByIp.size - MAX_TRACKED_BUCKETS;
+    let evicted = 0;
+    for (const key of publicRequestsByIp.keys()) {
+      publicRequestsByIp.delete(key);
       evicted += 1;
       if (evicted >= excess) break;
     }
@@ -87,11 +111,49 @@ export function checkLoginRateLimit(
   };
 }
 
+export function checkPublicApiRateLimit(
+  ip: string,
+  now: number = Date.now(),
+  maxRequests: number = PUBLIC_MAX_REQUESTS,
+  windowMs: number = PUBLIC_WINDOW_MS,
+): {
+  allowed: boolean;
+  remaining: number;
+  retryAfterSeconds: number;
+} {
+  pruneStaleBuckets(now);
+
+  const cutoff = now - windowMs;
+  const bucket = publicRequestsByIp.get(ip) ?? { timestamps: [] };
+  bucket.timestamps = bucket.timestamps.filter((ts) => ts > cutoff);
+
+  if (bucket.timestamps.length >= maxRequests) {
+    const oldest = bucket.timestamps[0] ?? now;
+    const retryAfterSeconds = Math.max(1, Math.ceil((oldest + windowMs - now) / 1000));
+    publicRequestsByIp.set(ip, bucket);
+    return {
+      allowed: false,
+      remaining: 0,
+      retryAfterSeconds,
+    };
+  }
+
+  bucket.timestamps.push(now);
+  publicRequestsByIp.set(ip, bucket);
+
+  return {
+    allowed: true,
+    remaining: Math.max(0, maxRequests - bucket.timestamps.length),
+    retryAfterSeconds: 0,
+  };
+}
+
 export function resetLoginRateLimit(ip: string): void {
   loginAttemptsByIp.delete(ip);
 }
 
 export function __clearAllRateLimitsForTest(): void {
   loginAttemptsByIp.clear();
+  publicRequestsByIp.clear();
 }
 

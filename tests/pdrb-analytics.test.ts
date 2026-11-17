@@ -202,6 +202,8 @@ describe('Taksonomi 17 Kategori PDRB (KBLI 2025 A-V), Query Schema, Analitik & S
     const sectorNO = dash.gapTiles.find((t) => t.groupCode === 'N,O');
     expect(sectorNO).toBeDefined();
     expect(sectorNO?.count).toBe(2);
+    expect(sectorNO?.primaryCount).toBe(2);
+    expect(sectorNO?.secondaryCount).toBe(0);
     expect(sectorNO?.isGap).toBe(false);
     expect(sectorNO?.isThin).toBe(true);
 
@@ -250,6 +252,13 @@ describe('Taksonomi 17 Kategori PDRB (KBLI 2025 A-V), Query Schema, Analitik & S
     expect(q2Point?.isTarget).toBe(true);
     expect(q2Point?.increaseNtb).toBe(3);
     expect(q2Point?.pricePressure).toBe(1);
+
+    const rowA = trendKbli.rows.find((r) => r.code === 'A');
+    expect(rowA).toBeDefined();
+    expect(rowA?.currentSharePercent).toBe(25);
+    expect(rowA?.baselineSharePercent).toBe(100);
+    expect(rowA?.deltaSharePercent).toBe(-75);
+    expect(rowA?.netBalanceIndex).toBe(100);
 
     const trendExp = computeTrendAnalytics({
       mode: 'yoy',

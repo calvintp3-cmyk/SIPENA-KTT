@@ -76,6 +76,31 @@ export default defineNuxtConfig({
           content:
             'Rekam jejak dinamika sektor usaha, pergerakan harga, dan aktivitas ekonomi Kabupaten Tana Tidung secara terkurasi dan transparan.',
         },
+        { property: 'og:site_name', content: 'SIPENA KTT' },
+        { property: 'og:type', content: 'website' },
+        { property: 'og:locale', content: 'id_ID' },
+        { property: 'og:title', content: 'SIPENA KTT — Sistem Pemantauan Fenomena Ekonomi Kab. Tana Tidung' },
+        {
+          property: 'og:description',
+          content:
+            'Portal intelijen pemantauan 17 sektor KBLI dan 6 komponen pengeluaran PDRB Kabupaten Tana Tidung oleh BPS Kab. Tana Tidung.',
+        },
+        { property: 'og:image', content: 'https://sipena6503.caplinlab.my.id/og-image.png' },
+        { property: 'og:image:width', content: '1200' },
+        { property: 'og:image:height', content: '630' },
+        { property: 'og:image:alt', content: 'SIPENA KTT — Badan Pusat Statistik Kabupaten Tana Tidung' },
+        { name: 'twitter:card', content: 'summary_large_image' },
+        { name: 'twitter:title', content: 'SIPENA KTT — Sistem Pemantauan Fenomena Ekonomi Kab. Tana Tidung' },
+        {
+          name: 'twitter:description',
+          content:
+            'Rekam jejak dinamika sektor usaha, pergerakan harga, dan aktivitas ekonomi Kabupaten Tana Tidung secara terkurasi dan transparan.',
+        },
+        { name: 'twitter:image', content: 'https://sipena6503.caplinlab.my.id/og-image.png' },
+        { name: 'theme-color', content: '#1d4ed8' },
+      ],
+      link: [
+        { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
       ],
     },
   },

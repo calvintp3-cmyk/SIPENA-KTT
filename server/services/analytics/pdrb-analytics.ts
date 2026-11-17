@@ -29,6 +29,10 @@ export interface AnalyticsArticleRow {
   kbliImpact: KbliImpactEnum | null;
   expenditureComponent: ExpenditureComponentEnum | null;
   expenditureImpact: ExpenditureImpactEnum | null;
+  secondaryKbliCategory?: KbliCategoryEnum | null;
+  secondaryKbliImpact?: KbliImpactEnum | null;
+  secondaryExpenditureComponent?: ExpenditureComponentEnum | null;
+  secondaryExpenditureImpact?: ExpenditureImpactEnum | null;
   publishedAt: Date | string;
   quarter: number;
   year: number;
@@ -107,6 +111,8 @@ export function computeDashboardAnalytics(params: {
     string,
     {
       count: number;
+      primaryCount: number;
+      secondaryCount: number;
       impacts: Map<KbliImpactEnum, number>;
       latestHeadline: string | null;
       latestPublishedAt: string | null;
@@ -117,6 +123,8 @@ export function computeDashboardAnalytics(params: {
   for (const sector of PDRB_17_SECTORS) {
     sectorStatsMap.set(sector.groupCode, {
       count: 0,
+      primaryCount: 0,
+      secondaryCount: 0,
       impacts: new Map(),
       latestHeadline: null,
       latestPublishedAt: null,
@@ -132,23 +140,50 @@ export function computeDashboardAnalytics(params: {
   }
 
   for (const art of periodArticles) {
-    if (!art.kbliCategory) continue;
-    const group = getPdrb17GroupForKbli(art.kbliCategory);
-    const bucket = sectorStatsMap.get(group.groupCode);
-    if (!bucket) continue;
+    let primaryGroupCode: string | null = null;
+    if (art.kbliCategory) {
+      const group = getPdrb17GroupForKbli(art.kbliCategory);
+      primaryGroupCode = group.groupCode;
+      const bucket = sectorStatsMap.get(group.groupCode);
+      if (bucket) {
+        bucket.count += 1;
+        bucket.primaryCount += 1;
+        if (art.kbliImpact) {
+          bucket.impacts.set(art.kbliImpact, (bucket.impacts.get(art.kbliImpact) ?? 0) + 1);
+        }
+        if (!bucket.latestHeadline) {
+          bucket.latestHeadline = art.title;
+          bucket.latestPublishedAt =
+            art.publishedAt instanceof Date ? art.publishedAt.toISOString() : String(art.publishedAt);
+        }
+        if (art.expenditureComponent) {
+          bucket.heatmapCells[art.expenditureComponent] =
+            (bucket.heatmapCells[art.expenditureComponent] ?? 0) + 1;
+        }
+      }
+    }
 
-    bucket.count += 1;
-    if (art.kbliImpact) {
-      bucket.impacts.set(art.kbliImpact, (bucket.impacts.get(art.kbliImpact) ?? 0) + 1);
-    }
-    if (!bucket.latestHeadline) {
-      bucket.latestHeadline = art.title;
-      bucket.latestPublishedAt =
-        art.publishedAt instanceof Date ? art.publishedAt.toISOString() : String(art.publishedAt);
-    }
-    if (art.expenditureComponent) {
-      bucket.heatmapCells[art.expenditureComponent] =
-        (bucket.heatmapCells[art.expenditureComponent] ?? 0) + 1;
+    // Inter-industry secondary linkage
+    if (art.secondaryKbliCategory) {
+      const secGroup = getPdrb17GroupForKbli(art.secondaryKbliCategory);
+      if (secGroup.groupCode !== primaryGroupCode) {
+        const secBucket = sectorStatsMap.get(secGroup.groupCode);
+        if (secBucket) {
+          secBucket.count += 1;
+          secBucket.secondaryCount += 1;
+          if (art.secondaryKbliImpact) {
+            secBucket.impacts.set(
+              art.secondaryKbliImpact,
+              (secBucket.impacts.get(art.secondaryKbliImpact) ?? 0) + 1,
+            );
+          }
+          if (!secBucket.latestHeadline) {
+            secBucket.latestHeadline = art.title;
+            secBucket.latestPublishedAt =
+              art.publishedAt instanceof Date ? art.publishedAt.toISOString() : String(art.publishedAt);
+          }
+        }
+      }
     }
   }
 
@@ -165,6 +200,8 @@ export function computeDashboardAnalytics(params: {
       kbliCodes: [...sector.kbliCodes],
       primaryKbliCode: sector.kbliCodes[0]!,
       count: bucket.count,
+      primaryCount: bucket.primaryCount,
+      secondaryCount: bucket.secondaryCount,
       sharePercent,
       isGap: bucket.count === 0,
       isThin: bucket.count > 0 && bucket.count <= 2,
@@ -293,25 +330,61 @@ export function computeTrendAnalytics(params: {
     };
   });
 
+  const currentTotal = currentArticles.length;
+  const baselineTotal = baselineArticles.length;
+  const deltaCount = currentTotal - baselineTotal;
+  const deltaPercent =
+    baselineTotal > 0 ? Math.round((deltaCount / baselineTotal) * 1000) / 10 : null;
+
   const rows =
     dimension === 'kbli'
       ? PDRB_17_SECTORS.map((sector) => {
           const codeSet = new Set(sector.kbliCodes);
           const cur = currentArticles.filter(
-            (a) => a.kbliCategory !== null && codeSet.has(a.kbliCategory),
+            (a) =>
+              (a.kbliCategory !== null && codeSet.has(a.kbliCategory)) ||
+              (a.secondaryKbliCategory != null && codeSet.has(a.secondaryKbliCategory)),
           );
           const base = baselineArticles.filter(
-            (a) => a.kbliCategory !== null && codeSet.has(a.kbliCategory),
+            (a) =>
+              (a.kbliCategory !== null && codeSet.has(a.kbliCategory)) ||
+              (a.secondaryKbliCategory != null && codeSet.has(a.secondaryKbliCategory)),
           );
           const impactFreq = new Map<KbliImpactEnum, number>();
+          let curIncrease = 0;
+          let curDecrease = 0;
           for (const a of cur) {
-            if (a.kbliImpact) {
-              impactFreq.set(a.kbliImpact, (impactFreq.get(a.kbliImpact) ?? 0) + 1);
+            const imp = a.kbliImpact || a.secondaryKbliImpact;
+            if (imp) {
+              impactFreq.set(imp, (impactFreq.get(imp) ?? 0) + 1);
+            }
+            if (a.kbliImpact === KbliImpactEnum.INCREASE_NTB || a.secondaryKbliImpact === KbliImpactEnum.INCREASE_NTB) {
+              curIncrease++;
+            } else if (a.kbliImpact === KbliImpactEnum.DECREASE_NTB || a.secondaryKbliImpact === KbliImpactEnum.DECREASE_NTB) {
+              curDecrease++;
             }
           }
-          const deltaCount = cur.length - base.length;
-          const deltaPercent =
-            base.length > 0 ? Math.round((deltaCount / base.length) * 1000) / 10 : null;
+
+          let baseIncrease = 0;
+          let baseDecrease = 0;
+          for (const a of base) {
+            if (a.kbliImpact === KbliImpactEnum.INCREASE_NTB || a.secondaryKbliImpact === KbliImpactEnum.INCREASE_NTB) {
+              baseIncrease++;
+            } else if (a.kbliImpact === KbliImpactEnum.DECREASE_NTB || a.secondaryKbliImpact === KbliImpactEnum.DECREASE_NTB) {
+              baseDecrease++;
+            }
+          }
+
+          const curShare = currentTotal > 0 ? Math.round((cur.length / currentTotal) * 1000) / 10 : 0;
+          const baseShare = baselineTotal > 0 ? Math.round((base.length / baselineTotal) * 1000) / 10 : 0;
+          const deltaShare = Math.round((curShare - baseShare) * 10) / 10;
+          const nbi = cur.length > 0 ? Math.round(((curIncrease - curDecrease) / cur.length) * 100) : null;
+          const baseNbi = base.length > 0 ? Math.round(((baseIncrease - baseDecrease) / base.length) * 100) : null;
+
+          const deltaRow = cur.length - base.length;
+          const deltaRowPercent =
+            base.length > 0 ? Math.round((deltaRow / base.length) * 1000) / 10 : null;
+
           return {
             code: sector.groupCode,
             label: sector.shortName,
@@ -319,47 +392,94 @@ export function computeTrendAnalytics(params: {
             kbliCodes: [...sector.kbliCodes],
             currentCount: cur.length,
             baselineCount: base.length,
-            deltaCount,
-            deltaPercent,
+            deltaCount: deltaRow,
+            deltaPercent: deltaRowPercent,
+            currentSharePercent: curShare,
+            baselineSharePercent: baseShare,
+            deltaSharePercent: deltaShare,
+            netBalanceIndex: nbi,
+            baselineNetBalanceIndex: baseNbi,
             dominantImpact: getTopMapKey(impactFreq),
             latestHeadline: cur[0]?.title ?? null,
             isGap: cur.length === 0,
           };
         })
       : PDRB_6_EXPENDITURE_LIST.map((comp) => {
-          const cur = currentArticles.filter((a) => a.expenditureComponent === comp.code);
-          const base = baselineArticles.filter((a) => a.expenditureComponent === comp.code);
+          const cur = currentArticles.filter(
+            (a) =>
+              a.expenditureComponent === comp.code ||
+              a.secondaryExpenditureComponent === comp.code,
+          );
+          const base = baselineArticles.filter(
+            (a) =>
+              a.expenditureComponent === comp.code ||
+              a.secondaryExpenditureComponent === comp.code,
+          );
           const impactFreq = new Map<ExpenditureImpactEnum, number>();
+          let curIncrease = 0;
+          let curDecrease = 0;
           for (const a of cur) {
-            if (a.expenditureImpact) {
-              impactFreq.set(
-                a.expenditureImpact,
-                (impactFreq.get(a.expenditureImpact) ?? 0) + 1,
-              );
+            const imp = a.expenditureImpact || a.secondaryExpenditureImpact;
+            if (imp) {
+              impactFreq.set(imp, (impactFreq.get(imp) ?? 0) + 1);
+            }
+            if (
+              a.expenditureImpact === ExpenditureImpactEnum.INCREASE_REAL ||
+              a.secondaryExpenditureImpact === ExpenditureImpactEnum.INCREASE_REAL
+            ) {
+              curIncrease++;
+            } else if (
+              a.expenditureImpact === ExpenditureImpactEnum.DECREASE_REAL ||
+              a.secondaryExpenditureImpact === ExpenditureImpactEnum.DECREASE_REAL
+            ) {
+              curDecrease++;
             }
           }
-          const deltaCount = cur.length - base.length;
-          const deltaPercent =
-            base.length > 0 ? Math.round((deltaCount / base.length) * 1000) / 10 : null;
+
+          let baseIncrease = 0;
+          let baseDecrease = 0;
+          for (const a of base) {
+            if (
+              a.expenditureImpact === ExpenditureImpactEnum.INCREASE_REAL ||
+              a.secondaryExpenditureImpact === ExpenditureImpactEnum.INCREASE_REAL
+            ) {
+              baseIncrease++;
+            } else if (
+              a.expenditureImpact === ExpenditureImpactEnum.DECREASE_REAL ||
+              a.secondaryExpenditureImpact === ExpenditureImpactEnum.DECREASE_REAL
+            ) {
+              baseDecrease++;
+            }
+          }
+
+          const curShare = currentTotal > 0 ? Math.round((cur.length / currentTotal) * 1000) / 10 : 0;
+          const baseShare = baselineTotal > 0 ? Math.round((base.length / baselineTotal) * 1000) / 10 : 0;
+          const deltaShare = Math.round((curShare - baseShare) * 10) / 10;
+          const nbi = cur.length > 0 ? Math.round(((curIncrease - curDecrease) / cur.length) * 100) : null;
+          const baseNbi = base.length > 0 ? Math.round(((baseIncrease - baseDecrease) / base.length) * 100) : null;
+
+          const deltaRow = cur.length - base.length;
+          const deltaRowPercent =
+            base.length > 0 ? Math.round((deltaRow / base.length) * 1000) / 10 : null;
+
           return {
             code: comp.code,
             label: comp.short,
             officialLabel: comp.official,
             currentCount: cur.length,
             baselineCount: base.length,
-            deltaCount,
-            deltaPercent,
+            deltaCount: deltaRow,
+            deltaPercent: deltaRowPercent,
+            currentSharePercent: curShare,
+            baselineSharePercent: baseShare,
+            deltaSharePercent: deltaShare,
+            netBalanceIndex: nbi,
+            baselineNetBalanceIndex: baseNbi,
             dominantImpact: getTopMapKey(impactFreq),
             latestHeadline: cur[0]?.title ?? null,
             isGap: cur.length === 0,
           };
         });
-
-  const currentTotal = currentArticles.length;
-  const baselineTotal = baselineArticles.length;
-  const deltaCount = currentTotal - baselineTotal;
-  const deltaPercent =
-    baselineTotal > 0 ? Math.round((deltaCount / baselineTotal) * 1000) / 10 : null;
 
   const positiveMovers = [...rows]
     .filter((r) => r.deltaCount > 0)
@@ -375,11 +495,13 @@ export function computeTrendAnalytics(params: {
       year: targetYear,
       quarter: targetQuarter,
       label: formatPeriodLabel(targetQuarter, targetYear),
+      shortLabel: `TW ${toRomanQuarter(targetQuarter)} '${String(targetYear).slice(-2)}`,
     },
     baseline: {
       year: baselineYear,
       quarter: baselineQuarter,
       label: formatPeriodLabel(baselineQuarter, baselineYear),
+      shortLabel: `TW ${toRomanQuarter(baselineQuarter)} '${String(baselineYear).slice(-2)}`,
     },
     kpi: {
       currentTotal,

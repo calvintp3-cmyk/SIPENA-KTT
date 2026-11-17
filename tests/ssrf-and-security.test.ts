@@ -8,6 +8,7 @@ import { DUMMY_SCRYPT_HASH, hashPassword, verifyPassword } from '#server/utils/p
 import {
   __clearAllRateLimitsForTest,
   checkLoginRateLimit,
+  checkPublicApiRateLimit,
   resetLoginRateLimit,
 } from '#server/utils/rate-limit';
 import { createSessionToken, verifySessionToken } from '#server/utils/session';
@@ -142,6 +143,24 @@ describe('SSRF Guard, URL Hash, Auth Security & Rate Limit', () => {
     // Setelah reset login berhasil, IP langsung pulih
     resetLoginRateLimit(ip);
     expect(checkLoginRateLimit(ip, baseTime + 12_000).allowed).toBe(true);
+  });
+
+  it('membatasi frekuensi permintaan API publik (rate limit 60 req/menit per IP)', () => {
+    const ip = '114.125.40.10';
+    const baseTime = 1_760_000_000_000;
+
+    for (let i = 0; i < 60; i += 1) {
+      const check = checkPublicApiRateLimit(ip, baseTime + i * 500);
+      expect(check.allowed).toBe(true);
+    }
+
+    const blocked = checkPublicApiRateLimit(ip, baseTime + 31_000);
+    expect(blocked.allowed).toBe(false);
+    expect(blocked.retryAfterSeconds).toBeGreaterThan(0);
+
+    // Lewat jendela waktu 60 detik (window expired), otomatis diizinkan kembali
+    const later = checkPublicApiRateLimit(ip, baseTime + 65_000);
+    expect(later.allowed).toBe(true);
   });
 
   it('mendeteksi path /api/admin secara case-insensitive dan tahan variasi slash/encoding', () => {

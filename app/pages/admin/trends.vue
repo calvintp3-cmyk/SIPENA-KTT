@@ -27,13 +27,16 @@ const { isExporting, downloadExport } = useExcelExport();
 
 const mode = ref<'qoq' | 'yoy'>('qoq');
 const dimension = ref<'kbli' | 'expenditure'>('kbli');
+const metricMode = ref<'volume' | 'share' | 'netBalance'>('volume');
 const tableFilter = ref<'all' | 'up' | 'down' | 'gap'>('all');
-const sortKey = ref<'delta' | 'current' | 'code'>('delta');
+const sortKey = ref<'delta' | 'current' | 'code' | 'share' | 'nbi'>('delta');
 const hoveredQuarter = ref<TrendPeriodPoint | null>(null);
 
 const sortOptions = [
   { label: 'Perubahan Terbesar', value: 'delta' },
   { label: 'Volume Periode Aktif', value: 'current' },
+  { label: 'Pangsa Sektoral Tertinggi', value: 'share' },
+  { label: 'Net Balance Index Tertinggi', value: 'nbi' },
   { label: 'Kode Urut Resmi', value: 'code' },
 ];
 
@@ -203,6 +206,12 @@ const filteredSortedRows = computed(() => {
     if (sortKey.value === 'current') {
       return b.currentCount - a.currentCount || a.code.localeCompare(b.code);
     }
+    if (sortKey.value === 'share') {
+      return (b.currentSharePercent ?? 0) - (a.currentSharePercent ?? 0) || b.currentCount - a.currentCount;
+    }
+    if (sortKey.value === 'nbi') {
+      return (b.netBalanceIndex ?? -999) - (a.netBalanceIndex ?? -999) || b.currentCount - a.currentCount;
+    }
     if (sortKey.value === 'code') {
       return a.code.localeCompare(b.code);
     }
@@ -315,7 +324,7 @@ function handleExportXlsx() {
             <div
               role="group"
               aria-label="Dimensi klasifikasi PDRB"
-              class="inline-flex p-1 bg-slate-100 rounded-xl border border-slate-200/90"
+              class="inline-flex p-1 bg-slate-100 rounded-xl border border-slate-200/90 font-mono"
             >
               <button
                 type="button"
@@ -342,6 +351,57 @@ function handleExportXlsx() {
                 @click="() => { dimension = 'expenditure'; }"
               >
                 6 Komponen Pengeluaran
+              </button>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-semibold text-slate-600">
+              Metrik:
+            </span>
+            <div
+              role="group"
+              aria-label="Metrik perbandingan tren"
+              class="inline-flex p-1 bg-slate-100 rounded-xl border border-slate-200/90 font-mono"
+            >
+              <button
+                type="button"
+                :aria-pressed="metricMode === 'volume'"
+                class="min-h-8 px-2.5 py-1 rounded-lg text-xs transition-colors cursor-pointer"
+                :class="
+                  metricMode === 'volume'
+                    ? 'bg-white text-blue-700 font-bold shadow-2xs border border-blue-200/70'
+                    : 'text-slate-600 hover:text-slate-950 font-medium'
+                "
+                @click="() => { metricMode = 'volume'; }"
+              >
+                Volume (Absolut)
+              </button>
+              <button
+                type="button"
+                :aria-pressed="metricMode === 'share'"
+                class="min-h-8 px-2.5 py-1 rounded-lg text-xs transition-colors cursor-pointer"
+                :class="
+                  metricMode === 'share'
+                    ? 'bg-white text-blue-700 font-bold shadow-2xs border border-blue-200/70'
+                    : 'text-slate-600 hover:text-slate-950 font-medium'
+                "
+                @click="() => { metricMode = 'share'; }"
+              >
+                Pangsa Sektor (%)
+              </button>
+              <button
+                type="button"
+                :aria-pressed="metricMode === 'netBalance'"
+                class="min-h-8 px-2.5 py-1 rounded-lg text-xs transition-colors cursor-pointer"
+                :class="
+                  metricMode === 'netBalance'
+                    ? 'bg-white text-blue-700 font-bold shadow-2xs border border-blue-200/70'
+                    : 'text-slate-600 hover:text-slate-950 font-medium'
+                "
+                @click="() => { metricMode = 'netBalance'; }"
+              >
+                Saldo Bersih (NBI)
               </button>
             </div>
           </div>
@@ -647,10 +707,16 @@ function handleExportXlsx() {
             <thead>
               <tr class="border-b border-slate-200 bg-slate-50/70 text-[11px] font-bold uppercase tracking-wider text-slate-600">
                 <th scope="col" class="w-[27%] px-3.5 py-3">Pos {{ dimension === 'kbli' ? 'KBLI (17 Sektor)' : 'Pengeluaran' }}</th>
-                <th scope="col" class="w-[9%] px-2 py-3 text-right">{{ trendData.baseline.label }}</th>
-                <th scope="col" class="w-[9%] px-2 py-3 text-right">{{ trendData.period.label }}</th>
-                <th scope="col" class="w-[14%] px-2 py-3 text-right">Delta</th>
-                <th scope="col" class="w-[14%] px-3 py-3">Dominan Dampak</th>
+                <th scope="col" class="w-[10%] px-2 py-3 text-right">
+                  {{ metricMode === 'volume' ? trendData.baseline.label : metricMode === 'share' ? `Pangsa ${trendData.baseline.shortLabel}` : `NBI ${trendData.baseline.shortLabel}` }}
+                </th>
+                <th scope="col" class="w-[10%] px-2 py-3 text-right">
+                  {{ metricMode === 'volume' ? trendData.period.label : metricMode === 'share' ? `Pangsa ${trendData.period.shortLabel}` : `NBI ${trendData.period.shortLabel}` }}
+                </th>
+                <th scope="col" class="w-[13%] px-2 py-3 text-right">
+                  {{ metricMode === 'volume' ? 'Delta Volume' : metricMode === 'share' ? 'Delta Pangsa' : 'Sentimen NBI' }}
+                </th>
+                <th scope="col" class="w-[13%] px-3 py-3">Dominan Dampak</th>
                 <th scope="col" class="w-[19%] px-3 py-3">Headline Terbaru</th>
                 <th scope="col" class="w-[8%] px-3.5 py-3 text-right">Arsip</th>
               </tr>
@@ -663,7 +729,7 @@ function handleExportXlsx() {
               >
                 <th scope="row" class="px-3.5 py-3 text-left font-medium text-slate-900 min-w-0">
                   <span
-                    class="inline-block text-[10px] font-bold px-1.5 py-0.5 rounded-full border mr-1.5"
+                    class="inline-block text-[10px] font-bold px-1.5 py-0.5 rounded-full border mr-1.5 font-mono"
                     :class="
                       dimension === 'kbli'
                         ? getKbliClusterTheme(row.code).pillClass
@@ -674,14 +740,19 @@ function handleExportXlsx() {
                   </span>
                   <span class="break-words">{{ row.label }}</span>
                 </th>
-                <td class="px-2 py-3 text-right tabular-nums text-slate-600 font-medium">
-                  {{ row.baselineCount }}
+                <td class="px-2 py-3 text-right tabular-nums text-slate-600 font-medium font-mono">
+                  <template v-if="metricMode === 'volume'">{{ row.baselineCount }}</template>
+                  <template v-else-if="metricMode === 'share'">{{ row.baselineSharePercent }}%</template>
+                  <template v-else>{{ row.baselineNetBalanceIndex !== null ? (row.baselineNetBalanceIndex > 0 ? `+${row.baselineNetBalanceIndex}%` : `${row.baselineNetBalanceIndex}%`) : '—' }}</template>
                 </td>
-                <td class="px-2 py-3 text-right font-extrabold tabular-nums text-slate-900">
-                  {{ row.currentCount }}
+                <td class="px-2 py-3 text-right font-extrabold tabular-nums text-slate-900 font-mono">
+                  <template v-if="metricMode === 'volume'">{{ row.currentCount }}</template>
+                  <template v-else-if="metricMode === 'share'">{{ row.currentSharePercent }}%</template>
+                  <template v-else>{{ row.netBalanceIndex !== null ? (row.netBalanceIndex > 0 ? `+${row.netBalanceIndex}%` : `${row.netBalanceIndex}%`) : '—' }}</template>
                 </td>
-                <td class="px-2 py-3 text-right tabular-nums">
+                <td class="px-2 py-3 text-right tabular-nums font-mono">
                   <span
+                    v-if="metricMode === 'volume'"
                     class="inline-flex items-center px-2 py-0.5 rounded-full border text-[10px] font-bold"
                     :class="
                       row.deltaCount > 0
@@ -695,6 +766,42 @@ function handleExportXlsx() {
                     <template v-if="row.deltaPercent !== null">
                       &nbsp;({{ row.deltaPercent > 0 ? '+' : '' }}{{ row.deltaPercent }}%)
                     </template>
+                  </span>
+                  <span
+                    v-else-if="metricMode === 'share'"
+                    class="inline-flex items-center px-2 py-0.5 rounded-full border text-[10px] font-bold"
+                    :class="
+                      (row.deltaSharePercent ?? 0) > 0
+                        ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                        : (row.deltaSharePercent ?? 0) < 0
+                          ? 'bg-rose-50 text-rose-700 border-rose-200'
+                          : 'bg-slate-50 text-slate-600 border-slate-200'
+                    "
+                  >
+                    {{ (row.deltaSharePercent ?? 0) > 0 ? `+${row.deltaSharePercent}` : (row.deltaSharePercent ?? 0) }}% pt
+                  </span>
+                  <span
+                    v-else
+                    class="inline-flex items-center px-2 py-0.5 rounded-full border text-[10px] font-bold"
+                    :class="
+                      row.netBalanceIndex === null
+                        ? 'bg-slate-50 text-slate-400 border-slate-200'
+                        : row.netBalanceIndex > 0
+                          ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                          : row.netBalanceIndex < 0
+                            ? 'bg-rose-50 text-rose-700 border-rose-200'
+                            : 'bg-amber-50 text-amber-800 border-amber-200'
+                    "
+                  >
+                    {{
+                      row.netBalanceIndex === null
+                        ? 'Data Gap'
+                        : row.netBalanceIndex > 0
+                          ? `Ekspansi (${row.netBalanceIndex > 0 ? '+' : ''}${row.netBalanceIndex}%)`
+                          : row.netBalanceIndex < 0
+                            ? `Kontraksi (${row.netBalanceIndex}%)`
+                            : 'Seimbang (0%)'
+                    }}
                   </span>
                 </td>
                 <td class="px-3 py-3">
@@ -765,22 +872,50 @@ function handleExportXlsx() {
               </NuxtLink>
             </div>
 
-            <div class="grid grid-cols-3 gap-2 rounded-xl bg-slate-50 border border-slate-200/70 p-2.5 text-xs tabular-nums">
+            <div class="grid grid-cols-3 gap-2 rounded-xl bg-slate-50 border border-slate-200/70 p-2.5 text-xs tabular-nums font-mono">
               <div>
-                <div class="text-[10px] text-slate-500">{{ trendData.baseline.label }}</div>
-                <div class="font-semibold text-slate-700 mt-0.5">{{ row.baselineCount }}</div>
+                <div class="text-[10px] text-slate-500 font-sans">
+                  {{ metricMode === 'volume' ? trendData.baseline.shortLabel : metricMode === 'share' ? `Pangsa ${trendData.baseline.shortLabel}` : `NBI ${trendData.baseline.shortLabel}` }}
+                </div>
+                <div class="font-semibold text-slate-700 mt-0.5">
+                  <template v-if="metricMode === 'volume'">{{ row.baselineCount }}</template>
+                  <template v-else-if="metricMode === 'share'">{{ row.baselineSharePercent }}%</template>
+                  <template v-else>{{ row.baselineNetBalanceIndex !== null ? (row.baselineNetBalanceIndex > 0 ? `+${row.baselineNetBalanceIndex}%` : `${row.baselineNetBalanceIndex}%`) : '—' }}</template>
+                </div>
               </div>
               <div>
-                <div class="text-[10px] text-slate-500">{{ trendData.period.label }}</div>
-                <div class="font-extrabold text-slate-900 mt-0.5">{{ row.currentCount }}</div>
+                <div class="text-[10px] text-slate-500 font-sans">
+                  {{ metricMode === 'volume' ? trendData.period.shortLabel : metricMode === 'share' ? `Pangsa ${trendData.period.shortLabel}` : `NBI ${trendData.period.shortLabel}` }}
+                </div>
+                <div class="font-extrabold text-slate-900 mt-0.5">
+                  <template v-if="metricMode === 'volume'">{{ row.currentCount }}</template>
+                  <template v-else-if="metricMode === 'share'">{{ row.currentSharePercent }}%</template>
+                  <template v-else>{{ row.netBalanceIndex !== null ? (row.netBalanceIndex > 0 ? `+${row.netBalanceIndex}%` : `${row.netBalanceIndex}%`) : '—' }}</template>
+                </div>
               </div>
               <div>
-                <div class="text-[10px] text-slate-500">Delta</div>
+                <div class="text-[10px] text-slate-500 font-sans">
+                  {{ metricMode === 'volume' ? 'Delta' : metricMode === 'share' ? 'Delta Pt' : 'Sentimen' }}
+                </div>
                 <div
                   class="font-bold mt-0.5"
-                  :class="row.deltaCount > 0 ? 'text-emerald-700' : row.deltaCount < 0 ? 'text-rose-700' : 'text-slate-600'"
+                  :class="
+                    metricMode === 'volume'
+                      ? (row.deltaCount > 0 ? 'text-emerald-700' : row.deltaCount < 0 ? 'text-rose-700' : 'text-slate-600')
+                      : metricMode === 'share'
+                        ? ((row.deltaSharePercent ?? 0) > 0 ? 'text-emerald-700' : (row.deltaSharePercent ?? 0) < 0 ? 'text-rose-700' : 'text-slate-600')
+                        : (row.netBalanceIndex !== null && row.netBalanceIndex > 0 ? 'text-emerald-700' : row.netBalanceIndex !== null && row.netBalanceIndex < 0 ? 'text-rose-700' : 'text-slate-600')
+                  "
                 >
-                  {{ row.deltaCount > 0 ? `+${row.deltaCount}` : row.deltaCount }}
+                  <template v-if="metricMode === 'volume'">
+                    {{ row.deltaCount > 0 ? `+${row.deltaCount}` : row.deltaCount }}
+                  </template>
+                  <template v-else-if="metricMode === 'share'">
+                    {{ (row.deltaSharePercent ?? 0) > 0 ? `+${row.deltaSharePercent}` : (row.deltaSharePercent ?? 0) }}%
+                  </template>
+                  <template v-else>
+                    {{ row.netBalanceIndex !== null ? (row.netBalanceIndex > 0 ? 'Ekspansif' : row.netBalanceIndex < 0 ? 'Kontraksi' : 'Seimbang') : 'Gap' }}
+                  </template>
                 </div>
               </div>
             </div>

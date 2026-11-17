@@ -30,17 +30,6 @@ definePageMeta({
   layout: 'default',
 });
 
-useHead({
-  title: 'Linimasa Fenomena Ekonomi — SIPENA KTT',
-  meta: [
-    {
-      name: 'description',
-      content:
-        'Rekam jejak dinamika sektor usaha, pergerakan harga, dan aktivitas ekonomi Kabupaten Tana Tidung secara terkurasi dan transparan.',
-    },
-  ],
-});
-
 const route = useRoute();
 const router = useRouter();
 const {
@@ -49,6 +38,18 @@ const {
   selectedQuarter: sharedSelectedQuarter,
   totalVerifiedInPeriod,
 } = usePublicPortalState();
+
+useSeoMeta({
+  title: () =>
+    `Linimasa Dinamika Ekonomi TW ${toRomanQuarter(selectedQuarter.value)} ${selectedYear.value} — SIPENA KTT`,
+  ogTitle: () =>
+    `Linimasa Dinamika Ekonomi TW ${toRomanQuarter(selectedQuarter.value)} ${selectedYear.value} — SIPENA KTT`,
+  description:
+    'Rekam jejak dinamika sektor usaha, pergerakan harga, dan aktivitas ekonomi Kabupaten Tana Tidung secara terkurasi dan transparan.',
+  ogDescription:
+    'Rekam jejak dinamika sektor usaha, pergerakan harga, dan aktivitas ekonomi Kabupaten Tana Tidung secara terkurasi dan transparan.',
+  ogType: 'website',
+});
 
 const {
   getKbliShortCodeName,
