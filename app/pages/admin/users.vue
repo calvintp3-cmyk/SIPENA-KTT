@@ -69,6 +69,8 @@ const activeCount = computed<number>(
 
 const formModalOpen = ref(false);
 const editingUser = ref<AdminUserItem | null>(null);
+const passwordModalOpen = ref(false);
+const passwordTarget = ref<AdminUserItem | null>(null);
 const togglingIds = ref<Set<string>>(new Set());
 
 const deleteModalOpen = ref(false);
@@ -83,6 +85,11 @@ function openCreateModal() {
 function openEditModal(item: AdminUserItem) {
   editingUser.value = item;
   formModalOpen.value = true;
+}
+
+function openPasswordModal(item: AdminUserItem) {
+  passwordTarget.value = item;
+  passwordModalOpen.value = true;
 }
 
 async function toggleActiveStatus(item: AdminUserItem, nextVal: boolean) {
@@ -377,6 +384,17 @@ const columns: TableColumn<AdminUserItem>[] = [
 
             <template #actions-cell="{ row }">
               <div class="flex items-center gap-1">
+                <UTooltip text="Ganti Kata Sandi">
+                  <UButton
+                    size="sm"
+                    color="neutral"
+                    variant="subtle"
+                    icon="i-lucide-key-round"
+                    aria-label="Ganti kata sandi akun"
+                    class="min-w-8 min-h-8"
+                    @click="() => { openPasswordModal(row.original); }"
+                  />
+                </UTooltip>
                 <UTooltip text="Edit Akses Staf">
                   <UButton
                     size="sm"
@@ -450,6 +468,15 @@ const columns: TableColumn<AdminUserItem>[] = [
               <div class="flex items-center gap-1 shrink-0">
                 <UButton
                   size="xs"
+                  color="neutral"
+                  variant="subtle"
+                  icon="i-lucide-key-round"
+                  aria-label="Ganti kata sandi akun"
+                  class="min-w-8 min-h-8"
+                  @click="() => { openPasswordModal(u); }"
+                />
+                <UButton
+                  size="xs"
                   color="primary"
                   variant="subtle"
                   icon="i-lucide-pencil"
@@ -509,6 +536,12 @@ const columns: TableColumn<AdminUserItem>[] = [
         v-model:open="formModalOpen"
         :editing-user="editingUser"
         :current-user-id="user?.id ?? null"
+        @saved="() => { void loadUsers(); }"
+      />
+
+      <AdminUserPasswordModal
+        v-model:open="passwordModalOpen"
+        :target-user="passwordTarget"
         @saved="() => { void loadUsers(); }"
       />
 
