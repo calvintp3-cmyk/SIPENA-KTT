@@ -132,7 +132,7 @@ const sectorBars = computed(() => {
   return items.map((s) => {
     const isTop = topCode && s.kbliCodes.includes(topCode);
     const heightPct = s.count === 0 ? 4 : Math.max(14, Math.round((s.count / maxCount) * 100));
-    const shortCode = s.groupCode === 'M,N' ? 'MN' : s.groupCode === 'R,S,T,U' ? 'RU' : s.groupCode;
+    const shortCode = s.groupCode === 'R,S,T,U' ? 'R–U' : s.groupCode === 'S,T,U,V' ? 'S–V' : s.groupCode;
 
     let barClass = 'bg-slate-300';
     if (s.count === 0) {
@@ -168,10 +168,13 @@ const dominantSectorText = computed(() => {
   return `${dom.code} — ${dom.name}`;
 });
 
-const deltaBadgeText = computed(() => {
+const deltaBadge = computed(() => {
   const d = activeOverview.value?.kpi.deltaPercent;
   if (d === null || d === undefined) return null;
-  return `${d >= 0 ? '↑ +' : '↓ '}${d}%`;
+  return {
+    text: `${d >= 0 ? '↑ +' : '↓ '}${d}%`,
+    isPositive: d >= 0,
+  };
 });
 
 const previewModalOpen = ref(false);
@@ -431,10 +434,11 @@ const capabilitySteps = [
                       Fenomena Terverifikasi ({{ snapshotPeriodLabel }})
                     </span>
                     <span
-                      v-if="deltaBadgeText"
-                      class="px-2 py-0.5 rounded-full bg-[#ECFDF5] text-[#059669] text-[11px] font-bold tabular-nums"
+                      v-if="deltaBadge"
+                      class="px-2 py-0.5 rounded-full text-[11px] font-bold tabular-nums"
+                      :class="deltaBadge.isPositive ? 'bg-[#ECFDF5] text-[#059669]' : 'bg-amber-50 text-amber-700'"
                     >
-                      {{ deltaBadgeText }}
+                      {{ deltaBadge.text }}
                     </span>
                   </div>
                   <div class="mt-1.5 flex items-baseline gap-2.5">
