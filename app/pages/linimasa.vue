@@ -515,18 +515,38 @@ const latestPopulatedPeriod = computed(() => {
   };
 });
 
+const inspectedArticle = ref<PublicArticleItem | null>(null);
+
+watch(
+  () => articlesResponse.value?.items,
+  (items) => {
+    if (!items || items.length === 0) {
+      inspectedArticle.value = null;
+      return;
+    }
+    const stillPresent = inspectedArticle.value
+      ? items.find((i) => i.id === inspectedArticle.value?.id)
+      : undefined;
+    inspectedArticle.value = stillPresent ?? items[0] ?? null;
+  },
+  { immediate: true },
+);
+
 function openDetailModal(article: PublicArticleItem) {
+  inspectedArticle.value = article;
   selectedArticle.value = article;
-  detailModalOpen.value = true;
+  if (typeof window !== 'undefined' && window.innerWidth < 1280) {
+    detailModalOpen.value = true;
+  }
 }
 </script>
 
 <template>
   <div class="space-y-6">
-    <!-- Top Editorial Command Header (Cobalt-Emerald Luminous Surface) -->
+    <!-- Top Editorial Command Header (Warm Porcelain & Deep Pine) -->
     <section
       aria-label="Kontrol Periode dan Ringkasan Linimasa"
-      class="saas-card rounded-xl p-5 sm:p-7 relative overflow-hidden"
+      class="bg-white border border-[#E7E4DC] rounded-2xl p-5 sm:p-6 shadow-[0_1px_2px_rgba(26,29,27,0.03),0_10px_24px_-12px_rgba(26,29,27,0.06)] relative overflow-hidden"
     >
       <div class="flex flex-col gap-5">
         <!-- Title Row & View Switcher -->
@@ -534,25 +554,25 @@ function openDetailModal(article: PublicArticleItem) {
           <div class="space-y-2 max-w-3xl">
             <div class="flex flex-wrap items-center gap-2">
               <span
-                class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-blue-800 border border-blue-200/80 text-xs font-semibold font-mono"
+                class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FCECE8] text-[#B4482D] border border-[#F5C6BA] text-xs font-bold"
               >
-                <UIcon name="i-solar-calendar-search-bold-duotone" class="w-3.5 h-3.5 text-blue-700" />
-                <span>Linimasa Fenomena Ekonomi • {{ currentPeriodLabel }}</span>
+                <UIcon name="i-solar-calendar-search-bold-duotone" class="w-3.5 h-3.5 text-[#C2593F]" />
+                <span>Portal Transparansi • {{ currentPeriodLabel }}</span>
               </span>
 
               <span
-                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200/80 text-xs font-semibold tabular-nums font-mono"
+                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#E7F3EE] text-[#0F4C3A] border border-[#C3DFD3] text-xs font-bold tabular-nums"
               >
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-600" />
+                <span class="w-1.5 h-1.5 rounded-full bg-[#0F4C3A]" />
                 <span>{{ formatNumberId(overview?.kpi.totalVerified ?? 0) }} Terverifikasi</span>
               </span>
             </div>
 
-            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 leading-tight font-display">
-              Portal Fenomena PDRB Kabupaten Tana Tidung
+            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#1A1D1B] leading-tight font-display">
+              Linimasa Dinamika Ekonomi Tana Tidung
             </h1>
 
-            <p class="text-sm text-slate-600 leading-relaxed">
+            <p class="text-sm text-[#5C615E] leading-relaxed">
               Rekam jejak dinamika sektor usaha, pergerakan harga, dan aktivitas ekonomi Kabupaten
               Tana Tidung secara terkurasi dan transparan.
             </p>
@@ -563,7 +583,7 @@ function openDetailModal(article: PublicArticleItem) {
             <div
               role="group"
               aria-label="Mode Tampilan Linimasa"
-              class="inline-flex p-1 rounded-xl bg-slate-100/95 border border-slate-200/90 font-display"
+              class="inline-flex p-1 rounded-xl bg-[#F2F0EB] border border-[#E7E4DC] font-display"
             >
               <button
                 type="button"
@@ -571,13 +591,13 @@ function openDetailModal(article: PublicArticleItem) {
                 class="min-h-9 px-3.5 py-1.5 rounded-lg text-xs inline-flex items-center gap-1.5 transition-colors cursor-pointer"
                 :class="
                   viewMode === 'stream'
-                    ? 'bg-white text-blue-700 font-semibold shadow-2xs border border-blue-200/70'
-                    : 'text-slate-600 hover:text-slate-950 font-medium'
+                    ? 'bg-[#0F4C3A] text-white font-semibold shadow-2xs'
+                    : 'text-[#575B58] hover:text-[#1A1D1B] font-medium'
                 "
                 @click="() => { viewMode = 'stream'; }"
               >
                 <UIcon name="i-solar-list-heart-bold-duotone" class="w-4 h-4" />
-                <span>Linimasa Stream</span>
+                <span>Split Inspector</span>
               </button>
               <button
                 type="button"
@@ -585,8 +605,8 @@ function openDetailModal(article: PublicArticleItem) {
                 class="min-h-9 px-3.5 py-1.5 rounded-lg text-xs inline-flex items-center gap-1.5 transition-colors cursor-pointer"
                 :class="
                   viewMode === 'table'
-                    ? 'bg-white text-blue-700 font-semibold shadow-2xs border border-blue-200/70'
-                    : 'text-slate-600 hover:text-slate-950 font-medium'
+                    ? 'bg-[#0F4C3A] text-white font-semibold shadow-2xs'
+                    : 'text-[#575B58] hover:text-[#1A1D1B] font-medium'
                 "
                 @click="() => { viewMode = 'table'; }"
               >
@@ -920,38 +940,120 @@ function openDetailModal(article: PublicArticleItem) {
             </div>
           </div>
 
-          <!-- Mode 1: Linimasa Stream -->
-          <div v-else-if="viewMode === 'stream'" class="timeline-spine space-y-6 pt-1">
-            <section
-              v-for="group in timelineDateGroups"
-              :key="group.dateKey"
-              class="relative pl-12 space-y-3"
-            >
-              <!-- Date Marker Node on Spine -->
-              <div
-                class="absolute left-0 top-0.5 w-10 h-10 rounded-xl bg-blue-700 text-white shadow-xs flex flex-col items-center justify-center leading-none z-10"
+          <!-- Mode 1: Master-Detail Split View on XL+ / Stream on Smaller Screens -->
+          <div v-else-if="viewMode === 'stream'" class="grid grid-cols-1 xl:grid-cols-12 gap-5 pt-1">
+            <!-- Left Feed List -->
+            <div class="xl:col-span-6 timeline-spine space-y-6">
+              <section
+                v-for="group in timelineDateGroups"
+                :key="group.dateKey"
+                class="relative pl-12 space-y-3"
               >
-                <span class="text-sm font-bold font-mono tabular-nums">{{ group.dayLabel }}</span>
-              </div>
+                <!-- Date Marker Node on Spine -->
+                <div
+                  class="absolute left-0 top-0.5 w-10 h-10 rounded-xl bg-[#0F4C3A] text-white shadow-xs flex flex-col items-center justify-center leading-none z-10"
+                >
+                  <span class="text-sm font-bold tabular-nums">{{ group.dayLabel }}</span>
+                </div>
 
-              <div class="flex items-center justify-between gap-2 pt-1">
-                <h2 class="text-xs font-bold tracking-wide text-slate-700 font-display">
-                  {{ group.dayLabel }} {{ group.monthYearLabel }}
+                <div class="flex items-center justify-between gap-2 pt-1">
+                  <h2 class="text-xs font-bold tracking-wide text-[#575B58] font-display">
+                    {{ group.dayLabel }} {{ group.monthYearLabel }}
+                  </h2>
+                  <span class="text-xs font-bold text-[#0F4C3A] tabular-nums">
+                    {{ group.items.length }} Fenomena
+                  </span>
+                </div>
+
+                <div class="space-y-3">
+                  <div
+                    v-for="article in group.items"
+                    :key="article.id"
+                    class="rounded-2xl transition-all"
+                    :class="
+                      inspectedArticle?.id === article.id
+                        ? 'xl:ring-2 xl:ring-[#0F4C3A] xl:bg-[#F2F7F5]/60'
+                        : ''
+                    "
+                  >
+                    <PublicPhenomenonFeedCard
+                      :article="article"
+                      @select="openDetailModal"
+                    />
+                  </div>
+                </div>
+              </section>
+            </div>
+
+            <!-- Right Sticky Master-Detail Article Inspector (Desktop XL+) -->
+            <aside
+              v-if="inspectedArticle"
+              aria-label="Panel Baca Detail Fenomena"
+              class="hidden xl:block xl:col-span-6"
+            >
+              <div class="sticky top-2 bg-[#FAF9F7] border border-[#E7E4DC] rounded-2xl p-6 space-y-5">
+                <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-[#5C615E]">
+                  <span class="px-2.5 py-1 rounded-full bg-[#E7F3EE] text-[#0F4C3A] font-bold">
+                    KBLI {{ inspectedArticle.kbliCategory }}
+                  </span>
+                  <span class="tabular-nums font-medium">
+                    {{ formatDateId(inspectedArticle.publishedAt) }} • {{ inspectedArticle.sourcePortal }}
+                  </span>
+                </div>
+
+                <h2 class="text-xl font-extrabold text-[#1A1D1B] leading-snug font-display">
+                  {{ inspectedArticle.title }}
                 </h2>
-                <span class="text-xs font-bold text-blue-700 font-mono tabular-nums">
-                  {{ group.items.length }} Fenomena
-                </span>
-              </div>
 
-              <div class="space-y-3.5">
-                <PublicPhenomenonFeedCard
-                  v-for="article in group.items"
-                  :key="article.id"
-                  :article="article"
-                  @select="openDetailModal"
-                />
+                <div class="grid grid-cols-2 gap-3">
+                  <div class="bg-white border border-[#E7E4DC] rounded-xl p-3.5 space-y-1">
+                    <div class="text-[10.5px] font-bold uppercase tracking-wider text-[#6B6F6C]">
+                      Lapangan Usaha (KBLI)
+                    </div>
+                    <div class="text-xs font-bold text-[#1A1D1B]">
+                      {{ getKbliShortCodeName(inspectedArticle.kbliCategory) }}
+                    </div>
+                    <div v-if="inspectedArticle.kbliImpact" class="text-[11px] font-semibold text-[#0F4C3A]">
+                      {{ getKbliImpactBadge(inspectedArticle.kbliImpact).label }}
+                    </div>
+                  </div>
+                  <div class="bg-white border border-[#E7E4DC] rounded-xl p-3.5 space-y-1">
+                    <div class="text-[10.5px] font-bold uppercase tracking-wider text-[#6B6F6C]">
+                      Pengeluaran PDRB
+                    </div>
+                    <div class="text-xs font-bold text-[#1A1D1B]">
+                      {{ inspectedArticle.expenditureComponent ? getExpenditureLabel(inspectedArticle.expenditureComponent, false) : '—' }}
+                    </div>
+                    <div v-if="inspectedArticle.expenditureImpact" class="text-[11px] font-semibold text-[#0F4C3A]">
+                      {{ getExpenditureImpactBadge(inspectedArticle.expenditureImpact).label }}
+                    </div>
+                  </div>
+                </div>
+
+                <p class="text-[13.5px] text-[#3D423F] leading-relaxed whitespace-pre-line">
+                  {{ inspectedArticle.summary }}
+                </p>
+
+                <div class="pt-4 border-t border-[#E7E4DC] flex items-center justify-between gap-3 text-xs">
+                  <a
+                    :href="inspectedArticle.url"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="inline-flex items-center gap-1.5 font-semibold text-[#0F4C3A] hover:underline"
+                  >
+                    <span>Buka Berita Asli</span>
+                    <UIcon name="i-lucide-external-link" class="w-3.5 h-3.5" />
+                  </a>
+                  <button
+                    type="button"
+                    class="px-3 py-1.5 rounded-lg bg-white border border-[#DDD9D0] text-xs font-semibold text-[#1A1D1B] hover:bg-[#F2F0EB] cursor-pointer"
+                    @click="() => { selectedArticle = inspectedArticle; detailModalOpen = true; }"
+                  >
+                    Perbesar Modal
+                  </button>
+                </div>
               </div>
-            </section>
+            </aside>
           </div>
 
           <!-- Mode 2: Tabel Ringkas -->

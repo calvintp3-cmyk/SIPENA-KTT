@@ -178,27 +178,26 @@ async function handleSubmit(event: FormSubmitEvent<LoginRequestInput>) {
 
 <template>
   <div
-    class="min-h-screen bg-slate-50 text-slate-900 relative flex flex-col justify-center items-center px-4 py-12 selection:bg-blue-600 selection:text-white canvas-aurora-light overflow-hidden"
+    class="min-h-screen bg-[#F9F8F6] text-[#1A1D1B] relative flex flex-col justify-center items-center px-4 py-12 selection:bg-[#0F4C3A] selection:text-white overflow-hidden"
   >
-    <main id="main-content" tabindex="-1" class="w-full max-w-[430px] relative z-10">
-      <!-- Executive Government Analytical Console Card -->
+    <main id="main-content" tabindex="-1" class="w-full max-w-[408px] relative z-10 space-y-5">
       <div
-        class="bg-white rounded-2xl border border-slate-200/90 shadow-[0_1px_3px_rgba(15,23,42,0.05),0_20px_45px_-15px_rgba(15,23,42,0.08)] p-6 sm:p-8 space-y-5"
+        class="bg-white rounded-2xl border border-[#E7E4DC] shadow-[0_2px_10px_rgba(26,29,27,0.04),0_20px_44px_-16px_rgba(26,29,27,0.08)] p-7 sm:p-8 space-y-5"
       >
         <!-- Active Session Card -->
         <div v-if="user" class="text-center space-y-4 py-3">
-          <div class="w-14 h-14 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center mx-auto shadow-xs">
+          <div class="w-14 h-14 rounded-2xl bg-[#E7F3EE] border border-[#C3DFD3] text-[#0F4C3A] flex items-center justify-center mx-auto">
             <UIcon name="i-solar-check-circle-bold-duotone" class="w-7 h-7" />
           </div>
           <div class="space-y-1">
-            <h1 class="text-lg font-extrabold text-slate-900 font-display">Sesi Aktif Terdeteksi</h1>
-            <p class="text-xs text-slate-600">
-              Anda terautentikasi sebagai <strong class="text-slate-900">{{ user.name }}</strong> ({{ user.role }}).
+            <h1 class="text-lg font-extrabold text-[#1A1D1B] font-display">Sesi Aktif Terdeteksi</h1>
+            <p class="text-xs text-[#5C615E]">
+              Anda terautentikasi sebagai <strong class="text-[#1A1D1B]">{{ user.name }}</strong> ({{ user.role }}).
             </p>
           </div>
           <NuxtLink
             to="/admin"
-            class="btn-primary-gradient w-full h-11 px-5 rounded-xl text-xs font-semibold inline-flex items-center justify-center gap-2 cursor-pointer"
+            class="btn-primary-gradient w-full h-11 px-5 rounded-[10px] text-xs font-semibold inline-flex items-center justify-center gap-2 cursor-pointer"
           >
             <UIcon name="i-solar-widget-5-bold-duotone" class="w-4 h-4 text-white" />
             <span>Buka Workstation Admin</span>
@@ -208,29 +207,26 @@ async function handleSubmit(event: FormSubmitEvent<LoginRequestInput>) {
 
         <!-- Normal Login Card -->
         <div v-else class="space-y-5">
-          <!-- Institutional Security Badge & Brand Header -->
-          <div class="text-center space-y-3">
-            <div
-              class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-[10px] font-bold text-slate-700 tracking-wider uppercase"
-            >
-              <span class="w-2 h-2 rounded-full bg-emerald-500" />
-              <span>BPS KTT • Nerwilis Secure Gateway</span>
+          <!-- Brand Header -->
+          <div class="space-y-3">
+            <div class="flex items-center gap-2.5">
+              <div
+                class="w-9 h-9 rounded-[9px] bg-[#0F4C3A] text-white flex items-center justify-center font-display font-extrabold text-xs tracking-tight shrink-0"
+              >
+                SK
+              </div>
+              <span class="font-display font-extrabold text-base text-[#1A1D1B] tracking-tight">
+                SIPENA <span class="text-[#0F4C3A]">KTT</span>
+              </span>
             </div>
 
-            <div class="flex items-center justify-center gap-3 pt-1">
-              <div
-                class="w-11 h-11 rounded-xl bg-blue-800 text-white flex items-center justify-center shadow-xs shrink-0"
-              >
-                <UIcon name="i-solar-chart-2-bold-duotone" class="w-6 h-6" />
-              </div>
-              <div class="text-left">
-                <div class="font-extrabold text-lg text-slate-900 tracking-tight leading-tight font-display">
-                  SIPENA <span class="text-blue-700">KTT</span>
-                </div>
-                <div class="text-[11px] font-medium text-slate-500">
-                  Konsol Kurasi &amp; Analisis PDRB
-                </div>
-              </div>
+            <div>
+              <h1 class="text-xl font-extrabold text-[#1A1D1B] tracking-tight font-display">
+                Masuk ke Workstation
+              </h1>
+              <p class="text-[13px] text-[#5C615E] mt-1 leading-relaxed">
+                Gunakan akun staf BPS Kabupaten Tana Tidung yang terdaftar untuk mengakses konsol kurasi PDRB.
+              </p>
             </div>
           </div>
 
@@ -254,54 +250,7 @@ async function handleSubmit(event: FormSubmitEvent<LoginRequestInput>) {
             class="text-xs"
           />
 
-          <!-- Google Auth Button (Primary Single Click) -->
-          <div class="space-y-2">
-            <button
-              type="button"
-              :disabled="!googleLoginEnabled || isRedirectingGoogle"
-              class="w-full h-11 px-4 rounded-xl bg-white hover:bg-slate-50 border border-slate-300 text-slate-800 text-xs font-semibold shadow-2xs hover:border-slate-400 transition-all flex items-center justify-center gap-2.5 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-              @click="handleGoogleLogin"
-            >
-              <svg class="w-4.5 h-4.5 shrink-0" viewBox="0 0 24 24" aria-hidden="true">
-                <path
-                  fill="#4285F4"
-                  d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17Z"
-                />
-                <path
-                  fill="#34A853"
-                  d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.11-6.72-4.96H1.29v3.14C3.26 21.3 7.31 24 12 24Z"
-                />
-                <path
-                  fill="#FBBC05"
-                  d="M5.28 14.24c-.24-.72-.38-1.49-.38-2.24s.14-1.52.38-2.24V6.62H1.29C.47 8.24 0 10.06 0 12s.47 3.76 1.29 5.38l3.99-3.14Z"
-                />
-                <path
-                  fill="#EA4335"
-                  d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.62l3.99 3.14c.95-2.85 3.6-4.96 6.72-4.96Z"
-                />
-              </svg>
-              <span>{{ isRedirectingGoogle ? 'Mengalihkan ke Google...' : 'Masuk Cepat dengan Akun Google' }}</span>
-            </button>
-
-            <p
-              v-if="providersData && !googleLoginEnabled"
-              class="text-[11px] text-amber-800 bg-amber-50 border border-amber-200 rounded-xl p-2.5 text-center"
-            >
-              Google OAuth belum aktif di server. Gunakan email &amp; kata sandi di bawah.
-            </p>
-          </div>
-
-          <!-- Divider -->
-          <div class="relative flex items-center justify-center">
-            <div class="absolute inset-0 flex items-center">
-              <div class="w-full border-t border-slate-200" />
-            </div>
-            <span class="relative px-3 bg-white text-[11px] font-medium text-slate-500">
-              atau gunakan kata sandi
-            </span>
-          </div>
-
-          <!-- Email & Password Form -->
+          <!-- Primary Email & Password Form (Upfront) -->
           <UForm
             method="post"
             :schema="LoginRequestSchema"
@@ -309,14 +258,14 @@ async function handleSubmit(event: FormSubmitEvent<LoginRequestInput>) {
             class="space-y-3.5"
             @submit="handleSubmit"
           >
-            <UFormField label="Alamat Email Staf" name="email" required>
+            <UFormField label="Email Staf" name="email" required>
               <UInput
                 v-model="formState.email"
                 type="email"
                 placeholder="nama@bps.go.id"
                 icon="i-lucide-mail"
                 autocomplete="email"
-                size="sm"
+                size="md"
                 class="w-full"
               />
             </UFormField>
@@ -328,7 +277,7 @@ async function handleSubmit(event: FormSubmitEvent<LoginRequestInput>) {
                 placeholder="Masukkan kata sandi akun"
                 icon="i-lucide-lock"
                 autocomplete="current-password"
-                size="sm"
+                size="md"
                 class="w-full"
               >
                 <template #trailing>
@@ -348,41 +297,69 @@ async function handleSubmit(event: FormSubmitEvent<LoginRequestInput>) {
             <button
               type="submit"
               :disabled="isSubmitting"
-              class="btn-primary-gradient w-full h-10.5 rounded-xl text-xs font-semibold inline-flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+              class="btn-primary-gradient w-full h-10.5 rounded-[10px] text-[13px] font-semibold inline-flex items-center justify-center gap-2 cursor-pointer"
             >
               <UIcon v-if="isSubmitting" name="i-lucide-loader-circle" class="w-4 h-4 animate-spin" />
-              <UIcon v-else name="i-solar-shield-keyhole-bold-duotone" class="w-4 h-4 text-white" />
-              <span>{{ isSubmitting ? 'Memverifikasi Kredensial...' : 'Masuk ke Workstation' }}</span>
+              <span>{{ isSubmitting ? 'Memverifikasi Kredensial...' : 'Masuk dengan Email' }}</span>
             </button>
           </UForm>
-        </div>
 
-        <!-- Security Trust Micro-Bar & Back Link -->
-        <div class="pt-4 border-t border-slate-100 space-y-3">
-          <div class="flex items-center justify-center gap-3 text-[10px] text-slate-500 font-medium text-center">
-            <span class="inline-flex items-center gap-1">
-              <UIcon name="i-lucide-lock" class="w-3 h-3 text-emerald-600" />
-              <span>TLS / AES Encrypted</span>
+          <!-- Divider -->
+          <div class="relative flex items-center justify-center">
+            <div class="absolute inset-0 flex items-center">
+              <div class="w-full border-t border-[#EFECE6]" />
+            </div>
+            <span class="relative px-3 bg-white text-[11px] font-medium text-[#6B6F6C]">
+              atau masuk menggunakan
             </span>
-            <span>•</span>
-            <span class="inline-flex items-center gap-1">
-              <UIcon name="i-lucide-shield-check" class="w-3 h-3 text-blue-600" />
-              <span>RBAC Whitelist</span>
-            </span>
-            <span>•</span>
-            <span>WITA (UTC+8)</span>
           </div>
 
-          <div class="text-center pt-1">
-            <NuxtLink
-              to="/linimasa"
-              class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-blue-700 transition-colors"
+          <!-- Secondary Google Auth Button -->
+          <div class="space-y-2">
+            <button
+              type="button"
+              :disabled="!googleLoginEnabled || isRedirectingGoogle"
+              class="w-full h-10.5 px-4 rounded-[10px] bg-white hover:bg-[#FAF9F7] border border-[#DDD9D0] text-[#1A1D1B] text-[13px] font-semibold transition-colors flex items-center justify-center gap-2.5 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              @click="handleGoogleLogin"
             >
-              <UIcon name="i-lucide-arrow-left" class="w-3.5 h-3.5" />
-              <span>Kembali ke Linimasa Publik</span>
-            </NuxtLink>
+              <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  fill="#4285F4"
+                  d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17Z"
+                />
+                <path
+                  fill="#34A853"
+                  d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.11-6.72-4.96H1.29v3.14C3.26 21.3 7.31 24 12 24Z"
+                />
+                <path
+                  fill="#FBBC05"
+                  d="M5.28 14.24c-.24-.72-.38-1.49-.38-2.24s.14-1.52.38-2.24V6.62H1.29C.47 8.24 0 10.06 0 12s.47 3.76 1.29 5.38l3.99-3.14Z"
+                />
+                <path
+                  fill="#EA4335"
+                  d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.62l3.99 3.14c.95-2.85 3.6-4.96 6.72-4.96Z"
+                />
+              </svg>
+              <span>{{ isRedirectingGoogle ? 'Mengalihkan ke Google...' : 'Google OAuth (Whitelist Staf)' }}</span>
+            </button>
+
+            <p
+              v-if="providersData && !googleLoginEnabled"
+              class="text-[11px] text-[#92400E] bg-[#FEF3C7]/60 border border-[#FDE68A] rounded-xl p-2.5 text-center"
+            >
+              Google OAuth belum aktif di server. Gunakan email &amp; kata sandi di atas.
+            </p>
           </div>
         </div>
+      </div>
+
+      <div class="text-center">
+        <NuxtLink
+          to="/"
+          class="inline-flex items-center gap-1.5 text-xs font-semibold text-[#5C615E] hover:text-[#0F4C3A] transition-colors"
+        >
+          <span>← Kembali ke Portal Publik SIPENA KTT</span>
+        </NuxtLink>
       </div>
     </main>
   </div>

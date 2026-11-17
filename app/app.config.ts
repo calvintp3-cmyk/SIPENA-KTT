@@ -2,9 +2,9 @@
 export default defineAppConfig({
   ui: {
     colors: {
-      primary: 'blue',
-      secondary: 'emerald',
-      neutral: 'slate',
+      primary: 'emerald',
+      secondary: 'teal',
+      neutral: 'stone',
       success: 'emerald',
       warning: 'amber',
       error: 'rose',
@@ -12,7 +12,7 @@ export default defineAppConfig({
     },
     card: {
       slots: {
-        root: 'rounded-xl ring-1 ring-slate-900/[0.07] bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_6px_16px_-4px_rgba(15,23,42,0.04)]',
+        root: 'rounded-2xl ring-1 ring-[#E7E4DC] bg-white shadow-[0_1px_2px_rgba(26,29,27,0.03),0_8px_24px_-12px_rgba(26,29,27,0.06)]',
       },
     },
     button: {

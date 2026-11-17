@@ -205,18 +205,18 @@ onBeforeUnmount(() => {
 
 <template>
   <div
-    class="min-h-screen canvas-aurora-light text-slate-900 font-sans selection:bg-blue-100 selection:text-blue-900"
+    class="min-h-screen bg-[#F9F8F6] text-[#1A1D1B] font-sans selection:bg-[#E7F3EE] selection:text-[#0F4C3A]"
   >
     <a
       href="#main-content"
-      class="no-print sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:px-4 focus:py-2 focus:rounded-xl focus:bg-blue-700 focus:text-white focus:text-xs focus:font-semibold focus:shadow-lg"
+      class="no-print sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:px-4 focus:py-2 focus:rounded-xl focus:bg-[#0F4C3A] focus:text-white focus:text-xs focus:font-semibold focus:shadow-lg"
     >
       Lewati ke konten utama
     </a>
 
-    <!-- Collapsible Modern SaaS Sidebar Rail (Desktop) -->
+    <!-- Floating Porcelain SaaS Sidebar Rail (Desktop) -->
     <aside
-      class="no-print hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-30 lg:flex lg:flex-col bg-white border-r border-slate-200/90 shadow-[4px_0_24px_-16px_rgba(15,23,42,0.06)] transition-[width] duration-200 ease-out"
+      class="no-print hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-30 lg:flex lg:flex-col bg-[#F9F8F6] transition-[width] duration-200 ease-out"
       :class="isSidebarCollapsed ? 'lg:w-20' : 'lg:w-64'"
     >
       <!-- Edge Collapse Toggle Button -->
@@ -224,7 +224,7 @@ onBeforeUnmount(() => {
         type="button"
         :aria-label="isSidebarCollapsed ? 'Perluas sidebar navigasi' : 'Ciutkan sidebar navigasi'"
         :title="isSidebarCollapsed ? 'Perluas sidebar' : 'Ciutkan sidebar'"
-        class="hidden lg:inline-flex items-center justify-center w-7 h-7 rounded-full bg-white border border-slate-200 text-slate-600 hover:text-blue-700 hover:border-blue-300 shadow-xs absolute -right-3.5 top-4.5 z-40 transition-colors cursor-pointer"
+        class="hidden lg:inline-flex items-center justify-center w-7 h-7 rounded-full bg-white border border-[#E7E4DC] text-[#575B58] hover:text-[#0F4C3A] hover:border-[#0F4C3A]/40 shadow-xs absolute -right-3.5 top-5 z-40 transition-colors cursor-pointer"
         @click="() => { toggleSidebarCollapsed(); }"
       >
         <UIcon
@@ -235,26 +235,26 @@ onBeforeUnmount(() => {
 
       <!-- Sidebar Brand Header -->
       <div
-        class="h-16 border-b border-slate-200/80 flex items-center shrink-0"
-        :class="isSidebarCollapsed ? 'justify-center px-2' : 'px-4 gap-2.5'"
+        class="pt-3.5 pb-2 shrink-0"
+        :class="isSidebarCollapsed ? 'px-2.5' : 'px-3'"
       >
         <NuxtLink
           to="/admin"
-          class="flex items-center gap-2.5 min-w-0 rounded-xl py-1"
-          :class="isSidebarCollapsed ? 'justify-center' : ''"
+          class="flex items-center gap-2.5 min-w-0 rounded-xl bg-white border border-[#E7E4DC] p-2.5 shadow-[0_1px_2px_rgba(26,29,27,0.03)]"
+          :class="isSidebarCollapsed ? 'justify-center p-2' : ''"
         >
           <div
-            class="h-9 w-9 rounded-xl bg-blue-700 text-white flex items-center justify-center shrink-0 shadow-[inset_0_1px_0_rgba(255,255,255,0.22),0_2px_8px_-2px_rgba(29,78,216,0.35)]"
+            class="h-8 w-8 rounded-lg bg-[#0F4C3A] text-white flex items-center justify-center shrink-0 font-display font-extrabold text-xs tracking-tight"
           >
-            <UIcon name="i-solar-chart-2-bold-duotone" class="w-5 h-5 text-blue-100" />
+            SK
           </div>
           <div v-if="!isSidebarCollapsed" class="min-w-0">
-            <div class="font-display font-extrabold text-sm tracking-tight text-slate-900 truncate flex items-center gap-1.5">
+            <div class="font-display font-extrabold text-[13.5px] tracking-tight text-[#1A1D1B] truncate flex items-center gap-1.5">
               <span>SIPENA</span>
-              <span class="text-blue-700">KTT</span>
-              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" title="Konsol Aktif • Nerwilis Online" />
+              <span class="text-[#0F4C3A]">KTT</span>
+              <span class="w-1.5 h-1.5 rounded-full bg-[#0F4C3A]" title="Konsol Aktif • Nerwilis Online" />
             </div>
-            <div class="text-[11px] font-medium text-slate-500 truncate">
+            <div class="text-[10.5px] font-medium text-[#6B6F6C] truncate">
               Workstation Nerwilis
             </div>
           </div>
@@ -287,30 +287,30 @@ onBeforeUnmount(() => {
               :to="item.to"
               :aria-current="isActiveRoute(item) ? 'page' : undefined"
               :aria-label="isSidebarCollapsed ? item.label : undefined"
-              class="relative flex items-center rounded-xl text-[13px] min-h-9 transition-[color,background-color,border-color,box-shadow]"
+              class="relative flex items-center rounded-[10px] text-[13px] min-h-9 transition-[color,background-color,border-color,box-shadow]"
               :class="[
                 isSidebarCollapsed ? 'justify-center px-2 py-2.5' : 'justify-between gap-2 px-3 py-2',
                 isActiveRoute(item)
-                  ? 'active-nav-card text-blue-950 font-semibold shadow-xs border border-blue-200/80 bg-blue-50/70 before:absolute before:left-0 before:top-2 before:bottom-2 before:w-1 before:rounded-r-full before:bg-blue-700'
-                  : 'text-slate-700 hover:bg-slate-100/80 hover:text-slate-900 font-medium border border-transparent',
+                  ? 'active-nav-card text-white font-semibold'
+                  : 'text-[#474B48] hover:bg-white/80 hover:text-[#1A1D1B] font-medium border border-transparent',
               ]"
             >
               <span class="flex items-center min-w-0" :class="isSidebarCollapsed ? '' : 'gap-2.5'">
                 <UIcon
                   :name="item.icon"
                   class="w-[18px] h-[18px] shrink-0 transition-colors"
-                  :class="isActiveRoute(item) ? 'text-blue-700' : 'text-slate-500'"
+                  :class="isActiveRoute(item) ? 'text-white' : 'text-[#6B6F6C]'"
                 />
                 <span v-if="!isSidebarCollapsed" class="truncate">{{ item.label }}</span>
               </span>
 
               <span
                 v-if="item.badge !== undefined && !isSidebarCollapsed"
-                class="px-2 py-0.5 rounded-full text-[11px] font-bold tabular-nums shrink-0 border font-mono"
+                class="px-2 py-0.5 rounded-full text-[11px] font-bold tabular-nums shrink-0 border"
                 :class="
                   item.badgeColor === 'error'
-                    ? 'bg-rose-50 text-rose-700 border-rose-200'
-                    : 'bg-amber-50 text-amber-800 border-amber-200'
+                    ? 'bg-[#FCECE8] text-[#B4482D] border-[#F5C6BA]'
+                    : 'bg-[#FEF3C7] text-[#92400E] border-[#FDE68A]'
                 "
               >
                 {{ item.badge }}
@@ -523,12 +523,13 @@ onBeforeUnmount(() => {
 
     <!-- Main Workspace Wrapper -->
     <div
-      class="min-h-screen flex flex-col transition-[padding] duration-200 ease-out"
+      class="min-h-screen flex flex-col transition-[padding] duration-200 ease-out lg:py-3 lg:pr-3"
       :class="isSidebarCollapsed ? 'lg:pl-20' : 'lg:pl-64'"
     >
-      <!-- Full-Width Docked 100% Solid Header (Crisp Freeze Panes, Zero Ghosting/Blur) -->
+      <div class="flex-1 flex flex-col bg-white lg:border lg:border-[#E7E4DC] lg:rounded-2xl lg:shadow-[0_4px_24px_-10px_rgba(26,29,27,0.06)] overflow-x-clip">
+      <!-- Full-Width Docked 100% Solid Header -->
       <header
-        class="no-print sticky top-0 z-30 w-full bg-white border-b border-slate-200/90 shadow-2xs"
+        class="no-print sticky top-0 z-30 w-full bg-white/95 backdrop-blur-sm border-b border-[#E7E4DC] lg:rounded-t-2xl"
         style="view-transition-name: sipena-admin-header"
       >
         <div
@@ -682,6 +683,7 @@ onBeforeUnmount(() => {
       <main id="main-content" tabindex="-1" class="flex-1 w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-6">
         <slot />
       </main>
+      </div>
     </div>
 
     <!-- Command Palette Modal -->

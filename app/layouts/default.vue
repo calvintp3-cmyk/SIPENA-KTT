@@ -121,54 +121,49 @@ onBeforeUnmount(() => {
       Lewati ke konten utama
     </a>
 
-    <!-- Clean Modern Executive Header -->
-    <header
-      class="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-md border-b border-slate-200/80"
-      style="view-transition-name: sipena-public-header"
-    >
-      <div
-        class="max-w-7xl mx-auto h-16 px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4"
+    <!-- Floating Porcelain SaaS Header -->
+    <div class="sticky top-0 z-40 w-full px-3 sm:px-6 lg:px-8 pt-3" style="view-transition-name: sipena-public-header">
+      <header
+        class="max-w-7xl mx-auto h-15 px-4 sm:px-5 bg-white/95 backdrop-blur-md border border-[#E7E4DC] rounded-2xl shadow-[0_1px_2px_rgba(26,29,27,0.03),0_6px_16px_-6px_rgba(26,29,27,0.06)] flex items-center justify-between gap-4"
       >
         <!-- Brand Lockup -->
-        <NuxtLink to="/" class="flex items-center gap-3 group shrink-0 rounded-xl py-1">
+        <NuxtLink to="/" class="flex items-center gap-2.5 group shrink-0 rounded-xl py-1">
           <div
-            class="w-9 h-9 rounded-[10px] bg-gradient-to-br from-[#0B57D0] to-[#059669] text-white flex items-center justify-center shadow-[0_4px_12px_-2px_rgba(11,87,208,0.32)] group-hover:scale-[1.03] transition-transform"
+            class="w-8.5 h-8.5 rounded-[9px] bg-[#0F4C3A] text-white flex items-center justify-center shadow-[inset_0_1px_0_rgba(255,255,255,0.16),0_2px_6px_rgba(15,76,58,0.22)] group-hover:scale-[1.03] transition-transform font-display font-extrabold text-xs tracking-tight"
           >
-            <UIcon name="i-lucide-trending-up" class="w-4.5 h-4.5 text-white" />
+            SK
           </div>
-          <div class="flex flex-col leading-tight min-w-0">
-            <span class="font-display font-extrabold tracking-tight text-slate-900 text-[16px] whitespace-nowrap">
-              SIPENA <span class="text-[#0B57D0]">KTT</span>
+          <div class="flex items-center gap-2 min-w-0">
+            <span class="font-display font-extrabold tracking-tight text-[#1A1D1B] text-[15px] whitespace-nowrap">
+              SIPENA <span class="text-[#0F4C3A]">KTT</span>
             </span>
-            <span class="hidden sm:inline text-[11px] text-slate-500 font-medium whitespace-nowrap">
-              BPS Kabupaten Tana Tidung
+            <span
+              class="hidden sm:inline-flex items-center px-2.5 py-0.5 rounded-full bg-[#E7F3EE] text-[#0F4C3A] text-[11px] font-semibold whitespace-nowrap"
+            >
+              BPS Tana Tidung
             </span>
           </div>
         </NuxtLink>
 
-        <!-- Clean Text Navigation Links (Desktop) -->
+        <!-- Segmented Soft Pill Navigation Links (Desktop) -->
         <nav
           aria-label="Navigasi Portal Publik"
-          class="hidden md:flex items-center gap-8 shrink-0"
+          class="hidden md:flex items-center gap-1 shrink-0"
         >
           <NuxtLink
             v-for="item in navLinks"
             :key="item.to"
             :to="item.to"
             :aria-current="item.active ? 'page' : undefined"
-            class="py-1.5 text-[14px] transition-colors whitespace-nowrap relative"
+            class="px-3.5 py-1.5 rounded-lg text-[13px] transition-colors whitespace-nowrap"
             :class="
               item.active
-                ? 'text-[#0B57D0] font-semibold'
-                : 'text-slate-600 hover:text-slate-900 font-medium'
+                ? 'bg-[#F2F0EB] text-[#1A1D1B] font-semibold'
+                : 'text-[#575B58] hover:text-[#1A1D1B] hover:bg-[#FAF9F7] font-medium'
             "
             @click="(e: MouseEvent) => handleNavClick(item.to, e)"
           >
             <span>{{ item.label }}</span>
-            <span
-              v-if="item.active"
-              class="absolute left-0 right-0 -bottom-[17px] h-0.5 bg-[#0B57D0] rounded-full"
-            />
           </NuxtLink>
         </nav>
 
@@ -177,7 +172,7 @@ onBeforeUnmount(() => {
           <div class="relative group">
             <UIcon
               name="i-solar-magnifer-line-duotone"
-              class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-blue-700 pointer-events-none transition-colors"
+              class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#6B6F6C] group-focus-within:text-[#0F4C3A] pointer-events-none transition-colors"
             />
             <label for="public-header-search" class="sr-only">Cari fenomena ekonomi</label>
             <input
@@ -185,15 +180,15 @@ onBeforeUnmount(() => {
               ref="headerSearchEl"
               v-model="searchInput"
               type="search"
-              placeholder="Cari komoditas atau berita..."
-              class="w-full h-9 pl-9 pr-14 bg-slate-100/80 hover:bg-slate-100 focus:bg-white text-xs text-slate-900 placeholder:text-slate-500 rounded-xl border border-slate-200/90 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/15 transition-[color,background-color,border-color,box-shadow]"
+              placeholder="Cari sektor atau berita..."
+              class="w-full h-9 pl-9 pr-14 bg-[#FAF9F7] hover:bg-[#F2F0EB]/60 focus:bg-white text-xs text-[#1A1D1B] placeholder:text-[#6B6F6C] rounded-[9px] border border-[#E7E4DC] focus:border-[#0F4C3A] focus:ring-2 focus:ring-[#0F4C3A]/15 transition-[color,background-color,border-color,box-shadow]"
             >
             <div class="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
               <button
                 v-if="searchInput"
                 type="button"
                 aria-label="Hapus kata kunci pencarian"
-                class="min-w-8 min-h-8 inline-flex items-center justify-center text-slate-600 hover:text-slate-900 hover:bg-slate-200/60 rounded-lg cursor-pointer"
+                class="min-w-8 min-h-8 inline-flex items-center justify-center text-[#575B58] hover:text-[#1A1D1B] hover:bg-[#F2F0EB] rounded-lg cursor-pointer"
                 @click="() => { searchInput = ''; }"
               >
                 <UIcon name="i-lucide-x" class="w-3.5 h-3.5" />
@@ -201,7 +196,7 @@ onBeforeUnmount(() => {
               <kbd
                 v-else
                 :title="shortcutTitle"
-                class="text-[11px] text-slate-600 bg-white border border-slate-200/90 shadow-2xs rounded-md px-1.5 py-0.5 font-semibold leading-none pointer-events-none font-mono"
+                class="text-[10.5px] text-[#575B58] bg-white border border-[#DEDAD0] rounded px-1.5 py-0.5 font-semibold leading-none pointer-events-none"
               >
                 {{ shortcutKey }}
               </kbd>
@@ -210,43 +205,43 @@ onBeforeUnmount(() => {
         </div>
 
         <!-- Right Utility Cluster -->
-        <div class="flex items-center gap-3 shrink-0">
+        <div class="flex items-center gap-2.5 shrink-0">
           <div
-            class="items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-700 text-xs font-semibold tabular-nums whitespace-nowrap"
+            class="items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#FCECE8] text-[#B4482D] text-[11.5px] font-semibold tabular-nums whitespace-nowrap"
             :class="isLinimasaRoute ? 'hidden sm:inline-flex' : 'hidden lg:inline-flex'"
           >
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-600" />
-            <span>{{ shortHeaderPeriod }} • Aktif</span>
+            <span class="w-1.5 h-1.5 rounded-full bg-[#C2593F]" />
+            <span>{{ shortHeaderPeriod }}</span>
           </div>
 
           <NuxtLink
             v-if="user"
             to="/admin"
-            class="btn-primary-gradient h-10 text-xs sm:text-[13px] font-semibold px-4 rounded-[10px] inline-flex items-center gap-1.5 whitespace-nowrap"
+            class="btn-primary-gradient h-9 text-xs sm:text-[13px] font-semibold px-4 rounded-[9px] inline-flex items-center gap-1.5 whitespace-nowrap"
           >
-            <span>Workspace Admin</span>
+            <span>Workstation</span>
             <UIcon name="i-lucide-arrow-right" class="w-3.5 h-3.5" />
           </NuxtLink>
           <NuxtLink
             v-else
             to="/login"
-            class="btn-primary-gradient h-10 text-xs sm:text-[13px] font-semibold px-4 rounded-[10px] inline-flex items-center gap-1.5 whitespace-nowrap"
+            class="btn-primary-gradient h-9 text-xs sm:text-[13px] font-semibold px-4 rounded-[9px] inline-flex items-center gap-1.5 whitespace-nowrap"
           >
-            <span>Masuk Admin</span>
+            <span>Masuk Workstation</span>
             <UIcon name="i-lucide-arrow-right" class="w-3.5 h-3.5" />
           </NuxtLink>
 
           <button
             type="button"
             aria-label="Buka menu navigasi publik"
-            class="md:hidden min-w-11 min-h-11 inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 cursor-pointer"
+            class="md:hidden min-w-10 min-h-10 inline-flex items-center justify-center rounded-xl border border-[#E7E4DC] bg-white text-[#1A1D1B] hover:bg-[#FAF9F7] cursor-pointer"
             @click="() => { mobileMenuOpen = true; }"
           >
-            <UIcon name="i-solar-hamburger-menu-bold-duotone" class="w-5 h-5 text-blue-700" />
+            <UIcon name="i-solar-hamburger-menu-bold-duotone" class="w-5 h-5 text-[#0F4C3A]" />
           </button>
         </div>
-      </div>
-    </header>
+      </header>
+    </div>
 
     <!-- Mobile Navigation Slideover -->
     <USlideover
@@ -314,24 +309,24 @@ onBeforeUnmount(() => {
     </main>
 
     <!-- Modern Executive Footer -->
-    <footer class="relative z-10 w-full bg-white border-t border-slate-200/80 py-7 shrink-0">
+    <footer class="relative z-10 w-full bg-white border-t border-[#E7E4DC] py-7 shrink-0">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div class="flex items-start sm:items-center gap-3">
-          <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-[#0B57D0] to-[#059669] text-white flex items-center justify-center shrink-0">
-            <UIcon name="i-lucide-trending-up" class="w-4 h-4" />
+          <div class="w-8 h-8 rounded-lg bg-[#0F4C3A] text-white flex items-center justify-center shrink-0 font-display font-extrabold text-[11px]">
+            SK
           </div>
-          <div class="text-xs text-slate-600 leading-relaxed">
-            <div class="font-bold text-slate-900">
+          <div class="text-xs text-[#5C615E] leading-relaxed">
+            <div class="font-bold text-[#1A1D1B]">
               SIPENA KTT • Badan Pusat Statistik Kabupaten Tana Tidung
             </div>
-            <div class="text-slate-500">
+            <div class="text-[#6B6F6C]">
               Fungsi Neraca Wilayah &amp; Analisis Statistik (Nerwilis) • Kalimantan Utara • Zona Waktu WITA (UTC+8)
             </div>
           </div>
         </div>
 
-        <div class="flex flex-wrap items-center gap-4 text-xs font-medium text-slate-600">
-          <NuxtLink to="/" class="py-1.5 px-1 hover:text-[#0B57D0] transition-colors">
+        <div class="flex flex-wrap items-center gap-4 text-xs font-medium text-[#5C615E]">
+          <NuxtLink to="/" class="py-1.5 px-1 hover:text-[#0F4C3A] transition-colors">
             Beranda
           </NuxtLink>
           <NuxtLink to="/linimasa" class="py-1.5 px-1 hover:text-[#0B57D0] transition-colors">

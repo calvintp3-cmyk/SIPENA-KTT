@@ -270,59 +270,49 @@ const shortExpHeaders: Record<string, string> = {
       </div>
     </div>
 
-    <div v-else-if="dashData" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-      <!-- KPI 1 -->
-      <div class="saas-card rounded-xl p-5 space-y-2.5">
-        <div class="flex items-center justify-between gap-2">
-          <span class="text-xs font-semibold text-slate-600">
-            Bukti Terverifikasi
+    <template v-else-if="dashData">
+      <!-- Action-First Gap Banner -->
+      <div
+        v-if="dashData.kpi.gapSectorsCount > 0"
+        class="rounded-xl bg-[#FCECE8]/80 border border-[#F5C6BA] px-4 py-3 flex flex-wrap items-center justify-between gap-3"
+      >
+        <div class="flex items-center gap-2.5 text-xs text-[#7D2B17]">
+          <UIcon name="i-lucide-alert-triangle" class="w-4 h-4 text-[#C2593F] shrink-0" />
+          <span>
+            <strong>{{ dashData.kpi.gapSectorsCount }} Sektor KBLI masih 0 fenomena</strong> pada {{ periodLabel }}. Segera lengkapi bukti agar neraca sektoral seimbang.
           </span>
-          <div class="w-7 h-7 rounded-md bg-blue-50 text-blue-700 border border-blue-200/70 flex items-center justify-center shrink-0">
-            <UIcon name="i-solar-check-circle-bold-duotone" class="w-4 h-4" />
-          </div>
         </div>
-        <div class="text-3xl font-extrabold tracking-tight text-slate-900 tabular-nums font-mono">
-          {{ formatNumberId(dashData.kpi.totalVerifiedPeriod) }}
-        </div>
-        <div class="text-xs text-slate-600 flex items-center gap-1.5 flex-wrap font-mono">
-          <span
-            v-if="dashData.kpi.deltaPercent !== null"
-            class="px-2 py-0.5 rounded-full text-[11px] font-bold tabular-nums border"
-            :class="
-              dashData.kpi.deltaPercent > 0
-                ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-                : dashData.kpi.deltaPercent < 0
-                  ? 'bg-rose-50 text-rose-800 border-rose-200'
-                  : 'bg-slate-100 text-slate-700 border-slate-200'
-            "
-          >
-            {{ dashData.kpi.deltaPercent > 0 ? '+' : '' }}{{ dashData.kpi.deltaPercent }}%
-          </span>
-          <span class="tabular-nums font-sans text-slate-500">vs {{ dashData.period.previousLabel }} ({{ dashData.kpi.previousTotalVerified }})</span>
-        </div>
+        <button
+          type="button"
+          class="px-3 py-1.5 rounded-lg bg-[#C2593F] hover:bg-[#A64730] text-white text-xs font-semibold transition-colors cursor-pointer shrink-0"
+          @click="() => { tileFilter = 'gap'; }"
+        >
+          Sorot Sektor Kosong ↓
+        </button>
       </div>
 
-      <!-- KPI 2 -->
-      <div class="saas-card rounded-xl p-5 space-y-2.5">
+      <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+      <!-- KPI 1: Highlight Deep Pine Coverage Card -->
+      <div class="rounded-2xl bg-[#0F4C3A] text-white p-5 space-y-2.5 shadow-[0_10px_24px_-10px_rgba(15,76,58,0.4)]">
         <div class="flex items-center justify-between gap-2">
-          <span class="text-xs font-semibold text-slate-600">
+          <span class="text-xs font-semibold text-[#C3DFD3]">
             Cakupan 17 Sektor PDRB
           </span>
-          <div class="w-7 h-7 rounded-md bg-blue-50 text-blue-700 border border-blue-200/70 flex items-center justify-center shrink-0">
+          <div class="w-7 h-7 rounded-lg bg-white/15 text-white flex items-center justify-center shrink-0">
             <UIcon name="i-solar-layers-minimalistic-bold-duotone" class="w-4 h-4" />
           </div>
         </div>
-        <div class="text-3xl font-extrabold tracking-tight text-slate-900 tabular-nums font-mono">
+        <div class="text-3xl font-extrabold tracking-tight text-white tabular-nums font-display">
           {{ dashData.kpi.coveredSectors }}
-          <span class="text-base font-semibold text-slate-500 font-sans">/ {{ dashData.kpi.totalSectors }}</span>
+          <span class="text-base font-semibold text-[#C3DFD3]">/ {{ dashData.kpi.totalSectors }}</span>
         </div>
         <div class="text-xs flex items-center gap-1.5">
           <span
-            class="px-2 py-0.5 rounded-full text-[11px] font-semibold border tabular-nums font-mono"
+            class="px-2 py-0.5 rounded-full text-[11px] font-bold tabular-nums"
             :class="
               dashData.kpi.gapSectorsCount > 0
-                ? 'bg-rose-50 text-rose-700 border-rose-200'
-                : 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                ? 'bg-[#FCECE8] text-[#B4482D]'
+                : 'bg-white/20 text-white'
             "
           >
             {{
@@ -334,17 +324,48 @@ const shortExpHeaders: Record<string, string> = {
         </div>
       </div>
 
-      <!-- KPI 3 -->
-      <div class="saas-card rounded-xl p-5 space-y-2.5">
+      <!-- KPI 2 -->
+      <div class="bg-[#FAF9F7] border border-[#E7E4DC] rounded-2xl p-5 space-y-2.5">
         <div class="flex items-center justify-between gap-2">
-          <span class="text-xs font-semibold text-slate-600">
+          <span class="text-xs font-semibold text-[#575B58]">
+            Bukti Terverifikasi
+          </span>
+          <div class="w-7 h-7 rounded-lg bg-[#E7F3EE] text-[#0F4C3A] flex items-center justify-center shrink-0">
+            <UIcon name="i-solar-check-circle-bold-duotone" class="w-4 h-4" />
+          </div>
+        </div>
+        <div class="text-3xl font-extrabold tracking-tight text-[#1A1D1B] tabular-nums font-display">
+          {{ formatNumberId(dashData.kpi.totalVerifiedPeriod) }}
+        </div>
+        <div class="text-xs text-[#5C615E] flex items-center gap-1.5 flex-wrap">
+          <span
+            v-if="dashData.kpi.deltaPercent !== null"
+            class="px-2 py-0.5 rounded-full text-[11px] font-bold tabular-nums"
+            :class="
+              dashData.kpi.deltaPercent > 0
+                ? 'bg-[#E7F3EE] text-[#0F4C3A]'
+                : dashData.kpi.deltaPercent < 0
+                  ? 'bg-[#FCECE8] text-[#B4482D]'
+                  : 'bg-[#EFECE6] text-[#575B58]'
+            "
+          >
+            {{ dashData.kpi.deltaPercent > 0 ? '+' : '' }}{{ dashData.kpi.deltaPercent }}%
+          </span>
+          <span class="tabular-nums text-[#6B6F6C]">vs {{ dashData.period.previousLabel }} ({{ dashData.kpi.previousTotalVerified }})</span>
+        </div>
+      </div>
+
+      <!-- KPI 3 -->
+      <div class="bg-[#FAF9F7] border border-[#E7E4DC] rounded-2xl p-5 space-y-2.5">
+        <div class="flex items-center justify-between gap-2">
+          <span class="text-xs font-semibold text-[#575B58]">
             Antrean Kurasi Pending
           </span>
-          <div class="w-7 h-7 rounded-md bg-amber-50 text-amber-700 border border-amber-200/70 flex items-center justify-center shrink-0">
+          <div class="w-7 h-7 rounded-lg bg-[#FEF3C7] text-[#92400E] flex items-center justify-center shrink-0">
             <UIcon name="i-solar-inbox-in-bold-duotone" class="w-4 h-4" />
           </div>
         </div>
-        <div class="text-3xl font-extrabold tracking-tight text-slate-900 tabular-nums font-mono">
+        <div class="text-3xl font-extrabold tracking-tight text-[#1A1D1B] tabular-nums font-display">
           {{ formatNumberId(dashData.kpi.pendingQueueCount) }}
         </div>
         <div class="flex items-center justify-between gap-2 text-xs">
@@ -362,26 +383,27 @@ const shortExpHeaders: Record<string, string> = {
       </div>
 
       <!-- KPI 4 -->
-      <div class="saas-card rounded-xl p-5 space-y-2.5">
+      <div class="bg-[#FAF9F7] border border-[#E7E4DC] rounded-2xl p-5 space-y-2.5">
         <div class="flex items-center justify-between gap-2">
-          <span class="text-xs font-semibold text-slate-600">
+          <span class="text-xs font-semibold text-[#575B58]">
             Sinyal Ekspansi Riil
           </span>
-          <div class="w-7 h-7 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200/70 flex items-center justify-center shrink-0">
+          <div class="w-7 h-7 rounded-lg bg-[#E7F3EE] text-[#0F4C3A] flex items-center justify-center shrink-0">
             <UIcon name="i-solar-graph-new-up-bold-duotone" class="w-4 h-4" />
           </div>
         </div>
-        <div class="text-3xl font-extrabold tracking-tight text-emerald-700 tabular-nums font-mono">
+        <div class="text-3xl font-extrabold tracking-tight text-[#0F4C3A] tabular-nums font-display">
           {{ dashData.kpi.expansionPercent }}%
         </div>
-        <div class="text-xs text-slate-600 flex items-center justify-between gap-2">
+        <div class="text-xs text-[#5C615E] flex items-center justify-between gap-2">
           <span>Proporsi Naik NTB</span>
-          <NuxtLink to="/admin/synthesis" class="text-blue-700 hover:text-blue-900 hover:underline font-semibold">
+          <NuxtLink to="/admin/synthesis" class="text-[#0F4C3A] hover:underline font-semibold">
             Buka Sintesis →
           </NuxtLink>
         </div>
       </div>
-    </div>
+      </div>
+    </template>
 
     <!-- SECTION A: 17-SECTOR GAP DETECTOR + ECHARTS OVERVIEW -->
     <section v-if="dashData" aria-label="Detector Data Gap 17 Sektor KBLI" class="space-y-4">
