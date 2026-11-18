@@ -31,19 +31,18 @@ if (hasLegacyTimelineQuery(route.query as Record<string, unknown>)) {
 }
 
 useHead({
-  title: 'SIPENA KTT — Portal Pencari & Pemantau Fenomena Ekonomi Kabupaten Tana Tidung',
+  title: 'SIPENA KTT — Observatorium Fenomena Ekonomi Kabupaten Tana Tidung',
   meta: [
     {
       name: 'description',
       content:
-        'Portal pencari berita ekonomi dan pemantau dinamika sektor usaha Kabupaten Tana Tidung serta transmisi kebijakan nasional.',
+        'Observatorium analisis fenomena ekonomi, dinamika 17 sektor usaha KBLI, pergerakan harga, dan transmisi pengeluaran PDRB Kabupaten Tana Tidung.',
     },
   ],
 });
 
 const {
   formatNumberId,
-  getKbliClusterTheme,
   getKbliImpactBadge,
   getExpenditureLabel,
 } = usePdrbLabels();
@@ -114,8 +113,6 @@ const recentQuery = computed(() => ({
 const {
   data: recentArticlesData,
   pending: recentPending,
-  error: recentError,
-  refresh: refreshRecentArticles,
 } = await useFetch<PublicArticlesResponse>(
   '/api/public/articles',
   {
@@ -124,75 +121,13 @@ const {
   },
 );
 
-const sectorBars = computed(() => {
-  const items: Pdrb17DistributionItem[] = activeOverview.value?.pdrb17Distribution ?? [];
-  const maxCount = Math.max(1, ...items.map((s) => s.count));
-  const topCode = activeOverview.value?.kpi.dominantKbli?.code;
+const recentArticles = computed(() => recentArticlesData.value?.items ?? []);
+const leadArticle = computed(() => recentArticles.value[0] ?? null);
+const secondaryArticles = computed(() => recentArticles.value.slice(1, 3));
 
-  return items.map((s) => {
-    const isTop = topCode && s.kbliCodes.includes(topCode);
-    const heightPct = s.count === 0 ? 4 : Math.max(14, Math.round((s.count / maxCount) * 100));
-    const shortCode = s.groupCode === 'R,S,T,U' ? 'R–U' : s.groupCode === 'S,T,U,V' ? 'S–V' : s.groupCode;
-
-    let barClass = 'bg-[#D7E5DF]';
-    if (s.count === 0) {
-      barClass = 'bg-[#C2593F]';
-    } else if (isTop || s.count >= 5) {
-      barClass = 'bg-[#0F4C3A]';
-    } else if (s.count <= 2) {
-      barClass = 'bg-[#D97706]';
-    } else {
-      barClass = 'bg-[#94B5A7]';
-    }
-
-    return {
-      groupCode: s.groupCode,
-      shortCode,
-      name: s.shortName,
-      count: s.count,
-      heightPct,
-      barClass,
-    };
-  });
-});
-
-const coveredSectorsCount = computed(
-  () => sectorBars.value.filter((s) => s.count > 0).length,
-);
-
-const gapSectorCodesText = computed(() => {
-  const gaps = sectorBars.value.filter((s) => s.count === 0).map((s) => s.shortCode);
-  return gaps.length > 0 ? gaps.slice(0, 4).join(', ') + (gaps.length > 4 ? '…' : '') : 'Nihil';
-});
-
-const topExpenditureItems = computed(() => {
-  const dist = activeOverview.value?.expenditureDistribution ?? [];
-  const total = Math.max(1, activeOverview.value?.kpi.totalVerified ?? 1);
-  return [...dist]
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 3)
-    .map((e, idx) => ({
-      code: e.component,
-      label: getExpenditureLabel(e.component, false),
-      count: e.count,
-      percent: Math.round((e.count / total) * 100),
-      dotClass: idx === 2 ? 'bg-[#C2593F]' : 'bg-[#0F4C3A]',
-    }));
-});
-
-const dominantSectorText = computed(() => {
-  const dom = activeOverview.value?.kpi.dominantKbli;
-  if (!dom) return 'Menunggu data terverifikasi';
-  return `${dom.code} • ${dom.name}`;
-});
-
-const deltaBadge = computed(() => {
-  const d = activeOverview.value?.kpi.deltaPercent;
-  if (d === null || d === undefined) return null;
-  return {
-    text: `${d >= 0 ? '↑ +' : '↓ '}${d}%`,
-    isPositive: d >= 0,
-  };
+const coveredSectorsCount = computed(() => {
+  const dist = activeOverview.value?.pdrb17Distribution ?? [];
+  return dist.filter((s: Pdrb17DistributionItem) => s.count > 0).length;
 });
 
 const previewModalOpen = ref(false);
@@ -214,448 +149,318 @@ onMounted(() => {
   }
 });
 
-const taxonomyPillars = [
-  {
-    title: '17 Kategori KBLI 2025',
-    caption: 'Memetakan seluruh 22 huruf KBLI (A–V) Lapangan Usaha resmi BPS secara konsisten.',
-    icon: 'i-lucide-layout-grid',
-    iconBoxClass: 'bg-[#E7F3EE] text-[#0F4C3A]',
-  },
-  {
-    title: '6 Komponen Pengeluaran',
-    caption: 'Dari Konsumsi Rumah Tangga, PMTB, hingga Ekspor Barang & Jasa daerah.',
-    icon: 'i-lucide-pie-chart',
-    iconBoxClass: 'bg-[#E7F3EE] text-[#0F4C3A]',
-  },
-  {
-    title: '4 Sinyal Dinamika Riil',
-    caption: 'Membedakan dampak volume output riil (ADHK) dengan pergerakan tingkat harga.',
-    icon: 'i-lucide-trending-up',
-    iconBoxClass: 'bg-[#FCECE8] text-[#B4482D]',
-  },
-  {
-    title: 'Verifikasi Human-in-the-Loop',
-    caption: 'Setiap berita ditelaah lokus kecamatan dan keabsahan faktanya oleh Tim Nerwilis.',
-    icon: 'i-lucide-check-circle-2',
-    iconBoxClass: 'bg-[#E7F3EE] text-[#0F4C3A]',
-  },
-];
-
-const capabilitySteps = [
+const methodologyColumns = [
   {
     num: '01',
-    tag: 'Penjaringan Terpadu',
-    title: 'Pemantauan Media Lokal Kaltara & Transmisi Nasional',
-    description:
-      'Crawler otomatis menghimpun pemberitaan ekonomi Kabupaten Tana Tidung dari portal lokal serta kebijakan strategis nasional yang berdampak ke daerah.',
-    highlights: ['Berita Lokal KTT', 'Dampak Nasional', 'Deduplikasi Cerdas'],
+    tag: 'Penjaringan Terarah',
+    title: 'Pemantauan Media Lokal Kaltara & Kebijakan Nasional',
+    desc: 'Penelusuran berkala atas pemberitaan ekonomi daerah, proyek strategis, pasar komoditas, dan kebijakan pusat yang mentransmisikan dampak langsung ke Tana Tidung.',
   },
   {
     num: '02',
-    tag: 'Taksonomi Ekonomi',
-    title: 'Klasifikasi Sektor Usaha & Kelompok Permintaan',
-    description:
-      'Setiap peristiwa ekonomi dipetakan ke sektor lapangan usaha (KBLI 2025) dan komponen pengeluaran PDRB beserta arah dampaknya pada volume dan harga.',
-    highlights: ['17 Sektor KBLI', '6 Pengeluaran', 'Volume vs Harga'],
+    tag: 'Taksonomi Dua Sisi',
+    title: 'Pemetaan KBLI 2025 & Komponen Pengeluaran PDRB',
+    desc: 'Setiap peristiwa diklasifikasikan ke 17 Lapangan Usaha dan 6 Pengeluaran PDRB serta dinilai arah dampaknya: volume riil (ADHK) atau pergerakan harga.',
   },
   {
     num: '03',
-    tag: 'Audit & Kurasi',
-    title: 'Kurasi Ketat Berita Ekonomi oleh Tim Nerwilis',
-    description:
-      'Tidak ada draf mentah yang langsung tayang. Setiap fenomena ditelaah lokus kecamatannya, kejelasan ringkasan, serta kutipan beritanya.',
-    highlights: ['Human-in-the-Loop', 'Sitasi Berita', 'Arsip Periodik'],
+    tag: 'Kurasi Analis BPS',
+    title: 'Validasi Fakta, Lokus Wilayah & Deteksi Sektor Kosong',
+    desc: 'Tim Neraca Wilayah menguji keaslian informasi, menetapkan lokus kecamatan, memastikan bukti representatif, serta memantau sektor yang belum memiliki bukti (gap 0).',
   },
   {
     num: '04',
-    tag: 'Intelijen & Publikasi',
-    title: 'Deteksi Sektor Kosong, Tren Periodik & Ikhtisar BRS',
-    description:
-      'Memantau sebaran bukti pada 17 sektor usaha, menelusuri tren antar-triwulan, mengekspor tabel Excel 10 kolom, dan menyusun narasi terstruktur.',
-    highlights: ['Gap Detector', 'Ekspor Excel (.xlsx)', 'Sintesis Narasi'],
+    tag: 'Sintesis Narasi BRS',
+    title: 'Pondasi Berita Resmi Statistik & Rekonsiliasi PDRB',
+    desc: 'Bukti empiris diolah menjadi ikhtisar narasi terstruktur yang siap pakai untuk penyusunan Berita Resmi Statistik (BRS) dan ekspor data tabel analitis.',
   },
 ];
 </script>
 
 <template>
-  <div class="bg-[#F9F8F6] pb-20">
-    <!-- SECTION 1: SUPER PREMIUM DAYLIGHT SAAS HERO + 3-COLUMN BENTO -->
+  <div class="bg-[#F6F5F1] pb-24">
+    <!-- SECTION 1: ASYMMETRIC OBSERVATORY HERO -->
     <section
-      aria-label="Pengenalan Portal Intelijen Ekonomi SIPENA KTT"
-      class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-10 sm:pt-12"
+      aria-label="Pengantar Observatorium Fenomena Ekonomi SIPENA KTT"
+      class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 sm:pt-14 pb-12"
     >
-      <!-- Centered Editorial SaaS Hero -->
-      <div class="text-center max-w-3xl mx-auto space-y-5 hero-entrance">
-        <div
-          class="inline-flex items-center gap-2.5 bg-white border border-[#E7E4DC] rounded-full pl-2 pr-4 py-1.5 shadow-[0_1px_3px_rgba(26,29,27,0.04)] text-xs font-semibold text-[#3D423F]"
-        >
-          <span class="px-2.5 py-0.5 rounded-full bg-[#C2593F] text-white text-[11px] font-bold tabular-nums">
-            {{ snapshotPeriodLabel }}
-          </span>
-          <span class="tabular-nums">
-            {{ formatNumberId(activeOverview?.kpi.totalVerified ?? 0) }} Fenomena Terkurasi • {{ coveredSectorsCount }} dari 17 Sektor KBLI Aktif
-          </span>
-        </div>
-
-        <h1
-          class="text-3xl sm:text-5xl font-extrabold tracking-[-0.035em] text-[#1A1D1B] leading-[1.08] font-display"
-        >
-          Intelijen Ekonomi Daerah yang
-          <span class="text-[#0F4C3A]">Terstruktur &amp; Terverifikasi.</span>
-        </h1>
-
-        <p class="text-[15px] sm:text-base text-[#5C615E] leading-relaxed max-w-2xl mx-auto">
-          Memantau pergerakan harga komoditas, realisasi belanja modal, dan dinamika 17 sektor usaha
-          di Kabupaten Tana Tidung secara transparan untuk penyusunan PDRB.
-        </p>
-
-        <div class="flex flex-wrap items-center justify-center gap-3 pt-1">
-          <NuxtLink
-            to="/linimasa"
-            class="btn-primary-gradient h-11 px-6 rounded-[10px] text-sm font-semibold inline-flex items-center gap-2 font-display"
-          >
-            <span>Jelajahi Linimasa Ekonomi</span>
-            <UIcon name="i-lucide-arrow-right" class="w-4 h-4" />
-          </NuxtLink>
-
-          <NuxtLink
-            to="/#cara-kerja"
-            class="h-11 px-5 rounded-[10px] bg-white hover:bg-[#F2F0EB]/70 border border-[#DDD9D0] text-[#1A1D1B] text-sm font-semibold inline-flex items-center gap-2 transition-colors font-display"
-          >
-            <span>Pelajari Taksonomi KBLI 2025</span>
-          </NuxtLink>
-        </div>
-      </div>
-
-      <!-- 3-Column Bento Showcase -->
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 mt-10 hero-entrance hero-entrance-delayed">
-        <!-- Bento 1: 17-Sector Pulse -->
-        <div
-          class="lg:col-span-5 bg-white border border-[#E7E4DC] rounded-2xl p-5 shadow-[0_1px_2px_rgba(26,29,27,0.03),0_10px_24px_-12px_rgba(26,29,27,0.07)] flex flex-col justify-between"
-        >
-          <div class="flex items-center justify-between gap-2 mb-3">
-            <span class="text-[11px] font-bold uppercase tracking-[0.04em] text-[#6B6F6C]">
-              Distribusi 17 Sektor Lapangan Usaha
-            </span>
-            <span class="px-2.5 py-0.5 rounded-full bg-[#E7F3EE] text-[#0F4C3A] text-[11px] font-bold tabular-nums">
-              {{ snapshotPeriodLabel }}
-            </span>
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
+        <!-- Left (7 Cols): Editorial Headline & Thesis Statement -->
+        <div class="lg:col-span-7 space-y-6">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E3F0EA] border border-[#BBD8CB] text-xs font-mono font-semibold text-[#0B3D2E]">
+            <span class="w-1.5 h-1.5 rounded-full bg-[#0B3D2E]" />
+            <span>OBSERVATORIUM FENOMENA EKONOMI &bull; BPS KAB. TANA TIDUNG</span>
           </div>
 
-          <div v-if="sectorBars.length > 0" class="pt-1">
-            <div class="h-36 flex items-end gap-1.5 border-b border-[#EFECE6] pb-2">
-              <NuxtLink
-                v-for="bar in sectorBars"
-                :key="bar.groupCode"
-                :to="`/linimasa?year=${snapshotYear}&quarter=${snapshotQuarter}`"
-                :title="`${bar.groupCode} — ${bar.name}: ${bar.count} bukti`"
-                class="flex-1 h-full flex flex-col justify-end items-center group"
-              >
-                <span
-                  class="text-[10px] font-bold text-[#1A1D1B] opacity-0 group-hover:opacity-100 transition-opacity mb-1 tabular-nums"
-                >
-                  {{ bar.count }}
-                </span>
-                <div
-                  class="w-full rounded-t-[4px] transition-[height,opacity] duration-300 group-hover:opacity-85"
-                  :class="bar.barClass"
-                  :style="{ height: `${bar.heightPct}%` }"
-                />
-              </NuxtLink>
-            </div>
-            <div class="flex items-center gap-1.5 pt-2">
-              <span
-                v-for="bar in sectorBars"
-                :key="`lbl-${bar.groupCode}`"
-                class="flex-1 text-center text-[10px] font-bold tabular-nums"
-                :class="bar.count === 0 ? 'text-[#C2593F]' : 'text-[#6B6F6C]'"
-              >
-                {{ bar.shortCode }}
-              </span>
-            </div>
-          </div>
-          <div
-            v-else
-            class="h-36 rounded-xl bg-[#FAF9F7] border border-dashed border-[#E7E4DC] flex items-center justify-center text-xs text-[#6B6F6C]"
-          >
-            Belum ada data sebaran sektor pada periode ini.
-          </div>
+          <h1 class="font-display font-extrabold text-3xl sm:text-5xl lg:text-[50px] leading-[1.08] tracking-tight text-[#141917]">
+            Bukan Sekadar Berita.
+            <span class="block text-[#0B3D2E]">Rekam Jejak Analisis Dinamika Ekonomi Daerah.</span>
+          </h1>
 
-          <div class="pt-3 mt-3 border-t border-[#EFECE6] flex flex-wrap items-center justify-between gap-2 text-xs text-[#5C615E]">
-            <span class="truncate">
-              Dominan: <strong class="text-[#0F4C3A]">{{ dominantSectorText }}</strong>
-            </span>
-            <span class="shrink-0">
-              Gap 0: <strong class="text-[#C2593F]">{{ gapSectorCodesText }}</strong>
-            </span>
-          </div>
-        </div>
+          <p class="text-base sm:text-[17px] text-[#4A524E] leading-relaxed max-w-2xl">
+            Sistem pemantauan empiris yang mengurai denyut 17 sektor usaha KBLI, 6 komponen pengeluaran PDRB, dan transmisi pergerakan harga di Kabupaten Tana Tidung secara terkurasi, berimbang, dan transparan.
+          </p>
 
-        <!-- Bento 2: Expenditure Components -->
-        <div
-          class="lg:col-span-4 bg-white border border-[#E7E4DC] rounded-2xl p-5 shadow-[0_1px_2px_rgba(26,29,27,0.03),0_10px_24px_-12px_rgba(26,29,27,0.07)] flex flex-col justify-between"
-        >
-          <div>
-            <div class="flex items-center justify-between gap-2 mb-3">
-              <span class="text-[11px] font-bold uppercase tracking-[0.04em] text-[#6B6F6C]">
-                Sisi Pengeluaran PDRB
-              </span>
-              <span class="px-2.5 py-0.5 rounded-full bg-[#E7F3EE] text-[#0F4C3A] text-[11px] font-bold">
-                6 Komponen
-              </span>
-            </div>
-
-            <div class="flex items-baseline gap-2">
-              <span class="text-3xl font-extrabold tracking-tight text-[#1A1D1B] tabular-nums font-display">
-                {{ formatNumberId(activeOverview?.kpi.totalVerified ?? 0) }}
-              </span>
-              <span class="text-sm font-semibold text-[#6B6F6C]">Fenomena</span>
-              <span
-                v-if="deltaBadge"
-                class="ml-auto text-[11px] font-bold px-2 py-0.5 rounded-full tabular-nums"
-                :class="deltaBadge.isPositive ? 'bg-[#E7F3EE] text-[#0F4C3A]' : 'bg-[#FCECE8] text-[#B4482D]'"
-              >
-                {{ deltaBadge.text }}
-              </span>
-            </div>
-            <p class="text-xs text-[#5C615E] mt-1 leading-relaxed">
-              Sebaran kontribusi komponen pengeluaran utama penggerak ekonomi triwulan berjalan.
-            </p>
-          </div>
-
-          <div class="mt-4 space-y-2">
-            <div
-              v-for="item in topExpenditureItems"
-              :key="item.code"
-              class="flex items-center justify-between gap-2 px-3 py-2 rounded-xl bg-[#FAF9F7] border border-[#EFECE6] text-xs font-semibold"
+          <div class="flex flex-wrap items-center gap-3.5 pt-2">
+            <NuxtLink
+              to="/linimasa"
+              class="obs-btn-primary h-12 px-6 rounded-xl text-sm font-semibold inline-flex items-center gap-2 shadow-sm"
             >
-              <span class="flex items-center gap-2 text-[#1A1D1B] truncate">
-                <span class="w-2 h-2 rounded-full shrink-0" :class="item.dotClass" />
-                <span class="truncate">{{ item.label }}</span>
-              </span>
-              <span class="text-[#0F4C3A] tabular-nums shrink-0">{{ item.percent }}%</span>
-            </div>
+              <span>Eksplorasi Sinyal Fenomena</span>
+              <UIcon name="i-lucide-arrow-right" class="w-4 h-4" />
+            </NuxtLink>
+
+            <NuxtLink
+              to="/#cara-kerja"
+              class="obs-btn-ghost h-12 px-5 rounded-xl text-sm font-semibold inline-flex items-center gap-2"
+            >
+              <span>Metodologi Nerwilis</span>
+            </NuxtLink>
+          </div>
+
+          <div class="pt-4 flex flex-wrap items-center gap-y-2 gap-x-6 text-[11.5px] text-[#737B76] font-mono border-t border-[#141917]/[0.08]">
+            <span class="flex items-center gap-1.5">
+              <UIcon name="i-lucide-check" class="w-3.5 h-3.5 text-[#0B3D2E]" />
+              KBLI 2025 Multi-Generasi
+            </span>
+            <span class="flex items-center gap-1.5">
+              <UIcon name="i-lucide-check" class="w-3.5 h-3.5 text-[#0B3D2E]" />
+              Standar SNA 2008
+            </span>
+            <span class="flex items-center gap-1.5">
+              <UIcon name="i-lucide-check" class="w-3.5 h-3.5 text-[#0B3D2E]" />
+              Zona Waktu WITA (UTC+8)
+            </span>
           </div>
         </div>
 
-        <!-- Bento 3: Source Credibility Radar -->
-        <div
-          class="lg:col-span-3 bg-white border border-[#E7E4DC] rounded-2xl p-5 shadow-[0_1px_2px_rgba(26,29,27,0.03),0_10px_24px_-12px_rgba(26,29,27,0.07)] flex flex-col justify-between"
-        >
-          <div>
-            <div class="flex items-center justify-between gap-2 mb-3">
-              <span class="text-[11px] font-bold uppercase tracking-[0.04em] text-[#6B6F6C]">
-                Radar Sumber
-              </span>
-              <span class="px-2.5 py-0.5 rounded-full bg-[#FCECE8] text-[#B4482D] text-[11px] font-bold">
-                Live Sync
-              </span>
-            </div>
-
-            <div class="text-3xl font-extrabold tracking-tight text-[#1A1D1B] tabular-nums font-display">
-              {{ activeOverview?.sourceBreakdown.regional ?? 0 }} : {{ activeOverview?.sourceBreakdown.national ?? 0 }}
-            </div>
-            <p class="text-xs text-[#5C615E] mt-1 leading-relaxed">
-              Rasio liputan portal lokal Kaltara terhadap media nasional.
-            </p>
-          </div>
-
-          <div class="mt-4 space-y-2">
-            <div class="flex items-center justify-between px-3 py-2 rounded-xl bg-[#FAF9F7] border border-[#EFECE6] text-xs font-semibold">
-              <span class="text-[#575B58]">Portal Lokal</span>
-              <span class="text-[#0F4C3A] tabular-nums">{{ activeOverview?.sourceBreakdown.regional ?? 0 }} Berita</span>
-            </div>
-            <div class="flex items-center justify-between px-3 py-2 rounded-xl bg-[#FAF9F7] border border-[#EFECE6] text-xs font-semibold">
-              <span class="text-[#575B58]">Portal Nasional</span>
-              <span class="text-[#0F4C3A] tabular-nums">{{ activeOverview?.sourceBreakdown.national ?? 0 }} Berita</span>
-            </div>
-            <div class="flex items-center justify-between px-3 py-2 rounded-xl bg-[#FAF9F7] border border-[#EFECE6] text-xs font-semibold">
-              <span class="text-[#575B58]">Validasi Nerwilis</span>
-              <span class="text-[#0F4C3A]">100% Sah</span>
-            </div>
-          </div>
+        <!-- Right (5 Cols): Deep Borneo Pine Telemetry Panel -->
+        <div class="lg:col-span-5">
+          <PublicObservatoryHeroPulse
+            :overview="activeOverview"
+            :period-label="snapshotPeriodLabel"
+            :covered-sectors-count="coveredSectorsCount"
+            :snapshot-year="snapshotYear"
+            :snapshot-quarter="snapshotQuarter"
+          />
         </div>
       </div>
     </section>
 
-    <!-- SECTION 2: 3 LATEST CURATED PHENOMENA CARDS -->
-    <section
-      aria-label="Cuplikan Fenomena Ekonomi Terkini"
-      class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12"
-    >
-      <div class="flex items-center justify-between gap-2 mb-4">
-        <h2 class="text-sm font-bold uppercase tracking-[0.04em] text-[#6B6F6C]">
-          Fenomena Terkurasi Terbaru ({{ snapshotPeriodLabel }})
-        </h2>
+    <!-- SECTION 2: 17-SECTOR KBLI MOSAIC MATRIX & EXPENDITURE STRIP -->
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <PublicSectorMosaicMatrix
+        :overview="activeOverview"
+        :snapshot-year="snapshotYear"
+        :snapshot-quarter="snapshotQuarter"
+        :period-label="snapshotPeriodLabel"
+      />
+    </section>
+
+    <!-- SECTION 3: ASYMMETRIC CURATED HIGHLIGHTS ("SOROTAN FENOMENA TERKINI") -->
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 border-t border-[#141917]/[0.08]">
+      <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
+        <div>
+          <div class="text-[11px] font-mono font-bold uppercase tracking-wider text-[#C8553D] mb-1">
+            INTELLIGENCE HIGHLIGHTS
+          </div>
+          <h2 class="font-display font-bold text-2xl sm:text-3xl text-[#141917] tracking-tight">
+            Sorotan Fenomena Terkurasi
+          </h2>
+          <p class="text-xs sm:text-sm text-[#4A524E] mt-1">
+            Telaah empiris peristiwa ekonomi terkini di {{ snapshotPeriodLabel }} hasil verifikasi analis Nerwilis.
+          </p>
+        </div>
+
         <NuxtLink
           :to="`/linimasa?year=${snapshotYear}&quarter=${snapshotQuarter}`"
-          class="text-xs font-semibold text-[#0F4C3A] hover:underline"
+          class="inline-flex items-center gap-1.5 text-xs font-bold text-[#0B3D2E] hover:underline self-start sm:self-auto shrink-0"
         >
-          Lihat seluruhnya di Linimasa →
-        </NuxtLink>
-      </div>
-
-      <UAlert
-        v-if="recentError"
-        color="error"
-        variant="subtle"
-        icon="i-lucide-alert-circle"
-        title="Gagal memuat cuplikan fenomena terkini"
-      >
-        <template #actions>
-          <UButton
-            color="error"
-            variant="soft"
-            size="xs"
-            label="Muat Ulang"
-            @click="() => { refreshRecentArticles(); }"
-          />
-        </template>
-      </UAlert>
-
-      <div v-else-if="recentPending && !recentArticlesData" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div v-for="i in 3" :key="i" class="bg-white border border-[#E7E4DC] rounded-2xl p-5 space-y-2.5">
-          <div class="h-3 w-32 rounded bg-[#EFECE6]" />
-          <div class="h-4 w-full rounded bg-[#F2F0EB]" />
-          <div class="h-3 w-2/3 rounded bg-[#F2F0EB]" />
-        </div>
-      </div>
-
-      <div v-else-if="recentArticlesData && recentArticlesData.items.length > 0" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <article
-          v-for="art in recentArticlesData.items"
-          :key="art.id"
-          class="bg-white border border-[#E7E4DC] hover:border-[#0F4C3A]/40 rounded-2xl p-5 shadow-[0_1px_2px_rgba(26,29,27,0.03)] hover:shadow-md transition-all group relative flex flex-col justify-between"
-        >
-          <div>
-            <div class="flex items-center justify-between gap-2 text-[11px] font-bold mb-2">
-              <span class="text-[#0F4C3A]">
-                KBLI {{ art.kbliCategory }} • {{ art.sourcePortal }}
-              </span>
-              <span class="text-[#6B6F6C] tabular-nums shrink-0">
-                {{ formatDateId(art.publishedAt) }}
-              </span>
-            </div>
-            <h3 class="text-[14px] font-bold text-[#1A1D1B] leading-snug line-clamp-2 mb-2">
-              <button
-                type="button"
-                class="text-left group-hover:text-[#0F4C3A] transition-colors cursor-pointer after:content-[''] after:absolute after:inset-0 after:rounded-2xl focus-visible:outline-none focus-visible:after:ring-2 focus-visible:after:ring-[#0F4C3A]"
-                @click="openPreviewModal(art)"
-              >
-                {{ art.title }}
-              </button>
-            </h3>
-            <p class="text-xs text-[#5C615E] line-clamp-2 leading-relaxed">
-              {{ art.summary }}
-            </p>
-          </div>
-          <div v-if="art.kbliImpact || art.expenditureComponent" class="mt-3 pt-2.5 border-t border-[#EFECE6] flex items-center justify-between gap-2 text-[11px] text-[#6B6F6C]">
-            <span v-if="art.expenditureComponent" class="truncate">
-              {{ getExpenditureLabel(art.expenditureComponent, false) }}
-            </span>
-            <span v-if="art.kbliImpact" class="font-bold text-[#0F4C3A] shrink-0">
-              {{ getKbliImpactBadge(art.kbliImpact).shortLabel }}
-            </span>
-          </div>
-        </article>
-      </div>
-
-      <div v-else class="bg-white border border-dashed border-[#DEDAD0] rounded-2xl p-8 text-center space-y-2">
-        <p class="text-xs text-[#5C615E]">
-          Belum ada catatan fenomena terverifikasi yang dipublikasikan.
-        </p>
-        <NuxtLink
-          :to="user ? '/admin/review' : '/login'"
-          class="inline-flex items-center gap-1 text-xs font-semibold text-[#0F4C3A] hover:underline"
-        >
-          <span>{{ user ? 'Buka Antrean Review' : 'Masuk Admin' }} →</span>
-        </NuxtLink>
-      </div>
-    </section>
-
-    <!-- SECTION 3: METODOLOGI & ALUR KERJA (#cara-kerja) -->
-    <section
-      id="cara-kerja"
-      aria-label="Cara Kerja dan Metodologi SIPENA KTT"
-      class="border-t border-[#E7E4DC] bg-white py-14 sm:py-16 scroll-mt-20"
-    >
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
-        <div class="max-w-2xl space-y-2.5">
-          <div class="text-xs font-bold uppercase tracking-[0.06em] text-[#C2593F]">
-            Arsitektur &amp; Metodologi Kerja
-          </div>
-          <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#1A1D1B] leading-tight font-display">
-            Dari Pemberitaan Daerah Menjadi Peta Fenomena Ekonomi Terstruktur
-          </h2>
-          <p class="text-sm text-[#5C615E] leading-relaxed">
-            Alur kerja terpadu yang mendokumentasikan sinyal sektor ekonomi secara sistematis,
-            terklasifikasi, dan dapat diakses terbuka oleh publik.
-          </p>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <article
-            v-for="step in capabilitySteps"
-            :key="step.num"
-            class="bg-[#F9F8F6] border border-[#E7E4DC] rounded-2xl p-6 sm:p-7 flex flex-col justify-between gap-5"
-          >
-            <div class="space-y-3">
-              <div class="flex items-center justify-between gap-3">
-                <span class="text-xs font-bold uppercase tracking-wider text-[#0F4C3A]">
-                  {{ step.num }} • {{ step.tag }}
-                </span>
-              </div>
-              <h3 class="text-lg font-bold tracking-tight text-[#1A1D1B] font-display leading-snug">
-                {{ step.title }}
-              </h3>
-              <p class="text-[13.5px] text-[#5C615E] leading-relaxed">
-                {{ step.description }}
-              </p>
-            </div>
-
-            <div class="flex flex-wrap items-center gap-2 pt-3 border-t border-[#E7E4DC]">
-              <span
-                v-for="tag in step.highlights"
-                :key="tag"
-                class="px-2.5 py-1 rounded-md bg-white border border-[#E7E4DC] text-xs font-semibold text-[#3D423F]"
-              >
-                {{ tag }}
-              </span>
-            </div>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <!-- SECTION 4: EXECUTIVE BOTTOM CTA BANNER -->
-    <section
-      aria-label="Ajakan Eksplorasi Portal Publik"
-      class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12"
-    >
-      <div
-        class="rounded-2xl bg-[#0F4C3A] p-7 sm:p-10 text-white flex flex-col lg:flex-row lg:items-center justify-between gap-6 shadow-[0_20px_50px_-15px_rgba(15,76,58,0.28)]"
-      >
-        <div class="space-y-2 max-w-2xl">
-          <h2 class="text-xl sm:text-2xl font-extrabold tracking-tight text-white font-display">
-            Siap Menelusuri Pergerakan Ekonomi Kabupaten Tana Tidung per Sektor?
-          </h2>
-          <p class="text-xs sm:text-sm text-[#D7E5DF] leading-relaxed">
-            Saring laporan berita berdasarkan 17 Kategori KBLI, 6 Komponen Pengeluaran, arah dampak
-            riil/harga, maupun tampilan grafik interaktif.
-          </p>
-        </div>
-
-        <NuxtLink
-          to="/linimasa"
-          class="h-11 px-6 rounded-[10px] bg-white hover:bg-[#F9F8F6] text-[#0F4C3A] text-sm font-bold inline-flex items-center gap-2 shrink-0 transition-colors font-display shadow-sm"
-        >
-          <span>Buka Linimasa Lengkap</span>
+          <span>Buka Semua Fenomena ({{ formatNumberId(activeOverview?.kpi.totalVerified ?? 0) }})</span>
           <UIcon name="i-lucide-arrow-right" class="w-4 h-4" />
         </NuxtLink>
       </div>
+
+      <!-- Loading State -->
+      <div v-if="recentPending" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div class="lg:col-span-7 h-80 rounded-2xl bg-[#ECEAE2] animate-pulse" />
+        <div class="lg:col-span-5 space-y-4">
+          <div class="h-38 rounded-2xl bg-[#ECEAE2] animate-pulse" />
+          <div class="h-38 rounded-2xl bg-[#ECEAE2] animate-pulse" />
+        </div>
+      </div>
+
+      <!-- Content -->
+      <div v-else-if="recentArticles.length > 0" class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+        <!-- Lead Editorial Feature Brief (7 Cols) -->
+        <div
+          v-if="leadArticle"
+          class="lg:col-span-7 bg-white rounded-2xl border border-[#141917]/[0.08] p-6 sm:p-8 flex flex-col justify-between hover:border-[#0B3D2E]/35 hover:shadow-[0_12px_32px_-12px_rgba(11,61,46,0.12)] transition-all cursor-pointer group"
+          @click="openPreviewModal(leadArticle)"
+        >
+          <div>
+            <!-- Top Metadata Strip -->
+            <div class="flex items-center justify-between gap-3 text-xs text-[#737B76] pb-4 border-b border-[#141917]/[0.06]">
+              <div class="flex items-center gap-2">
+                <span class="font-bold text-[#141917]">{{ leadArticle.portalName }}</span>
+                <span>&bull;</span>
+                <span class="font-mono text-[11px]">{{ formatDateId(leadArticle.publishedAt) }}</span>
+                <span v-if="leadArticle.districtName" class="px-2 py-0.5 rounded-md bg-[#ECEAE2] text-[#141917] text-[10.5px] font-medium">
+                  {{ leadArticle.districtName }}
+                </span>
+              </div>
+              <span class="px-2 py-0.5 rounded-full bg-[#E3F0EA] text-[#0B3D2E] text-[10.5px] font-bold">
+                Terkurasi Nerwilis
+              </span>
+            </div>
+
+            <!-- Title & Excerpt -->
+            <div class="mt-5 space-y-3">
+              <h3 class="font-display font-bold text-xl sm:text-2xl text-[#141917] group-hover:text-[#0B3D2E] transition-colors leading-snug">
+                {{ leadArticle.title }}
+              </h3>
+              <p class="text-sm text-[#4A524E] leading-relaxed line-clamp-3">
+                {{ leadArticle.economicSummary || leadArticle.excerpt }}
+              </p>
+            </div>
+          </div>
+
+          <!-- Bottom Dual-Axis Linkage Strip -->
+          <div class="mt-6 pt-5 border-t border-[#141917]/[0.06] flex flex-wrap items-center justify-between gap-3">
+            <div class="flex flex-wrap items-center gap-2 text-xs">
+              <span class="px-2.5 py-1 rounded-lg bg-[#E3F0EA] text-[#0B3D2E] font-semibold font-mono">
+                KBLI {{ leadArticle.kbliCategory }}
+              </span>
+              <span v-if="leadArticle.expenditureComponent" class="px-2.5 py-1 rounded-lg bg-[#ECEAE2] text-[#141917] font-semibold">
+                {{ leadArticle.expenditureComponent }}
+              </span>
+              <span
+                v-if="leadArticle.impactTypeKbli"
+                class="px-2.5 py-1 rounded-lg text-xs font-bold"
+                :class="leadArticle.impactTypeKbli === 'ekspansi_riil' ? 'bg-[#E3F0EA] text-[#0B3D2E]' : 'bg-[#FBECE8] text-[#C8553D]'"
+              >
+                {{ getKbliImpactBadge(leadArticle.impactTypeKbli)?.label }}
+              </span>
+            </div>
+
+            <span class="text-xs font-semibold text-[#0B3D2E] group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">
+              <span>Baca Lembar Ringkasan</span>
+              <UIcon name="i-lucide-arrow-right" class="w-3.5 h-3.5" />
+            </span>
+          </div>
+        </div>
+
+        <!-- Stacked Secondary Briefs (5 Cols) -->
+        <div class="lg:col-span-5 flex flex-col gap-4 justify-between">
+          <div
+            v-for="item in secondaryArticles"
+            :key="item.id"
+            class="bg-white rounded-2xl border border-[#141917]/[0.08] p-5 flex flex-col justify-between hover:border-[#0B3D2E]/35 hover:shadow-sm transition-all cursor-pointer group flex-1"
+            @click="openPreviewModal(item)"
+          >
+            <div>
+              <div class="flex items-center justify-between text-[11px] text-[#737B76] mb-2 font-mono">
+                <span>{{ item.portalName }} &bull; {{ formatDateId(item.publishedAt) }}</span>
+                <span class="font-bold text-[#0B3D2E]">KBLI {{ item.kbliCategory }}</span>
+              </div>
+              <h4 class="font-display font-bold text-sm sm:text-base text-[#141917] group-hover:text-[#0B3D2E] transition-colors line-clamp-2 leading-snug">
+                {{ item.title }}
+              </h4>
+            </div>
+
+            <div class="mt-3 pt-3 border-t border-[#141917]/[0.06] flex items-center justify-between text-xs">
+              <span class="text-[#4A524E] truncate max-w-[200px]">
+                {{ item.districtName || 'Kab. Tana Tidung' }}
+              </span>
+              <span class="text-[11.5px] font-semibold text-[#0B3D2E] group-hover:translate-x-0.5 transition-transform inline-flex items-center gap-1">
+                <span>Telaah</span>
+                <UIcon name="i-lucide-arrow-right" class="w-3 h-3" />
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div v-else class="text-center py-12 rounded-2xl bg-white border border-[#141917]/[0.08]">
+        <UIcon name="i-solar-notes-line-duotone" class="w-10 h-10 text-[#737B76] mx-auto mb-2" />
+        <div class="font-display font-bold text-base text-[#141917]">
+          Belum ada fenomena terverifikasi di {{ snapshotPeriodLabel }}
+        </div>
+        <p class="text-xs text-[#737B76] mt-1">
+          Pilih triwulan lain di Eksplorasi Fenomena untuk melihat arsip data historis.
+        </p>
+      </div>
     </section>
 
-    <!-- Preview Detail Modal -->
-    <PublicArticleDetailModal v-model:open="previewModalOpen" :article="selectedPreviewArticle" />
+    <!-- SECTION 4: OPEN-CANVAS METHODOLOGY STRIP (#cara-kerja) -->
+    <section id="cara-kerja" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 border-t border-[#141917]/[0.08]">
+      <div class="max-w-2xl mb-12">
+        <div class="text-[11px] font-mono font-bold uppercase tracking-wider text-[#C8553D] mb-1">
+          METHODOLOGICAL RIGOR
+        </div>
+        <h2 class="font-display font-bold text-2xl sm:text-3xl text-[#141917] tracking-tight">
+          Bagaimana Analisis Fenomena Bekerja
+        </h2>
+        <p class="text-xs sm:text-sm text-[#4A524E] mt-1.5 leading-relaxed">
+          SIPENA KTT menjembatani data tidak terstruktur (pemberitaan) menjadi bukti empiris terstruktur yang selaras dengan kaidah Produk Domestik Regional Bruto (PDRB).
+        </p>
+      </div>
+
+      <!-- 4 Numbered Columns Divided by Hairlines (No Nested Gray Boxes!) -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 divide-y lg:divide-y-0 lg:divide-x divide-[#141917]/[0.08] border-y border-[#141917]/[0.08]">
+        <div
+          v-for="col in methodologyColumns"
+          :key="col.num"
+          class="py-8 lg:py-4 lg:px-6 first:lg:pl-0 last:lg:pr-0 space-y-3"
+        >
+          <div class="font-mono text-2xl font-bold text-[#0B3D2E]">
+            {{ col.num }}
+          </div>
+          <div class="text-[11px] font-mono font-semibold uppercase tracking-wider text-[#C8553D]">
+            {{ col.tag }}
+          </div>
+          <h3 class="font-display font-bold text-base text-[#141917] leading-snug">
+            {{ col.title }}
+          </h3>
+          <p class="text-xs text-[#4A524E] leading-relaxed">
+            {{ col.desc }}
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 5: MINIMALIST DEEP PINE CLOSING BAND -->
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+      <div class="rounded-3xl bg-[#0B3D2E] text-white p-8 sm:p-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden">
+        <div class="space-y-2 max-w-xl relative z-10">
+          <div class="text-xs font-mono font-semibold text-emerald-300 uppercase tracking-wider">
+            ARSIP DIGITAL BPS KABUPATEN TANA TIDUNG
+          </div>
+          <h3 class="font-display font-bold text-2xl sm:text-3xl tracking-tight text-white">
+            Siap Menjelajahi Seluruh Sinyal Ekonomi?
+          </h3>
+          <p class="text-xs sm:text-sm text-emerald-100/80 leading-relaxed">
+            Telusuri arsip berkala, filter berdasarkan 17 sektor usaha KBLI atau 6 komponen pengeluaran, dan pelajari narasi ekonomi Tana Tidung.
+          </p>
+        </div>
+
+        <div class="relative z-10 shrink-0">
+          <NuxtLink
+            to="/linimasa"
+            class="h-12 px-7 rounded-xl bg-white hover:bg-[#F6F5F1] text-[#0B3D2E] text-sm font-bold inline-flex items-center gap-2 transition-colors shadow-lg"
+          >
+            <span>Buka Eksplorasi Sekarang</span>
+            <UIcon name="i-lucide-arrow-right" class="w-4 h-4 text-[#0B3D2E]" />
+          </NuxtLink>
+        </div>
+      </div>
+    </section>
+
+    <!-- Detail Reading Sheet Modal Mount -->
+    <PublicArticleDetailModal
+      v-model:open="previewModalOpen"
+      :article="selectedPreviewArticle"
+    />
   </div>
 </template>

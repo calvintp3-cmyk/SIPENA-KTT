@@ -4,9 +4,7 @@ import {
   ArticleSourceTypeEnum,
   PDRB_17_SECTORS,
   PDRB_6_EXPENDITURE_LIST,
-  type ExpenditureComponentEnum,
   type ExpenditureComponentMeta,
-  type KbliCategoryEnum,
 } from '#shared/enums/pdrb';
 import {
   formatDateId,
@@ -18,7 +16,7 @@ import {
   toRomanQuarter,
   type PdrbQuarter,
 } from '#shared/utils/period';
-import { applyKbliSelection, applyPdrbGroupSelection } from '#shared/utils/public-helpers';
+import { applyKbliSelection } from '#shared/utils/public-helpers';
 import type {
   PublicArticleItem,
   PublicArticlesResponse,
@@ -65,10 +63,11 @@ const MONTH_NAMES_ID = [
 ];
 
 const IMPACT_MACRO_LABELS: Record<string, string> = {
-  EXPANSION: 'Meningkatkan NTB / Riil',
-  CONTRACTION: 'Menurunkan NTB / Riil',
-  PRICE_UP: 'Kenaikan Harga / Deflator',
-  PRICE_DOWN: 'Penurunan Harga / Deflator',
+  all: 'Semua Sinyal',
+  output_up: '↗ Aktivitas Naik',
+  output_down: '↘ Aktivitas Turun',
+  price_up: '↑ Harga Naik',
+  price_down: '↓ Harga Turun',
 };
 
 const currentWita = getCurrentQuarterYearWita();
@@ -111,19 +110,17 @@ const selectedQuarter = ref<PdrbQuarter>(parseQuarter(route.query.quarter));
 
 useSeoMeta({
   title: () =>
-    `Linimasa Dinamika Ekonomi TW ${toRomanQuarter(selectedQuarter.value)} ${selectedYear.value} — SIPENA KTT`,
+    `Eksplorasi Sinyal Fenomena TW ${toRomanQuarter(selectedQuarter.value)} ${selectedYear.value} — SIPENA KTT`,
   ogTitle: () =>
-    `Linimasa Dinamika Ekonomi TW ${toRomanQuarter(selectedQuarter.value)} ${selectedYear.value} — SIPENA KTT`,
+    `Eksplorasi Sinyal Fenomena TW ${toRomanQuarter(selectedQuarter.value)} ${selectedYear.value} — SIPENA KTT`,
   description:
-    'Rekam jejak dinamika sektor usaha, pergerakan harga, dan aktivitas ekonomi Kabupaten Tana Tidung secara terkurasi dan transparan.',
-  ogDescription:
-    'Rekam jejak dinamika sektor usaha, pergerakan harga, dan aktivitas ekonomi Kabupaten Tana Tidung secara terkurasi dan transparan.',
-  ogType: 'website',
+    'Eksplorasi rekam jejak dinamika sektor usaha, pergerakan harga, dan transmisi PDRB Kabupaten Tana Tidung secara terkurasi dan transparan.',
 });
+
 const selectedPdrbGroups = ref<string[]>(parseListParam(route.query.pdrbGroup));
 const selectedExpenditures = ref<string[]>(parseListParam(route.query.expenditure));
 const selectedSourceType = ref<string>(strParam(route.query.sourceType, 'ALL'));
-const selectedImpactMacro = ref<string>(strParam(route.query.impactMacro, 'ALL'));
+const selectedImpactMacro = ref<string>(strParam(route.query.impactMacro, 'all'));
 const selectedDateFrom = ref<string>(strParam(route.query.from, ''));
 const selectedDateTo = ref<string>(strParam(route.query.to, ''));
 const viewMode = ref<'stream' | 'table'>(route.query.view === 'table' ? 'table' : 'stream');
@@ -186,7 +183,9 @@ watch(
     if (selectedPdrbGroups.value.length > 0) nextQuery.pdrbGroup = selectedPdrbGroups.value.join(',');
     if (selectedExpenditures.value.length > 0) nextQuery.expenditure = selectedExpenditures.value.join(',');
     if (selectedSourceType.value !== 'ALL') nextQuery.sourceType = selectedSourceType.value;
-    if (selectedImpactMacro.value !== 'ALL') nextQuery.impactMacro = selectedImpactMacro.value;
+    if (selectedImpactMacro.value !== 'all' && selectedImpactMacro.value !== 'ALL') {
+      nextQuery.impactMacro = selectedImpactMacro.value;
+    }
     if (selectedDateFrom.value) nextQuery.from = selectedDateFrom.value;
     if (selectedDateTo.value) nextQuery.to = selectedDateTo.value;
     if (viewMode.value === 'table') nextQuery.view = 'table';
@@ -228,7 +227,9 @@ const articlesQuery = computed(() => {
   if (selectedPdrbGroups.value.length > 0) q.pdrbGroup = selectedPdrbGroups.value.join(',');
   if (selectedExpenditures.value.length > 0) q.expenditure = selectedExpenditures.value.join(',');
   if (selectedSourceType.value !== 'ALL') q.sourceType = selectedSourceType.value;
-  if (selectedImpactMacro.value !== 'ALL') q.impactMacro = selectedImpactMacro.value;
+  if (selectedImpactMacro.value !== 'all' && selectedImpactMacro.value !== 'ALL') {
+    q.impactMacro = selectedImpactMacro.value;
+  }
   if (selectedDateFrom.value) q.from = selectedDateFrom.value;
   if (selectedDateTo.value) q.to = selectedDateTo.value;
   return q;
@@ -278,7 +279,7 @@ const hasCustomDateRange = computed(() => Boolean(selectedDateFrom.value || sele
 const periodDisplayLabel = computed(() => {
   const q = (selectedQuarter.value in QUARTER_MONTH_NAMES ? selectedQuarter.value : 1) as PdrbQuarter;
   const m = QUARTER_MONTH_NAMES[q] ?? { start: 'Januari', end: 'Maret' };
-  return `Periode ${m.start} - ${m.end} ${selectedYear.value}`;
+  return `${m.start} - ${m.end} ${selectedYear.value}`;
 });
 
 const customDateRangeLabel = computed(() => {
@@ -294,10 +295,6 @@ const customDateRangeLabel = computed(() => {
   return '';
 });
 
-const selectedQuarterRange = computed(
-  () => quarterButtons.find((q) => q.value === selectedQuarter.value)?.range ?? '',
-);
-
 const currentPeriodLabel = computed(() =>
   formatPeriodLabel(selectedQuarter.value, selectedYear.value),
 );
@@ -308,13 +305,12 @@ const lastSyncText = computed(() => {
 });
 
 const activeFilterChips = computed(() => {
-  const chips: Array<{ key: string; label: string; dotClass: string; clear: () => void }> = [];
+  const chips: Array<{ key: string; label: string; clear: () => void }> = [];
 
   if (debouncedSearch.value) {
     chips.push({
       key: 'q',
       label: `Cari: "${debouncedSearch.value}"`,
-      dotClass: 'bg-[#0F4C3A]',
       clear: () => {
         searchInput.value = '';
         debouncedSearch.value = '';
@@ -327,9 +323,8 @@ const activeFilterChips = computed(() => {
       key: 'sourceType',
       label:
         selectedSourceType.value === ArticleSourceTypeEnum.REGIONAL
-          ? 'Sumber: Lokal'
+          ? 'Sumber: Lokal Kaltara'
           : 'Sumber: Nasional',
-      dotClass: 'bg-emerald-600',
       clear: () => {
         selectedSourceType.value = 'ALL';
         page.value = 1;
@@ -341,8 +336,7 @@ const activeFilterChips = computed(() => {
     const sector = PDRB_17_SECTORS.find((s) => s.groupCode === groupCode);
     chips.push({
       key: `pdrb-${groupCode}`,
-      label: `Sektor ${groupCode}: ${sector?.shortName ?? groupCode}`,
-      dotClass: getKbliClusterTheme(groupCode).accentBarClass,
+      label: `KBLI ${groupCode}: ${sector?.shortName ?? groupCode}`,
       clear: () => {
         selectedPdrbGroups.value = selectedPdrbGroups.value.filter((c: string) => c !== groupCode);
         page.value = 1;
@@ -355,7 +349,6 @@ const activeFilterChips = computed(() => {
     chips.push({
       key: `exp-${expCode}`,
       label: `Pengeluaran: ${item?.short ?? expCode}`,
-      dotClass: getExpenditureColorTheme(expCode).dotClass,
       clear: () => {
         selectedExpenditures.value = selectedExpenditures.value.filter((c: string) => c !== expCode);
         page.value = 1;
@@ -363,13 +356,12 @@ const activeFilterChips = computed(() => {
     });
   }
 
-  if (selectedImpactMacro.value !== 'ALL') {
+  if (selectedImpactMacro.value !== 'all' && selectedImpactMacro.value !== 'ALL') {
     chips.push({
       key: 'impactMacro',
-      label: `Dampak: ${IMPACT_MACRO_LABELS[selectedImpactMacro.value] ?? selectedImpactMacro.value}`,
-      dotClass: 'bg-amber-500',
+      label: `Sinyal: ${IMPACT_MACRO_LABELS[selectedImpactMacro.value] ?? selectedImpactMacro.value}`,
       clear: () => {
-        selectedImpactMacro.value = 'ALL';
+        selectedImpactMacro.value = 'all';
         page.value = 1;
       },
     });
@@ -379,7 +371,6 @@ const activeFilterChips = computed(() => {
     chips.push({
       key: 'dateRange',
       label: `Rentang: ${customDateRangeLabel.value}`,
-      dotClass: 'bg-[#0F4C3A]',
       clear: () => {
         selectedDateFrom.value = '';
         selectedDateTo.value = '';
@@ -399,7 +390,7 @@ function resetAllFilters() {
   selectedSourceType.value = 'ALL';
   selectedPdrbGroups.value = [];
   selectedExpenditures.value = [];
-  selectedImpactMacro.value = 'ALL';
+  selectedImpactMacro.value = 'all';
   selectedDateFrom.value = '';
   selectedDateTo.value = '';
   page.value = 1;
@@ -411,26 +402,6 @@ function handlePeriodChange(newYear: number, newQuarter: PdrbQuarter) {
   page.value = 1;
 }
 
-function handleDateFromUpdate(val: string) {
-  selectedDateFrom.value = val;
-  page.value = 1;
-}
-
-function handleDateToUpdate(val: string) {
-  selectedDateTo.value = val;
-  page.value = 1;
-}
-
-function handlePdrbGroupsUpdate(val: string[]) {
-  selectedPdrbGroups.value = val;
-  page.value = 1;
-}
-
-function handleExpendituresUpdate(val: string[]) {
-  selectedExpenditures.value = val;
-  page.value = 1;
-}
-
 function handleKbliChartUpdate(val: string) {
   const next = applyKbliSelection(val);
   selectedPdrbGroups.value = [next.pdrbGroup];
@@ -439,16 +410,6 @@ function handleKbliChartUpdate(val: string) {
 
 function handleExpenditureChartUpdate(val: string) {
   selectedExpenditures.value = [val];
-  page.value = 1;
-}
-
-function handleSourceTypeUpdate(val: string) {
-  selectedSourceType.value = val;
-  page.value = 1;
-}
-
-function handleImpactMacroUpdate(val: string) {
-  selectedImpactMacro.value = val;
   page.value = 1;
 }
 
@@ -522,216 +483,115 @@ function openDetailModal(article: PublicArticleItem) {
 </script>
 
 <template>
-  <div class="space-y-6">
-    <!-- Top Editorial Command Header (Warm Porcelain & Deep Pine) -->
-    <section
-      aria-label="Kontrol Periode dan Ringkasan Linimasa"
-      class="bg-white border border-[#E7E4DC] rounded-2xl p-5 sm:p-6 shadow-[0_1px_2px_rgba(26,29,27,0.03),0_10px_24px_-12px_rgba(26,29,27,0.06)] relative overflow-hidden"
-    >
-      <div class="flex flex-col gap-5">
-        <!-- Title Row & View Switcher -->
-        <div class="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
-          <div class="space-y-2 max-w-3xl">
-            <div class="flex flex-wrap items-center gap-2">
-              <span
-                class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FCECE8] text-[#B4482D] border border-[#F5C6BA] text-xs font-bold"
-              >
-                <UIcon name="i-solar-calendar-search-bold-duotone" class="w-3.5 h-3.5 text-[#C2593F]" />
-                <span>Portal Transparansi • {{ currentPeriodLabel }}</span>
-              </span>
-
-              <span
-                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#E7F3EE] text-[#0F4C3A] border border-[#C3DFD3] text-xs font-bold tabular-nums"
-              >
-                <span class="w-1.5 h-1.5 rounded-full bg-[#0F4C3A]" />
-                <span>{{ formatNumberId(overview?.kpi.totalVerified ?? 0) }} Terverifikasi</span>
-              </span>
-            </div>
-
-            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#1A1D1B] leading-tight font-display">
-              Linimasa Dinamika Ekonomi Tana Tidung
-            </h1>
-
-            <p class="text-sm text-[#5C615E] leading-relaxed">
-              Rekam jejak dinamika sektor usaha, pergerakan harga, dan aktivitas ekonomi Kabupaten
-              Tana Tidung secara terkurasi dan transparan.
-            </p>
+  <div class="space-y-8 pb-16">
+    <!-- Top Editorial Header & Command Ribbon -->
+    <section aria-label="Kontrol Periode dan Ringkasan Linimasa" class="space-y-6">
+      <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-6 pb-6 border-b border-[#141917]/[0.08]">
+        <!-- Left: Editorial Title & Status Indicator -->
+        <div class="space-y-2 max-w-3xl">
+          <div class="flex items-center gap-2">
+            <span class="text-[11px] font-mono font-bold uppercase tracking-wider text-[#C8553D]">
+              KABUPATEN TANA TIDUNG &bull; CATATAN FENOMENA PDRB
+            </span>
+            <span class="text-[#141917]/20">&bull;</span>
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#E3F0EA] border border-[#BBD8CB] text-xs font-mono font-bold text-[#0B3D2E] tabular-nums">
+              <span class="w-1.5 h-1.5 rounded-full bg-[#0B3D2E]" />
+              <span>{{ formatNumberId(overview?.kpi.totalVerified ?? 0) }} Bukti Terverifikasi</span>
+            </span>
           </div>
 
+          <h1 class="font-display font-bold text-3xl sm:text-4xl text-[#141917] tracking-tight">
+            Eksplorasi Sinyal Fenomena Ekonomi
+          </h1>
+
+          <p class="text-xs sm:text-sm text-[#4A524E] leading-relaxed max-w-2xl">
+            Arsip empiris dinamika 17 sektor usaha KBLI, 6 komponen pengeluaran PDRB, dan transmisi pergerakan harga di Kabupaten Tana Tidung.
+          </p>
+        </div>
+
+        <!-- Right: View Switcher & Analytics Toggle -->
+        <div class="flex flex-wrap items-center gap-2.5 self-start lg:self-end shrink-0">
           <!-- View Switcher -->
-          <div class="flex items-center gap-2 self-start shrink-0">
-            <div
-              role="group"
-              aria-label="Mode Tampilan Linimasa"
-              class="inline-flex p-1 rounded-xl bg-[#F2F0EB] border border-[#E7E4DC] font-display"
+          <div class="inline-flex p-1 rounded-xl bg-[#ECEAE2] text-xs font-semibold">
+            <button
+              type="button"
+              class="px-3 py-1.5 rounded-lg inline-flex items-center gap-1.5 transition-all cursor-pointer"
+              :class="viewMode === 'stream' ? 'bg-white text-[#141917] shadow-2xs font-bold' : 'text-[#4A524E] hover:text-[#141917]'"
+              @click="viewMode = 'stream'"
             >
-              <button
-                type="button"
-                :aria-pressed="viewMode === 'stream'"
-                class="min-h-9 px-3.5 py-1.5 rounded-lg text-xs inline-flex items-center gap-1.5 transition-colors cursor-pointer"
-                :class="
-                  viewMode === 'stream'
-                    ? 'bg-[#0F4C3A] text-white font-semibold shadow-2xs'
-                    : 'text-[#575B58] hover:text-[#1A1D1B] font-medium'
-                "
-                @click="() => { viewMode = 'stream'; }"
-              >
-                <UIcon name="i-solar-list-bold-duotone" class="w-4 h-4" />
-                <span>Mode Linimasa</span>
-              </button>
-              <button
-                type="button"
-                :aria-pressed="viewMode === 'table'"
-                class="min-h-9 px-3.5 py-1.5 rounded-lg text-xs inline-flex items-center gap-1.5 transition-colors cursor-pointer"
-                :class="
-                  viewMode === 'table'
-                    ? 'bg-[#0F4C3A] text-white font-semibold shadow-2xs'
-                    : 'text-[#575B58] hover:text-[#1A1D1B] font-medium'
-                "
-                @click="() => { viewMode = 'table'; }"
-              >
-                <UIcon name="i-solar-widget-4-bold-duotone" class="w-4 h-4" />
-                <span>Tabel Ringkas</span>
-              </button>
-            </div>
+              <UIcon name="i-solar-list-bold-duotone" class="w-3.5 h-3.5" />
+              <span>Linimasa</span>
+            </button>
+            <button
+              type="button"
+              class="px-3 py-1.5 rounded-lg inline-flex items-center gap-1.5 transition-all cursor-pointer"
+              :class="viewMode === 'table' ? 'bg-white text-[#141917] shadow-2xs font-bold' : 'text-[#4A524E] hover:text-[#141917]'"
+              @click="viewMode = 'table'"
+            >
+              <UIcon name="i-solar-widget-4-bold-duotone" class="w-3.5 h-3.5" />
+              <span>Tabel Ringkas</span>
+            </button>
+          </div>
+
+          <!-- Analytics Panel Toggle Button -->
+          <button
+            type="button"
+            class="h-9 px-3.5 rounded-xl border border-[#141917]/10 bg-white text-xs font-semibold text-[#141917] hover:bg-[#ECEAE2] inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+            :class="showAnalyticsPanel ? 'bg-[#E3F0EA] border-[#BBD8CB] text-[#0B3D2E] font-bold' : ''"
+            @click="showAnalyticsPanel = !showAnalyticsPanel"
+          >
+            <UIcon name="i-solar-pie-chart-2-bold-duotone" class="w-4 h-4 text-[#0B3D2E]" />
+            <span>{{ showAnalyticsPanel ? 'Sembunyikan Statistik' : 'Statistik Periode' }}</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Integrated Period Switcher Capsule -->
+      <div class="flex flex-wrap items-center justify-between gap-4">
+        <div class="inline-flex items-center p-1 rounded-2xl bg-[#ECEAE2] border border-[#141917]/[0.08] divide-x divide-[#141917]/10">
+          <!-- Year Selector -->
+          <div class="pr-2 pl-1 py-0.5">
+            <USelect
+              id="linimasa-year-select"
+              :model-value="selectedYear"
+              :items="yearSelectOptions"
+              value-key="value"
+              label-key="label"
+              leading-icon="i-solar-calendar-bold-duotone"
+              size="xs"
+              aria-label="Tahun PDRB"
+              class="w-24 font-bold font-mono text-[#141917]"
+              @update:model-value="(val: unknown) => handlePeriodChange(Number(val), selectedQuarter)"
+            />
+          </div>
+
+          <!-- Quarter Switcher -->
+          <div class="inline-flex items-center gap-1 pl-2 font-mono">
+            <button
+              v-for="qBtn in quarterButtons"
+              :key="qBtn.value"
+              type="button"
+              class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer"
+              :class="
+                selectedQuarter === qBtn.value
+                  ? 'bg-[#0B3D2E] text-white shadow-2xs font-bold'
+                  : 'text-[#4A524E] hover:text-[#141917]'
+              "
+              @click="handlePeriodChange(selectedYear, qBtn.value)"
+            >
+              {{ qBtn.label }}
+            </button>
           </div>
         </div>
 
-        <!-- Period Control Bar: Unified Period Switcher Capsule -->
-        <div
-          class="pt-4 border-t border-[#EFECE6] flex flex-wrap items-center justify-between gap-3"
-        >
-          <div class="flex flex-wrap items-center gap-3">
-            <!-- Unified Period Switcher Capsule (Tahun & Triwulan Rapi Terpadu) -->
-            <div
-              class="inline-flex items-center p-1 rounded-xl bg-[#F2F0EB] border border-[#E7E4DC] shadow-2xs divide-x divide-[#E7E4DC]"
-            >
-              <!-- Integrated Year Dropdown using Nuxt UI USelect -->
-              <div class="pr-2 pl-1.5 py-0.5">
-                <USelect
-                  id="linimasa-year-select"
-                  :model-value="selectedYear"
-                  :items="yearSelectOptions"
-                  value-key="value"
-                  label-key="label"
-                  leading-icon="i-solar-calendar-bold-duotone"
-                  size="xs"
-                  aria-label="Tahun PDRB"
-                  class="w-24 font-bold font-mono text-[#1A1D1B]"
-                  @update:model-value="(val: unknown) => handlePeriodChange(Number(val), selectedQuarter)"
-                />
-              </div>
-
-              <!-- Segmented Control Triwulan -->
-              <div
-                role="group"
-                aria-label="Pilih Triwulan"
-                class="inline-flex items-center gap-1 pl-2.5 font-mono"
-              >
-                <button
-                  v-for="qBtn in quarterButtons"
-                  :key="qBtn.value"
-                  type="button"
-                  :aria-pressed="selectedQuarter === qBtn.value"
-                  class="min-h-8 px-2.5 py-1 rounded-lg text-xs transition-colors tabular-nums cursor-pointer"
-                  :class="
-                    selectedQuarter === qBtn.value
-                      ? 'bg-[#0F4C3A] text-white font-semibold shadow-2xs'
-                      : 'text-[#575B58] hover:text-[#1A1D1B] font-medium'
-                  "
-                  :title="`${qBtn.label} (${qBtn.range})`"
-                  @click="() => { handlePeriodChange(selectedYear, qBtn.value); }"
-                >
-                  {{ qBtn.label }}
-                </button>
-              </div>
-            </div>
-
-            <!-- Dynamic Period Disclosure Label (State Hierarchy: Date Range Override vs Standard Quarter) -->
-            <div class="hidden sm:inline-flex items-center gap-2 font-mono">
-              <span
-                v-if="!hasCustomDateRange"
-                class="text-xs text-[#575B58] font-semibold"
-              >
-                {{ periodDisplayLabel }}
-              </span>
-
-              <div
-                v-else
-                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#E7F3EE] border border-[#C3DFD3] text-xs font-semibold text-[#0F4C3A]"
-              >
-                <UIcon name="i-solar-calendar-bold-duotone" class="w-3.5 h-3.5 text-[#0F4C3A]" />
-                <span>Rentang Khusus: {{ customDateRangeLabel }}</span>
-                <button
-                  type="button"
-                  class="ml-1 text-[#0F4C3A]/70 hover:text-[#0F4C3A] cursor-pointer"
-                  title="Hapus rentang kustom & kembali ke Triwulan murni"
-                  @click="() => { selectedDateFrom = ''; selectedDateTo = ''; page = 1; }"
-                >
-                  <UIcon name="i-lucide-x" class="w-3 h-3" />
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Right Meta & Analytics Panel Toggle -->
-          <div class="flex flex-wrap items-center gap-2.5">
-            <span class="text-xs text-[#575B58] tabular-nums">
-              Sinkronisasi Terakhir: <strong class="text-[#1A1D1B] font-semibold">{{ lastSyncText }}</strong>
-            </span>
-
-            <button
-              type="button"
-              :aria-expanded="showAnalyticsPanel"
-              class="min-h-9 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-colors cursor-pointer"
-              :class="
-                showAnalyticsPanel
-                  ? 'bg-[#E7F3EE] text-[#0F4C3A] border-[#C3DFD3] hover:bg-[#D7E5DF]'
-                  : 'bg-white text-[#3D423F] border-[#E7E4DC] hover:bg-[#FAF9F7]'
-              "
-              @click="() => { showAnalyticsPanel = !showAnalyticsPanel; }"
-            >
-              <UIcon name="i-solar-pie-chart-2-bold-duotone" class="w-4 h-4 text-[#0F4C3A]" />
-              <span>{{ showAnalyticsPanel ? 'Tutup Statistik' : 'Lihat Statistik' }}</span>
-            </button>
-          </div>
+        <div class="text-xs text-[#737B76] font-mono">
+          Sinkronisasi Terakhir: <strong class="text-[#141917]">{{ lastSyncText }}</strong>
         </div>
       </div>
     </section>
 
-    <!-- Mobile Search & Filter Trigger (< lg) — Prioritized above analytics -->
-    <div class="lg:hidden flex items-center gap-2.5">
-      <div class="flex-1">
-        <label for="mobile-linimasa-search" class="sr-only">Cari fenomena ekonomi</label>
-        <UInput
-          id="mobile-linimasa-search"
-          v-model="searchInput"
-          type="search"
-          size="md"
-          leading-icon="i-solar-magnifer-line-duotone"
-          placeholder="Cari komoditas, sektor, atau judul..."
-          class="w-full"
-        />
-      </div>
-
-      <button
-        type="button"
-        class="h-11 px-3.5 rounded-xl bg-white border border-[#E7E4DC] text-xs font-semibold text-[#1A1D1B] inline-flex items-center gap-1.5 shrink-0 shadow-2xs cursor-pointer font-display hover:bg-[#FAF9F7]"
-        @click="() => { mobileFiltersOpen = true; }"
-      >
-        <UIcon name="i-solar-filter-bold-duotone" class="w-4 h-4 text-[#0F4C3A]" />
-        <span>Filter</span>
-        <span
-          v-if="activeFilterCount > 0"
-          class="px-1.5 py-0.5 rounded-full bg-[#0F4C3A] text-white text-[10px] font-bold font-mono tabular-nums"
-        >
-          {{ activeFilterCount }}
-        </span>
-      </button>
-    </div>
-
-    <!-- Collapsible Analytics Panel (KPI + Interactive ECharts) -->
-    <div v-if="showAnalyticsPanel" class="space-y-4">
+    <!-- Collapsible Analytics Panel -->
+    <div v-if="showAnalyticsPanel" class="space-y-6 pt-2 pb-4">
       <PublicKpiSnapshotGrid :overview="overview ?? null" :pending="overviewPending" />
       <PublicSectorDistributionCharts
         :overview="overview ?? null"
@@ -744,13 +604,273 @@ function openDetailModal(article: PublicArticleItem) {
       />
     </div>
 
-    <!-- Mobile Filter Slideover -->
+    <!-- Sticky Horizontal Command & Filter Dock -->
+    <PublicFilterDock
+      :overview="overview ?? null"
+      :source-type="selectedSourceType"
+      :pdrb-groups="selectedPdrbGroups"
+      :expenditures="selectedExpenditures"
+      :impact-macro="selectedImpactMacro"
+      :date-from="selectedDateFrom"
+      :date-to="selectedDateTo"
+      :active-filter-count="activeFilterCount"
+      @update:source-type="(v) => { selectedSourceType = v; page = 1; }"
+      @update:pdrb-groups="(v) => { selectedPdrbGroups = v; page = 1; }"
+      @update:expenditures="(v) => { selectedExpenditures = v; page = 1; }"
+      @update:impact-macro="(v) => { selectedImpactMacro = v; page = 1; }"
+      @update:date-from="(v) => { selectedDateFrom = v; page = 1; }"
+      @update:date-to="(v) => { selectedDateTo = v; page = 1; }"
+      @open-drawer="mobileFiltersOpen = true"
+      @reset="resetAllFilters"
+    />
+
+    <!-- Active Filter Chips Ribbon -->
+    <div
+      v-if="activeFilterChips.length > 0"
+      class="flex flex-wrap items-center gap-2 text-xs"
+    >
+      <span class="text-[11px] font-mono font-semibold text-[#737B76] uppercase">Filter Aktif:</span>
+      <button
+        v-for="chip in activeFilterChips"
+        :key="chip.key"
+        type="button"
+        class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E3F0EA] border border-[#BBD8CB] text-xs font-semibold text-[#0B3D2E] hover:bg-[#D2E6DC] transition-colors cursor-pointer"
+        @click="chip.clear"
+      >
+        <span>{{ chip.label }}</span>
+        <UIcon name="i-lucide-x" class="w-3 h-3 text-[#0B3D2E]" />
+      </button>
+      <button
+        type="button"
+        class="text-xs text-[#C8553D] font-bold hover:underline ml-1 cursor-pointer"
+        @click="resetAllFilters"
+      >
+        Reset Semua
+      </button>
+    </div>
+
+    <!-- Main Signal Stream / Table Area (Natural Full-Page Flow) -->
+    <div>
+      <!-- Error Alert -->
+      <UAlert
+        v-if="articlesError"
+        color="error"
+        variant="subtle"
+        icon="i-lucide-alert-circle"
+        title="Gagal memuat arsip fenomena ekonomi"
+        description="Terjadi kendala saat mengambil data fenomena dari server. Silakan muat ulang."
+        class="mb-6"
+      >
+        <template #actions>
+          <UButton
+            color="error"
+            variant="soft"
+            size="xs"
+            label="Muat Ulang"
+            icon="i-lucide-refresh-cw"
+            @click="() => { refreshArticles(); }"
+          />
+        </template>
+      </UAlert>
+
+      <!-- Skeleton Loading -->
+      <div v-else-if="articlesPending && !articlesResponse" class="space-y-6">
+        <div v-for="idx in 3" :key="idx" class="md:grid md:grid-cols-[120px_1fr] gap-6 items-start">
+          <div class="h-14 w-20 rounded-xl bg-[#ECEAE2] animate-pulse" />
+          <div class="h-44 rounded-2xl bg-[#ECEAE2] animate-pulse" />
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div
+        v-else-if="!articlesResponse || articlesResponse.items.length === 0"
+        class="p-12 text-center rounded-3xl bg-white border border-[#141917]/[0.08] shadow-2xs space-y-4 max-w-xl mx-auto"
+      >
+        <div class="w-12 h-12 rounded-2xl bg-[#E3F0EA] border border-[#BBD8CB] text-[#0B3D2E] flex items-center justify-center mx-auto">
+          <UIcon name="i-solar-inbox-line-bold-duotone" class="w-6 h-6" />
+        </div>
+        <div class="space-y-1">
+          <h2 class="font-display font-bold text-lg text-[#141917]">
+            {{
+              activeFilterCount > 0
+                ? 'Tidak ada fenomena yang cocok'
+                : `Belum ada fenomena terverifikasi di ${currentPeriodLabel}`
+            }}
+          </h2>
+          <p class="text-xs text-[#4A524E] leading-relaxed">
+            {{
+              activeFilterCount > 0
+                ? 'Coba longgarkan kata kunci pencarian, sektor KBLI, atau rentang tanggal.'
+                : 'Beralih ke triwulan lain untuk melihat catatan fenomena yang telah selesai diverifikasi.'
+            }}
+          </p>
+        </div>
+        <div class="flex flex-wrap items-center justify-center gap-2 pt-2">
+          <button
+            v-if="activeFilterCount > 0"
+            type="button"
+            class="obs-btn-primary h-9 px-4 rounded-xl text-xs font-semibold"
+            @click="resetAllFilters"
+          >
+            Reset Semua Filter
+          </button>
+          <button
+            type="button"
+            class="obs-btn-ghost h-9 px-4 rounded-xl text-xs font-semibold"
+            @click="handlePeriodChange(previousQuarterInfo.year, previousQuarterInfo.quarter)"
+          >
+            Ke {{ previousQuarterInfo.label }}
+          </button>
+          <button
+            v-if="latestPopulatedPeriod"
+            type="button"
+            class="obs-btn-primary h-9 px-4 rounded-xl text-xs font-semibold"
+            @click="handlePeriodChange(latestPopulatedPeriod.year, latestPopulatedPeriod.quarter)"
+          >
+            Buka {{ latestPopulatedPeriod.label }} ({{ latestPopulatedPeriod.count }})
+          </button>
+        </div>
+      </div>
+
+      <!-- Mode 1: Natural Full-Page Stream (Asymmetric Magazine Day Numeral Gutter) -->
+      <div v-else-if="viewMode === 'stream'" class="space-y-10">
+        <section
+          v-for="group in timelineDateGroups"
+          :key="group.dateKey"
+          class="md:grid md:grid-cols-[120px_1fr] gap-6 items-start"
+        >
+          <!-- Left Column (Desktop Sticky Day Numeral Gutter) -->
+          <div class="md:sticky md:top-40 mb-3 md:mb-0">
+            <div class="flex md:flex-col items-baseline md:items-start justify-between gap-1">
+              <div class="font-display font-extrabold text-3xl sm:text-4xl text-[#141917] tabular-nums tracking-tight">
+                {{ group.dayLabel }}
+              </div>
+              <div class="text-[11px] font-mono font-bold text-[#737B76] uppercase tracking-wider">
+                {{ group.monthYearLabel }}
+              </div>
+              <div class="text-[11px] font-mono text-[#0B3D2E] font-semibold mt-0.5">
+                {{ group.items.length }} sinyal
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column: Clean Feed Cards -->
+          <div class="space-y-4">
+            <PublicPhenomenonFeedCard
+              v-for="article in group.items"
+              :key="article.id"
+              :article="article"
+              @select="openDetailModal"
+            />
+          </div>
+        </section>
+      </div>
+
+      <!-- Mode 2: Clean Architectural Table -->
+      <div v-else class="rounded-2xl border border-[#141917]/[0.08] overflow-hidden bg-white shadow-2xs">
+        <div class="px-5 py-3.5 border-b border-[#141917]/[0.08] bg-[#F6F5F1] flex items-center justify-between gap-2">
+          <span class="text-xs font-bold text-[#141917] font-display">
+            Tabel Ringkas Fenomena ({{ articlesResponse.pagination.total }})
+          </span>
+          <span class="text-[11px] text-[#737B76]">Klik baris untuk membaca ringkasan lengkap</span>
+        </div>
+
+        <div class="saas-table-scroller" tabindex="0" role="region" aria-label="Tabel Fenomena Terverifikasi">
+          <table class="min-w-full divide-y divide-[#141917]/[0.08] text-left text-xs">
+            <thead class="bg-[#ECEAE2] text-[#141917] font-semibold sticky top-0 z-10 font-display">
+              <tr>
+                <th scope="col" class="px-4 py-3 whitespace-nowrap">Tanggal</th>
+                <th scope="col" class="px-4 py-3 min-w-[280px]">Judul &amp; Sumber</th>
+                <th scope="col" class="px-4 py-3 min-w-[180px]">Lapangan Usaha</th>
+                <th scope="col" class="px-4 py-3 min-w-[180px]">Pengeluaran PDRB</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-[#141917]/[0.06] bg-white">
+              <tr
+                v-for="article in articlesResponse.items"
+                :key="article.id"
+                class="hover:bg-[#E3F0EA]/40 cursor-pointer transition-colors"
+                @click="openDetailModal(article)"
+              >
+                <td class="px-4 py-3.5 align-top whitespace-nowrap font-mono tabular-nums text-[#4A524E]">
+                  {{ formatDateId(article.publishedAt) }}
+                  <div class="text-[10.5px] text-[#737B76]">
+                    TW {{ toRomanQuarter(article.quarter) }} {{ article.year }}
+                  </div>
+                </td>
+                <td class="px-4 py-3.5 align-top space-y-1">
+                  <button
+                    type="button"
+                    class="text-left font-bold text-[#141917] hover:text-[#0B3D2E] leading-snug line-clamp-2 cursor-pointer font-display"
+                    @click.stop="openDetailModal(article)"
+                  >
+                    {{ article.title }}
+                  </button>
+                  <div class="flex items-center gap-2 text-[11px] text-[#737B76]">
+                    <span>{{ article.sourcePortal }}</span>
+                    <span v-if="article.subdistrict" class="px-1.5 py-0.2 rounded bg-[#E3F0EA] text-[#0B3D2E] text-[10px] font-bold">
+                      Kec. {{ article.subdistrict }}
+                    </span>
+                  </div>
+                </td>
+                <td class="px-4 py-3.5 align-top space-y-1">
+                  <div class="font-semibold text-[#141917]">
+                    {{ getKbliShortCodeName(article.kbliCategory) }}
+                  </div>
+                  <div>
+                    <UBadge
+                      :color="getKbliImpactBadge(article.kbliImpact).color"
+                      variant="subtle"
+                      size="xs"
+                    >
+                      {{ getKbliImpactBadge(article.kbliImpact).shortLabel }}
+                    </UBadge>
+                  </div>
+                </td>
+                <td class="px-4 py-3.5 align-top space-y-1">
+                  <div class="font-semibold text-[#141917]">
+                    {{ getExpenditureLabel(article.expenditureComponent, false) }}
+                  </div>
+                  <div>
+                    <UBadge
+                      :color="getExpenditureImpactBadge(article.expenditureImpact).color"
+                      variant="subtle"
+                      size="xs"
+                    >
+                      {{ getExpenditureImpactBadge(article.expenditureImpact).shortLabel }}
+                    </UBadge>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Pagination Toolbar -->
+      <div
+        v-if="articlesResponse && articlesResponse.pagination.totalPages > 1"
+        class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-8 border-t border-[#141917]/[0.08]"
+      >
+        <span class="text-xs text-[#737B76] font-mono tabular-nums">
+          Halaman {{ articlesResponse.pagination.page }} dari {{ articlesResponse.pagination.totalPages }} ({{ formatNumberId(articlesResponse.pagination.total) }} fenomena)
+        </span>
+        <UPagination
+          v-model:page="page"
+          :total="articlesResponse.pagination.total"
+          :items-per-page="articlesResponse.pagination.limit"
+          size="sm"
+        />
+      </div>
+    </div>
+
+    <!-- Mobile Drawer for Deep Filters -->
     <USlideover
       v-model:open="mobileFiltersOpen"
       side="left"
-      title="Filter Fenomena Ekonomi"
-      description="Saring linimasa menurut sumber berita, 17 kategori KBLI, 6 komponen pengeluaran, dan dampak makro"
-      :ui="{ content: 'max-w-sm' }"
+      title="Filter Lanjutan"
+      description="Saring rentang tanggal, sektor KBLI, dan pengeluaran PDRB"
+      :ui="{ content: 'max-w-sm bg-[#F6F5F1]' }"
     >
       <template #body>
         <PublicFilterBar
@@ -763,342 +883,21 @@ function openDetailModal(article: PublicArticleItem) {
           :date-from="selectedDateFrom"
           :date-to="selectedDateTo"
           :active-filter-count="activeFilterCount"
-          @update:source-type="handleSourceTypeUpdate"
-          @update:pdrb-groups="handlePdrbGroupsUpdate"
-          @update:expenditures="handleExpendituresUpdate"
-          @update:impact-macro="handleImpactMacroUpdate"
-          @update:date-from="handleDateFromUpdate"
-          @update:date-to="handleDateToUpdate"
+          @update:source-type="(v) => { selectedSourceType = v; page = 1; }"
+          @update:pdrb-groups="(v) => { selectedPdrbGroups = v; page = 1; }"
+          @update:expenditures="(v) => { selectedExpenditures = v; page = 1; }"
+          @update:impact-macro="(v) => { selectedImpactMacro = v; page = 1; }"
+          @update:date-from="(v) => { selectedDateFrom = v; page = 1; }"
+          @update:date-to="(v) => { selectedDateTo = v; page = 1; }"
           @reset="resetAllFilters"
         />
       </template>
     </USlideover>
 
-    <!-- Main Asymmetric Feed Layout (Bounded Split-Pane di Desktop lg:) -->
-    <div class="flex flex-col lg:grid lg:grid-cols-[310px_minmax(0,1fr)] lg:items-stretch lg:h-[calc(100vh-108px)] lg:min-h-[640px] lg:max-h-[860px] gap-6">
-      <!-- Desktop Bounded Filter Sidebar (Ketinggian sama persis dengan panel kanan) -->
-      <div class="hidden lg:block h-full overflow-hidden">
-        <PublicFilterBar
-          :overview="overview ?? null"
-          :source-type="selectedSourceType"
-          :pdrb-groups="selectedPdrbGroups"
-          :expenditures="selectedExpenditures"
-          :impact-macro="selectedImpactMacro"
-          :date-from="selectedDateFrom"
-          :date-to="selectedDateTo"
-          :active-filter-count="activeFilterCount"
-          @update:source-type="handleSourceTypeUpdate"
-          @update:pdrb-groups="handlePdrbGroupsUpdate"
-          @update:expenditures="handleExpendituresUpdate"
-          @update:impact-macro="handleImpactMacroUpdate"
-          @update:date-from="handleDateFromUpdate"
-          @update:date-to="handleDateToUpdate"
-          @reset="resetAllFilters"
-        />
-      </div>
-
-      <!-- Right Stream / Table Area (Frame terkunci rata dengan sidebar, body internal scrollable) -->
-      <div class="flex-1 min-w-0 w-full h-full flex flex-col overflow-hidden saas-card rounded-2xl bg-white border border-[#E7E4DC] shadow-sm p-4 sm:p-5">
-        <!-- Active Filter Chips Strip -->
-        <div
-          v-if="activeFilterChips.length > 0"
-          class="px-3.5 py-2.5 rounded-xl bg-[#FAF9F7] border border-[#E7E4DC] mb-3 flex flex-wrap items-center justify-between gap-2 shrink-0"
-        >
-          <div class="flex flex-wrap items-center gap-1.5">
-            <span class="text-[11px] font-bold text-[#3D423F]">Filter Aktif:</span>
-            <button
-              v-for="chip in activeFilterChips"
-              :key="chip.key"
-              type="button"
-              class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#E7F3EE] hover:bg-[#D7E5DF] border border-[#C3DFD3] text-[11px] font-semibold text-[#0F4C3A] transition-colors cursor-pointer"
-              @click="() => { chip.clear(); }"
-            >
-              <span class="w-1.5 h-1.5 rounded-full shrink-0" :class="chip.dotClass" />
-              <span>{{ chip.label }}</span>
-              <UIcon name="i-lucide-x" class="w-3 h-3 text-[#0F4C3A]" />
-            </button>
-          </div>
-
-          <button
-            type="button"
-            class="text-[11px] font-semibold text-[#0F4C3A] hover:underline cursor-pointer font-display"
-            @click="resetAllFilters"
-          >
-            Reset Semua
-          </button>
-        </div>
-
-        <!-- Scrollable Content Pane (Hanya isi berita/tabel yang bergulir di sini) -->
-        <div class="flex-1 min-h-0 overflow-y-auto saas-scroll pr-1 sm:pr-2">
-          <!-- Error State -->
-          <UAlert
-            v-if="articlesError"
-            color="error"
-            variant="subtle"
-            icon="i-lucide-alert-circle"
-            title="Gagal memuat linimasa fenomena ekonomi"
-            description="Terjadi kendala saat mengambil daftar fenomena dari server. Silakan muat ulang."
-          >
-            <template #actions>
-              <UButton
-                color="error"
-                variant="soft"
-                size="xs"
-                label="Muat Ulang"
-                icon="i-lucide-refresh-cw"
-                @click="() => { refreshArticles(); }"
-              />
-            </template>
-          </UAlert>
-
-          <!-- Loading Skeleton -->
-          <div v-else-if="articlesPending && !articlesResponse" class="space-y-4">
-            <div v-for="idx in 4" :key="idx" class="rounded-xl border border-[#EFECE6] p-5 space-y-3">
-              <div class="h-3 w-36 rounded bg-[#E7E4DC]" />
-              <div class="h-5 w-4/5 rounded bg-[#E7E4DC]" />
-              <div class="h-14 w-full rounded bg-[#FAF9F7]" />
-            </div>
-          </div>
-
-          <!-- Empty State -->
-          <div
-            v-else-if="!articlesResponse || articlesResponse.items.length === 0"
-            class="p-8 sm:p-10 text-center space-y-4"
-          >
-            <div
-              class="w-12 h-12 rounded-2xl bg-[#E7F3EE] border border-[#C3DFD3] text-[#0F4C3A] flex items-center justify-center mx-auto"
-            >
-              <UIcon name="i-solar-inbox-line-bold-duotone" class="w-6 h-6" />
-            </div>
-
-            <div class="space-y-1.5 max-w-md mx-auto">
-              <h2 class="text-base font-extrabold text-[#1A1D1B]">
-                {{
-                  activeFilterCount > 0
-                    ? 'Tidak ada fenomena yang cocok dengan kombinasi filter'
-                    : `Belum ada catatan terverifikasi pada ${currentPeriodLabel}`
-                }}
-              </h2>
-              <p class="text-xs text-[#5C615E] leading-relaxed">
-                {{
-                  activeFilterCount > 0
-                    ? 'Coba longgarkan sebagian kriteria sektor KBLI, kelompok permintaan, atau kata kunci pencarian.'
-                    : 'Anda dapat berpindah ke triwulan sebelumnya atau periode terbaru yang sudah memiliki dokumentasi terverifikasi.'
-                }}
-              </p>
-            </div>
-
-            <div class="flex flex-wrap items-center justify-center gap-2 pt-1">
-              <button
-                v-if="activeFilterCount > 0"
-                type="button"
-                class="btn-primary-gradient h-9 px-3.5 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer"
-                @click="resetAllFilters"
-              >
-                <UIcon name="i-lucide-rotate-ccw" class="w-3.5 h-3.5" />
-                <span>Hapus Semua Filter</span>
-              </button>
-
-              <button
-                type="button"
-                class="h-9 px-3.5 rounded-xl bg-white hover:bg-[#FAF9F7] border border-[#E7E4DC] text-xs font-semibold text-[#1A1D1B] inline-flex items-center gap-1.5 transition-colors cursor-pointer"
-                @click="() => { handlePeriodChange(previousQuarterInfo.year, previousQuarterInfo.quarter); }"
-              >
-                <UIcon name="i-lucide-arrow-left" class="w-3.5 h-3.5 text-[#6B6F6C]" />
-                <span>Ke {{ previousQuarterInfo.label }}</span>
-              </button>
-
-              <button
-                v-if="latestPopulatedPeriod"
-                type="button"
-                class="btn-primary-gradient h-9 px-3.5 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer"
-                @click="() => { if (latestPopulatedPeriod) handlePeriodChange(latestPopulatedPeriod.year, latestPopulatedPeriod.quarter); }"
-              >
-                <UIcon name="i-solar-calendar-mark-bold-duotone" class="w-4 h-4" />
-                <span>Buka {{ latestPopulatedPeriod.label }} ({{ latestPopulatedPeriod.count }})</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- Mode 1: Feed Linimasa Penuh & Seimbang -->
-          <div v-else-if="viewMode === 'stream'" class="w-full space-y-6 pt-1">
-            <div class="timeline-spine space-y-6">
-              <section
-                v-for="group in timelineDateGroups"
-                :key="group.dateKey"
-                class="relative pl-12 space-y-3"
-              >
-                <!-- Date Marker Node on Spine -->
-                <div
-                  class="absolute left-0 top-0.5 w-10 h-10 rounded-xl bg-[#0F4C3A] text-white shadow-xs flex flex-col items-center justify-center leading-none z-10"
-                >
-                  <span class="text-sm font-bold tabular-nums">{{ group.dayLabel }}</span>
-                </div>
-
-                <div class="flex items-center justify-between gap-2 pt-1">
-                  <h2 class="text-xs font-bold tracking-wide text-[#575B58] font-display">
-                    {{ group.dayLabel }} {{ group.monthYearLabel }}
-                  </h2>
-                  <span class="text-xs font-bold text-[#0F4C3A] tabular-nums">
-                    {{ group.items.length }} Fenomena
-                  </span>
-                </div>
-
-                <div class="space-y-3.5">
-                  <PublicPhenomenonFeedCard
-                    v-for="article in group.items"
-                    :key="article.id"
-                    :article="article"
-                    @select="openDetailModal"
-                  />
-                </div>
-              </section>
-            </div>
-          </div>
-
-          <!-- Mode 2: Tabel Ringkas -->
-          <div v-else class="rounded-xl border border-[#E7E4DC] overflow-hidden bg-white">
-            <div class="px-4 py-2.5 border-b border-[#EFECE6] bg-[#FAF9F7] flex items-center justify-between gap-2">
-              <span class="text-xs font-bold text-[#1A1D1B] font-display">
-                Daftar Ringkas Fenomena ({{ articlesResponse.pagination.total }})
-              </span>
-              <span class="text-[11px] text-[#6B6F6C]">Klik baris untuk melihat rangkuman lengkap</span>
-            </div>
-
-            <div
-              class="saas-table-scroller"
-              tabindex="0"
-              role="region"
-              aria-label="Daftar Ringkas Fenomena Ekonomi Terverifikasi"
-            >
-              <table class="min-w-full divide-y divide-[#E7E4DC] text-left text-xs">
-                <caption class="sr-only">
-                  Daftar ringkas fenomena ekonomi terverifikasi Kabupaten Tana Tidung
-                </caption>
-                <thead class="bg-[#F2F0EB] text-[#3D423F] font-semibold sticky top-0 z-10 font-display">
-                  <tr>
-                    <th scope="col" class="px-3.5 py-2.5 whitespace-nowrap">Tanggal</th>
-                    <th scope="col" class="px-3.5 py-2.5 min-w-[260px]">Judul Fenomena &amp; Sumber</th>
-                    <th scope="col" class="px-3.5 py-2.5 min-w-[170px]">Lapangan Usaha</th>
-                    <th scope="col" class="px-3.5 py-2.5 min-w-[170px]">Kelompok Permintaan</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-[#EFECE6] bg-white">
-                  <tr
-                    v-for="article in articlesResponse.items"
-                    :key="article.id"
-                    class="hover:bg-[#E7F3EE]/40 cursor-pointer transition-colors"
-                    @click="openDetailModal(article)"
-                  >
-                    <td class="px-3.5 py-3 align-top whitespace-nowrap font-mono tabular-nums text-[#3D423F] font-medium">
-                      {{ formatDateId(article.publishedAt) }}
-                      <div class="text-[11px] text-[#6B6F6C]">
-                        TW {{ toRomanQuarter(article.quarter) }} {{ article.year }}
-                      </div>
-                    </td>
-                    <td class="px-3.5 py-3 align-top space-y-1">
-                      <button
-                        type="button"
-                        class="text-left font-bold text-[#1A1D1B] hover:text-[#0F4C3A] leading-snug line-clamp-2 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0F4C3A] rounded font-display"
-                        @click.stop="openDetailModal(article)"
-                      >
-                        {{ article.title }}
-                      </button>
-                      <div class="flex items-center gap-2 text-[11px] text-[#6B6F6C] font-medium">
-                        <span>{{ article.sourcePortal }}</span>
-                        <span
-                          v-if="article.subdistrict"
-                          class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-semibold bg-[#E7F3EE] text-[#0F4C3A] border border-[#C3DFD3]"
-                        >
-                          <UIcon name="i-lucide-map-pin" class="w-2.5 h-2.5" />
-                          <span>Kec. {{ article.subdistrict }}</span>
-                        </span>
-                      </div>
-                    </td>
-                    <td class="px-3.5 py-3 align-top space-y-1">
-                      <div class="inline-flex items-center gap-1.5 text-xs font-semibold text-[#1A1D1B]">
-                        <span
-                          class="w-2 h-2 rounded-full shrink-0"
-                          :class="getKbliClusterTheme(article.kbliCategory).accentBarClass"
-                        />
-                        <span>{{ getKbliShortCodeName(article.kbliCategory) }}</span>
-                      </div>
-                      <div>
-                        <UBadge
-                          :color="getKbliImpactBadge(article.kbliImpact).color"
-                          variant="subtle"
-                          size="xs"
-                        >
-                          {{ getKbliImpactBadge(article.kbliImpact).shortLabel }}
-                        </UBadge>
-                      </div>
-                    </td>
-                    <td class="px-3.5 py-3 align-top space-y-1">
-                      <div class="inline-flex items-center gap-1.5 text-xs font-semibold text-[#1A1D1B]">
-                        <span
-                          class="w-2 h-2 rounded-full shrink-0"
-                          :class="getExpenditureColorTheme(article.expenditureComponent).dotClass"
-                        />
-                        <span>{{ getExpenditureLabel(article.expenditureComponent, false) }}</span>
-                      </div>
-                      <div>
-                        <UBadge
-                          :color="getExpenditureImpactBadge(article.expenditureImpact).color"
-                          variant="subtle"
-                          size="xs"
-                        >
-                          {{ getExpenditureImpactBadge(article.expenditureImpact).shortLabel }}
-                        </UBadge>
-                      </div>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        <!-- Locked Bottom Pagination Toolbar (Rata sejajar di bagian bawah panel) -->
-        <div
-          v-if="articlesResponse && articlesResponse.pagination.totalPages > 1"
-          class="flex items-center justify-between gap-3 pt-3 border-t border-[#EFECE6] shrink-0 mt-2"
-        >
-          <span class="text-xs text-[#5C615E] tabular-nums font-medium">
-            Halaman {{ articlesResponse.pagination.page }} dari {{ articlesResponse.pagination.totalPages }}
-            ({{ formatNumberId(articlesResponse.pagination.total) }} fenomena)
-          </span>
-          <UPagination
-            v-model:page="page"
-            :total="articlesResponse.pagination.total"
-            :items-per-page="articlesResponse.pagination.limit"
-            size="sm"
-          />
-        </div>
-      </div>
-    </div>
-
-    <!-- Metodologi & Kurasi Berita Fenomena Ekonomi -->
-    <div
-      class="rounded-xl bg-[#FAF9F7] border border-[#E7E4DC] p-4 sm:p-5 flex items-start gap-3.5"
-    >
-      <div
-        class="w-9 h-9 rounded-lg bg-[#0F4C3A] text-white flex items-center justify-center shrink-0 shadow-xs"
-      >
-        <UIcon name="i-solar-verified-check-bold-duotone" class="w-5 h-5 text-white" />
-      </div>
-      <div class="text-xs text-[#5C615E] space-y-1 leading-relaxed">
-        <div class="font-bold text-[#1A1D1B] font-display">
-          Standar Kurasi Berita Fenomena Ekonomi Kabupaten Tana Tidung
-        </div>
-        <p>
-          Seluruh catatan pada portal ini merupakan bukti fenomena ekonomi terkurasi yang
-          diselaraskan terhadap 17 Sektor Usaha (KBLI) dan 6 Komponen Pengeluaran
-          sebagai dokumentasi faktual pemantauan dinamika ekonomi daerah dan dampak kebijakan nasional ke Tana Tidung.
-        </p>
-      </div>
-    </div>
-
-    <!-- Detail Modal -->
-    <PublicArticleDetailModal v-model:open="detailModalOpen" :article="selectedArticle" />
+    <!-- Reading Sheet Modal Mount -->
+    <PublicArticleDetailModal
+      v-model:open="detailModalOpen"
+      :article="selectedArticle"
+    />
   </div>
 </template>

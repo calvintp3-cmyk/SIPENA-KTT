@@ -16,8 +16,8 @@ export default defineNuxtConfig({
 
   fonts: {
     families: [
-      { name: 'Plus Jakarta Sans', provider: 'google', weights: [500, 600, 700, 800] },
-      { name: 'Inter', provider: 'google', weights: [400, 500, 600, 700] },
+      { name: 'Bricolage Grotesque', provider: 'google', weights: [500, 600, 700, 800] },
+      { name: 'Manrope', provider: 'google', weights: [400, 500, 600, 700, 800] },
       { name: 'JetBrains Mono', provider: 'google', weights: [400, 500, 600] },
     ],
   },
@@ -97,7 +97,7 @@ export default defineNuxtConfig({
             'Rekam jejak dinamika sektor usaha, pergerakan harga, dan aktivitas ekonomi Kabupaten Tana Tidung secara terkurasi dan transparan.',
         },
         { name: 'twitter:image', content: 'https://sipena6503.caplinlab.my.id/og-image.png' },
-        { name: 'theme-color', content: '#1d4ed8' },
+        { name: 'theme-color', content: '#0B3D2E' },
       ],
       link: [
         { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },

@@ -27,7 +27,7 @@ const errorMessage = ref<string | null>(null);
 
 watch(
   () => [props.open, props.targetUser] as const,
-  ([isOpen]) => {
+  ([isOpen]: readonly [boolean, AdminUserItem | null]) => {
     if (!isOpen) return;
     newPassword.value = '';
     confirmPassword.value = '';
@@ -95,10 +95,10 @@ async function handleSubmit() {
       <form class="space-y-4" @submit.prevent="() => { void handleSubmit(); }">
         <div
           v-if="targetUser"
-          class="rounded-xl border border-slate-200 bg-slate-50/80 px-3.5 py-2.5 text-xs"
+          class="rounded-xl border border-[#141917]/[0.08] bg-[#F6F5F1] px-3.5 py-2.5 text-xs"
         >
-          <div class="font-bold text-slate-900">{{ targetUser.name }}</div>
-          <div class="text-slate-600 mt-0.5">{{ targetUser.email }}</div>
+          <div class="font-bold text-[#141917]">{{ targetUser.name }}</div>
+          <div class="text-[#4A524E] mt-0.5">{{ targetUser.email }}</div>
         </div>
 
         <UAlert
@@ -144,7 +144,7 @@ async function handleSubmit() {
           />
         </UFormField>
 
-        <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
+        <div class="flex justify-end gap-2 pt-3 border-t border-[#141917]/[0.08]">
           <UButton color="neutral" variant="ghost" @click="() => { modalOpen = false; }">
             Batal
           </UButton>

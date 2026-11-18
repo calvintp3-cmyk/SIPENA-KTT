@@ -31,28 +31,28 @@ function handleChartClick(params: unknown) {
   <div class="relative w-full" :class="heightClass">
     <div
       v-if="loading"
-      class="w-full h-full rounded-xl bg-slate-100/80 border border-slate-200/70 flex flex-col justify-end gap-2.5 p-4"
+      class="w-full h-full rounded-xl bg-[#ECEAE2] border border-[#141917]/[0.08] flex flex-col justify-end gap-2.5 p-4"
     >
-      <div class="h-3 w-32 rounded-full bg-slate-200/80 mb-auto" />
+      <div class="h-3 w-32 rounded-full bg-[#141917]/[0.08] mb-auto" />
       <div class="grid grid-cols-6 gap-2 items-end h-36">
-        <div class="h-16 rounded-t-lg bg-slate-200/80" />
-        <div class="h-24 rounded-t-lg bg-slate-200/80" />
-        <div class="h-32 rounded-t-lg bg-slate-200/90" />
-        <div class="h-20 rounded-t-lg bg-slate-200/80" />
-        <div class="h-28 rounded-t-lg bg-slate-200/80" />
-        <div class="h-12 rounded-t-lg bg-slate-200/80" />
+        <div class="h-16 rounded-t-lg bg-[#141917]/[0.08]" />
+        <div class="h-24 rounded-t-lg bg-[#141917]/[0.08]" />
+        <div class="h-32 rounded-t-lg bg-[#141917]/[0.10]" />
+        <div class="h-20 rounded-t-lg bg-[#141917]/[0.08]" />
+        <div class="h-28 rounded-t-lg bg-[#141917]/[0.08]" />
+        <div class="h-12 rounded-t-lg bg-[#141917]/[0.08]" />
       </div>
     </div>
 
     <div
       v-else-if="empty || !option"
-      class="w-full h-full rounded-xl bg-slate-50/80 border border-dashed border-slate-200 flex flex-col items-center justify-center text-center px-6"
+      class="w-full h-full rounded-xl bg-[#F6F5F1] border border-dashed border-[#141917]/[0.12] flex flex-col items-center justify-center text-center px-6"
     >
-      <div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center mb-2.5">
+      <div class="w-10 h-10 rounded-xl bg-[#ECEAE2] text-[#737B76] flex items-center justify-center mb-2.5">
         <UIcon name="i-solar-chart-2-bold-duotone" class="w-5 h-5" aria-hidden="true" />
       </div>
-      <div class="text-xs font-semibold text-slate-700">{{ emptyTitle }}</div>
-      <div class="text-[11px] text-slate-600 mt-0.5 max-w-xs">{{ emptyDescription }}</div>
+      <div class="text-xs font-semibold text-[#141917]">{{ emptyTitle }}</div>
+      <div class="text-[11px] text-[#4A524E] mt-0.5 max-w-xs">{{ emptyDescription }}</div>
     </div>
 
     <ClientOnly v-else>
@@ -64,7 +64,7 @@ function handleChartClick(params: unknown) {
       />
       <template #fallback>
         <div
-          class="w-full h-full rounded-xl bg-slate-100/70 border border-slate-200/60 flex items-center justify-center text-xs text-slate-600"
+          class="w-full h-full rounded-xl bg-[#ECEAE2] border border-[#141917]/[0.08] flex items-center justify-center text-xs text-[#4A524E]"
         >
           Memuat visualisasi interaktif...
         </div>

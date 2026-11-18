@@ -941,15 +941,15 @@ const manualModalOpen = ref(false);
       <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
           <div
-            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200/80 text-xs font-semibold"
+            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#E3F0EA] text-[#0B3D2E] border border-[#BBD8CB] text-xs font-semibold"
           >
-            <UIcon name="i-solar-magic-stick-3-bold-duotone" class="w-3.5 h-3.5 text-blue-700" />
+            <UIcon name="i-solar-magic-stick-3-bold-duotone" class="w-3.5 h-3.5 text-[#0B3D2E]" />
             <span>Studio Rangkuman Fenomena Ekonomi</span>
           </div>
-          <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 text-balance mt-2 font-display">
+          <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-[#141917] text-balance mt-2 font-display">
             Sintesis Fenomena Ekonomi — {{ periodLabel }}
           </h1>
-          <p class="text-xs sm:text-sm text-slate-600 mt-0.5 text-pretty">
+          <p class="text-xs sm:text-sm text-[#4A524E] mt-0.5 text-pretty">
             Susun draf rangkuman faktual berakar 100% pada bukti berita terverifikasi lengkap dengan sitasi silang.
           </p>
         </div>
@@ -957,32 +957,32 @@ const manualModalOpen = ref(false);
         <div class="flex flex-wrap items-center gap-2.5">
           <button
             type="button"
-            class="min-h-9 px-3.5 rounded-xl border border-slate-200 bg-white hover:border-blue-300 hover:bg-slate-50 text-xs font-semibold text-slate-900 inline-flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
+            class="min-h-9 px-3.5 rounded-xl border border-[#141917]/[0.12] bg-white hover:bg-[#ECEAE2] text-xs font-semibold text-[#141917] inline-flex items-center gap-1.5 transition-colors cursor-pointer"
             @click="() => { draftsDrawerOpen = true; }"
           >
-            <UIcon name="i-solar-history-2-bold-duotone" class="w-4 h-4 text-blue-700" />
+            <UIcon name="i-solar-history-2-bold-duotone" class="w-4 h-4 text-[#0B3D2E]" />
             <span class="tabular-nums font-mono">Riwayat Draf ({{ savedDrafts.length }})</span>
           </button>
 
           <button
             type="button"
-            class="min-h-9 px-3.5 rounded-xl border border-indigo-200 bg-indigo-50/70 hover:bg-indigo-100/70 text-xs font-semibold text-indigo-900 inline-flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
+            class="min-h-9 px-3.5 rounded-xl border border-[#BBD8CB] bg-[#E3F0EA] hover:bg-[#d0e7dc] text-xs font-semibold text-[#0B3D2E] inline-flex items-center gap-1.5 transition-colors cursor-pointer"
             title="Kompilasi seluruh sektor KBLI & Pengeluaran triwulan ini ke satu dokumen Word (.docx) utuh"
             @click="() => { downloadFullQuarterBookDocx(); }"
           >
-            <UIcon name="i-lucide-book-open" class="w-4 h-4 text-indigo-700" />
+            <UIcon name="i-lucide-book-open" class="w-4 h-4 text-[#0B3D2E]" />
             <span>Buku Triwulan (.docx)</span>
           </button>
 
           <button
             type="button"
             :disabled="isGenerating || checkedIds.length === 0"
-            class="btn-primary-gradient min-h-9 px-4 rounded-xl text-xs font-semibold inline-flex items-center gap-2 cursor-pointer shadow-xs"
+            class="obs-btn-primary min-h-9 px-4 rounded-xl text-xs font-semibold inline-flex items-center gap-2 cursor-pointer shadow-xs disabled:opacity-50"
             @click="() => { requestGenerateNarrative(); }"
           >
             <UIcon
               :name="isGenerating ? 'i-lucide-loader-circle' : 'i-solar-magic-stick-3-bold-duotone'"
-              class="w-4 h-4 text-emerald-200"
+              class="w-4 h-4 text-[#BBD8CB]"
               :class="isGenerating ? 'animate-spin' : ''"
             />
             <span>{{ isGenerating ? 'Menyusun Narasi...' : 'Sintesis Fenomena' }}</span>
@@ -991,15 +991,15 @@ const manualModalOpen = ref(false);
       </div>
 
       <!-- Studio Parameter Controls (No button wrapping/clipping) -->
-      <div class="saas-card rounded-xl p-4 sm:p-5 grid grid-cols-1 md:grid-cols-12 gap-3.5 items-end">
+      <div class="obs-panel rounded-xl p-4 sm:p-5 grid grid-cols-1 md:grid-cols-12 gap-3.5 items-end">
         <div class="md:col-span-3 space-y-1.5">
-          <span class="block text-xs font-semibold text-slate-600">
+          <span class="block text-xs font-semibold text-[#4A524E]">
             Dimensi PDRB
           </span>
           <div
             role="group"
             aria-label="Pilih dimensi sintesis"
-            class="grid grid-cols-2 p-1 bg-slate-100 rounded-xl border border-slate-200/90 gap-1 font-mono"
+            class="grid grid-cols-2 p-1 bg-[#ECEAE2] rounded-xl border border-[#141917]/[0.08] gap-1 font-mono"
           >
             <button
               type="button"
@@ -1007,8 +1007,8 @@ const manualModalOpen = ref(false);
               class="min-h-8 py-1.5 px-2 rounded-lg text-xs transition-colors cursor-pointer"
               :class="
                 dimension === 'kbli'
-                  ? 'bg-white font-bold text-blue-700 shadow-2xs border border-blue-200/70'
-                  : 'text-slate-600 hover:text-slate-950 font-medium'
+                  ? 'bg-white font-bold text-[#0B3D2E] shadow-2xs border border-[#BBD8CB]'
+                  : 'text-[#4A524E] hover:text-[#141917] font-medium'
               "
               @click="() => { requestDimensionChange('kbli'); }"
             >
@@ -1020,8 +1020,8 @@ const manualModalOpen = ref(false);
               class="min-h-8 py-1.5 px-2 rounded-lg text-xs transition-colors cursor-pointer"
               :class="
                 dimension === 'expenditure'
-                  ? 'bg-white font-bold text-emerald-700 shadow-2xs border border-emerald-200/70'
-                  : 'text-slate-600 hover:text-slate-950 font-medium'
+                  ? 'bg-white font-bold text-[#0B3D2E] shadow-2xs border border-[#BBD8CB]'
+                  : 'text-[#4A524E] hover:text-[#141917] font-medium'
               "
               @click="() => { requestDimensionChange('expenditure'); }"
             >
@@ -1034,12 +1034,12 @@ const manualModalOpen = ref(false);
           <div class="flex items-center justify-between gap-2">
             <label
               for="synth-target-select"
-              class="block text-xs font-semibold text-slate-600"
+              class="block text-xs font-semibold text-[#4A524E]"
             >
               Target Sektor / Komponen ({{ shortPeriodLabel }})
             </label>
             <span
-              class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border"
+              class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border font-mono"
               :class="
                 dimension === 'kbli'
                   ? getKbliClusterTheme(targetCode).pillClass
@@ -1064,7 +1064,7 @@ const manualModalOpen = ref(false);
         <div class="md:col-span-4 space-y-1.5">
           <label
             for="synth-style-select"
-            class="block text-xs font-semibold text-slate-600"
+            class="block text-xs font-semibold text-[#4A524E]"
           >
             Format Gaya Penulisan
           </label>
@@ -1086,28 +1086,28 @@ const manualModalOpen = ref(false);
       <!-- LEFT 40%: EVIDENCE POOL -->
       <section
         aria-label="Daftar Sumber Bukti Terverifikasi"
-        class="no-print lg:col-span-5 saas-card rounded-2xl overflow-hidden flex flex-col max-h-[760px]"
+        class="no-print lg:col-span-5 obs-panel rounded-2xl overflow-hidden flex flex-col max-h-[760px]"
       >
-        <div class="p-4 border-b border-slate-200/80 bg-slate-50/70 space-y-3">
+        <div class="p-4 border-b border-[#141917]/[0.08] bg-[#F6F5F1] space-y-3">
           <div class="flex items-center justify-between gap-2">
             <div>
-              <h2 class="text-sm font-bold text-slate-900">Bukti Terverifikasi</h2>
-              <p class="text-[11px] text-slate-600 tabular-nums">
+              <h2 class="text-sm font-bold text-[#141917]">Bukti Terverifikasi</h2>
+              <p class="text-[11px] text-[#4A524E] tabular-nums font-mono">
                 {{ checkedIds.length }} dipilih dari {{ poolData?.items.length ?? 0 }} artikel (maks. 30)
               </p>
             </div>
             <div class="flex items-center gap-2 text-xs">
               <button
                 type="button"
-                class="min-h-8 px-1.5 inline-flex items-center text-indigo-700 hover:text-indigo-900 hover:underline font-semibold cursor-pointer"
+                class="min-h-8 px-1.5 inline-flex items-center text-[#0B3D2E] hover:text-[#072B20] hover:underline font-semibold cursor-pointer"
                 @click="() => { selectAllPool(); }"
               >
                 Pilih Semua
               </button>
-              <span class="text-slate-300" aria-hidden="true">|</span>
+              <span class="text-[#141917]/20" aria-hidden="true">|</span>
               <button
                 type="button"
-                class="min-h-8 px-1.5 inline-flex items-center text-slate-600 hover:text-slate-900 cursor-pointer"
+                class="min-h-8 px-1.5 inline-flex items-center text-[#4A524E] hover:text-[#141917] cursor-pointer"
                 @click="() => { clearPoolSelection(); }"
               >
                 Kosongkan
@@ -1146,15 +1146,15 @@ const manualModalOpen = ref(false);
           </UAlert>
 
           <div v-else-if="poolPending" class="space-y-2.5 p-2">
-            <div v-for="i in 3" :key="i" class="h-20 rounded-xl bg-slate-100" />
+            <div v-for="i in 3" :key="i" class="h-20 rounded-xl bg-[#ECEAE2]" />
           </div>
 
           <div v-else-if="!filteredPool.length" class="py-10 px-4 text-center space-y-3">
-            <UIcon name="i-solar-document-text-bold-duotone" class="w-9 h-9 text-slate-400 mx-auto" aria-hidden="true" />
-            <div class="text-xs font-bold text-slate-700">
+            <UIcon name="i-solar-document-text-bold-duotone" class="w-9 h-9 text-[#737B76] mx-auto" aria-hidden="true" />
+            <div class="text-xs font-bold text-[#141917]">
               Belum ada fenomena terverifikasi untuk target ini di {{ shortPeriodLabel }}.
             </div>
-            <p class="text-[11px] text-slate-600">
+            <p class="text-[11px] text-[#4A524E]">
               Anda dapat melengkapi bukti secara manual atau mengurasi antrean pending terlebih dahulu.
             </p>
             <div class="flex justify-center gap-2">
@@ -1176,10 +1176,10 @@ const manualModalOpen = ref(false);
               :class="
                 citationIndexByArticleId.get(art.id) !== undefined &&
                 highlightedCitationIndex === citationIndexByArticleId.get(art.id)
-                  ? 'bg-indigo-50/80 border-indigo-500 ring-2 ring-indigo-500/25 shadow-sm'
+                  ? 'bg-[#E3F0EA] border-[#0B3D2E] ring-2 ring-[#0B3D2E]/25 shadow-sm'
                   : checkedMap[art.id]
-                    ? 'bg-white border-indigo-300/80 shadow-2xs'
-                    : 'bg-slate-50/80 border-slate-200/80 opacity-80 hover:opacity-100'
+                    ? 'bg-white border-[#BBD8CB] shadow-2xs'
+                    : 'bg-[#F6F5F1] border-[#141917]/[0.08] opacity-80 hover:opacity-100'
               "
             >
               <div class="flex items-start gap-2.5">
@@ -1187,7 +1187,7 @@ const manualModalOpen = ref(false);
                   :id="`synth-pool-chk-${art.id}`"
                   type="checkbox"
                   :checked="Boolean(checkedMap[art.id])"
-                  class="mt-0.5 w-4 h-4 rounded border-slate-300 accent-indigo-600 text-indigo-600 focus:ring-indigo-600 cursor-pointer"
+                  class="mt-0.5 w-4 h-4 rounded border-[#141917]/[0.2] accent-[#0B3D2E] text-[#0B3D2E] focus:ring-[#0B3D2E] cursor-pointer"
                   @change="(e: Event) => { togglePoolItem(art.id, e); }"
                 >
                 <label
@@ -1196,24 +1196,24 @@ const manualModalOpen = ref(false);
                 >
                   <span class="flex items-center justify-between gap-2">
                     <span
-                      class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold tabular-nums"
+                      class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold tabular-nums font-mono"
                       :class="
                         citationIndexByArticleId.get(art.id)
-                          ? 'bg-indigo-600 text-white'
-                          : 'bg-slate-200/80 text-slate-700'
+                          ? 'bg-[#0B3D2E] text-white'
+                          : 'bg-[#ECEAE2] text-[#4A524E]'
                       "
                     >
                       [{{ citationIndexByArticleId.get(art.id) ?? idx + 1 }}]
                     </span>
-                    <span class="text-[11px] font-medium text-slate-600 tabular-nums truncate">
+                    <span class="text-[11px] font-medium text-[#4A524E] tabular-nums truncate font-mono">
                       {{ art.sourcePortal }} • {{ formatDateId(art.publishedAt) }}
                     </span>
                   </span>
 
-                  <span class="block text-xs font-bold text-slate-900 leading-snug line-clamp-2">
+                  <span class="block text-xs font-bold text-[#141917] leading-snug line-clamp-2">
                     {{ art.title }}
                   </span>
-                  <span class="block text-[11px] text-slate-600 line-clamp-2 leading-relaxed">
+                  <span class="block text-[11px] text-[#4A524E] line-clamp-2 leading-relaxed">
                     {{ art.summary }}
                   </span>
 
@@ -1250,16 +1250,16 @@ const manualModalOpen = ref(false);
 
       <!-- RIGHT 60%: NARRATIVE DOCUMENT & EDITOR -->
       <section aria-label="Editor dan Pratinjau Narasi Fenomena" class="lg:col-span-7 space-y-4">
-        <div class="saas-card synthesis-print-sheet rounded-2xl overflow-hidden flex flex-col">
+        <div class="obs-panel synthesis-print-sheet rounded-2xl overflow-hidden flex flex-col">
           <!-- Toolbar (Hidden in Print) -->
-          <div class="no-print px-5 py-3.5 border-b border-slate-200/80 bg-slate-50/70 flex flex-wrap items-center justify-between gap-2.5">
+          <div class="no-print px-5 py-3.5 border-b border-[#141917]/[0.08] bg-[#F6F5F1] flex flex-wrap items-center justify-between gap-2.5">
             <div class="flex items-center gap-2">
               <span
                 v-if="result"
-                class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold border inline-flex items-center gap-1.5"
+                class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold border inline-flex items-center gap-1.5 font-mono"
                 :class="
                   result.mode === 'template'
-                    ? 'bg-indigo-50 text-indigo-800 border-indigo-200'
+                    ? 'bg-[#E3F0EA] text-[#0B3D2E] border-[#BBD8CB]'
                     : formatLlmProviderBadge(result.modelUsed).pillClass
                 "
               >
@@ -1269,7 +1269,7 @@ const manualModalOpen = ref(false);
                     : formatLlmProviderBadge(result.modelUsed).label
                 }}
               </span>
-              <span v-else class="text-xs font-bold text-slate-700">
+              <span v-else class="text-xs font-bold text-[#141917]">
                 Lembar Kerja Narasi Fenomena
               </span>
             </div>
@@ -1278,7 +1278,7 @@ const manualModalOpen = ref(false);
               <button
                 v-if="hasUnsavedChanges && savedMarkdownSnapshot && !isGenerating"
                 type="button"
-                class="min-h-9 px-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-medium text-slate-700 inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+                class="min-h-9 px-2.5 rounded-xl border border-[#141917]/[0.12] bg-white hover:bg-[#ECEAE2] text-xs font-medium text-[#4A524E] inline-flex items-center gap-1.5 transition-colors cursor-pointer"
                 @click="() => { restoreSavedMarkdown(); }"
               >
                 <UIcon name="i-lucide-rotate-ccw" class="w-3.5 h-3.5" />
@@ -1292,8 +1292,8 @@ const manualModalOpen = ref(false);
                 class="min-h-9 px-2.5 rounded-xl border text-xs font-semibold inline-flex items-center gap-1.5 transition-colors disabled:opacity-45 cursor-pointer"
                 :class="
                   hasUnsavedChanges
-                    ? 'border-emerald-500 bg-emerald-50 hover:bg-emerald-100 text-emerald-800'
-                    : 'border-slate-200 bg-white text-slate-600'
+                    ? 'border-[#0B3D2E] bg-[#E3F0EA] hover:bg-[#d0e7dc] text-[#0B3D2E]'
+                    : 'border-[#141917]/[0.12] bg-white text-[#4A524E]'
                 "
                 @click="() => { void saveCurrentDraftChanges(); }"
               >
@@ -1316,7 +1316,7 @@ const manualModalOpen = ref(false);
               <button
                 type="button"
                 :disabled="!editableMarkdown || isGenerating"
-                class="min-h-9 px-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-medium text-slate-900 inline-flex items-center gap-1.5 disabled:opacity-40 transition-colors cursor-pointer"
+                class="min-h-9 px-2.5 rounded-xl border border-[#141917]/[0.12] bg-white hover:bg-[#ECEAE2] text-xs font-medium text-[#141917] inline-flex items-center gap-1.5 disabled:opacity-40 transition-colors cursor-pointer"
                 @click="() => { isEditingInline = !isEditingInline; }"
               >
                 <UIcon :name="isEditingInline ? 'i-lucide-eye' : 'i-lucide-pencil'" class="w-3.5 h-3.5" />
@@ -1326,7 +1326,7 @@ const manualModalOpen = ref(false);
               <button
                 type="button"
                 :disabled="!editableMarkdown || isGenerating"
-                class="min-h-9 px-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-medium text-slate-900 inline-flex items-center gap-1.5 disabled:opacity-40 transition-colors cursor-pointer"
+                class="min-h-9 px-2.5 rounded-xl border border-[#141917]/[0.12] bg-white hover:bg-[#ECEAE2] text-xs font-medium text-[#141917] inline-flex items-center gap-1.5 disabled:opacity-40 transition-colors cursor-pointer"
                 @click="() => { void copyNarrativeText(); }"
               >
                 <UIcon name="i-lucide-copy" class="w-3.5 h-3.5" />
@@ -1336,20 +1336,20 @@ const manualModalOpen = ref(false);
               <button
                 type="button"
                 :disabled="!editableMarkdown || isGenerating"
-                class="min-h-9 px-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-medium text-slate-900 inline-flex items-center gap-1.5 disabled:opacity-40 transition-colors cursor-pointer"
+                class="min-h-9 px-2.5 rounded-xl border border-[#141917]/[0.12] bg-white hover:bg-[#ECEAE2] text-xs font-medium text-[#141917] inline-flex items-center gap-1.5 disabled:opacity-40 transition-colors cursor-pointer"
                 @click="() => { downloadDocxFile(); }"
               >
-                <UIcon name="i-lucide-file-text" class="w-3.5 h-3.5 text-indigo-600" />
+                <UIcon name="i-lucide-file-text" class="w-3.5 h-3.5 text-[#0B3D2E]" />
                 <span>.DOCX</span>
               </button>
 
               <button
                 type="button"
                 :disabled="!editableMarkdown || isGenerating"
-                class="min-h-9 px-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-medium text-slate-900 inline-flex items-center gap-1.5 disabled:opacity-40 transition-colors cursor-pointer"
+                class="min-h-9 px-2.5 rounded-xl border border-[#141917]/[0.12] bg-white hover:bg-[#ECEAE2] text-xs font-medium text-[#141917] inline-flex items-center gap-1.5 disabled:opacity-40 transition-colors cursor-pointer"
                 @click="() => { printNarrativeSheet(); }"
               >
-                <UIcon name="i-lucide-printer" class="w-3.5 h-3.5 text-emerald-700" />
+                <UIcon name="i-lucide-printer" class="w-3.5 h-3.5 text-[#0B3D2E]" />
                 <span>Cetak / PDF</span>
               </button>
             </div>
@@ -1370,31 +1370,31 @@ const manualModalOpen = ref(false);
               v-if="!editableMarkdown && !isGenerating"
               class="py-16 text-center max-w-md mx-auto space-y-3"
             >
-              <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-50 to-emerald-50 border border-indigo-200/80 text-indigo-600 flex items-center justify-center mx-auto shadow-2xs">
+              <div class="w-12 h-12 rounded-2xl bg-[#E3F0EA] border border-[#BBD8CB] text-[#0B3D2E] flex items-center justify-center mx-auto shadow-2xs">
                 <UIcon name="i-solar-magic-stick-3-bold-duotone" class="w-6 h-6" />
               </div>
-              <h2 class="text-base font-extrabold text-slate-900 text-balance">
+              <h2 class="text-base font-extrabold text-[#141917] text-balance">
                 Siap Menyusun Narasi {{ currentTargetLabel }}
               </h2>
-              <p class="text-xs text-slate-600 leading-relaxed text-pretty">
+              <p class="text-xs text-[#4A524E] leading-relaxed text-pretty">
                 Centang bukti berita relevan di panel kiri, pilih gaya penulisan BRS atau kajian,
-                lalu klik <strong>Generate Narasi BRS</strong> di kanan atas.
+                lalu klik <strong>Sintesis Fenomena</strong> di kanan atas.
               </p>
             </div>
 
             <!-- Generating Skeleton before first streamed token arrives -->
             <div v-else-if="isGenerating && !editableMarkdown.trim()" class="space-y-4 py-6">
-              <div class="h-5 w-1/2 rounded-lg bg-slate-200" />
-              <div class="h-24 w-full rounded-xl bg-slate-100" />
-              <div class="h-5 w-2/5 rounded-lg bg-slate-200" />
-              <div class="h-24 w-full rounded-xl bg-slate-100" />
+              <div class="h-5 w-1/2 rounded-lg bg-[#ECEAE2]" />
+              <div class="h-24 w-full rounded-xl bg-[#F6F5F1]" />
+              <div class="h-5 w-2/5 rounded-lg bg-[#ECEAE2]" />
+              <div class="h-24 w-full rounded-xl bg-[#F6F5F1]" />
             </div>
 
             <!-- Inline Raw Markdown Editor -->
             <div v-else-if="isEditingInline" class="space-y-2">
               <label
                 for="synth-inline-editor"
-                class="block text-xs font-bold uppercase tracking-wider text-slate-600"
+                class="block text-xs font-bold uppercase tracking-wider text-[#4A524E]"
               >
                 Editor Teks Narasi (Markdown BRS)
               </label>
@@ -1402,46 +1402,46 @@ const manualModalOpen = ref(false);
                 id="synth-inline-editor"
                 v-model="editableMarkdown"
                 rows="16"
-                class="w-full rounded-xl border border-slate-200 p-4 text-sm text-slate-900 leading-relaxed focus:border-indigo-500 focus:outline-none"
+                class="w-full rounded-xl border border-[#141917]/[0.12] p-4 text-sm text-[#141917] leading-relaxed focus:border-[#0B3D2E] focus:outline-none"
               />
             </div>
 
             <!-- Interactive Document View with Cross-Link Citation Chips -->
             <article v-else class="space-y-5">
-              <header class="pb-4 border-b border-slate-200/80 space-y-1">
+              <header class="pb-4 border-b border-[#141917]/[0.08] space-y-1">
                 <div class="flex flex-wrap items-center justify-between gap-2">
-                  <div class="text-xs font-bold uppercase tracking-wider text-indigo-700">
+                  <div class="text-xs font-bold uppercase tracking-wider text-[#0B3D2E] font-mono">
                     SIPENA KTT • Draf Sintesis Narasi PDRB
                   </div>
                   <span
                     v-if="isGenerating"
                     role="status"
-                    class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-800 border border-indigo-200 text-[11px] font-semibold"
+                    class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#E3F0EA] text-[#0B3D2E] border border-[#BBD8CB] text-[11px] font-semibold font-mono"
                   >
                     <UIcon name="i-lucide-loader-circle" class="w-3 h-3 animate-spin" />
                     <span>Menulis live...</span>
                   </span>
                 </div>
-                <h2 class="text-lg sm:text-xl font-extrabold text-slate-900 text-balance">
+                <h2 class="text-lg sm:text-xl font-extrabold text-[#141917] text-balance font-display">
                   {{ currentTargetLabel }} — {{ periodLabel }}
                 </h2>
-                <p class="text-xs text-slate-600">
+                <p class="text-xs text-[#4A524E]">
                   Disusun untuk rekonsiliasi PDRB Fungsi Nerwilis BPS Kabupaten Tana Tidung
                 </p>
               </header>
 
-              <div class="space-y-3.5 text-sm leading-relaxed text-slate-800">
+              <div class="space-y-3.5 text-sm leading-relaxed text-[#141917]">
                 <template v-for="(block, bIdx) in parsedNarrativeBlocks" :key="bIdx">
                   <h3
                     v-if="block.type === 'heading' && block.level <= 2"
-                    class="text-base font-bold text-slate-900 pt-2 tracking-tight text-balance"
+                    class="text-base font-bold text-[#141917] pt-2 tracking-tight text-balance font-display"
                   >
                     <AdminSynthesisSpans :spans="block.spans" @cite="jumpToCitation" />
                   </h3>
 
                   <h4
                     v-else-if="block.type === 'heading'"
-                    class="text-sm font-bold text-slate-900 pt-1.5 tracking-tight text-balance"
+                    class="text-sm font-bold text-[#141917] pt-1.5 tracking-tight text-balance font-display"
                   >
                     <AdminSynthesisSpans :spans="block.spans" @cite="jumpToCitation" />
                   </h4>
@@ -1467,7 +1467,7 @@ const manualModalOpen = ref(false);
 
                   <blockquote
                     v-else-if="block.type === 'blockquote'"
-                    class="border-l-2 border-indigo-400 bg-indigo-50/40 pl-3.5 pr-3 py-2 rounded-r-lg space-y-1.5 italic text-slate-700"
+                    class="border-l-2 border-[#0B3D2E] bg-[#E3F0EA]/40 pl-3.5 pr-3 py-2 rounded-r-lg space-y-1.5 italic text-[#141917]"
                   >
                     <p v-for="(qPara, qIdx) in block.paragraphs" :key="qIdx" class="text-pretty">
                       <AdminSynthesisSpans :spans="qPara" @cite="jumpToCitation" />
@@ -1479,27 +1479,27 @@ const manualModalOpen = ref(false);
                     tabindex="0"
                     role="region"
                     aria-label="Tabel Ringkasan Narasi BRS"
-                    class="saas-table-scroller my-2 rounded-xl border border-slate-200 bg-white"
+                    class="saas-table-scroller my-2 rounded-xl border border-[#141917]/[0.08] bg-white"
                   >
                     <table class="w-full text-xs text-left border-collapse">
                       <thead>
-                        <tr class="bg-slate-50 border-b border-slate-200">
+                        <tr class="bg-[#F6F5F1] border-b border-[#141917]/[0.08]">
                           <th
                             v-for="(hSpans, hIdx) in block.headers"
                             :key="hIdx"
                             scope="col"
-                            class="px-3 py-2 font-bold text-slate-900 whitespace-nowrap"
+                            class="px-3 py-2 font-bold text-[#141917] whitespace-nowrap"
                           >
                             <AdminSynthesisSpans :spans="hSpans" @cite="jumpToCitation" />
                           </th>
                         </tr>
                       </thead>
-                      <tbody class="divide-y divide-slate-100">
+                      <tbody class="divide-y divide-[#141917]/[0.06]">
                         <tr v-for="(rowCells, rIdx) in block.rows" :key="rIdx">
                           <td
                             v-for="(cSpans, cIdx) in rowCells"
                             :key="cIdx"
-                            class="px-3 py-2 text-slate-700 align-top"
+                            class="px-3 py-2 text-[#4A524E] align-top"
                           >
                             <AdminSynthesisSpans :spans="cSpans" @cite="jumpToCitation" />
                           </td>
@@ -1515,13 +1515,13 @@ const manualModalOpen = ref(false);
               </div>
 
               <!-- Footnote Reference List -->
-              <footer v-if="result?.citations.length" class="pt-4 border-t border-slate-200/80 space-y-2">
-                <div class="text-xs font-bold uppercase tracking-wider text-slate-600">
+              <footer v-if="result?.citations.length" class="pt-4 border-t border-[#141917]/[0.08] space-y-2">
+                <div class="text-xs font-bold uppercase tracking-wider text-[#4A524E] font-mono">
                   Referensi Sumber Berita Terverifikasi
                 </div>
-                <ol class="space-y-1 text-xs text-slate-700">
+                <ol class="space-y-1 text-xs text-[#4A524E]">
                   <li v-for="c in result.citations" :key="c.id" class="flex items-start gap-2">
-                    <span class="font-bold text-indigo-700 tabular-nums">[{{ c.index }}]</span>
+                    <span class="font-bold text-[#0B3D2E] tabular-nums font-mono">[{{ c.index }}]</span>
                     <span>
                       {{ c.title }} — <em>{{ c.sourcePortal }}</em> ({{ formatDateId(c.publishedAt) }})
                     </span>
@@ -1559,10 +1559,10 @@ const manualModalOpen = ref(false);
           </UAlert>
 
           <div v-else-if="draftsPending && !savedDrafts.length" class="space-y-2.5">
-            <div v-for="i in 3" :key="i" class="h-24 rounded-xl bg-slate-100" />
+            <div v-for="i in 3" :key="i" class="h-24 rounded-xl bg-[#ECEAE2]" />
           </div>
 
-          <div v-else-if="!savedDrafts.length" class="py-12 text-center text-xs text-slate-600">
+          <div v-else-if="!savedDrafts.length" class="py-12 text-center text-xs text-[#737B76]">
             Belum ada riwayat draf sintesis yang tersimpan di database.
           </div>
 
@@ -1573,16 +1573,16 @@ const manualModalOpen = ref(false);
               class="rounded-xl border p-3.5 bg-white transition-colors space-y-2"
               :class="
                 activeDraftId === d.id
-                  ? 'border-indigo-500 ring-1 ring-indigo-500/30 bg-indigo-50/25'
-                  : 'border-slate-200 hover:border-indigo-400/60'
+                  ? 'border-[#0B3D2E] ring-1 ring-[#0B3D2E]/30 bg-[#E3F0EA]/40'
+                  : 'border-[#141917]/[0.08] hover:border-[#0B3D2E]/40'
               "
             >
-              <div class="flex items-center justify-between gap-2 text-[11px] tabular-nums">
-                <span class="font-bold text-indigo-700">
+              <div class="flex items-center justify-between gap-2 text-[11px] tabular-nums font-mono">
+                <span class="font-bold text-[#0B3D2E]">
                   TW {{ toRomanQuarter(d.quarter) }} {{ d.year }}
-                  <span class="text-slate-600 font-normal">• {{ d.articleCount }} bukti</span>
+                  <span class="text-[#4A524E] font-normal">• {{ d.articleCount }} bukti</span>
                 </span>
-                <span class="text-slate-600">{{ formatDateTimeWita(d.updatedAt) }}</span>
+                <span class="text-[#737B76]">{{ formatDateTimeWita(d.updatedAt) }}</span>
               </div>
 
               <button
@@ -1590,16 +1590,16 @@ const manualModalOpen = ref(false);
                 class="w-full text-left space-y-1 group cursor-pointer"
                 @click="() => { requestLoadDraftFromHistory(d); }"
               >
-                <span class="block text-xs font-bold text-slate-900 group-hover:text-indigo-700 transition-colors">
+                <span class="block text-xs font-bold text-[#141917] group-hover:text-[#0B3D2E] transition-colors">
                   {{ d.targetLabel }}
                 </span>
-                <span class="block text-[11px] text-slate-600 line-clamp-2">
+                <span class="block text-[11px] text-[#4A524E] line-clamp-2">
                   {{ d.narrativeMarkdown }}
                 </span>
               </button>
 
-              <div class="pt-1.5 border-t border-slate-100 flex items-center justify-between gap-2 text-[11px]">
-                <span class="text-slate-600 truncate">
+              <div class="pt-1.5 border-t border-[#141917]/[0.08] flex items-center justify-between gap-2 text-[11px]">
+                <span class="text-[#4A524E] truncate">
                   {{ d.updatedByName || d.createdByName || 'Staf Nerwilis' }}
                   •
                   {{
@@ -1614,7 +1614,7 @@ const manualModalOpen = ref(false);
                 <div class="flex items-center gap-1.5 shrink-0">
                   <button
                     type="button"
-                    class="min-h-8 px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 font-semibold transition-colors cursor-pointer"
+                    class="min-h-8 px-2.5 py-1 rounded-lg bg-[#E3F0EA] hover:bg-[#d0e7dc] text-[#0B3D2E] border border-[#BBD8CB] font-semibold transition-colors cursor-pointer"
                     @click="() => { requestLoadDraftFromHistory(d); }"
                   >
                     Buka
@@ -1623,7 +1623,7 @@ const manualModalOpen = ref(false);
                     type="button"
                     :disabled="deletingDraftId === d.id"
                     aria-label="Hapus draf"
-                    class="min-w-8 min-h-8 inline-flex items-center justify-center rounded-lg text-slate-600 hover:text-rose-700 hover:bg-rose-50 disabled:opacity-50 transition-colors cursor-pointer"
+                    class="min-w-8 min-h-8 inline-flex items-center justify-center rounded-lg text-[#737B76] hover:text-[#C8553D] hover:bg-[#FBECE8] disabled:opacity-50 transition-colors cursor-pointer"
                     @click="() => { void deleteDraftFromHistory(d); }"
                   >
                     <UIcon
@@ -1647,7 +1647,7 @@ const manualModalOpen = ref(false);
       :description="confirmDiscardDescription"
     >
       <template #body>
-        <p class="text-sm text-slate-700 leading-relaxed text-pretty">
+        <p class="text-sm text-[#4A524E] leading-relaxed text-pretty">
           {{ confirmDiscardDescription }}
         </p>
       </template>

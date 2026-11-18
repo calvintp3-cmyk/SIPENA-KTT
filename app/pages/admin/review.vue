@@ -686,7 +686,7 @@ const statusTabs = computed(() => {
       value: VerificationStatusEnum.IGNORED,
       label: 'Diabaikan',
       count: c?.ignoredCount ?? 0,
-      toneClass: 'bg-slate-100 text-slate-700 border-slate-200',
+      toneClass: 'bg-[#ECEAE2] text-[#4A524E] border-[#141917]/[0.08]',
     },
   ];
 });
@@ -765,13 +765,13 @@ onBeforeUnmount(() => {
     <div class="space-y-3">
       <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
         <div>
-          <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 text-balance font-display">
+          <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-[#141917] text-balance font-display">
             Review Harian Fenomena Ekonomi
           </h1>
-          <p class="text-xs text-slate-600 mt-0.5 text-pretty flex flex-wrap items-center gap-1.5">
+          <p class="text-xs text-[#4A524E] mt-0.5 text-pretty flex flex-wrap items-center gap-1.5">
             <span>Audit klasifikasi AI dan pemetaan dua sisi PDRB sebelum ditayangkan.</span>
-            <span aria-hidden="true" class="text-slate-300">•</span>
-            <span class="font-medium text-slate-700">
+            <span aria-hidden="true" class="text-[#141917]/20">•</span>
+            <span class="font-medium text-[#141917]">
               {{ periodScope === 'period' ? `Khusus ${shortPeriodLabel}` : 'Lintas semua periode' }}
             </span>
           </p>
@@ -782,7 +782,7 @@ onBeforeUnmount(() => {
           <div
             role="group"
             aria-label="Cakupan periode review"
-            class="inline-flex p-1 bg-slate-100 rounded-xl border border-slate-200/90 font-mono"
+            class="inline-flex p-1 bg-[#ECEAE2] rounded-xl border border-[#141917]/[0.08] font-mono"
           >
             <button
               type="button"
@@ -790,8 +790,8 @@ onBeforeUnmount(() => {
               class="min-h-8 px-3 py-1 rounded-lg text-xs transition-colors cursor-pointer"
               :class="
                 periodScope === 'all'
-                  ? 'bg-white font-bold text-blue-700 shadow-2xs border border-blue-200/70'
-                  : 'text-slate-600 hover:text-slate-950 font-medium'
+                  ? 'bg-white font-bold text-[#0B3D2E] shadow-2xs border border-[#BBD8CB]'
+                  : 'text-[#4A524E] hover:text-[#141917] font-medium'
               "
               @click="() => { periodScope = 'all'; }"
             >
@@ -803,8 +803,8 @@ onBeforeUnmount(() => {
               class="min-h-8 px-3 py-1 rounded-lg text-xs tabular-nums transition-colors cursor-pointer"
               :class="
                 periodScope === 'period'
-                  ? 'bg-white font-bold text-blue-700 shadow-2xs border border-blue-200/70'
-                  : 'text-slate-600 hover:text-slate-950 font-medium'
+                  ? 'bg-white font-bold text-[#0B3D2E] shadow-2xs border border-[#BBD8CB]'
+                  : 'text-[#4A524E] hover:text-[#141917] font-medium'
               "
               @click="() => { periodScope = 'period'; }"
             >
@@ -812,19 +812,19 @@ onBeforeUnmount(() => {
             </button>
           </div>
 
-          <div class="inline-flex items-center gap-2 rounded-xl bg-white border border-slate-200 px-3 min-h-9 py-1 shadow-2xs">
+          <div class="inline-flex items-center gap-2 rounded-xl bg-white border border-[#141917]/[0.12] px-3 min-h-9 py-1 shadow-2xs">
             <USwitch
               id="review-only-llm-failed"
               v-model="onlyLlmFailed"
               size="sm"
               aria-label="Filter hanya artikel AI gagal"
             />
-            <label for="review-only-llm-failed" class="text-xs font-semibold text-slate-900 cursor-pointer">
+            <label for="review-only-llm-failed" class="text-xs font-semibold text-[#141917] cursor-pointer">
               AI Gagal
             </label>
             <span
               v-if="(reviewData?.summaryCounts.llmFailedCount ?? 0) > 0"
-              class="px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200 text-[11px] font-bold tabular-nums font-mono"
+              class="px-2 py-0.5 rounded-full bg-[#FBECE8] text-[#C8553D] border border-[#C8553D]/30 text-[11px] font-bold tabular-nums font-mono"
             >
               {{ reviewData?.summaryCounts.llmFailedCount }}
             </span>
@@ -837,7 +837,7 @@ onBeforeUnmount(() => {
         <div
           role="group"
           aria-label="Status kurasi"
-          class="inline-flex flex-nowrap overflow-x-auto saas-scroll p-1 bg-slate-100 rounded-xl border border-slate-200/90 max-w-full gap-1 font-mono"
+          class="inline-flex flex-nowrap overflow-x-auto saas-scroll p-1 bg-[#ECEAE2] rounded-xl border border-[#141917]/[0.08] max-w-full gap-1 font-mono"
         >
           <button
             v-for="tab in statusTabs"
@@ -847,8 +847,8 @@ onBeforeUnmount(() => {
             class="min-h-8 px-3 py-1 rounded-lg text-xs inline-flex items-center gap-2 whitespace-nowrap transition-colors cursor-pointer"
             :class="
               activeStatus === tab.value
-                ? 'bg-white font-bold text-slate-900 shadow-2xs border border-slate-200/90'
-                : 'text-slate-600 hover:text-slate-950 font-medium'
+                ? 'bg-white font-bold text-[#141917] shadow-2xs border border-[#141917]/[0.08]'
+                : 'text-[#4A524E] hover:text-[#141917] font-medium'
             "
             @click="() => { activeStatus = tab.value; }"
           >
@@ -892,7 +892,7 @@ onBeforeUnmount(() => {
 
     <!-- WORKBENCH HEADER ROW (Aligned above equal-height split columns) -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-center">
-      <div class="lg:col-span-7 flex items-center justify-between px-1 text-xs text-slate-600">
+      <div class="lg:col-span-7 flex items-center justify-between px-1 text-xs text-[#4A524E]">
         <UCheckbox
           :model-value="allVisibleChecked"
           :label="`Pilih semua di halaman (${currentRows.length})`"
@@ -901,15 +901,15 @@ onBeforeUnmount(() => {
           @update:model-value="() => { toggleSelectAllVisible(); }"
         />
 
-        <span v-if="reviewData" class="text-xs font-medium text-slate-600 font-mono tabular-nums">
+        <span v-if="reviewData" class="text-xs font-medium text-[#4A524E] font-mono tabular-nums">
           Hal {{ reviewData.pagination.page }}/{{ reviewData.pagination.totalPages }} •
           {{ reviewData.pagination.total }} artikel
         </span>
       </div>
 
-      <div class="hidden lg:flex lg:col-span-5 items-center justify-between px-1 text-xs text-slate-500">
-        <span class="font-semibold text-slate-700 font-display">Panel Inspeksi &amp; Hasil LLM</span>
-        <span class="font-mono text-[11px] text-slate-500">
+      <div class="hidden lg:flex lg:col-span-5 items-center justify-between px-1 text-xs text-[#737B76]">
+        <span class="font-semibold text-[#141917] font-display">Panel Inspeksi &amp; Hasil LLM</span>
+        <span class="font-mono text-[11px] text-[#737B76]">
           {{ inspectedArticle ? `↑↓ Navigasi • Ctrl+Enter Verifikasi` : 'Siap mengurasi' }}
         </span>
       </div>
@@ -921,23 +921,23 @@ onBeforeUnmount(() => {
       <div class="lg:col-span-7 h-full flex flex-col min-h-0">
         <!-- Skeletons -->
         <div v-if="pending && !reviewData" class="flex-1 min-h-0 overflow-y-auto saas-scroll space-y-3 pr-1.5">
-          <div v-for="i in 4" :key="i" class="saas-card rounded-xl p-4 space-y-2.5">
-            <div class="h-3 w-40 rounded bg-slate-200" />
-            <div class="h-5 w-4/5 rounded bg-slate-200" />
-            <div class="h-10 w-full rounded bg-slate-100" />
+          <div v-for="i in 4" :key="i" class="obs-panel rounded-xl p-4 space-y-2.5">
+            <div class="h-3 w-40 rounded bg-[#ECEAE2]" />
+            <div class="h-5 w-4/5 rounded bg-[#ECEAE2]" />
+            <div class="h-10 w-full rounded bg-[#ECEAE2]" />
           </div>
         </div>
 
         <!-- Empty Queue with Contextual Quick Actions -->
-        <div v-else-if="!currentRows.length" class="saas-card rounded-xl py-12 px-6 text-center space-y-3.5 flex-1 flex flex-col items-center justify-center">
-          <div class="w-12 h-12 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center mx-auto">
+        <div v-else-if="!currentRows.length" class="obs-panel rounded-xl py-12 px-6 text-center space-y-3.5 flex-1 flex flex-col items-center justify-center">
+          <div class="w-12 h-12 rounded-xl bg-[#ECEAE2] text-[#737B76] flex items-center justify-center mx-auto">
             <UIcon name="i-solar-inbox-in-bold-duotone" class="w-6 h-6" />
           </div>
           <div class="space-y-1">
-            <div class="text-sm font-bold text-slate-900 font-display">
+            <div class="text-sm font-bold text-[#141917] font-display">
               Tidak ada artikel pada tab {{ activeStatus }}
             </div>
-            <p class="text-xs text-slate-600 text-pretty max-w-sm mx-auto">
+            <p class="text-xs text-[#4A524E] text-pretty max-w-sm mx-auto">
               Antrean saat ini bersih. Anda dapat meninjau tab lain atau mengubah cakupan filter.
             </p>
           </div>
@@ -978,11 +978,11 @@ onBeforeUnmount(() => {
           <article
             v-for="art in currentRows"
             :key="art.id"
-            class="saas-card rounded-xl p-4 transition-colors relative"
+            class="obs-panel rounded-xl p-4 transition-colors relative"
             :class="
               inspectedArticle?.id === art.id
-                ? 'ring-2 ring-blue-600 border-blue-400 shadow-[0_8px_24px_-10px_rgba(29,78,216,0.28)]'
-                : 'saas-card-interactive'
+                ? 'ring-2 ring-[#0B3D2E] border-[#0B3D2E] shadow-[0_8px_24px_-10px_rgba(11,61,46,0.28)]'
+                : 'hover:border-[#0B3D2E]/30 hover:bg-[#F6F5F1]'
             "
           >
             <div class="flex items-start gap-3">
@@ -998,12 +998,12 @@ onBeforeUnmount(() => {
               <div class="min-w-0 flex-1 space-y-2">
                 <!-- Metadata Row -->
                 <div class="flex flex-wrap items-center justify-between gap-2">
-                  <div class="flex flex-wrap items-center gap-1.5 text-xs text-slate-600 tabular-nums">
-                    <span class="font-bold text-slate-900">{{ formatDateId(art.publishedAt) }}</span>
+                  <div class="flex flex-wrap items-center gap-1.5 text-xs text-[#4A524E] tabular-nums">
+                    <span class="font-bold text-[#141917]">{{ formatDateId(art.publishedAt) }}</span>
                     <span aria-hidden="true">•</span>
                     <span class="truncate max-w-[150px] font-medium">{{ art.sourcePortal }}</span>
                     <span aria-hidden="true">•</span>
-                    <span class="px-2 py-0.5 rounded-full bg-blue-50/70 border border-blue-200/70 text-blue-800 text-[11px] font-semibold font-mono">
+                    <span class="px-2 py-0.5 rounded-full bg-[#E3F0EA] border border-[#BBD8CB] text-[#0B3D2E] text-[11px] font-semibold font-mono">
                       TW {{ toRomanQuarter(art.quarter) }} {{ art.year }}
                     </span>
                   </div>
@@ -1039,38 +1039,38 @@ onBeforeUnmount(() => {
                 </div>
 
                 <!-- Title (stretched card button for accessible selection) -->
-                <h2 class="text-sm font-bold text-slate-900 leading-snug font-display">
+                <h2 class="text-sm font-bold text-[#141917] leading-snug font-display">
                   <button
                     type="button"
-                    class="w-full text-left line-clamp-2 hover:text-blue-700 transition-colors rounded cursor-pointer after:content-[''] after:absolute after:inset-0 after:z-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600"
+                    class="w-full text-left line-clamp-2 hover:text-[#0B3D2E] transition-colors rounded cursor-pointer after:content-[''] after:absolute after:inset-0 after:z-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0B3D2E]"
                     @click="() => { selectArticleForInspection(art); }"
                   >
                     {{ art.title }}
                   </button>
                 </h2>
-                <p class="text-xs text-slate-600 line-clamp-2 leading-relaxed text-pretty">
+                <p class="text-xs text-[#4A524E] line-clamp-2 leading-relaxed text-pretty">
                   {{ art.summary || art.snippetText }}
                 </p>
 
                 <!-- Dual-Axis Preview Chips + Quick Actions -->
-                <div class="pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100">
+                <div class="pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-[#141917]/[0.08]">
                   <div class="flex flex-wrap items-center gap-1.5 text-[11px]">
                     <span
-                      class="px-2.5 py-0.5 rounded-full border font-semibold"
+                      class="px-2.5 py-0.5 rounded-full border font-semibold font-mono"
                       :class="
                         art.kbliCategory
                           ? getKbliClusterTheme(art.kbliCategory).pillClass
-                          : 'bg-amber-50 border-amber-200 text-amber-800'
+                          : 'bg-[#FEF3C7] border-[#B45309]/30 text-[#B45309]'
                       "
                     >
                       {{ art.kbliCategory ? getKbliShortCodeName(art.kbliCategory) : 'KBLI Belum Dipetakan' }}
                     </span>
                     <span
-                      class="px-2.5 py-0.5 rounded-full border font-semibold"
+                      class="px-2.5 py-0.5 rounded-full border font-semibold font-mono"
                       :class="
                         art.expenditureComponent
                           ? getExpenditureColorTheme(art.expenditureComponent).pillClass
-                          : 'bg-amber-50 border-amber-200 text-amber-800'
+                          : 'bg-[#FEF3C7] border-[#B45309]/30 text-[#B45309]'
                       "
                     >
                       {{ art.expenditureComponent ? getExpenditureLabel(art.expenditureComponent, false) : 'Pengeluaran Kosong' }}
@@ -1082,7 +1082,7 @@ onBeforeUnmount(() => {
                       v-if="activeStatus !== VerificationStatusEnum.VERIFIED"
                       type="button"
                       :disabled="rowBusyId === art.id"
-                      class="min-h-8 px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-[11px] font-semibold inline-flex items-center gap-1 cursor-pointer transition-colors"
+                      class="min-h-8 px-2.5 py-1 rounded-lg bg-[#E3F0EA] hover:bg-[#d0e7dc] text-[#0B3D2E] border border-[#BBD8CB] text-[11px] font-semibold inline-flex items-center gap-1 cursor-pointer transition-colors"
                       @click="() => { void quickApprove(art); }"
                     >
                       <UIcon name="i-lucide-check" class="w-3 h-3" />
@@ -1091,7 +1091,7 @@ onBeforeUnmount(() => {
 
                     <button
                       type="button"
-                      class="lg:hidden min-h-8 px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-900 text-[11px] font-semibold inline-flex items-center gap-1 cursor-pointer"
+                      class="lg:hidden min-h-8 px-2.5 py-1 rounded-lg bg-white border border-[#141917]/[0.12] text-[#141917] text-[11px] font-semibold inline-flex items-center gap-1 cursor-pointer"
                       @click="() => { openMobileSlideover(art); }"
                     >
                       <UIcon name="i-lucide-pencil" class="w-3 h-3" />
@@ -1102,7 +1102,7 @@ onBeforeUnmount(() => {
                       v-if="activeStatus !== VerificationStatusEnum.IGNORED"
                       type="button"
                       :disabled="rowBusyId === art.id"
-                      class="min-h-8 px-2.5 py-1 rounded-lg hover:bg-slate-100 text-slate-600 text-[11px] font-semibold cursor-pointer transition-colors"
+                      class="min-h-8 px-2.5 py-1 rounded-lg hover:bg-[#ECEAE2] text-[#4A524E] text-[11px] font-semibold cursor-pointer transition-colors"
                       @click="() => { void quickIgnore(art); }"
                     >
                       Abaikan
@@ -1117,7 +1117,7 @@ onBeforeUnmount(() => {
         <!-- Pinned Pagination at bottom of Queue Column -->
         <div
           v-if="reviewData && reviewData.pagination.total > PAGE_LIMIT"
-          class="pt-2 border-t border-slate-200/80 flex items-center justify-between shrink-0 mt-2 text-xs text-slate-600 font-mono"
+          class="pt-2 border-t border-[#141917]/[0.08] flex items-center justify-between shrink-0 mt-2 text-xs text-[#4A524E] font-mono"
         >
           <span>Halaman {{ page }} dari {{ reviewData.pagination.totalPages }}</span>
           <UPagination
@@ -1136,20 +1136,20 @@ onBeforeUnmount(() => {
       >
         <div
           v-if="!inspectedArticle"
-          class="saas-card rounded-xl p-8 text-center text-xs text-slate-500 h-full flex flex-col items-center justify-center space-y-2.5"
+          class="obs-panel rounded-xl p-8 text-center text-xs text-[#737B76] h-full flex flex-col items-center justify-center space-y-2.5"
         >
-          <div class="w-12 h-12 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center">
+          <div class="w-12 h-12 rounded-xl bg-[#ECEAE2] text-[#737B76] flex items-center justify-center">
             <UIcon name="i-solar-checklist-minimalistic-bold-duotone" class="w-6 h-6" />
           </div>
-          <span class="font-medium text-slate-600 font-display">Pilih salah satu artikel di daftar sebelah kiri untuk mulai mengurasi.</span>
+          <span class="font-medium text-[#4A524E] font-display">Pilih salah satu artikel di daftar sebelah kiri untuk mulai mengurasi.</span>
         </div>
 
         <div
           v-else
-          class="saas-card rounded-xl overflow-hidden flex flex-col h-full"
+          class="obs-panel rounded-xl overflow-hidden flex flex-col h-full"
         >
           <!-- Inspector Header (Fixed) -->
-          <div class="px-4 py-3 border-b border-slate-200/80 bg-slate-50/70 flex items-center justify-between gap-2">
+          <div class="px-4 py-3 border-b border-[#141917]/[0.08] bg-[#F6F5F1] flex items-center justify-between gap-2">
             <div class="flex flex-wrap items-center gap-1.5">
               <UBadge
                 :color="getVerificationStatusBadge(inspectedArticle.verificationStatus).color"
@@ -1172,18 +1172,18 @@ onBeforeUnmount(() => {
                 color="neutral"
                 variant="outline"
                 size="xs"
-                class="tabular-nums"
+                class="tabular-nums font-mono"
               >
                 AI {{ Math.round(inspectedArticle.llmConfidence * 100) }}%
               </UBadge>
               <span
                 v-if="inspectedArticle.llmModel"
-                class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full border border-slate-200 bg-slate-100/90 text-slate-700 text-[11px] font-medium font-mono"
+                class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full border border-[#141917]/[0.08] bg-[#ECEAE2] text-[#4A524E] text-[11px] font-medium font-mono"
                 :title="inspectedArticle.llmModel"
               >
                 {{ formatLlmProviderBadge(inspectedArticle.llmModel).shortLabel }}
               </span>
-              <span class="text-[11px] font-medium text-slate-600">
+              <span class="text-[11px] font-medium text-[#4A524E]">
                 {{ getSourceTypeLabel(inspectedArticle.sourceType) }}
               </span>
             </div>
@@ -1193,7 +1193,7 @@ onBeforeUnmount(() => {
               :href="inspectedArticle.url"
               target="_blank"
               rel="noopener noreferrer"
-              class="inline-flex items-center gap-1 min-h-8 px-2.5 py-1 rounded-lg border border-slate-200 bg-white hover:border-blue-300 hover:bg-blue-50/40 text-xs font-semibold text-blue-700 shrink-0 transition-colors"
+              class="inline-flex items-center gap-1 min-h-8 px-2.5 py-1 rounded-lg border border-[#141917]/[0.12] bg-white hover:bg-[#E3F0EA] text-xs font-semibold text-[#0B3D2E] shrink-0 transition-colors"
             >
               <span>Sumber</span>
               <UIcon name="i-lucide-external-link" class="w-3 h-3" />
@@ -1202,8 +1202,8 @@ onBeforeUnmount(() => {
 
           <!-- Scrollable Inspector Body -->
           <div class="flex-1 overflow-y-auto saas-scroll p-4 space-y-4">
-            <div class="text-xs font-medium text-slate-600 flex items-center justify-between font-mono tabular-nums">
-              <span class="font-semibold text-slate-700">{{ inspectedArticle.sourcePortal }}</span>
+            <div class="text-xs font-medium text-[#4A524E] flex items-center justify-between font-mono tabular-nums">
+              <span class="font-semibold text-[#141917]">{{ inspectedArticle.sourcePortal }}</span>
               <span>{{ formatDateTimeWita(inspectedArticle.publishedAt) }}</span>
             </div>
 
@@ -1232,7 +1232,7 @@ onBeforeUnmount(() => {
               <div
                 role="group"
                 aria-label="Relevansi Fenomena Ekonomi"
-                class="col-span-2 grid grid-cols-2 p-1 bg-slate-100 rounded-xl border border-slate-200/90 gap-1 font-display"
+                class="col-span-2 grid grid-cols-2 p-1 bg-[#ECEAE2] rounded-xl border border-[#141917]/[0.08] gap-1 font-display"
               >
                 <button
                   type="button"
@@ -1240,8 +1240,8 @@ onBeforeUnmount(() => {
                   class="min-h-8 py-1.5 px-2 rounded-lg text-xs transition-colors cursor-pointer"
                   :class="
                     inspectorForm.isEconomicPhenomenon === true
-                      ? 'bg-white font-bold text-emerald-800 shadow-2xs border border-emerald-200'
-                      : 'text-slate-600 font-medium'
+                      ? 'bg-white font-bold text-[#0B3D2E] shadow-2xs border border-[#BBD8CB]'
+                      : 'text-[#4A524E] font-medium'
                   "
                   @click="() => { inspectorForm.isEconomicPhenomenon = true; }"
                 >
@@ -1253,8 +1253,8 @@ onBeforeUnmount(() => {
                   class="min-h-8 py-1.5 px-2 rounded-lg text-xs transition-colors cursor-pointer"
                   :class="
                     inspectorForm.isEconomicPhenomenon === false
-                      ? 'bg-white font-bold text-rose-700 shadow-2xs border border-rose-200'
-                      : 'text-slate-600 font-medium'
+                      ? 'bg-white font-bold text-[#C8553D] shadow-2xs border border-[#C8553D]/30'
+                      : 'text-[#4A524E] font-medium'
                   "
                   @click="() => { inspectorForm.isEconomicPhenomenon = false; }"
                 >
@@ -1265,7 +1265,7 @@ onBeforeUnmount(() => {
 
             <!-- Editable Title -->
             <div class="space-y-1">
-              <label for="insp-title" class="text-xs font-semibold text-slate-700 font-display">
+              <label for="insp-title" class="text-xs font-semibold text-[#141917] font-display">
                 Judul Berita
               </label>
               <UInput id="insp-title" v-model="inspectorForm.title" size="sm" class="w-full" />
@@ -1274,13 +1274,13 @@ onBeforeUnmount(() => {
             <!-- Editable Summary + Kembalikan Teks AI -->
             <div class="space-y-1">
               <div class="flex items-center justify-between gap-2">
-                <label for="insp-summary" class="text-xs font-semibold text-slate-700 font-display">
+                <label for="insp-summary" class="text-xs font-semibold text-[#141917] font-display">
                   Ringkasan Publik (Min. 10 Karakter)
                 </label>
                 <button
                   v-if="canRestoreAiSummary"
                   type="button"
-                  class="inline-flex items-center gap-1 min-h-8 px-2 rounded-lg text-xs font-semibold text-blue-700 hover:bg-blue-50 transition-colors cursor-pointer"
+                  class="inline-flex items-center gap-1 min-h-8 px-2 rounded-lg text-xs font-semibold text-[#0B3D2E] hover:bg-[#E3F0EA] transition-colors cursor-pointer"
                   @click="() => { restoreAiSummary(); }"
                 >
                   <UIcon name="i-lucide-rotate-ccw" class="w-3 h-3" />
@@ -1297,15 +1297,15 @@ onBeforeUnmount(() => {
               />
               <p
                 v-if="highlightIncomplete && inspectorForm.summary.trim().length < 10"
-                class="text-xs text-rose-600 font-semibold"
+                class="text-xs text-[#C8553D] font-semibold"
               >
                 Wajib diisi minimal 10 karakter sebelum verifikasi.
               </p>
             </div>
 
             <!-- Sisi Lapangan Usaha (KBLI + Concise 2x2 Grid) -->
-            <div class="rounded-xl border border-blue-200/70 bg-blue-50/35 p-3.5 space-y-2.5">
-              <label for="insp-kbli-select" class="block text-xs font-bold text-blue-900 font-display">
+            <div class="rounded-xl border border-[#BBD8CB] bg-[#E3F0EA]/40 p-3.5 space-y-2.5">
+              <label for="insp-kbli-select" class="block text-xs font-bold text-[#0B3D2E] font-display">
                 1. Lapangan Usaha (KBLI A–V)
               </label>
               <USelectMenu
@@ -1328,8 +1328,8 @@ onBeforeUnmount(() => {
                   class="min-h-8 px-2.5 py-1.5 rounded-lg border text-xs font-semibold text-left transition-colors cursor-pointer"
                   :class="
                     inspectorForm.kbliImpact === opt.value
-                      ? 'bg-blue-700 text-white border-blue-700 shadow-2xs'
-                      : 'bg-white text-slate-700 border-slate-200 hover:border-blue-300'
+                      ? 'bg-[#0B3D2E] text-white border-[#0B3D2E] shadow-2xs'
+                      : 'bg-white text-[#4A524E] border-[#141917]/[0.12] hover:border-[#0B3D2E]/40'
                   "
                   @click="() => { inspectorForm.kbliImpact = opt.value; }"
                 >
@@ -1339,8 +1339,8 @@ onBeforeUnmount(() => {
             </div>
 
             <!-- Sisi Pengeluaran (Component + Concise 2x2 Grid) -->
-            <div class="rounded-xl border border-emerald-200/70 bg-emerald-50/35 p-3.5 space-y-2.5">
-              <label for="insp-exp-select" class="block text-xs font-bold text-emerald-900 font-display">
+            <div class="rounded-xl border border-[#BBD8CB] bg-[#E3F0EA]/40 p-3.5 space-y-2.5">
+              <label for="insp-exp-select" class="block text-xs font-bold text-[#0B3D2E] font-display">
                 2. Komponen Pengeluaran PDRB
               </label>
               <USelect
@@ -1363,8 +1363,8 @@ onBeforeUnmount(() => {
                   class="min-h-8 px-2.5 py-1.5 rounded-lg border text-xs font-semibold text-left transition-colors cursor-pointer"
                   :class="
                     inspectorForm.expenditureImpact === opt.value
-                      ? 'bg-emerald-700 text-white border-emerald-700 shadow-2xs'
-                      : 'bg-white text-slate-700 border-slate-200 hover:border-emerald-300'
+                      ? 'bg-[#0B3D2E] text-white border-[#0B3D2E] shadow-2xs'
+                      : 'bg-white text-[#4A524E] border-[#141917]/[0.12] hover:border-[#0B3D2E]/40'
                   "
                   @click="() => { inspectorForm.expenditureImpact = opt.value; }"
                 >
@@ -1374,13 +1374,13 @@ onBeforeUnmount(() => {
             </div>
 
             <!-- Keterkaitan Sektoral Sekunder (Opsional / Inter-industry Linkage) -->
-            <div class="rounded-xl border border-slate-200/90 bg-slate-50/70 p-3.5 space-y-2.5">
+            <div class="rounded-xl border border-[#141917]/[0.08] bg-[#F6F5F1] p-3.5 space-y-2.5">
               <div class="flex items-center gap-1.5">
-                <UIcon name="i-solar-link-round-bold-duotone" class="w-4 h-4 text-blue-700" />
-                <span class="text-xs font-bold text-slate-800 font-display">Keterkaitan Sektoral Sekunder (Opsional)</span>
+                <UIcon name="i-solar-link-round-bold-duotone" class="w-4 h-4 text-[#0B3D2E]" />
+                <span class="text-xs font-bold text-[#141917] font-display">Keterkaitan Sektoral Sekunder (Opsional)</span>
               </div>
               <div class="space-y-2">
-                <label for="insp-sec-kbli-select" class="block text-xs font-semibold text-slate-600">
+                <label for="insp-sec-kbli-select" class="block text-xs font-semibold text-[#4A524E]">
                   KBLI Sekunder
                 </label>
                 <USelectMenu
@@ -1403,8 +1403,8 @@ onBeforeUnmount(() => {
                     class="min-h-8 px-2 py-1 rounded-lg border text-xs font-semibold text-left transition-colors cursor-pointer"
                     :class="
                       inspectorForm.secondaryKbliImpact === opt.value
-                        ? 'bg-blue-700 text-white border-blue-700 shadow-2xs'
-                        : 'bg-white text-slate-700 border-slate-200 hover:border-blue-300'
+                        ? 'bg-[#0B3D2E] text-white border-[#0B3D2E] shadow-2xs'
+                        : 'bg-white text-[#4A524E] border-[#141917]/[0.12] hover:border-[#0B3D2E]/40'
                     "
                     @click="() => { inspectorForm.secondaryKbliImpact = opt.value; }"
                   >
@@ -1417,7 +1417,7 @@ onBeforeUnmount(() => {
             <!-- Periode -->
             <div class="grid grid-cols-2 gap-2.5">
               <div class="space-y-1">
-                <label for="insp-quarter-select" class="block text-xs font-semibold text-slate-600">
+                <label for="insp-quarter-select" class="block text-xs font-semibold text-[#4A524E]">
                   Triwulan PDRB
                 </label>
                 <USelect
@@ -1432,7 +1432,7 @@ onBeforeUnmount(() => {
                 />
               </div>
               <div class="space-y-1">
-                <label for="insp-year-input" class="block text-xs font-semibold text-slate-600">
+                <label for="insp-year-input" class="block text-xs font-semibold text-[#4A524E]">
                   Tahun
                 </label>
                 <UInput
@@ -1450,12 +1450,12 @@ onBeforeUnmount(() => {
             <!-- Cuplikan Sumber Asli -->
             <div class="space-y-1">
               <div class="flex items-center justify-between gap-2">
-                <label for="insp-snippet-source" class="block text-xs font-semibold text-slate-600 font-display">
+                <label for="insp-snippet-source" class="block text-xs font-semibold text-[#4A524E] font-display">
                   Cuplikan Teks Asli (Referensi Verifikasi)
                 </label>
                 <button
                   type="button"
-                  class="inline-flex items-center gap-1 min-h-7 px-2 rounded-lg text-[11px] font-semibold text-blue-700 hover:bg-blue-50 transition-colors cursor-pointer"
+                  class="inline-flex items-center gap-1 min-h-7 px-2 rounded-lg text-[11px] font-semibold text-[#0B3D2E] hover:bg-[#E3F0EA] transition-colors cursor-pointer"
                   @click="() => { fullSnippetModalOpen = true; }"
                 >
                   <UIcon name="i-solar-maximize-square-2-linear" class="w-3.5 h-3.5" />
@@ -1468,16 +1468,16 @@ onBeforeUnmount(() => {
                 readonly
                 :rows="8"
                 class="w-full text-xs"
-                :ui="{ base: 'bg-slate-50/90 text-slate-700 leading-relaxed resize-y' }"
+                :ui="{ base: 'bg-[#F6F5F1] text-[#141917] leading-relaxed resize-y' }"
               />
             </div>
           </div>
 
           <!-- Sticky Inspector Footer -->
-          <div class="px-4 py-3 border-t border-slate-200/80 bg-slate-50/70 space-y-2.5">
+          <div class="px-4 py-3 border-t border-[#141917]/[0.08] bg-[#F6F5F1] space-y-2.5">
             <div
               v-if="activeStatus === VerificationStatusEnum.PENDING"
-              class="flex items-center justify-between text-xs text-slate-700"
+              class="flex items-center justify-between text-xs text-[#141917]"
             >
               <label for="insp-auto-advance" class="cursor-pointer font-medium">
                 Otomatis buka antrean berikutnya
@@ -1494,7 +1494,7 @@ onBeforeUnmount(() => {
               <button
                 type="button"
                 :disabled="inspectorSubmitting !== null"
-                class="min-h-9 px-3 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 disabled:opacity-50 transition-colors cursor-pointer"
+                class="min-h-9 px-3 rounded-lg border border-[#141917]/[0.12] bg-white hover:bg-[#ECEAE2] text-xs font-semibold text-[#4A524E] disabled:opacity-50 transition-colors cursor-pointer"
                 @click="() => { void submitInspectorAction('IGNORED'); }"
               >
                 Abaikan
@@ -1504,7 +1504,7 @@ onBeforeUnmount(() => {
                 <button
                   type="button"
                   :disabled="inspectorSubmitting !== null"
-                  class="min-h-9 px-3 rounded-lg border border-slate-200 bg-white hover:border-blue-300 text-xs font-semibold text-slate-900 disabled:opacity-50 transition-colors cursor-pointer"
+                  class="min-h-9 px-3 rounded-lg border border-[#141917]/[0.12] bg-white hover:bg-[#ECEAE2] text-xs font-semibold text-[#141917] disabled:opacity-50 transition-colors cursor-pointer"
                   @click="() => { void submitInspectorAction('DRAFT'); }"
                 >
                   Simpan Draft
@@ -1512,10 +1512,10 @@ onBeforeUnmount(() => {
                 <button
                   type="button"
                   :disabled="inspectorSubmitting !== null"
-                  class="btn-primary-gradient min-h-9 px-3.5 rounded-lg text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer font-display"
+                  class="obs-btn-primary min-h-9 px-3.5 rounded-lg text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer font-display"
                   @click="() => { void submitInspectorAction('VERIFIED'); }"
                 >
-                  <UIcon name="i-solar-check-circle-bold-duotone" class="w-4 h-4 text-emerald-200" />
+                  <UIcon name="i-solar-check-circle-bold-duotone" class="w-4 h-4 text-[#BBD8CB]" />
                   <span>Verifikasi</span>
                 </button>
               </div>
@@ -1528,10 +1528,10 @@ onBeforeUnmount(() => {
     <!-- Floating Batch Action Bar (Synced with Collapsible Sidebar Width) -->
     <div
       v-if="selectedIds.length > 0"
-      class="fixed bottom-5 left-1/2 -translate-x-1/2 z-30 bg-slate-900 text-white rounded-2xl shadow-[0_20px_50px_rgba(15,23,42,0.38)] border border-blue-400/25 px-4 py-2.5 flex flex-wrap items-center gap-3 transition-[left] duration-200 font-display"
+      class="fixed bottom-5 left-1/2 -translate-x-1/2 z-30 bg-[#0B3D2E] text-white rounded-2xl shadow-[0_20px_50px_rgba(11,61,46,0.38)] border border-[#BBD8CB]/30 px-4 py-2.5 flex flex-wrap items-center gap-3 transition-[left] duration-200 font-display"
       :class="isSidebarCollapsed ? 'lg:left-[calc(50%+2.5rem)]' : 'lg:left-[calc(50%+8rem)]'"
     >
-      <span class="text-xs font-bold tabular-nums">
+      <span class="text-xs font-bold tabular-nums font-mono">
         {{ selectedIds.length }} Artikel Dipilih
       </span>
 
@@ -1540,7 +1540,7 @@ onBeforeUnmount(() => {
           v-if="activeStatus !== VerificationStatusEnum.VERIFIED"
           type="button"
           :disabled="batchLoading"
-          class="btn-primary-gradient min-h-8 px-3.5 py-1.5 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
+          class="min-h-8 px-3.5 py-1.5 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 bg-white text-[#0B3D2E] hover:bg-[#ECEAE2] disabled:opacity-50 cursor-pointer shadow-2xs font-display"
           @click="() => { void runBatchAction('VERIFY'); }"
         >
           <UIcon name="i-lucide-check" class="w-3.5 h-3.5" />
@@ -1560,7 +1560,7 @@ onBeforeUnmount(() => {
         <button
           type="button"
           :disabled="batchLoading"
-          class="min-h-8 px-2.5 py-1.5 rounded-xl text-slate-200 hover:text-white text-xs transition-colors cursor-pointer"
+          class="min-h-8 px-2.5 py-1.5 rounded-xl text-white/80 hover:text-white text-xs transition-colors cursor-pointer"
           @click="() => { clearSelection(); }"
         >
           Batal
@@ -1587,25 +1587,25 @@ onBeforeUnmount(() => {
     >
       <template #body>
         <div class="space-y-3">
-          <div class="flex flex-wrap items-center gap-2 text-[11px] text-slate-500">
+          <div class="flex flex-wrap items-center gap-2 text-[11px] text-[#737B76]">
             <span class="inline-flex items-center gap-1">
-              <span class="w-2.5 h-2.5 rounded bg-blue-100 border border-blue-300 inline-block" />
+              <span class="w-2.5 h-2.5 rounded bg-[#E3F0EA] border border-[#BBD8CB] inline-block" />
               Lokus Tana Tidung / Kaltara
             </span>
             <span class="inline-flex items-center gap-1">
-              <span class="w-2.5 h-2.5 rounded bg-amber-100 border border-amber-300 inline-block" />
+              <span class="w-2.5 h-2.5 rounded bg-[#FEF3C7] border border-[#B45309]/30 inline-block" />
               Angka, Persentase &amp; Nominal
             </span>
           </div>
-          <div class="max-h-[60vh] overflow-y-auto saas-scroll rounded-xl bg-slate-50 border border-slate-200 p-4 text-sm text-slate-800 leading-relaxed whitespace-pre-line">
+          <div class="max-h-[60vh] overflow-y-auto saas-scroll rounded-xl bg-[#F6F5F1] border border-[#141917]/[0.08] p-4 text-sm text-[#141917] leading-relaxed whitespace-pre-line">
             <template v-for="(seg, idx) in highlightedSnippetSegments" :key="idx">
               <mark
                 v-if="seg.kind === 'location'"
-                class="bg-blue-100/90 text-blue-900 px-1 rounded font-semibold"
+                class="bg-[#E3F0EA] text-[#0B3D2E] px-1 rounded font-semibold"
               >{{ seg.text }}</mark>
               <mark
                 v-else-if="seg.kind === 'metric'"
-                class="bg-amber-100/90 text-amber-900 px-1 rounded font-mono font-semibold"
+                class="bg-[#FEF3C7] text-[#B45309] px-1 rounded font-mono font-semibold"
               >{{ seg.text }}</mark>
               <template v-else>{{ seg.text }}</template>
             </template>

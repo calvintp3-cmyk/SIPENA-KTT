@@ -105,10 +105,10 @@ function handleExportXlsx() {
 }
 
 function heatmapCellClass(val: number): string {
-  if (val <= 0) return 'bg-slate-50/80 text-slate-300';
-  if (val <= 2) return 'bg-blue-50 text-blue-800 border border-blue-200/70 hover:bg-blue-100 font-semibold';
-  if (val <= 5) return 'bg-blue-100 text-blue-900 border border-blue-300 hover:bg-blue-200 font-bold';
-  return 'bg-blue-700 text-white font-bold shadow-2xs hover:bg-blue-800';
+  if (val <= 0) return 'bg-[#F6F5F1] text-[#737B76]/60';
+  if (val <= 2) return 'bg-[#E3F0EA] text-[#0B3D2E] border border-[#BBD8CB] hover:bg-[#D2E6DC] font-semibold';
+  if (val <= 5) return 'bg-[#6EA892]/35 text-[#072B20] border border-[#6EA892]/60 hover:bg-[#6EA892]/50 font-bold';
+  return 'bg-[#0B3D2E] text-white font-bold shadow-2xs hover:bg-[#072B20]';
 }
 
 const coverageChartOption = computed<ECOption | null>(() => {
@@ -134,12 +134,12 @@ const coverageChartOption = computed<ECOption | null>(() => {
         fontSize: 20,
         fontWeight: 800,
         color: SIPENA_CHART_TOKENS.inkObsidian,
-        fontFamily: 'Inter, sans-serif',
+        fontFamily: 'Manrope, sans-serif',
       },
       subtextStyle: {
         fontSize: 11,
         color: SIPENA_CHART_TOKENS.inkMuted,
-        fontFamily: 'Inter, sans-serif',
+        fontFamily: 'Manrope, sans-serif',
       },
     },
     series: [
@@ -148,7 +148,7 @@ const coverageChartOption = computed<ECOption | null>(() => {
         radius: ['54%', '82%'],
         center: ['50%', '50%'],
         itemStyle: {
-          borderRadius: 6,
+          borderRadius: 4,
           borderColor: SIPENA_CHART_TOKENS.surfaceWhite,
           borderWidth: 2,
         },
@@ -160,7 +160,7 @@ const coverageChartOption = computed<ECOption | null>(() => {
             value: covered,
             filterKey: 'covered',
             itemStyle: {
-              color: SIPENA_CHART_TOKENS.emerald,
+              color: '#0B3D2E',
               opacity: tileFilter.value === 'all' || tileFilter.value === 'covered' ? 1 : 0.35,
             },
           },
@@ -169,7 +169,7 @@ const coverageChartOption = computed<ECOption | null>(() => {
             value: thin,
             filterKey: 'thin',
             itemStyle: {
-              color: SIPENA_CHART_TOKENS.amber,
+              color: '#B45309',
               opacity: tileFilter.value === 'all' || tileFilter.value === 'thin' ? 1 : 0.35,
             },
           },
@@ -178,7 +178,7 @@ const coverageChartOption = computed<ECOption | null>(() => {
             value: gap,
             filterKey: 'gap',
             itemStyle: {
-              color: SIPENA_CHART_TOKENS.rose,
+              color: '#C8553D',
               opacity: tileFilter.value === 'all' || tileFilter.value === 'gap' ? 1 : 0.35,
             },
           },
@@ -199,474 +199,357 @@ const shortExpHeaders: Record<string, string> = {
   PK_LNPRT: 'LNPRT',
   PK_P: 'PK-P',
   PMTB: 'PMTB',
-  INVENTORY_CHANGE: 'Inventori',
-  NET_EXPORT: 'Ekspor Neto',
+  PERUBAHAN_INVENTORI: 'Inventori',
+  EKSPOR_NETTO: 'Ekspor-Net',
 };
 </script>
 
 <template>
   <div class="space-y-6">
-    <!-- Page Header -->
-    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+    <!-- Top Action Ribbon -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#141917]/[0.08]">
       <div>
-        <div
-          class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200/80 text-xs font-semibold"
-        >
-          <UIcon name="i-solar-radar-2-bold-duotone" class="w-3.5 h-3.5 text-blue-700" />
-          <span>Analitik &amp; Kelengkapan Bukti Sektoral</span>
+        <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#E3F0EA] text-[#0B3D2E] border border-[#BBD8CB] text-xs font-semibold font-mono">
+          <UIcon name="i-solar-radar-2-bold-duotone" class="w-3.5 h-3.5 text-[#0B3D2E]" />
+          <span>{{ periodLabel }} &bull; Gap Detector</span>
         </div>
-        <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 text-balance mt-2 font-display">
-          Dashboard &amp; Gap Sektoral — {{ periodLabel }}
+        <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-[#141917] mt-1 font-display">
+          Dashboard Eksekutif &amp; Radar Gap Sektoral
         </h1>
-        <p class="text-xs sm:text-sm text-slate-600 mt-0.5 text-pretty">
-          Deteksi 17 kategori Lapangan Usaha yang belum memiliki bukti berita terverifikasi dan
-          peta silang PDRB dua sisi.
+        <p class="text-xs sm:text-sm text-[#4A524E] mt-0.5">
+          Pemantauan sebaran bukti empiris pada 17 Lapangan Usaha KBLI dan 6 Komponen Pengeluaran PDRB Tana Tidung.
         </p>
       </div>
 
-      <div class="flex flex-wrap items-center gap-2.5">
+      <div class="flex items-center gap-2.5 shrink-0">
         <button
           type="button"
           :disabled="isExporting"
-          class="min-h-9 px-3.5 rounded-xl border border-slate-200 bg-white hover:border-blue-300 hover:bg-slate-50 text-xs font-semibold text-slate-900 inline-flex items-center gap-1.5 shadow-2xs transition-colors disabled:opacity-50 cursor-pointer"
-          @click="() => { handleExportXlsx(); }"
+          class="min-h-9 px-3.5 rounded-xl border border-[#141917]/10 bg-white hover:border-[#0B3D2E] hover:bg-[#F6F5F1] text-xs font-semibold text-[#141917] inline-flex items-center gap-1.5 shadow-2xs transition-colors disabled:opacity-50 cursor-pointer"
+          @click="handleExportXlsx"
         >
-          <UIcon name="i-solar-download-bold-duotone" class="w-4 h-4 text-emerald-700" />
-          <span>Export Excel ({{ shortPeriodLabel }})</span>
+          <UIcon v-if="isExporting" name="i-lucide-loader-circle" class="w-4 h-4 animate-spin" />
+          <UIcon v-else name="i-solar-file-download-bold-duotone" class="w-4 h-4 text-[#0B3D2E]" />
+          <span>{{ isExporting ? 'Mengekspor...' : 'Ekspor Excel (.xlsx)' }}</span>
         </button>
 
         <button
           type="button"
-          class="btn-primary-gradient min-h-9 px-4 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer shadow-xs"
-          @click="() => { openManualForSector(null); }"
+          class="obs-btn-primary min-h-9 px-3.5 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 shadow-xs cursor-pointer"
+          @click="openManualForSector(null)"
         >
-          <UIcon name="i-solar-add-circle-bold-duotone" class="w-4 h-4 text-emerald-200" />
-          <span>Input Manual Fenomena</span>
+          <UIcon name="i-lucide-plus" class="w-4 h-4" />
+          <span>Tambah Bukti Manual</span>
         </button>
       </div>
     </div>
 
+    <!-- Error State -->
     <UAlert
       v-if="error"
       color="error"
       variant="subtle"
       icon="i-lucide-alert-circle"
-      title="Gagal memuat analitik dashboard"
-      description="Pastikan koneksi database aktif lalu muat ulang."
+      title="Gagal Memuat Dashboard Analitik"
+      description="Terjadi kesalahan saat memproses data analitik periode ini."
     >
       <template #actions>
-        <UButton size="xs" color="error" variant="solid" @click="() => { void refresh(); }">
-          Muat Ulang
-        </UButton>
+        <UButton
+          color="error"
+          variant="soft"
+          size="xs"
+          label="Coba Lagi"
+          icon="i-lucide-refresh-cw"
+          @click="() => { refresh(); }"
+        />
       </template>
     </UAlert>
 
-    <!-- 4-Card KPI Bento Grid -->
-    <div v-if="pending && !dashData" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-      <div v-for="i in 4" :key="i" class="saas-card rounded-xl p-5 space-y-2.5">
-        <div class="h-3 w-28 rounded bg-slate-200" />
-        <div class="h-8 w-20 rounded bg-slate-200" />
-        <div class="h-3 w-36 rounded bg-slate-100" />
+    <!-- Skeleton Loading -->
+    <div
+      v-else-if="pending && !dashData"
+      class="bg-white rounded-2xl border border-[#141917]/[0.08] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-[#141917]/[0.08]"
+    >
+      <div v-for="i in 4" :key="i" class="p-5 space-y-2">
+        <div class="h-3 w-28 rounded bg-[#ECEAE2] animate-pulse" />
+        <div class="h-8 w-20 rounded bg-[#ECEAE2] animate-pulse" />
+        <div class="h-3 w-36 rounded bg-[#F6F5F1] animate-pulse" />
       </div>
     </div>
 
-    <template v-else-if="dashData">
-      <!-- Action-First Gap Banner -->
+    <!-- Main Dashboard Body -->
+    <div v-else-if="dashData" class="space-y-6">
+      <!-- 4 Top Executive KPI Ribbon (Hairline Divided) -->
       <div
-        v-if="dashData.kpi.gapSectorsCount > 0"
-        class="rounded-xl bg-[#FCECE8]/80 border border-[#F5C6BA] px-4 py-3 flex flex-wrap items-center justify-between gap-3"
+        class="bg-white rounded-2xl border border-[#141917]/[0.08] shadow-2xs grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-[#141917]/[0.08]"
       >
-        <div class="flex items-center gap-2.5 text-xs text-[#7D2B17]">
-          <UIcon name="i-lucide-alert-triangle" class="w-4 h-4 text-[#C2593F] shrink-0" />
-          <span>
-            <strong>{{ dashData.kpi.gapSectorsCount }} Sektor KBLI masih 0 fenomena</strong> pada {{ periodLabel }}. Segera lengkapi bukti agar neraca sektoral seimbang.
-          </span>
-        </div>
-        <button
-          type="button"
-          class="px-3 py-1.5 rounded-lg bg-[#C2593F] hover:bg-[#A64730] text-white text-xs font-semibold transition-colors cursor-pointer shrink-0"
-          @click="() => { tileFilter = 'gap'; }"
-        >
-          Sorot Sektor Kosong ↓
-        </button>
-      </div>
-
-      <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-      <!-- KPI 1: Highlight Deep Pine Coverage Card -->
-      <div class="rounded-2xl bg-[#0F4C3A] text-white p-5 space-y-2.5 shadow-[0_10px_24px_-10px_rgba(15,76,58,0.4)]">
-        <div class="flex items-center justify-between gap-2">
-          <span class="text-xs font-semibold text-[#C3DFD3]">
-            Cakupan 17 Sektor PDRB
-          </span>
-          <div class="w-7 h-7 rounded-lg bg-white/15 text-white flex items-center justify-center shrink-0">
-            <UIcon name="i-solar-layers-minimalistic-bold-duotone" class="w-4 h-4" />
+        <!-- KPI 1: Terverifikasi -->
+        <div class="p-5 flex flex-col justify-between">
+          <div class="text-[11px] font-mono font-semibold uppercase tracking-wider text-[#737B76]">
+            Total Terverifikasi
+          </div>
+          <div class="my-2 flex items-baseline gap-2">
+            <span class="font-display font-extrabold text-3xl sm:text-4xl text-[#141917] tabular-nums">
+              {{ formatNumberId(dashData.kpi.totalVerifiedPeriod) }}
+            </span>
+            <span class="text-xs text-[#737B76]">bukti</span>
+          </div>
+          <div class="text-[11.5px] font-mono">
+            <span v-if="dashData.kpi.deltaPercent !== null" class="font-semibold" :class="dashData.kpi.deltaPercent >= 0 ? 'text-[#0B3D2E]' : 'text-[#C8553D]'">
+              {{ dashData.kpi.deltaPercent >= 0 ? '↑ +' : '↓ ' }}{{ dashData.kpi.deltaPercent }}% vs TW sebelumnya
+            </span>
+            <span v-else class="text-[#737B76]">Menunggu data pembanding</span>
           </div>
         </div>
-        <div class="text-3xl font-extrabold tracking-tight text-white tabular-nums font-display">
-          {{ dashData.kpi.coveredSectors }}
-          <span class="text-base font-semibold text-[#C3DFD3]">/ {{ dashData.kpi.totalSectors }}</span>
-        </div>
-        <div class="text-xs flex items-center gap-1.5">
-          <span
-            class="px-2 py-0.5 rounded-full text-[11px] font-bold tabular-nums"
-            :class="
-              dashData.kpi.gapSectorsCount > 0
-                ? 'bg-[#FCECE8] text-[#B4482D]'
-                : 'bg-white/20 text-white'
-            "
-          >
-            {{
-              dashData.kpi.gapSectorsCount > 0
-                ? `${dashData.kpi.gapSectorsCount} Sektor Data Gap`
-                : 'Semua Sektor Tercakup'
-            }}
-          </span>
-        </div>
-      </div>
 
-      <!-- KPI 2 -->
-      <div class="bg-[#FAF9F7] border border-[#E7E4DC] rounded-2xl p-5 space-y-2.5">
-        <div class="flex items-center justify-between gap-2">
-          <span class="text-xs font-semibold text-[#575B58]">
-            Bukti Terverifikasi
-          </span>
-          <div class="w-7 h-7 rounded-lg bg-[#E7F3EE] text-[#0F4C3A] flex items-center justify-center shrink-0">
-            <UIcon name="i-solar-check-circle-bold-duotone" class="w-4 h-4" />
+        <!-- KPI 2: Cakupan Sektor -->
+        <div class="p-5 flex flex-col justify-between">
+          <div class="text-[11px] font-mono font-semibold uppercase tracking-wider text-[#737B76]">
+            Cakupan Sektor KBLI
+          </div>
+          <div class="my-2 flex items-baseline gap-2">
+            <span class="font-display font-extrabold text-3xl sm:text-4xl text-[#141917] tabular-nums">
+              {{ dashData.kpi.coveredSectors }}/{{ dashData.kpi.totalSectors }}
+            </span>
+            <span class="text-xs text-[#737B76]">aktif</span>
+          </div>
+          <div class="text-[11.5px] font-mono">
+            <span v-if="dashData.kpi.gapSectorsCount > 0" class="text-[#C8553D] font-bold">
+              {{ dashData.kpi.gapSectorsCount }} sektor senyap (gap 0)
+            </span>
+            <span v-else class="text-[#0B3D2E] font-bold">
+              Seluruh 17 sektor terarsip!
+            </span>
           </div>
         </div>
-        <div class="text-3xl font-extrabold tracking-tight text-[#1A1D1B] tabular-nums font-display">
-          {{ formatNumberId(dashData.kpi.totalVerifiedPeriod) }}
-        </div>
-        <div class="text-xs text-[#5C615E] flex items-center gap-1.5 flex-wrap">
-          <span
-            v-if="dashData.kpi.deltaPercent !== null"
-            class="px-2 py-0.5 rounded-full text-[11px] font-bold tabular-nums"
-            :class="
-              dashData.kpi.deltaPercent > 0
-                ? 'bg-[#E7F3EE] text-[#0F4C3A]'
-                : dashData.kpi.deltaPercent < 0
-                  ? 'bg-[#FCECE8] text-[#B4482D]'
-                  : 'bg-[#EFECE6] text-[#575B58]'
-            "
-          >
-            {{ dashData.kpi.deltaPercent > 0 ? '+' : '' }}{{ dashData.kpi.deltaPercent }}%
-          </span>
-          <span class="tabular-nums text-[#6B6F6C]">vs {{ dashData.period.previousLabel }} ({{ dashData.kpi.previousTotalVerified }})</span>
-        </div>
-      </div>
 
-      <!-- KPI 3 -->
-      <div class="bg-[#FAF9F7] border border-[#E7E4DC] rounded-2xl p-5 space-y-2.5">
-        <div class="flex items-center justify-between gap-2">
-          <span class="text-xs font-semibold text-[#575B58]">
+        <!-- KPI 3: Antrean Kurasi -->
+        <div class="p-5 flex flex-col justify-between">
+          <div class="text-[11px] font-mono font-semibold uppercase tracking-wider text-[#737B76]">
             Antrean Kurasi Pending
-          </span>
-          <div class="w-7 h-7 rounded-lg bg-[#FEF3C7] text-[#92400E] flex items-center justify-center shrink-0">
-            <UIcon name="i-solar-inbox-in-bold-duotone" class="w-4 h-4" />
+          </div>
+          <div class="my-2 flex items-baseline gap-2">
+            <span class="font-display font-extrabold text-3xl sm:text-4xl text-[#141917] tabular-nums" :class="dashData.kpi.pendingQueueCount > 0 ? 'text-[#B45309]' : 'text-[#141917]'">
+              {{ formatNumberId(dashData.kpi.pendingQueueCount) }}
+            </span>
+            <span class="text-xs text-[#737B76]">perlu telaah</span>
+          </div>
+          <div class="text-[11.5px] font-mono">
+            <NuxtLink to="/admin/review" class="text-[#0B3D2E] hover:underline font-bold inline-flex items-center gap-1">
+              <span>Buka antrean review</span>
+              <UIcon name="i-lucide-arrow-right" class="w-3 h-3" />
+            </NuxtLink>
           </div>
         </div>
-        <div class="text-3xl font-extrabold tracking-tight text-[#1A1D1B] tabular-nums font-display">
-          {{ formatNumberId(dashData.kpi.pendingQueueCount) }}
-        </div>
-        <div class="flex items-center justify-between gap-2 text-xs">
-          <span
-            v-if="dashData.kpi.llmFailedCount > 0"
-            class="text-xs text-rose-700 font-semibold tabular-nums font-mono"
-          >
-            {{ dashData.kpi.llmFailedCount }} AI Gagal
-          </span>
-          <span v-else class="text-slate-600">Pipeline AI Normal</span>
-          <NuxtLink to="/admin/review" class="text-blue-700 hover:text-blue-900 hover:underline font-semibold">
-            Kurasi →
-          </NuxtLink>
-        </div>
-      </div>
 
-      <!-- KPI 4 -->
-      <div class="bg-[#FAF9F7] border border-[#E7E4DC] rounded-2xl p-5 space-y-2.5">
-        <div class="flex items-center justify-between gap-2">
-          <span class="text-xs font-semibold text-[#575B58]">
-            Sinyal Ekspansi Riil
-          </span>
-          <div class="w-7 h-7 rounded-lg bg-[#E7F3EE] text-[#0F4C3A] flex items-center justify-center shrink-0">
-            <UIcon name="i-solar-graph-new-up-bold-duotone" class="w-4 h-4" />
+        <!-- KPI 4: Rasio Ekspansi Riil -->
+        <div class="p-5 flex flex-col justify-between">
+          <div class="text-[11px] font-mono font-semibold uppercase tracking-wider text-[#737B76]">
+            Rasio Ekspansi Riil
+          </div>
+          <div class="my-2 flex items-baseline gap-2">
+            <span class="font-display font-extrabold text-3xl sm:text-4xl text-[#0B3D2E] tabular-nums">
+              {{ dashData.kpi.expansionPercent }}%
+            </span>
+            <span class="text-xs text-[#737B76]">output riil</span>
+          </div>
+          <div class="text-[11.5px] text-[#4A524E] font-mono tabular-nums">
+            Rasio sinyal pertumbuhan output (ADHK)
           </div>
         </div>
-        <div class="text-3xl font-extrabold tracking-tight text-[#0F4C3A] tabular-nums font-display">
-          {{ dashData.kpi.expansionPercent }}%
-        </div>
-        <div class="text-xs text-[#5C615E] flex items-center justify-between gap-2">
-          <span>Proporsi Naik NTB</span>
-          <NuxtLink to="/admin/synthesis" class="text-[#0F4C3A] hover:underline font-semibold">
-            Buka Sintesis →
-          </NuxtLink>
-        </div>
       </div>
-      </div>
-    </template>
 
-    <!-- SECTION A: 17-SECTOR GAP DETECTOR + ECHARTS OVERVIEW -->
-    <section v-if="dashData" aria-label="Detector Data Gap 17 Sektor KBLI" class="space-y-4">
-      <div class="saas-card rounded-xl p-5 grid grid-cols-1 lg:grid-cols-12 gap-5 items-center">
-        <div class="lg:col-span-4">
-          <SharedAppChart
-            :option="coverageChartOption"
-            height-class="h-44"
-            :loading="pending && !dashData"
-            :empty="tileCounts.all === 0"
-            empty-title="Belum ada ringkasan cakupan"
-            @chart-click="handleCoverageChartClick"
-          />
-        </div>
-
-        <div class="lg:col-span-8 space-y-3.5">
+      <!-- Radar 17 Sektor Usaha (Gap Detector Mosaic) -->
+      <div class="bg-white rounded-2xl border border-[#141917]/[0.08] shadow-2xs p-5 sm:p-6 space-y-5">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-[#141917]/[0.08]">
           <div>
-            <h2 class="text-base font-extrabold text-slate-900 text-balance font-display">
-              Radar Kelengkapan 17 Lapangan Usaha PDRB
+            <h2 class="text-base font-bold text-[#141917] font-display">
+              Radar Gap 17 Sektor Usaha (KBLI 2025)
             </h2>
-            <p class="text-xs sm:text-sm text-slate-600 mt-0.5 leading-relaxed text-pretty">
-              Klik segmen donat atau pilih status di bawah untuk menyaring sektor yang berstatus
-              <strong class="text-rose-700">Data Gap</strong> atau <strong class="text-amber-700">Tipis</strong> pada
-              {{ shortPeriodLabel }}.
+            <p class="text-xs text-[#4A524E] mt-0.5">
+              Identifikasi sektor lapangan usaha yang minim atau nihil bukti empiris pada {{ shortPeriodLabel }}.
             </p>
           </div>
 
-          <div
-            role="group"
-            aria-label="Filter status kelengkapan 17 sektor"
-            class="inline-flex flex-wrap p-1 bg-slate-100 rounded-xl border border-slate-200/90 gap-1 font-mono"
-          >
+          <!-- Segmented Filter Pills -->
+          <div class="inline-flex p-1 bg-[#ECEAE2] rounded-xl font-mono text-xs font-semibold self-start md:self-auto shrink-0">
             <button
               type="button"
-              :aria-pressed="tileFilter === 'all'"
-              class="min-h-8 px-3 py-1 rounded-lg text-xs tabular-nums transition-colors cursor-pointer"
-              :class="
-                tileFilter === 'all'
-                  ? 'bg-white text-blue-700 font-bold shadow-2xs border border-blue-200/70'
-                  : 'text-slate-600 hover:text-slate-950 font-medium'
-              "
-              @click="() => { tileFilter = 'all'; }"
+              class="px-2.5 py-1 rounded-lg transition-all cursor-pointer"
+              :class="tileFilter === 'all' ? 'bg-white text-[#141917] font-bold shadow-2xs' : 'text-[#4A524E] hover:text-[#141917]'"
+              @click="tileFilter = 'all'"
             >
               Semua ({{ tileCounts.all }})
             </button>
             <button
               type="button"
-              :aria-pressed="tileFilter === 'gap'"
-              class="min-h-8 px-3 py-1 rounded-lg text-xs tabular-nums transition-colors cursor-pointer"
-              :class="
-                tileFilter === 'gap'
-                  ? 'bg-white text-rose-700 font-bold shadow-2xs border border-rose-200'
-                  : 'text-slate-600 hover:text-slate-950 font-medium'
-              "
-              @click="() => { tileFilter = 'gap'; }"
+              class="px-2.5 py-1 rounded-lg transition-all cursor-pointer"
+              :class="tileFilter === 'gap' ? 'bg-white text-[#C8553D] font-bold shadow-2xs' : 'text-[#4A524E] hover:text-[#C8553D]'"
+              @click="tileFilter = 'gap'"
             >
-              Data Gap ({{ tileCounts.gap }})
+              Gap 0 ({{ tileCounts.gap }})
             </button>
             <button
               type="button"
-              :aria-pressed="tileFilter === 'thin'"
-              class="min-h-8 px-3 py-1 rounded-lg text-xs tabular-nums transition-colors cursor-pointer"
-              :class="
-                tileFilter === 'thin'
-                  ? 'bg-white text-amber-800 font-bold shadow-2xs border border-amber-200'
-                  : 'text-slate-600 hover:text-slate-950 font-medium'
-              "
-              @click="() => { tileFilter = 'thin'; }"
+              class="px-2.5 py-1 rounded-lg transition-all cursor-pointer"
+              :class="tileFilter === 'thin' ? 'bg-white text-[#B45309] font-bold shadow-2xs' : 'text-[#4A524E] hover:text-[#B45309]'"
+              @click="tileFilter = 'thin'"
             >
-              Tipis ≤2 ({{ tileCounts.thin }})
+              Tipis 1–2 ({{ tileCounts.thin }})
             </button>
             <button
               type="button"
-              :aria-pressed="tileFilter === 'covered'"
-              class="min-h-8 px-3 py-1 rounded-lg text-xs tabular-nums transition-colors cursor-pointer"
-              :class="
-                tileFilter === 'covered'
-                  ? 'bg-white text-emerald-800 font-bold shadow-2xs border border-emerald-200'
-                  : 'text-slate-600 hover:text-slate-950 font-medium'
-              "
-              @click="() => { tileFilter = 'covered'; }"
+              class="px-2.5 py-1 rounded-lg transition-all cursor-pointer"
+              :class="tileFilter === 'covered' ? 'bg-white text-[#0B3D2E] font-bold shadow-2xs' : 'text-[#4A524E] hover:text-[#0B3D2E]'"
+              @click="tileFilter = 'covered'"
             >
-              Tercukupi ({{ tileCounts.covered }})
+              Cukup &gt;2 ({{ tileCounts.covered }})
             </button>
           </div>
         </div>
-      </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5">
-        <div
-          v-for="tile in filteredGapTiles"
-          :key="tile.groupCode"
-          class="rounded-xl p-4 flex flex-col justify-between gap-3 transition-colors relative overflow-hidden"
-          :class="
-            tile.isGap
-              ? 'bg-rose-50/40 border border-rose-200/80 shadow-2xs'
-              : 'saas-card saas-card-interactive'
-          "
-        >
-          <div class="space-y-2.5">
-            <div class="flex items-center justify-between gap-2">
-              <span
-                class="text-[11px] font-bold px-2.5 py-0.5 rounded-full border font-mono"
-                :class="
-                  tile.isGap
-                    ? 'bg-rose-50 text-rose-800 border-rose-200'
-                    : getKbliClusterTheme(tile.groupCode).pillClass
-                "
-              >
-                KBLI {{ tile.groupCode }}
-              </span>
-
-              <span
-                v-if="tile.isGap"
-                class="px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200 text-[11px] font-bold"
-              >
-                Data Gap
-              </span>
-              <span
-                v-else-if="tile.isThin"
-                class="px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200 text-[11px] font-bold tabular-nums font-mono"
-              >
-                Tipis • {{ tile.count }}
-              </span>
-              <span
-                v-else
-                class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-[11px] font-bold tabular-nums font-mono"
-              >
-                {{ tile.count }} Bukti ({{ tile.sharePercent }}%)
-              </span>
-            </div>
-
-            <h3 class="text-sm font-bold text-slate-900 leading-snug font-display">
-              {{ tile.shortName }}
-            </h3>
-
-            <p v-if="tile.isGap" class="text-xs text-slate-600 leading-relaxed text-pretty">
-              Belum ada berita atau catatan lapangan pada sektor ini di {{ shortPeriodLabel }}.
-            </p>
-            <div v-else class="space-y-1.5">
-              <p
-                v-if="tile.latestHeadline"
-                class="text-xs text-slate-600 leading-relaxed line-clamp-2"
-                :title="tile.latestHeadline"
-              >
-                {{ tile.latestHeadline }}
-              </p>
-              <div v-if="tile.dominantImpact" class="pt-0.5">
-                <UBadge
-                  :color="getKbliImpactBadge(tile.dominantImpact).color"
-                  variant="subtle"
-                  size="xs"
-                  :icon="getKbliImpactBadge(tile.dominantImpact).icon"
+        <!-- 17-Sector Tiles Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
+          <div
+            v-for="tile in filteredGapTiles"
+            :key="tile.groupCode"
+            class="p-4 rounded-xl border flex flex-col justify-between transition-all"
+            :class="[
+              tile.isGap
+                ? 'bg-[#F6F5F1] border-dashed border-[#C8553D]/50 hover:border-[#C8553D]'
+                : tile.isThin
+                  ? 'bg-[#FEF7E6] border-[#F3D89C] hover:border-[#B45309]'
+                  : 'bg-white border-[#141917]/10 hover:border-[#0B3D2E]/40',
+            ]"
+          >
+            <div>
+              <div class="flex items-start justify-between gap-2">
+                <span
+                  class="font-mono font-bold text-xs"
+                  :class="tile.isGap ? 'text-[#C8553D]' : tile.isThin ? 'text-[#B45309]' : 'text-[#0B3D2E]'"
                 >
-                  {{ getKbliImpactBadge(tile.dominantImpact).shortLabel }}
-                </UBadge>
+                  KBLI {{ tile.groupCode }}
+                </span>
+                <span
+                  class="px-2 py-0.5 rounded text-[10.5px] font-mono font-bold tabular-nums"
+                  :class="[
+                    tile.isGap
+                      ? 'bg-[#FBECE8] text-[#C8553D]'
+                      : tile.isThin
+                        ? 'bg-[#F8E7C5] text-[#92400E]'
+                        : 'bg-[#E3F0EA] text-[#0B3D2E]',
+                  ]"
+                >
+                  {{ tile.count }} bukti
+                </span>
               </div>
+
+              <h3 class="text-xs font-bold text-[#141917] leading-snug mt-2 font-display">
+                {{ tile.shortName }}
+              </h3>
+
+              <p v-if="tile.isGap" class="text-[11px] text-[#C8553D] mt-1">
+                Belum ada bukti empiris tercatat pada periode ini.
+              </p>
+              <p v-else class="text-[11px] text-[#4A524E] mt-1 line-clamp-1">
+                Dominan: {{ tile.dominantImpact || 'Netral' }}
+              </p>
             </div>
-          </div>
 
-          <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2">
-            <button
-              type="button"
-              class="min-h-8 inline-flex items-center gap-1 text-xs font-semibold text-blue-700 hover:text-blue-900 hover:underline cursor-pointer"
-              @click="() => { openManualForSector(tile.primaryKbliCode); }"
-            >
-              <UIcon name="i-solar-add-circle-bold-duotone" class="w-4 h-4" />
-              <span>Input Manual</span>
-            </button>
+            <div class="pt-3 mt-3 border-t border-[#141917]/[0.06] flex items-center justify-between text-xs">
+              <button
+                v-if="tile.isGap"
+                type="button"
+                class="font-bold text-[#C8553D] hover:underline cursor-pointer inline-flex items-center gap-1"
+                @click="openManualForSector(tile.kbliCodes[0] as KbliCategoryEnum)"
+              >
+                <UIcon name="i-lucide-plus" class="w-3.5 h-3.5" />
+                <span>Isi Bukti</span>
+              </button>
+              <NuxtLink
+                v-else
+                :to="`/admin/articles?pdrbGroup=${tile.groupCode}`"
+                class="font-semibold text-[#0B3D2E] hover:underline inline-flex items-center gap-1"
+              >
+                <span>Lihat Data</span>
+                <UIcon name="i-lucide-arrow-right" class="w-3 h-3" />
+              </NuxtLink>
 
-            <NuxtLink
-              :to="`/admin/articles?year=${selectedYear}&quarter=${selectedQuarter}&pdrbGroup=${encodeURIComponent(tile.groupCode)}&status=VERIFIED`"
-              class="min-h-8 text-xs font-medium text-slate-600 hover:text-slate-900 inline-flex items-center gap-1"
-            >
-              <span>{{ tile.isGap ? 'Cek Arsip' : 'Lihat Arsip' }}</span>
-              <UIcon name="i-lucide-arrow-right" class="w-3 h-3" />
-            </NuxtLink>
+              <span class="text-[10px] text-[#737B76] font-mono">
+                {{ tile.sharePercent }}% share
+              </span>
+            </div>
           </div>
         </div>
       </div>
-    </section>
 
-    <!-- SECTION B: 17 x 6 CROSS-AXIS HEATMAP MATRIX -->
-    <section v-if="dashData" aria-label="Heatmap Matriks Silang KBLI dan Pengeluaran" class="space-y-3">
-      <div>
-        <h2 class="text-base font-extrabold text-slate-900 text-balance font-display">
-          Matriks Silang 17 Sektor KBLI × 6 Komponen Pengeluaran
-        </h2>
-        <p class="text-xs text-slate-600">
-          Klik sel matriks bernilai positif untuk membuka daftar bukti fenomena di Bank Data.
-        </p>
-      </div>
+      <!-- Heatmap Matriks Lapangan Usaha x Pengeluaran PDRB -->
+      <div class="bg-white rounded-2xl border border-[#141917]/[0.08] shadow-2xs p-5 sm:p-6 space-y-4">
+        <div class="flex items-center justify-between gap-3 pb-3 border-b border-[#141917]/[0.08]">
+          <div>
+            <h2 class="text-base font-bold text-[#141917] font-display">
+              Matriks Transmisi PDRB: 17 Lapangan Usaha &times; 6 Pengeluaran
+            </h2>
+            <p class="text-xs text-[#737B76] mt-0.5">
+              Intensitas silang bukti empiris antara sisi produksi dan sisi pengeluaran (Deep Pine sequential scale).
+            </p>
+          </div>
+          <div class="flex items-center gap-3 text-[11px] font-mono text-[#737B76]">
+            <span class="flex items-center gap-1">
+              <span class="w-3 h-3 rounded bg-[#F6F5F1] border border-[#141917]/10" /> 0
+            </span>
+            <span class="flex items-center gap-1">
+              <span class="w-3 h-3 rounded bg-[#E3F0EA] border border-[#BBD8CB]" /> 1–2
+            </span>
+            <span class="flex items-center gap-1">
+              <span class="w-3 h-3 rounded bg-[#6EA892]/35 border border-[#6EA892]" /> 3–5
+            </span>
+            <span class="flex items-center gap-1">
+              <span class="w-3 h-3 rounded bg-[#0B3D2E]" /> &ge; 6
+            </span>
+          </div>
+        </div>
 
-      <div class="saas-card rounded-xl overflow-hidden">
-        <div
-          tabindex="0"
-          role="region"
-          aria-label="Matriks Heatmap 17 Sektor KBLI kali 6 Komponen Pengeluaran PDRB"
-          class="saas-table-scroller"
-        >
-          <table class="w-full text-left border-collapse md:table-fixed">
-            <caption class="sr-only">
-              Distribusi silang artikel terverifikasi menurut 17 sektor KBLI dan 6 komponen
-              pengeluaran PDRB pada {{ periodLabel }}
-            </caption>
-            <thead>
-              <tr class="border-b border-slate-200 bg-slate-50/70 text-[11px] sm:text-xs font-semibold text-slate-600">
-                <th scope="col" class="px-3 sm:px-4 py-3 md:w-[32%]">
-                  Lapangan Usaha (17 Sektor KBLI)
-                </th>
+        <div class="saas-table-scroller" tabindex="0" role="region" aria-label="Matriks Heatmap PDRB">
+          <table class="min-w-full divide-y divide-[#141917]/[0.08] text-xs">
+            <thead class="bg-[#ECEAE2] text-[#141917] font-semibold sticky top-0">
+              <tr>
+                <th scope="col" class="px-3.5 py-2.5 text-left font-display min-w-[200px]">Lapangan Usaha (KBLI)</th>
                 <th
-                  v-for="comp in PDRB_6_EXPENDITURE_LIST"
-                  :key="comp.code"
+                  v-for="exp in PDRB_6_EXPENDITURE_LIST"
+                  :key="exp.code"
                   scope="col"
-                  class="px-1.5 sm:px-2 py-3 text-center whitespace-nowrap md:w-[9.5%]"
-                  :title="comp.official"
+                  class="px-2 py-2.5 text-center font-mono whitespace-nowrap min-w-[70px]"
+                  :title="exp.official"
                 >
-                  <span class="inline-flex items-center gap-1">
-                    <span class="w-2 h-2 rounded-full shrink-0 hidden sm:inline-block" :class="getExpenditureColorTheme(comp.code).dotClass" />
-                    <span>{{ shortExpHeaders[comp.code] || comp.short }}</span>
-                  </span>
+                  {{ shortExpHeaders[exp.code] || exp.short }}
                 </th>
-                <th scope="col" class="px-2.5 sm:px-4 py-3 text-right md:w-[11%]">Total</th>
+                <th scope="col" class="px-3 py-2.5 text-right font-mono whitespace-nowrap min-w-[60px]">Total</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-slate-200/70 text-xs">
+            <tbody class="divide-y divide-[#141917]/[0.06] bg-white font-mono">
               <tr
                 v-for="row in dashData.heatmapMatrix"
                 :key="row.groupCode"
-                class="hover:bg-indigo-50/30 transition-colors"
+                class="hover:bg-[#F6F5F1] transition-colors"
               >
-                <th scope="row" class="px-3 sm:px-4 py-2.5 font-medium text-slate-900 text-left bg-white min-w-0">
-                  <span
-                    class="inline-block text-[10px] sm:text-[11px] font-bold px-1.5 sm:px-2 py-0.5 rounded-full border mr-1.5"
-                    :class="getKbliClusterTheme(row.groupCode).pillClass"
-                  >
-                    {{ row.groupCode }}
-                  </span>
-                  <span class="break-words">{{ row.shortName }}</span>
+                <th scope="row" class="px-3.5 py-2 text-left font-sans text-xs text-[#141917] whitespace-nowrap">
+                  <span class="font-mono font-bold mr-1 text-[#0B3D2E]">{{ row.groupCode }}</span>
+                  <span class="text-[#4A524E]">{{ row.shortName }}</span>
                 </th>
-
                 <td
-                  v-for="comp in PDRB_6_EXPENDITURE_LIST"
-                  :key="comp.code"
-                  class="px-1 sm:px-1.5 py-1.5 text-center"
+                  v-for="exp in PDRB_6_EXPENDITURE_LIST"
+                  :key="exp.code"
+                  class="px-2 py-2 text-center"
                 >
-                  <NuxtLink
-                    v-if="(row.cells[comp.code] ?? 0) > 0"
-                    :to="`/admin/articles?year=${selectedYear}&quarter=${selectedQuarter}&pdrbGroup=${encodeURIComponent(row.groupCode)}&expenditure=${comp.code}&status=VERIFIED`"
-                    class="inline-flex items-center justify-center w-8 sm:w-10 h-7 rounded-lg text-xs tabular-nums transition-colors"
-                    :class="heatmapCellClass(row.cells[comp.code] ?? 0)"
-                  >
-                    {{ row.cells[comp.code] }}
-                  </NuxtLink>
                   <span
-                    v-else
-                    class="inline-flex items-center justify-center w-8 sm:w-10 h-7 rounded-lg text-xs text-slate-500"
+                    class="inline-flex items-center justify-center w-8 h-6 rounded text-xs tabular-nums transition-colors"
+                    :class="heatmapCellClass(row.cells[exp.code] ?? 0)"
                   >
-                    –
+                    {{ row.cells[exp.code] ?? 0 }}
                   </span>
                 </td>
-
-                <td class="px-2.5 sm:px-4 py-2.5 text-right font-bold tabular-nums text-slate-900">
+                <td class="px-3 py-2 text-right font-bold tabular-nums text-[#141917]">
                   {{ row.totalCount }}
                 </td>
               </tr>
@@ -674,9 +557,9 @@ const shortExpHeaders: Record<string, string> = {
           </table>
         </div>
       </div>
-    </section>
+    </div>
 
-    <!-- Pre-filled Manual Article Modal -->
+    <!-- Manual Article Modal for Filling Sector Gaps -->
     <AdminManualArticleModal
       v-model:open="manualModalOpen"
       :default-kbli="modalDefaultKbli"

@@ -643,15 +643,15 @@ const columns: TableColumn<AdminArticleItem>[] = [
     <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
       <div>
         <div
-          class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200/80 text-xs font-semibold"
+          class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#E3F0EA] text-[#0B3D2E] border border-[#BBD8CB] text-xs font-semibold"
         >
-          <UIcon name="i-solar-database-bold-duotone" class="w-3.5 h-3.5 text-blue-700" />
+          <UIcon name="i-solar-database-bold-duotone" class="w-3.5 h-3.5 text-[#0B3D2E]" />
           <span>Repositori Arsip &amp; Kertas Kerja BPS</span>
         </div>
-        <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 text-balance mt-2 font-display">
+        <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-[#141917] text-balance mt-2 font-display">
           Bank Data Fenomena Ekonomi
         </h1>
-        <p class="text-xs sm:text-sm text-slate-600 mt-0.5 text-pretty">
+        <p class="text-xs sm:text-sm text-[#4A524E] mt-0.5 text-pretty">
           Arsip terpusat seluruh fenomena ekonomi Kabupaten Tana Tidung &amp; ekspor kertas kerja
           resmi 10 kolom.
         </p>
@@ -660,10 +660,10 @@ const columns: TableColumn<AdminArticleItem>[] = [
       <div class="flex flex-wrap items-center gap-2.5 shrink-0">
         <button
           type="button"
-          class="min-h-9 px-3.5 rounded-xl border border-slate-200 bg-white hover:border-blue-300 hover:bg-slate-50 text-xs font-semibold text-slate-900 inline-flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
+          class="min-h-9 px-3.5 rounded-xl border border-[#141917]/10 bg-white hover:border-[#0B3D2E]/30 hover:bg-[#F6F5F1] text-xs font-semibold text-[#141917] inline-flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
           @click="() => { manualModalOpen = true; }"
         >
-          <UIcon name="i-solar-add-circle-bold-duotone" class="w-4 h-4 text-blue-700" />
+          <UIcon name="i-solar-add-circle-bold-duotone" class="w-4 h-4 text-[#0B3D2E]" />
           <span>Tambah Berita / Tarik URL</span>
         </button>
 
@@ -671,11 +671,11 @@ const columns: TableColumn<AdminArticleItem>[] = [
           <button
             type="button"
             :disabled="isExporting"
-            class="btn-primary-gradient min-h-9 px-4 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer shadow-xs"
+            class="obs-btn-primary min-h-9 px-4 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer shadow-xs"
           >
             <UIcon
               :name="isExporting ? 'i-lucide-loader-circle' : 'i-solar-download-bold-duotone'"
-              class="w-4 h-4 text-emerald-200"
+              class="w-4 h-4 text-[#E3F0EA]"
               :class="{ 'animate-spin': isExporting }"
             />
             <span>{{ isExporting ? 'Menyiapkan Berkas...' : 'Ekspor Data' }}</span>
@@ -686,22 +686,22 @@ const columns: TableColumn<AdminArticleItem>[] = [
     </div>
 
     <!-- Filter Toolbar & Status Segment Workbench -->
-    <div class="saas-card rounded-xl p-4 sm:p-5 space-y-4">
+    <div class="obs-panel rounded-xl p-4 sm:p-5 space-y-4">
       <!-- Quick Status Segment Tabs -->
-      <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100">
-        <div class="flex flex-wrap items-center gap-1.5 p-1 bg-slate-100/80 rounded-xl border border-slate-200/80">
+      <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[#141917]/10">
+        <div class="flex flex-wrap items-center gap-1.5 p-1 bg-[#ECEAE2] rounded-xl border border-[#141917]/10">
           <button
             type="button"
             class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer inline-flex items-center gap-1.5"
             :class="
               activeTabStatus === 'ALL'
-                ? 'bg-white text-blue-700 shadow-xs border border-blue-200'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-white text-[#0B3D2E] shadow-xs border border-[#141917]/10'
+                : 'text-[#737B76] hover:text-[#141917]'
             "
             @click="() => { activeTabStatus = 'ALL'; }"
           >
             <span>Semua Berita</span>
-            <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-slate-200 text-slate-700 tabular-nums font-bold font-mono">
+            <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-[#ECEAE2] text-[#4A524E] tabular-nums font-bold font-mono">
               {{ archiveData?.pagination.total ?? 0 }}
             </span>
           </button>
@@ -711,14 +711,14 @@ const columns: TableColumn<AdminArticleItem>[] = [
             class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer inline-flex items-center gap-1.5"
             :class="
               activeTabStatus === VerificationStatusEnum.VERIFIED
-                ? 'bg-white text-emerald-700 shadow-xs border border-emerald-200'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-white text-[#0B3D2E] shadow-xs border border-[#141917]/10'
+                : 'text-[#737B76] hover:text-[#141917]'
             "
             @click="() => { activeTabStatus = VerificationStatusEnum.VERIFIED; }"
           >
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+            <span class="w-1.5 h-1.5 rounded-full bg-[#0B3D2E]" />
             <span>Terverifikasi</span>
-            <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-emerald-100 text-emerald-800 tabular-nums font-bold font-mono">
+            <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-[#E3F0EA] text-[#0B3D2E] tabular-nums font-bold font-mono">
               {{ archiveData?.summaryCounts.verifiedCount ?? 0 }}
             </span>
           </button>
@@ -728,14 +728,14 @@ const columns: TableColumn<AdminArticleItem>[] = [
             class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer inline-flex items-center gap-1.5"
             :class="
               activeTabStatus === VerificationStatusEnum.PENDING
-                ? 'bg-white text-amber-700 shadow-xs border border-amber-200'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-white text-[#B45309] shadow-xs border border-[#141917]/10'
+                : 'text-[#737B76] hover:text-[#141917]'
             "
             @click="() => { activeTabStatus = VerificationStatusEnum.PENDING; }"
           >
-            <span class="w-1.5 h-1.5 rounded-full bg-amber-500" />
+            <span class="w-1.5 h-1.5 rounded-full bg-[#B45309]" />
             <span>Menunggu Review</span>
-            <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-amber-100 text-amber-800 tabular-nums font-bold font-mono">
+            <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-[#FEF6EE] text-[#B45309] tabular-nums font-bold font-mono">
               {{ archiveData?.summaryCounts.pendingCount ?? 0 }}
             </span>
           </button>
@@ -745,13 +745,13 @@ const columns: TableColumn<AdminArticleItem>[] = [
             class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer inline-flex items-center gap-1.5"
             :class="
               activeTabStatus === VerificationStatusEnum.IGNORED
-                ? 'bg-white text-slate-800 shadow-xs border border-slate-300'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-white text-[#4A524E] shadow-xs border border-[#141917]/10'
+                : 'text-[#737B76] hover:text-[#141917]'
             "
             @click="() => { activeTabStatus = VerificationStatusEnum.IGNORED; }"
           >
             <span>Diabaikan</span>
-            <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-slate-200 text-slate-700 tabular-nums font-bold font-mono">
+            <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-[#ECEAE2] text-[#4A524E] tabular-nums font-bold font-mono">
               {{ archiveData?.summaryCounts.ignoredCount ?? 0 }}
             </span>
           </button>
@@ -761,14 +761,14 @@ const columns: TableColumn<AdminArticleItem>[] = [
             class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer inline-flex items-center gap-1.5"
             :class="
               activeTabStatus === 'LLM_FAILED'
-                ? 'bg-white text-rose-700 shadow-xs border border-rose-200'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-white text-[#C8553D] shadow-xs border border-[#141917]/10'
+                : 'text-[#737B76] hover:text-[#141917]'
             "
             @click="() => { activeTabStatus = 'LLM_FAILED'; }"
           >
-            <span class="w-1.5 h-1.5 rounded-full bg-rose-500" />
+            <span class="w-1.5 h-1.5 rounded-full bg-[#C8553D]" />
             <span>Gagal AI</span>
-            <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-rose-100 text-rose-800 tabular-nums font-bold font-mono">
+            <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-[#FBECE8] text-[#C8553D] tabular-nums font-bold font-mono">
               {{ archiveData?.summaryCounts.llmFailedCount ?? 0 }}
             </span>
           </button>
@@ -778,7 +778,7 @@ const columns: TableColumn<AdminArticleItem>[] = [
           <button
             v-if="!isSyncedToGlobalPeriod"
             type="button"
-            class="h-8 px-2.5 rounded-lg border border-blue-200 bg-blue-50/70 hover:bg-blue-100 text-xs font-semibold text-blue-800 inline-flex items-center gap-1.5 transition-colors cursor-pointer font-mono"
+            class="h-8 px-2.5 rounded-lg border border-[#BBD8CB] bg-[#E3F0EA] hover:bg-[#D5E8DF] text-xs font-semibold text-[#0B3D2E] inline-flex items-center gap-1.5 transition-colors cursor-pointer font-mono"
             @click="syncToGlobalPeriod"
           >
             <UIcon name="i-solar-calendar-mark-bold-duotone" class="w-3.5 h-3.5" />
@@ -790,20 +790,20 @@ const columns: TableColumn<AdminArticleItem>[] = [
             class="h-8 px-3 rounded-lg border text-xs font-semibold inline-flex items-center gap-1.5 transition-all cursor-pointer"
             :class="
               showAdvancedFilters || advancedFilterActiveCount > 0
-                ? 'border-blue-300 bg-blue-50 text-blue-900'
-                : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'
+                ? 'border-[#BBD8CB] bg-[#E3F0EA] text-[#0B3D2E]'
+                : 'border-[#141917]/10 bg-white hover:bg-[#F6F5F1] text-[#4A524E]'
             "
             @click="() => { showAdvancedFilters = !showAdvancedFilters; }"
           >
-            <UIcon name="i-solar-filter-bold-duotone" class="w-3.5 h-3.5 text-blue-700" />
+            <UIcon name="i-solar-filter-bold-duotone" class="w-3.5 h-3.5 text-[#0B3D2E]" />
             <span>Filter Lanjutan</span>
             <span
               v-if="advancedFilterActiveCount > 0"
-              class="w-4 h-4 rounded-full bg-blue-700 text-white text-[10px] flex items-center justify-center font-bold font-mono"
+              class="w-4 h-4 rounded-full bg-[#0B3D2E] text-white text-[10px] flex items-center justify-center font-bold font-mono"
             >
               {{ advancedFilterActiveCount }}
             </span>
-            <UIcon :name="showAdvancedFilters ? 'i-lucide-chevron-up' : 'i-lucide-chevron-down'" class="w-3 h-3 text-slate-400" />
+            <UIcon :name="showAdvancedFilters ? 'i-lucide-chevron-up' : 'i-lucide-chevron-down'" class="w-3 h-3 text-[#737B76]/70" />
           </button>
         </div>
       </div>
@@ -869,19 +869,19 @@ const columns: TableColumn<AdminArticleItem>[] = [
       <!-- Collapsible Advanced Filter Section (Bento Grouping) -->
       <div
         v-if="showAdvancedFilters"
-        class="pt-3 border-t border-slate-200/80 space-y-3"
+        class="pt-3 border-t border-[#141917]/10 space-y-3"
       >
         <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
           <!-- BENTO 1: Dimensi Klasifikasi PDRB -->
-          <div class="rounded-xl border border-blue-200/70 bg-blue-50/25 p-3.5 space-y-3">
-            <div class="flex items-center gap-1.5 text-xs font-bold text-blue-900 font-display">
-              <UIcon name="i-solar-buildings-2-bold-duotone" class="w-4 h-4 text-blue-700" />
+          <div class="rounded-xl border border-[#BBD8CB] bg-[#E3F0EA]/30 p-3.5 space-y-3">
+            <div class="flex items-center gap-1.5 text-xs font-bold text-[#0B3D2E] font-display">
+              <UIcon name="i-solar-buildings-2-bold-duotone" class="w-4 h-4 text-[#0B3D2E]" />
               <span>Dimensi PDRB Terinci</span>
             </div>
 
             <div class="space-y-2">
               <div>
-                <label for="articles-filter-kbli" class="block text-[11px] font-semibold text-slate-700 mb-1">
+                <label for="articles-filter-kbli" class="block text-[11px] font-semibold text-[#4A524E] mb-1">
                   KBLI Spesifik (A–V)
                 </label>
                 <USelectMenu
@@ -896,7 +896,7 @@ const columns: TableColumn<AdminArticleItem>[] = [
               </div>
 
               <div>
-                <label for="articles-filter-expenditure" class="block text-[11px] font-semibold text-slate-700 mb-1">
+                <label for="articles-filter-expenditure" class="block text-[11px] font-semibold text-[#4A524E] mb-1">
                   Kelompok Permintaan
                 </label>
                 <USelect
@@ -913,15 +913,15 @@ const columns: TableColumn<AdminArticleItem>[] = [
           </div>
 
           <!-- BENTO 2: Sumber & Validitas Informasi -->
-          <div class="rounded-xl border border-slate-200/80 bg-slate-50/80 p-3.5 space-y-3">
-            <div class="flex items-center gap-1.5 text-xs font-bold text-slate-900 font-display">
-              <UIcon name="i-solar-global-bold-duotone" class="w-4 h-4 text-slate-700" />
+          <div class="rounded-xl border border-[#141917]/10 bg-[#F6F5F1] p-3.5 space-y-3">
+            <div class="flex items-center gap-1.5 text-xs font-bold text-[#141917] font-display">
+              <UIcon name="i-solar-global-bold-duotone" class="w-4 h-4 text-[#4A524E]" />
               <span>Sumber &amp; Validitas</span>
             </div>
 
             <div class="space-y-2">
               <div>
-                <label for="articles-filter-portal" class="block text-[11px] font-semibold text-slate-700 mb-1">
+                <label for="articles-filter-portal" class="block text-[11px] font-semibold text-[#4A524E] mb-1">
                   Portal Sumber
                 </label>
                 <USelect
@@ -936,7 +936,7 @@ const columns: TableColumn<AdminArticleItem>[] = [
               </div>
 
               <div>
-                <label for="articles-filter-economic" class="block text-[11px] font-semibold text-slate-700 mb-1">
+                <label for="articles-filter-economic" class="block text-[11px] font-semibold text-[#4A524E] mb-1">
                   Relevansi Fenomena Ekonomi
                 </label>
                 <USelect
@@ -951,7 +951,7 @@ const columns: TableColumn<AdminArticleItem>[] = [
               </div>
 
               <div>
-                <label for="articles-filter-subdistrict" class="block text-[11px] font-semibold text-slate-700 mb-1">
+                <label for="articles-filter-subdistrict" class="block text-[11px] font-semibold text-[#4A524E] mb-1">
                   Lokus Kecamatan (KTT)
                 </label>
                 <USelect
@@ -968,17 +968,17 @@ const columns: TableColumn<AdminArticleItem>[] = [
           </div>
 
           <!-- BENTO 3: Rentang Waktu Rilis (WITA) + Quick Presets -->
-          <div class="rounded-xl border border-slate-200/80 bg-slate-50/80 p-3.5 space-y-3 flex flex-col justify-between">
+          <div class="rounded-xl border border-[#141917]/10 bg-[#F6F5F1] p-3.5 space-y-3 flex flex-col justify-between">
             <div class="space-y-2.5">
-              <div class="flex items-center justify-between text-xs font-bold text-slate-900 font-display">
+              <div class="flex items-center justify-between text-xs font-bold text-[#141917] font-display">
                 <div class="flex items-center gap-1.5">
-                  <UIcon name="i-solar-calendar-linear" class="w-4 h-4 text-blue-700" />
+                  <UIcon name="i-solar-calendar-linear" class="w-4 h-4 text-[#0B3D2E]" />
                   <span>Rentang Tanggal Terbit</span>
                 </div>
                 <button
                   v-if="filters.from || filters.to"
                   type="button"
-                  class="text-[11px] font-semibold text-blue-700 hover:text-blue-900 cursor-pointer"
+                  class="text-[11px] font-semibold text-[#0B3D2E] hover:text-[#072B20] cursor-pointer"
                   @click="() => { filters.from = ''; filters.to = ''; }"
                 >
                   Reset Tanggal
@@ -989,21 +989,21 @@ const columns: TableColumn<AdminArticleItem>[] = [
               <div class="grid grid-cols-3 gap-1 font-mono text-[10px]">
                 <button
                   type="button"
-                  class="px-2 py-1 rounded-md bg-white border border-slate-200 hover:border-blue-400 hover:text-blue-700 font-medium text-slate-700 transition-colors cursor-pointer text-center"
+                  class="px-2 py-1 rounded-md bg-white border border-[#141917]/15 hover:border-[#0B3D2E] hover:text-[#0B3D2E] font-medium text-[#4A524E] transition-colors cursor-pointer text-center"
                   @click="setQuickDatePreset(7)"
                 >
                   7 Hari
                 </button>
                 <button
                   type="button"
-                  class="px-2 py-1 rounded-md bg-white border border-slate-200 hover:border-blue-400 hover:text-blue-700 font-medium text-slate-700 transition-colors cursor-pointer text-center"
+                  class="px-2 py-1 rounded-md bg-white border border-[#141917]/15 hover:border-[#0B3D2E] hover:text-[#0B3D2E] font-medium text-[#4A524E] transition-colors cursor-pointer text-center"
                   @click="setQuickDatePreset(30)"
                 >
                   30 Hari
                 </button>
                 <button
                   type="button"
-                  class="px-2 py-1 rounded-md bg-white border border-slate-200 hover:border-blue-400 hover:text-blue-700 font-medium text-slate-700 transition-colors cursor-pointer text-center"
+                  class="px-2 py-1 rounded-md bg-white border border-[#141917]/15 hover:border-[#0B3D2E] hover:text-[#0B3D2E] font-medium text-[#4A524E] transition-colors cursor-pointer text-center"
                   @click="setQuickQuarterPreset"
                 >
                   Triwulan
@@ -1013,7 +1013,7 @@ const columns: TableColumn<AdminArticleItem>[] = [
               <!-- Inputs -->
               <div class="grid grid-cols-2 gap-2">
                 <div class="space-y-1">
-                  <label for="articles-filter-from" class="block text-[10px] font-medium text-slate-500">
+                  <label for="articles-filter-from" class="block text-[10px] font-medium text-[#737B76]">
                     Dari Tanggal
                   </label>
                   <UInput
@@ -1026,7 +1026,7 @@ const columns: TableColumn<AdminArticleItem>[] = [
                   />
                 </div>
                 <div class="space-y-1">
-                  <label for="articles-filter-to" class="block text-[10px] font-medium text-slate-500">
+                  <label for="articles-filter-to" class="block text-[10px] font-medium text-[#737B76]">
                     Sampai Tanggal
                   </label>
                   <UInput
@@ -1041,13 +1041,13 @@ const columns: TableColumn<AdminArticleItem>[] = [
               </div>
             </div>
 
-            <div class="pt-2 flex justify-end border-t border-slate-200/60">
+            <div class="pt-2 flex justify-end border-t border-[#141917]/10">
               <button
                 type="button"
-                class="min-h-7 px-2.5 py-1 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 text-[11px] font-semibold text-slate-700 inline-flex items-center gap-1.5 cursor-pointer transition-colors"
+                class="min-h-7 px-2.5 py-1 rounded-lg border border-[#141917]/10 bg-white hover:bg-[#F6F5F1] text-[11px] font-semibold text-[#4A524E] inline-flex items-center gap-1.5 cursor-pointer transition-colors"
                 @click="resetFilters"
               >
-                <UIcon name="i-solar-restart-bold-duotone" class="w-3.5 h-3.5 text-blue-700" />
+                <UIcon name="i-solar-restart-bold-duotone" class="w-3.5 h-3.5 text-[#0B3D2E]" />
                 <span>Reset Seluruh Filter</span>
               </button>
             </div>
@@ -1058,9 +1058,9 @@ const columns: TableColumn<AdminArticleItem>[] = [
       <!-- Active Filter Chips Strip -->
       <div
         v-if="hasActiveFilters"
-        class="flex flex-wrap items-center gap-1.5 pt-2 border-t border-slate-100 text-xs"
+        class="flex flex-wrap items-center gap-1.5 pt-2 border-t border-[#141917]/10 text-xs"
       >
-        <span class="text-[11px] font-semibold text-slate-600 mr-1">
+        <span class="text-[11px] font-semibold text-[#737B76] mr-1">
           Filter Aktif:
         </span>
 
@@ -1104,7 +1104,7 @@ const columns: TableColumn<AdminArticleItem>[] = [
         <button
           v-if="filters.portal !== 'ALL'"
           type="button"
-          class="min-h-8 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 text-indigo-800 border border-indigo-200 font-medium hover:bg-indigo-100 cursor-pointer"
+          class="min-h-8 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E3F0EA] text-[#0B3D2E] border border-[#BBD8CB] font-medium hover:bg-[#D5E8DF] cursor-pointer"
           @click="() => { filters.portal = 'ALL'; }"
         >
           <span>Portal: {{ filters.portal }}</span>
@@ -1114,7 +1114,7 @@ const columns: TableColumn<AdminArticleItem>[] = [
         <button
           v-if="filters.status !== 'ALL'"
           type="button"
-          class="min-h-8 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-slate-800 border border-slate-200 font-medium hover:bg-slate-200 cursor-pointer"
+          class="min-h-8 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#ECEAE2] text-[#4A524E] border border-[#141917]/10 font-medium hover:bg-[#E2DFD7] cursor-pointer"
           @click="() => { filters.status = 'ALL'; }"
         >
           <span>Status: {{ getVerificationStatusBadge(filters.status as VerificationStatusEnum).label }}</span>
@@ -1124,7 +1124,7 @@ const columns: TableColumn<AdminArticleItem>[] = [
         <button
           v-if="filters.llmStatus !== 'ALL'"
           type="button"
-          class="min-h-8 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-slate-800 border border-slate-200 font-medium hover:bg-slate-200 cursor-pointer"
+          class="min-h-8 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#ECEAE2] text-[#4A524E] border border-[#141917]/10 font-medium hover:bg-[#E2DFD7] cursor-pointer"
           @click="() => { filters.llmStatus = 'ALL'; }"
         >
           <span>AI: {{ llmStatusFilterItems.find((i) => i.value === filters.llmStatus)?.label }}</span>
@@ -1134,7 +1134,7 @@ const columns: TableColumn<AdminArticleItem>[] = [
         <button
           v-if="filters.isEconomic !== 'ALL'"
           type="button"
-          class="min-h-8 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-slate-800 border border-slate-200 font-medium hover:bg-slate-200 cursor-pointer"
+          class="min-h-8 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#ECEAE2] text-[#4A524E] border border-[#141917]/10 font-medium hover:bg-[#E2DFD7] cursor-pointer"
           @click="() => { filters.isEconomic = 'ALL'; }"
         >
           <span>{{ filters.isEconomic === 'true' ? 'Hanya Ekonomi' : 'Non-Ekonomi' }}</span>
@@ -1144,7 +1144,7 @@ const columns: TableColumn<AdminArticleItem>[] = [
         <button
           v-if="filters.year !== 'ALL' || filters.quarter !== 'ALL'"
           type="button"
-          class="min-h-8 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-slate-800 border border-slate-200 font-medium tabular-nums hover:bg-slate-200 cursor-pointer"
+          class="min-h-8 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#ECEAE2] text-[#4A524E] border border-[#141917]/10 font-medium tabular-nums hover:bg-[#E2DFD7] cursor-pointer font-mono"
           @click="
             () => {
               filters.year = 'ALL';
@@ -1177,7 +1177,7 @@ const columns: TableColumn<AdminArticleItem>[] = [
     </UAlert>
 
     <!-- Bank Data Table (Desktop >= lg) & Responsive Cards (< lg) -->
-    <div class="saas-card rounded-2xl overflow-hidden">
+    <div class="obs-panel rounded-2xl overflow-hidden">
       <div
         role="region"
         aria-label="Tabel Bank Data Fenomena Ekonomi"
@@ -1188,7 +1188,7 @@ const columns: TableColumn<AdminArticleItem>[] = [
           :columns="columns"
           :loading="pending"
           :ui="{
-            th: 'py-2.5 px-2.5 text-[11px] font-bold text-slate-700 whitespace-nowrap bg-slate-50/90',
+            th: 'py-2.5 px-2.5 text-[11px] font-bold text-[#4A524E] whitespace-nowrap bg-[#F6F5F1]',
             td: 'py-2.5 px-2.5 text-xs align-top whitespace-normal',
           }"
           empty="Tidak ada arsip berita yang sesuai dengan kriteria filter."
@@ -1212,11 +1212,11 @@ const columns: TableColumn<AdminArticleItem>[] = [
 
           <template #publishedAt-cell="{ row }">
             <div class="space-y-0.5 min-w-[95px]">
-              <div class="text-[11px] font-bold tabular-nums text-slate-900 whitespace-nowrap leading-tight">
+              <div class="text-[11px] font-bold tabular-nums text-[#141917] whitespace-nowrap leading-tight font-mono">
                 {{ formatDateId(row.original.publishedAt) }}
               </div>
               <div
-                class="text-[10px] font-medium text-slate-500 truncate max-w-[110px]"
+                class="text-[10px] font-medium text-[#737B76] truncate max-w-[110px]"
                 :title="row.original.sourcePortal"
               >
                 {{ row.original.sourcePortal }}
@@ -1227,18 +1227,18 @@ const columns: TableColumn<AdminArticleItem>[] = [
           <template #title-cell="{ row }">
             <div class="space-y-1 min-w-[160px] max-w-[260px] lg:max-w-[320px]">
               <div
-                class="font-semibold text-xs text-slate-900 line-clamp-2 leading-snug"
+                class="font-semibold text-xs text-[#141917] line-clamp-2 leading-snug"
                 :title="row.original.title"
               >
                 {{ row.original.title }}
               </div>
-              <div class="flex items-center gap-1 text-[10px] text-slate-500">
+              <div class="flex items-center gap-1 text-[10px] text-[#737B76]">
                 <a
                   v-if="isSafeHttpUrl(row.original.url)"
                   :href="row.original.url"
                   target="_blank"
                   rel="noopener noreferrer"
-                  class="text-indigo-600 hover:text-indigo-900 hover:underline truncate max-w-[200px] inline-flex items-center gap-0.5 font-medium"
+                  class="text-[#0B3D2E] hover:text-[#072B20] hover:underline truncate max-w-[200px] inline-flex items-center gap-0.5 font-medium"
                 >
                   <span class="truncate">{{ row.original.url }}</span>
                   <UIcon name="i-lucide-external-link" class="w-2.5 h-2.5 shrink-0" />
@@ -1250,17 +1250,17 @@ const columns: TableColumn<AdminArticleItem>[] = [
               <div v-if="row.original.subdistrict || row.original.curatorNotes" class="flex flex-wrap items-center gap-1 pt-0.5">
                 <span
                   v-if="row.original.subdistrict"
-                  class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200"
+                  class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-semibold bg-[#E3F0EA] text-[#0B3D2E] border border-[#BBD8CB]"
                 >
                   <UIcon name="i-lucide-map-pin" class="w-2.5 h-2.5" />
                   <span>Kec. {{ row.original.subdistrict }}</span>
                 </span>
                 <span
                   v-if="row.original.curatorNotes"
-                  class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-medium bg-amber-50 text-amber-800 border border-amber-200 truncate max-w-[200px]"
+                  class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-medium bg-[#FEF6EE] text-[#B45309] border border-[#F7D3A6] truncate max-w-[200px]"
                   :title="`Catatan Kurator: ${row.original.curatorNotes}`"
                 >
-                  <UIcon name="i-lucide-message-square" class="w-2.5 h-2.5 text-amber-600 shrink-0" />
+                  <UIcon name="i-lucide-message-square" class="w-2.5 h-2.5 text-[#B45309] shrink-0" />
                   <span class="truncate">{{ row.original.curatorNotes }}</span>
                 </span>
               </div>
@@ -1292,7 +1292,7 @@ const columns: TableColumn<AdminArticleItem>[] = [
               <!-- Sektor KBLI Sekunder jika ada -->
               <div
                 v-if="row.original.secondaryKbliCategory"
-                class="pt-0.5 border-t border-slate-100 flex items-center gap-1 flex-wrap"
+                class="pt-0.5 border-t border-[#141917]/10 flex items-center gap-1 flex-wrap"
               >
                 <span
                   class="inline-flex items-center px-1 py-0.2 rounded text-[9px] font-medium border"
@@ -1311,12 +1311,12 @@ const columns: TableColumn<AdminArticleItem>[] = [
                 </UBadge>
               </div>
             </div>
-            <span v-else class="text-xs text-slate-400">—</span>
+            <span v-else class="text-xs text-[#737B76]/70">—</span>
           </template>
 
           <template #expenditure-cell="{ row }">
             <div v-if="row.original.expenditureComponent" class="space-y-1 max-w-[135px]">
-              <div class="inline-flex items-center gap-1 text-[11px] font-bold text-slate-800 leading-tight truncate max-w-full">
+              <div class="inline-flex items-center gap-1 text-[11px] font-bold text-[#141917] leading-tight truncate max-w-full">
                 <span
                   class="w-1.5 h-1.5 rounded-full shrink-0"
                   :class="getExpenditureColorTheme(row.original.expenditureComponent).dotClass"
@@ -1340,9 +1340,9 @@ const columns: TableColumn<AdminArticleItem>[] = [
               <!-- Komponen Pengeluaran Sekunder jika ada -->
               <div
                 v-if="row.original.secondaryExpenditureComponent"
-                class="pt-0.5 border-t border-slate-100 flex items-center gap-1 flex-wrap"
+                class="pt-0.5 border-t border-[#141917]/10 flex items-center gap-1 flex-wrap"
               >
-                <span class="text-[9px] font-medium text-slate-700 truncate max-w-[80px]">
+                <span class="text-[9px] font-medium text-[#4A524E] truncate max-w-[80px]">
                   {{ getExpenditureLabel(row.original.secondaryExpenditureComponent, false) }}
                 </span>
                 <UBadge
@@ -1356,11 +1356,11 @@ const columns: TableColumn<AdminArticleItem>[] = [
                 </UBadge>
               </div>
             </div>
-            <span v-else class="text-xs text-slate-400">—</span>
+            <span v-else class="text-xs text-[#737B76]/70">—</span>
           </template>
 
           <template #period-cell="{ row }">
-            <span class="inline-flex px-1.5 py-0.5 rounded bg-slate-100 text-[10px] font-bold tabular-nums text-slate-800 whitespace-nowrap">
+            <span class="inline-flex px-1.5 py-0.5 rounded bg-[#ECEAE2] text-[10px] font-bold tabular-nums text-[#141917] whitespace-nowrap font-mono">
               {{ formatPeriodLabel(row.original.quarter, row.original.year) }}
             </span>
           </template>
@@ -1408,10 +1408,10 @@ const columns: TableColumn<AdminArticleItem>[] = [
       </div>
 
       <!-- Mobile & Tablet (< lg): Daftar Kartu Arsip Berita Responsif -->
-      <div class="lg:hidden divide-y divide-slate-200/80">
+      <div class="lg:hidden divide-y divide-[#141917]/10">
         <div
           v-if="!pending && (archiveData?.items ?? []).length === 0"
-          class="p-6 text-center text-xs text-slate-600"
+          class="p-6 text-center text-xs text-[#737B76]"
         >
           Tidak ada arsip berita yang sesuai dengan kriteria filter.
         </div>
@@ -1419,7 +1419,7 @@ const columns: TableColumn<AdminArticleItem>[] = [
         <div
           v-for="item in archiveData?.items ?? []"
           :key="`mob-art-${item.id}`"
-          class="p-4 space-y-2.5 bg-white hover:bg-slate-50/60 transition-colors"
+          class="p-4 space-y-2.5 bg-white hover:bg-[#F6F5F1] transition-colors"
         >
           <div class="flex items-start justify-between gap-2.5">
             <div class="flex items-start gap-2.5 min-w-0">
@@ -1430,15 +1430,15 @@ const columns: TableColumn<AdminArticleItem>[] = [
                 class="mt-0.5 shrink-0"
               />
               <div class="min-w-0 space-y-1">
-                <div class="font-bold text-xs sm:text-sm text-slate-900 leading-snug break-words">
+                <div class="font-bold text-xs sm:text-sm text-[#141917] leading-snug break-words">
                   {{ item.title }}
                 </div>
-                <div class="flex flex-wrap items-center gap-1.5 text-[11px] text-slate-500 tabular-nums">
-                  <span class="font-semibold text-slate-700">{{ formatDateId(item.publishedAt) }}</span>
+                <div class="flex flex-wrap items-center gap-1.5 text-[11px] text-[#737B76] tabular-nums font-mono">
+                  <span class="font-semibold text-[#4A524E]">{{ formatDateId(item.publishedAt) }}</span>
                   <span>•</span>
                   <span class="truncate max-w-[160px]">{{ item.sourcePortal }}</span>
                   <span>•</span>
-                  <span class="px-1.5 py-0.2 rounded bg-slate-100 font-bold text-slate-700">
+                  <span class="px-1.5 py-0.2 rounded bg-[#ECEAE2] font-bold text-[#4A524E]">
                     {{ formatPeriodLabel(item.quarter, item.year) }}
                   </span>
                 </div>
@@ -1489,7 +1489,7 @@ const columns: TableColumn<AdminArticleItem>[] = [
 
               <span
                 v-if="item.expenditureComponent"
-                class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-slate-100 border border-slate-200 text-[10px] font-semibold text-slate-800"
+                class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-[#ECEAE2] border border-[#141917]/10 text-[10px] font-semibold text-[#141917]"
               >
                 <span
                   class="w-1.5 h-1.5 rounded-full shrink-0"
@@ -1504,7 +1504,7 @@ const columns: TableColumn<AdminArticleItem>[] = [
               :href="item.url"
               target="_blank"
               rel="noopener noreferrer"
-              class="text-[11px] font-semibold text-indigo-600 hover:underline inline-flex items-center gap-0.5 shrink-0"
+              class="text-[11px] font-semibold text-[#0B3D2E] hover:underline inline-flex items-center gap-0.5 shrink-0"
             >
               <span>Buka Sumber</span>
               <UIcon name="i-lucide-external-link" class="w-3 h-3" />
@@ -1514,19 +1514,19 @@ const columns: TableColumn<AdminArticleItem>[] = [
       </div>
     </div>
 
-    <!-- Floating Selection Batch Bar -->
+    <!-- Floating Selection Batch Bar (Deep Borneo Pine Command Bar) -->
     <div
       v-if="selectedIds.length > 0"
-      class="fixed bottom-6 left-1/2 -translate-x-1/2 z-30 bg-slate-900 text-white rounded-2xl shadow-xl border border-slate-700/80 px-4 py-2.5 flex flex-wrap items-center gap-3 transition-all"
+      class="fixed bottom-6 left-1/2 -translate-x-1/2 z-30 bg-[#0B3D2E] text-white rounded-2xl shadow-xl border border-[#072B20] px-4 py-2.5 flex flex-wrap items-center gap-3 transition-all"
     >
-      <span class="text-xs font-bold tabular-nums">
+      <span class="text-xs font-bold tabular-nums font-mono">
         {{ selectedIds.length }} Berita Dipilih
       </span>
 
       <div class="flex items-center gap-2">
         <button
           type="button"
-          class="min-h-8 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white inline-flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
+          class="min-h-8 px-3 rounded-xl bg-white text-[#0B3D2E] hover:bg-[#E3F0EA] text-xs font-semibold inline-flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
           @click="() => { reclassifyModalOpen = true; }"
         >
           <UIcon name="i-solar-magic-stick-3-bold-duotone" class="w-3.5 h-3.5" />
@@ -1535,7 +1535,7 @@ const columns: TableColumn<AdminArticleItem>[] = [
 
         <button
           type="button"
-          class="min-h-8 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs font-semibold text-white inline-flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
+          class="min-h-8 px-3 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-xs font-semibold text-white inline-flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
           @click="() => { void handleBulkAction('VERIFY'); }"
         >
           <UIcon name="i-lucide-check" class="w-3.5 h-3.5" />
@@ -1544,7 +1544,7 @@ const columns: TableColumn<AdminArticleItem>[] = [
 
         <button
           type="button"
-          class="min-h-8 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-300 inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+          class="min-h-8 px-3 rounded-xl bg-[#072B20] hover:bg-[#041a13] text-xs font-medium text-[#E3F0EA] inline-flex items-center gap-1.5 transition-colors cursor-pointer"
           @click="() => { void handleBulkAction('IGNORE'); }"
         >
           <span>Abaikan</span>
@@ -1552,7 +1552,7 @@ const columns: TableColumn<AdminArticleItem>[] = [
 
         <button
           type="button"
-          class="min-h-8 px-2.5 rounded-xl text-xs font-medium text-slate-400 hover:text-white cursor-pointer"
+          class="min-h-8 px-2.5 rounded-xl text-xs font-medium text-[#E3F0EA]/70 hover:text-white cursor-pointer"
           @click="clearSelection"
         >
           Batal
@@ -1569,10 +1569,10 @@ const columns: TableColumn<AdminArticleItem>[] = [
       <template #body>
         <div class="space-y-4 text-xs">
           <div class="space-y-1.5">
-            <label class="font-bold text-slate-700">Kategori Lapangan Usaha (KBLI)</label>
+            <label class="font-bold text-[#4A524E]">Kategori Lapangan Usaha (KBLI)</label>
             <select
               v-model="bulkKbli"
-              class="w-full h-9 px-3 rounded-xl border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:border-indigo-500"
+              class="w-full h-9 px-3 rounded-xl border border-[#141917]/15 bg-white text-xs font-medium text-[#141917] focus:outline-none focus:border-[#0B3D2E]"
             >
               <option value="KEEP">(Tetap / Jangan Ubah KBLI)</option>
               <option v-for="item in kbliOptions" :key="item.value" :value="item.value">
@@ -1582,10 +1582,10 @@ const columns: TableColumn<AdminArticleItem>[] = [
           </div>
 
           <div class="space-y-1.5">
-            <label class="font-bold text-slate-700">Arah Dampak Aktivitas</label>
+            <label class="font-bold text-[#4A524E]">Arah Dampak Aktivitas</label>
             <select
               v-model="bulkKbliImpact"
-              class="w-full h-9 px-3 rounded-xl border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:border-indigo-500"
+              class="w-full h-9 px-3 rounded-xl border border-[#141917]/15 bg-white text-xs font-medium text-[#141917] focus:outline-none focus:border-[#0B3D2E]"
             >
               <option value="KEEP">(Tetap / Jangan Ubah Dampak)</option>
               <option v-for="item in kbliImpactOptions" :key="item.value" :value="item.value">
@@ -1595,10 +1595,10 @@ const columns: TableColumn<AdminArticleItem>[] = [
           </div>
 
           <div class="space-y-1.5">
-            <label class="font-bold text-slate-700">Komponen Pengeluaran</label>
+            <label class="font-bold text-[#4A524E]">Komponen Pengeluaran</label>
             <select
               v-model="bulkExpenditure"
-              class="w-full h-9 px-3 rounded-xl border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:border-indigo-500"
+              class="w-full h-9 px-3 rounded-xl border border-[#141917]/15 bg-white text-xs font-medium text-[#141917] focus:outline-none focus:border-[#0B3D2E]"
             >
               <option value="KEEP">(Tetap / Jangan Ubah Pengeluaran)</option>
               <option v-for="item in expenditureOptions" :key="item.value" :value="item.value">
@@ -1608,10 +1608,10 @@ const columns: TableColumn<AdminArticleItem>[] = [
           </div>
 
           <div class="space-y-1.5">
-            <label class="font-bold text-slate-700">Arah Dampak Pengeluaran</label>
+            <label class="font-bold text-[#4A524E]">Arah Dampak Pengeluaran</label>
             <select
               v-model="bulkExpenditureImpact"
-              class="w-full h-9 px-3 rounded-xl border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:border-indigo-500"
+              class="w-full h-9 px-3 rounded-xl border border-[#141917]/15 bg-white text-xs font-medium text-[#141917] focus:outline-none focus:border-[#0B3D2E]"
             >
               <option value="KEEP">(Tetap / Jangan Ubah Dampak)</option>
               <option v-for="item in expenditureImpactOptions" :key="item.value" :value="item.value">
@@ -1639,8 +1639,8 @@ const columns: TableColumn<AdminArticleItem>[] = [
       v-if="archiveData"
       class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1"
     >
-      <span class="text-xs text-slate-600 tabular-nums">
-        Total arsip cocok: <strong class="text-slate-900">{{ archiveData.pagination.total }}</strong> berita • Halaman
+      <span class="text-xs text-[#737B76] tabular-nums font-mono">
+        Total arsip cocok: <strong class="text-[#141917]">{{ archiveData.pagination.total }}</strong> berita • Halaman
         {{ archiveData.pagination.page }}/{{ archiveData.pagination.totalPages }}
       </span>
       <UPagination
@@ -1673,7 +1673,7 @@ const columns: TableColumn<AdminArticleItem>[] = [
       description="Tindakan ini menghapus arsip berita secara permanen dari database."
     >
       <template #body>
-        <p class="text-sm text-slate-700 leading-relaxed text-pretty">
+        <p class="text-sm text-[#4A524E] leading-relaxed text-pretty">
           Anda yakin ingin menghapus <strong>{{ deleteTarget?.title }}</strong>?
         </p>
       </template>

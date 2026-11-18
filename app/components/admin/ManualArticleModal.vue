@@ -291,15 +291,15 @@ async function handleSubmit(event: FormSubmitEvent<CreateManualArticleInput>) {
       >
         <div class="space-y-1">
           <div class="flex items-center justify-between">
-            <span class="text-xs font-semibold text-slate-700">URL Sumber Berita atau Referensi Surat</span>
+            <span class="text-xs font-semibold text-[#4A524E]">URL Sumber Berita atau Referensi Surat</span>
             <button
               v-if="formState.url.startsWith('http')"
               type="button"
               :disabled="isExtractingUrl"
-              class="text-xs font-bold text-blue-700 hover:text-blue-900 inline-flex items-center gap-1 cursor-pointer disabled:opacity-50 font-display"
+              class="text-xs font-bold text-[#0B3D2E] hover:text-[#072B20] inline-flex items-center gap-1 cursor-pointer disabled:opacity-50 font-display"
               @click="handleExtractFromUrl"
             >
-              <UIcon :name="isExtractingUrl ? 'i-lucide-loader-circle' : 'i-lucide-sparkles'" class="w-3.5 h-3.5" :class="isExtractingUrl ? 'animate-spin' : 'text-blue-600'" />
+              <UIcon :name="isExtractingUrl ? 'i-lucide-loader-circle' : 'i-lucide-sparkles'" class="w-3.5 h-3.5" :class="isExtractingUrl ? 'animate-spin' : 'text-[#0B3D2E]'" />
               <span>{{ isExtractingUrl ? 'Mengekstrak...' : 'Tarik & Analisis AI Otomatis' }}</span>
             </button>
           </div>
@@ -312,7 +312,7 @@ async function handleSubmit(event: FormSubmitEvent<CreateManualArticleInput>) {
             <button
               type="button"
               :disabled="!formState.url.startsWith('http') || isExtractingUrl"
-              class="min-h-9 px-3 rounded-lg border border-blue-200 bg-blue-50 hover:bg-blue-100 text-xs font-bold text-blue-800 inline-flex items-center gap-1.5 transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shrink-0"
+              class="min-h-9 px-3 rounded-lg border border-[#BBD8CB] bg-[#E3F0EA] hover:bg-[#d0e7dc] text-xs font-bold text-[#0B3D2E] inline-flex items-center gap-1.5 transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shrink-0"
               @click="handleExtractFromUrl"
             >
               <UIcon :name="isExtractingUrl ? 'i-lucide-loader-circle' : 'i-solar-magic-stick-3-bold-duotone'" class="w-4 h-4" :class="isExtractingUrl ? 'animate-spin' : ''" />
@@ -417,10 +417,10 @@ async function handleSubmit(event: FormSubmitEvent<CreateManualArticleInput>) {
         </div>
 
         <!-- Sektor & Dampak Sekunder (Opsional / Inter-industry Linkage) -->
-        <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200/80 space-y-3">
+        <div class="p-3.5 bg-[#F6F5F1] rounded-xl border border-[#141917]/[0.08] space-y-3">
           <div class="flex items-center gap-2">
-            <UIcon name="i-solar-link-round-bold-duotone" class="w-4 h-4 text-blue-700" />
-            <span class="text-xs font-bold text-slate-800 font-display">Sektor Sekunder (Opsional — Keterkaitan Sektoral)</span>
+            <UIcon name="i-solar-link-round-bold-duotone" class="w-4 h-4 text-[#0B3D2E]" />
+            <span class="text-xs font-bold text-[#141917] font-display">Sektor Sekunder (Opsional — Keterkaitan Sektoral)</span>
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <UFormField label="KBLI Sekunder" name="secondaryKbliCategory">
@@ -466,7 +466,7 @@ async function handleSubmit(event: FormSubmitEvent<CreateManualArticleInput>) {
         </div>
 
         <!-- Lokus & Catatan Kurator Nerwilis -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3.5 bg-slate-50/70 rounded-xl border border-slate-200/80">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3.5 bg-[#F6F5F1] rounded-xl border border-[#141917]/[0.08]">
           <UFormField label="Lokus / Kecamatan KTT" name="subdistrict" description="Jika dikosongkan, sistem mendeteksi otomatis dari teks">
             <USelect
               v-model="formState.subdistrict"
@@ -491,7 +491,7 @@ async function handleSubmit(event: FormSubmitEvent<CreateManualArticleInput>) {
           label="Langsung tandai Terverifikasi (otomatis tampil di Portal Publik & siap Ekspor)"
         />
 
-        <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+        <div class="flex items-center justify-end gap-2 pt-3 border-t border-[#141917]/[0.08]">
           <UButton color="neutral" variant="ghost" @click="() => { modalOpen = false; }">
             Batal
           </UButton>

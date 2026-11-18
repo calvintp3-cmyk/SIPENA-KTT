@@ -330,7 +330,7 @@ async function submitUpdate(action: 'VERIFIED' | 'IGNORED' | 'DRAFT') {
     <template #body>
       <div v-if="article" class="space-y-4">
         <!-- Metadata Bar & Aksi Tautan -->
-        <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-100">
+        <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-[#141917]/[0.08]">
           <div class="flex flex-wrap items-center gap-1.5">
             <UBadge :color="statusBadge.color" variant="subtle" size="xs" :icon="statusBadge.icon">
               {{ statusBadge.label }}
@@ -370,10 +370,10 @@ async function submitUpdate(action: 'VERIFIED' | 'IGNORED' | 'DRAFT') {
         <!-- Toggle Otomatis Lanjut Pending Berikutnya -->
         <div
           v-if="showAutoNextToggle"
-          class="flex items-center justify-between gap-3 rounded-lg bg-slate-50 border border-slate-200/80 px-3 py-2"
+          class="flex items-center justify-between gap-3 rounded-lg bg-[#F6F5F1] border border-[#141917]/[0.08] px-3 py-2"
         >
-          <label for="slideover-auto-next" class="text-xs text-slate-700 cursor-pointer">
-            Otomatis buka antrean <strong>Pending</strong> berikutnya setelah simpan
+          <label for="slideover-auto-next" class="text-xs text-[#4A524E] cursor-pointer">
+            Otomatis buka antrean <strong class="text-[#141917]">Pending</strong> berikutnya setelah simpan
           </label>
           <USwitch id="slideover-auto-next" v-model="autoNextModel" size="sm" />
         </div>
@@ -407,16 +407,16 @@ async function submitUpdate(action: 'VERIFIED' | 'IGNORED' | 'DRAFT') {
         <!-- Cuplikan Teks Asli (Word Threshold Buffer) -->
         <div class="space-y-1.5">
           <div class="flex items-center justify-between gap-2">
-            <span id="slideover-snippet-label" class="text-xs font-semibold text-slate-600">
+            <span id="slideover-snippet-label" class="text-xs font-semibold text-[#4A524E]">
               Cuplikan Teks Asli (Verifikasi Konten)
             </span>
             <div class="flex items-center gap-2">
-              <span class="text-xs font-semibold tabular-nums text-slate-600">
+              <span class="text-xs font-semibold tabular-nums text-[#4A524E] font-mono">
                 {{ snippetWordCount }} kata
               </span>
               <button
                 type="button"
-                class="inline-flex items-center gap-1 min-h-7 px-2 rounded-lg text-[11px] font-semibold text-blue-700 hover:bg-blue-50 transition-colors cursor-pointer"
+                class="inline-flex items-center gap-1 min-h-7 px-2 rounded-lg text-[11px] font-semibold text-[#0B3D2E] hover:bg-[#E3F0EA] transition-colors cursor-pointer"
                 @click="() => { fullSnippetModalOpen = true; }"
               >
                 <UIcon name="i-solar-maximize-square-2-linear" class="w-3.5 h-3.5" />
@@ -431,20 +431,20 @@ async function submitUpdate(action: 'VERIFIED' | 'IGNORED' | 'DRAFT') {
             :rows="8"
             aria-labelledby="slideover-snippet-label"
             class="w-full text-xs"
-            :ui="{ base: 'bg-slate-50/90 text-slate-700 leading-relaxed resize-y' }"
+            :ui="{ base: 'bg-[#F6F5F1] text-[#141917] leading-relaxed resize-y' }"
           />
         </div>
 
         <!-- Ringkasan Berita -->
         <div class="space-y-1.5">
           <div class="flex items-center justify-between gap-2">
-            <label for="slideover-summary-textarea" class="text-xs font-semibold text-slate-700">
-              Ringkasan Berita (2–3 Kalimat untuk Publik &amp; Excel) <span class="text-rose-600">*</span>
+            <label for="slideover-summary-textarea" class="text-xs font-semibold text-[#141917]">
+              Ringkasan Berita (2–3 Kalimat untuk Publik &amp; Excel) <span class="text-[#C8553D]">*</span>
             </label>
             <button
               v-if="canRestoreInitialSummary"
               type="button"
-              class="inline-flex items-center gap-1 min-h-8 px-1.5 rounded-lg text-xs font-semibold text-blue-700 hover:text-blue-900 hover:bg-blue-50 cursor-pointer"
+              class="inline-flex items-center gap-1 min-h-8 px-1.5 rounded-lg text-xs font-semibold text-[#0B3D2E] hover:text-[#072B20] hover:bg-[#E3F0EA] cursor-pointer"
               @click="() => { restoreInitialSummary(); }"
             >
               <UIcon name="i-lucide-rotate-ccw" class="w-3 h-3" />
@@ -472,8 +472,8 @@ async function submitUpdate(action: 'VERIFIED' | 'IGNORED' | 'DRAFT') {
         <!-- Grid Klasifikasi Dua Sisi PDRB -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
           <!-- Sisi Lapangan Usaha -->
-          <div class="rounded-xl border border-blue-200/70 bg-blue-50/35 p-3.5 space-y-3">
-            <div class="text-xs font-bold text-blue-900 font-display">
+          <div class="rounded-xl border border-[#BBD8CB] bg-[#E3F0EA]/40 p-3.5 space-y-3">
+            <div class="text-xs font-bold text-[#0B3D2E] font-display">
               1. Sisi Lapangan Usaha (KBLI)
             </div>
 
@@ -492,7 +492,7 @@ async function submitUpdate(action: 'VERIFIED' | 'IGNORED' | 'DRAFT') {
               />
               <p
                 v-if="bpsBridgingHint"
-                class="mt-1 text-[11px] font-medium text-emerald-800 bg-emerald-50/80 px-2 py-0.5 rounded border border-emerald-200/70"
+                class="mt-1 text-[11px] font-medium text-[#0B3D2E] bg-[#E3F0EA] px-2 py-0.5 rounded border border-[#BBD8CB]"
               >
                 {{ bpsBridgingHint }}
               </p>
@@ -515,8 +515,8 @@ async function submitUpdate(action: 'VERIFIED' | 'IGNORED' | 'DRAFT') {
           </div>
 
           <!-- Sisi Pengeluaran -->
-          <div class="rounded-xl border border-emerald-200/70 bg-emerald-50/35 p-3.5 space-y-3">
-            <div class="text-xs font-bold text-emerald-900">
+          <div class="rounded-xl border border-[#BBD8CB] bg-[#E3F0EA]/40 p-3.5 space-y-3">
+            <div class="text-xs font-bold text-[#0B3D2E]">
               2. Sisi Pengeluaran PDRB
             </div>
 
@@ -553,10 +553,10 @@ async function submitUpdate(action: 'VERIFIED' | 'IGNORED' | 'DRAFT') {
         </div>
 
         <!-- Sektor & Dampak Sekunder (Opsional / Inter-industry Linkage) -->
-        <div class="rounded-xl border border-slate-200/90 bg-slate-50/70 p-3.5 space-y-3">
+        <div class="rounded-xl border border-[#141917]/[0.08] bg-[#F6F5F1] p-3.5 space-y-3">
           <div class="flex items-center gap-2">
-            <UIcon name="i-solar-link-round-bold-duotone" class="w-4 h-4 text-blue-700" />
-            <span class="text-xs font-bold text-slate-800 font-display">Keterkaitan Sektoral Sekunder (Opsional)</span>
+            <UIcon name="i-solar-link-round-bold-duotone" class="w-4 h-4 text-[#0B3D2E]" />
+            <span class="text-xs font-bold text-[#141917] font-display">Keterkaitan Sektoral Sekunder (Opsional)</span>
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <UFormField label="KBLI Sekunder">
@@ -644,9 +644,9 @@ async function submitUpdate(action: 'VERIFIED' | 'IGNORED' | 'DRAFT') {
           </UFormField>
 
           <div
-            class="flex items-center justify-between gap-2 rounded-xl border border-slate-200 px-3 py-2 bg-white"
+            class="flex items-center justify-between gap-2 rounded-xl border border-[#141917]/[0.12] px-3 py-2 bg-white"
           >
-            <label for="slideover-is-economic" class="text-xs font-semibold text-slate-700 cursor-pointer">
+            <label for="slideover-is-economic" class="text-xs font-semibold text-[#141917] cursor-pointer">
               Fenomena Ekonomi Sah
             </label>
             <USwitch id="slideover-is-economic" v-model="form.isEconomicPhenomenon" size="sm" />
@@ -705,15 +705,15 @@ async function submitUpdate(action: 'VERIFIED' | 'IGNORED' | 'DRAFT') {
     :ui="{ content: 'max-w-2xl' }"
   >
     <template #body>
-      <div class="max-h-[60vh] overflow-y-auto saas-scroll rounded-xl bg-slate-50 border border-slate-200 p-4 text-sm text-slate-800 leading-relaxed whitespace-pre-line">
+      <div class="max-h-[60vh] overflow-y-auto saas-scroll rounded-xl bg-[#F6F5F1] border border-[#141917]/[0.08] p-4 text-sm text-[#141917] leading-relaxed whitespace-pre-line">
         <template v-for="(seg, idx) in highlightedSnippetSegments" :key="idx">
           <mark
             v-if="seg.kind === 'location'"
-            class="bg-blue-100/90 text-blue-900 px-1 rounded font-semibold"
+            class="bg-[#E3F0EA] text-[#0B3D2E] px-1 rounded font-semibold"
           >{{ seg.text }}</mark>
           <mark
             v-else-if="seg.kind === 'metric'"
-            class="bg-amber-100/90 text-amber-900 px-1 rounded font-mono font-semibold"
+            class="bg-[#FEF3C7] text-[#B45309] px-1 rounded font-mono font-semibold"
           >{{ seg.text }}</mark>
           <template v-else>{{ seg.text }}</template>
         </template>

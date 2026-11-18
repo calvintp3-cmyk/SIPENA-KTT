@@ -58,30 +58,30 @@ const secondaryExpImpactMeta = computed(() =>
 const secondaryKbliImpactToneClass = computed(() => {
   switch (secondaryKbliImpactMeta.value.color) {
     case 'success':
-      return 'bg-[#E7F3EE] text-[#0F4C3A] border-[#C3DFD3]';
+      return 'bg-[#E3F0EA] text-[#0B3D2E] border-[#BBD8CB]';
     case 'error':
-      return 'bg-[#FCECE8] text-[#B4482D] border-[#F5C6BA]';
+      return 'bg-[#FBECE8] text-[#C8553D] border-[#F8D2C9]';
     case 'warning':
-      return 'bg-[#FEF3C7] text-[#92400E] border-[#FDE68A]';
+      return 'bg-[#FEF7E6] text-[#B45309] border-[#F3D89C]';
     case 'info':
-      return 'bg-[#E0F2FE] text-[#0369A1] border-[#BAE6FD]';
+      return 'bg-[#E6F4F2] text-[#0F766E] border-[#B2DFDB]';
     default:
-      return 'bg-[#F2F0EB] text-[#575B58] border-[#DDD9D0]';
+      return 'bg-[#ECEAE2] text-[#4A524E] border-[#141917]/10';
   }
 });
 
 const secondaryExpImpactToneClass = computed(() => {
   switch (secondaryExpImpactMeta.value.color) {
     case 'success':
-      return 'bg-[#E7F3EE] text-[#0F4C3A] border-[#C3DFD3]';
+      return 'bg-[#E3F0EA] text-[#0B3D2E] border-[#BBD8CB]';
     case 'error':
-      return 'bg-[#FCECE8] text-[#B4482D] border-[#F5C6BA]';
+      return 'bg-[#FBECE8] text-[#C8553D] border-[#F8D2C9]';
     case 'warning':
-      return 'bg-[#FEF3C7] text-[#92400E] border-[#FDE68A]';
+      return 'bg-[#FEF7E6] text-[#B45309] border-[#F3D89C]';
     case 'info':
-      return 'bg-[#E0F2FE] text-[#0369A1] border-[#BAE6FD]';
+      return 'bg-[#E6F4F2] text-[#0F766E] border-[#B2DFDB]';
     default:
-      return 'bg-[#F2F0EB] text-[#575B58] border-[#DDD9D0]';
+      return 'bg-[#ECEAE2] text-[#4A524E] border-[#141917]/10';
   }
 });
 
@@ -105,30 +105,30 @@ const scopeMeta = computed(() =>
 const kbliImpactToneClass = computed(() => {
   switch (kbliImpactMeta.value.color) {
     case 'success':
-      return 'bg-[#E7F3EE] text-[#0F4C3A] border-[#C3DFD3]';
+      return 'bg-[#E3F0EA] text-[#0B3D2E] border-[#BBD8CB]';
     case 'error':
-      return 'bg-[#FCECE8] text-[#B4482D] border-[#F5C6BA]';
+      return 'bg-[#FBECE8] text-[#C8553D] border-[#F8D2C9]';
     case 'warning':
-      return 'bg-[#FEF3C7] text-[#92400E] border-[#FDE68A]';
+      return 'bg-[#FEF7E6] text-[#B45309] border-[#F3D89C]';
     case 'info':
-      return 'bg-[#E0F2FE] text-[#0369A1] border-[#BAE6FD]';
+      return 'bg-[#E6F4F2] text-[#0F766E] border-[#B2DFDB]';
     default:
-      return 'bg-[#F2F0EB] text-[#575B58] border-[#DDD9D0]';
+      return 'bg-[#ECEAE2] text-[#4A524E] border-[#141917]/10';
   }
 });
 
 const expImpactToneClass = computed(() => {
   switch (expImpactMeta.value.color) {
     case 'success':
-      return 'bg-[#E7F3EE] text-[#0F4C3A] border-[#C3DFD3]';
+      return 'bg-[#E3F0EA] text-[#0B3D2E] border-[#BBD8CB]';
     case 'error':
-      return 'bg-[#FCECE8] text-[#B4482D] border-[#F5C6BA]';
+      return 'bg-[#FBECE8] text-[#C8553D] border-[#F8D2C9]';
     case 'warning':
-      return 'bg-[#FEF3C7] text-[#92400E] border-[#FDE68A]';
+      return 'bg-[#FEF7E6] text-[#B45309] border-[#F3D89C]';
     case 'info':
-      return 'bg-[#E0F2FE] text-[#0369A1] border-[#BAE6FD]';
+      return 'bg-[#E6F4F2] text-[#0F766E] border-[#B2DFDB]';
     default:
-      return 'bg-[#F2F0EB] text-[#575B58] border-[#DDD9D0]';
+      return 'bg-[#ECEAE2] text-[#4A524E] border-[#141917]/10';
   }
 });
 
@@ -160,10 +160,9 @@ async function copyCitation() {
 
 <template>
   <article
-    class="group saas-card saas-card-interactive hover:-translate-y-0.5 rounded-2xl border-t-2 overflow-hidden flex flex-col gap-3.5 relative p-5 sm:p-6 pb-0 sm:pb-0"
-    :style="{ borderTopColor: clusterTheme.hex }"
+    class="group bg-white rounded-2xl border border-[#141917]/[0.08] hover:border-[#0B3D2E]/35 hover:shadow-[0_12px_32px_-12px_rgba(11,61,46,0.12)] transition-all duration-200 flex flex-col gap-3.5 relative p-5 sm:p-6"
   >
-    <!-- Top Metadata Header -->
+    <!-- Top Metadata Header Strip -->
     <div class="flex items-start justify-between gap-3">
       <div class="flex flex-wrap items-center gap-2 min-w-0 text-xs">
         <a
@@ -171,14 +170,14 @@ async function copyCitation() {
           :href="article.url"
           target="_blank"
           rel="noopener noreferrer"
-          class="relative z-10 inline-flex items-center gap-1 min-h-7 font-semibold text-[#3D423F] bg-[#F2F0EB] hover:bg-[#E7E4DC] hover:text-[#1A1D1B] px-2.5 py-0.5 rounded-lg border border-[#DDD9D0] transition-colors"
+          class="relative z-10 inline-flex items-center gap-1 font-semibold text-[#141917] bg-[#ECEAE2] hover:bg-[#E3F0EA] hover:text-[#0B3D2E] px-2.5 py-0.5 rounded-lg border border-[#141917]/10 transition-colors"
         >
           <span class="truncate max-w-[180px] sm:max-w-[240px]">{{ article.sourcePortal }}</span>
-          <UIcon name="i-lucide-arrow-up-right" class="w-3 h-3 text-[#6B6F6C] shrink-0" />
+          <UIcon name="i-lucide-arrow-up-right" class="w-3 h-3 text-[#737B76] shrink-0" />
         </a>
         <span
           v-else
-          class="inline-flex items-center gap-1 font-semibold text-[#3D423F] bg-[#F2F0EB] px-2.5 py-1 rounded-lg border border-[#DDD9D0]"
+          class="inline-flex items-center gap-1 font-semibold text-[#141917] bg-[#ECEAE2] px-2.5 py-0.5 rounded-lg border border-[#141917]/10"
         >
           {{ article.sourcePortal }}
         </span>
@@ -193,23 +192,18 @@ async function copyCitation() {
 
         <span
           v-if="article.subdistrict"
-          class="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full border bg-[#E7F3EE] text-[#0F4C3A] border-[#C3DFD3]"
+          class="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full border bg-[#E3F0EA] text-[#0B3D2E] border-[#BBD8CB]"
         >
-          <UIcon name="i-lucide-map-pin" class="w-3 h-3 text-[#0F4C3A]" />
+          <UIcon name="i-lucide-map-pin" class="w-3 h-3 text-[#0B3D2E]" />
           <span>Kec. {{ article.subdistrict }}</span>
         </span>
 
-        <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-[#3D423F]">
-          <span class="w-2 h-2 rounded-full shrink-0" :class="clusterTheme.accentBarClass" />
-          <span>{{ clusterTheme.label }}</span>
-        </span>
+        <span class="text-[#141917]/20" aria-hidden="true">&bull;</span>
 
-        <span class="text-[#DDD9D0]" aria-hidden="true">•</span>
-
-        <span v-if="timeWitaText" class="text-xs font-medium font-mono tabular-nums text-[#6B6F6C]">
+        <span v-if="timeWitaText" class="text-xs font-mono tabular-nums text-[#737B76]">
           {{ timeWitaText }}
         </span>
-        <span class="text-xs font-semibold font-mono tabular-nums text-[#3D423F]">
+        <span class="text-xs font-semibold font-mono tabular-nums text-[#4A524E]">
           {{ periodShortLabel }}
         </span>
       </div>
@@ -218,47 +212,47 @@ async function copyCitation() {
         type="button"
         aria-label="Salin Sitasi Fenomena"
         title="Salin format sitasi BPS"
-        class="relative z-10 min-w-9 min-h-9 inline-flex items-center justify-center rounded-lg text-[#6B6F6C] hover:text-[#0F4C3A] hover:bg-[#E7F3EE] transition-colors shrink-0 cursor-pointer"
+        class="relative z-10 min-w-8 min-h-8 inline-flex items-center justify-center rounded-lg text-[#737B76] hover:text-[#0B3D2E] hover:bg-[#E3F0EA] transition-colors shrink-0 cursor-pointer"
         @click="copyCitation"
       >
         <UIcon
           :name="copied ? 'i-lucide-check' : 'i-solar-copy-bold-duotone'"
           class="w-4 h-4"
-          :class="copied ? 'text-[#0F4C3A]' : ''"
+          :class="copied ? 'text-[#0B3D2E]' : ''"
         />
       </button>
     </div>
 
     <!-- Title & Brief Summary -->
-    <h2 class="text-[17px] sm:text-lg font-bold leading-snug tracking-tight text-[#1A1D1B] font-display">
+    <h3 class="text-lg sm:text-[19px] font-bold leading-snug tracking-tight text-[#141917] font-display">
       <button
         type="button"
-        class="text-left group-hover:text-[#0F4C3A] transition-colors rounded cursor-pointer after:content-[''] after:absolute after:inset-0 focus-visible:outline-none focus-visible:after:ring-2 focus-visible:after:ring-[#0F4C3A] focus-visible:after:ring-offset-2"
-        @click="() => { emit('select', article); }"
+        class="text-left group-hover:text-[#0B3D2E] transition-colors rounded cursor-pointer after:content-[''] after:absolute after:inset-0 focus-visible:outline-none focus-visible:after:ring-2 focus-visible:after:ring-[#0B3D2E] focus-visible:after:ring-offset-2"
+        @click="emit('select', article)"
       >
         {{ article.title }}
       </button>
-    </h2>
+    </h3>
 
-    <p class="text-[13px] sm:text-sm text-[#5C615E] leading-relaxed">
+    <p class="text-[13.5px] sm:text-sm text-[#4A524E] leading-relaxed">
       {{ article.summary || 'Ringkasan terverifikasi belum tersedia untuk catatan ini.' }}
     </p>
 
-    <!-- Dual-Axis Executive Strip Footer -->
+    <!-- Bottom Inline Dual-Axis Signal Strip (No Clunky Gray Box!) -->
     <div
-      class="bg-[#FAF9F7] border-t border-[#EFECE6] -mx-5 sm:-mx-6 px-5 sm:px-6 py-3.5 grid grid-cols-1 md:grid-cols-2 gap-3.5 text-xs mt-1"
+      class="border-t border-[#141917]/[0.06] pt-3.5 mt-2 grid grid-cols-1 md:grid-cols-2 gap-3 text-xs"
     >
       <!-- Left: Lapangan Usaha (KBLI) -->
       <div class="flex flex-col gap-1.5 min-w-0">
-        <div class="flex items-center justify-between gap-1.5 text-xs font-semibold text-[#5C615E]">
+        <div class="flex items-center justify-between gap-1.5 text-xs font-semibold text-[#737B76]">
           <div class="flex items-center gap-1.5">
             <span class="w-2 h-2 rounded-full shrink-0" :class="clusterTheme.accentBarClass" />
             <span class="font-display">Lapangan Usaha (KBLI 2025)</span>
           </div>
-          <UPopover v-if="kbliBridge" :ui="{ content: 'w-72 sm:w-80 p-3 text-xs z-50' }">
+          <UPopover v-if="kbliBridge" :ui="{ content: 'w-72 sm:w-80 p-3 text-xs z-50 bg-white rounded-2xl shadow-xl' }">
             <button
               type="button"
-              class="relative z-10 inline-flex items-center gap-1 text-[11px] font-semibold text-[#0F4C3A] hover:text-[#0B3B2D] bg-[#E7F3EE] hover:bg-[#D7E5DF] px-2 py-0.5 rounded-full border border-[#C3DFD3] transition-colors cursor-pointer"
+              class="relative z-10 inline-flex items-center gap-1 text-[11px] font-semibold text-[#0B3D2E] hover:text-[#072B20] bg-[#E3F0EA] hover:bg-[#D2E6DC] px-2 py-0.5 rounded-full border border-[#BBD8CB] transition-colors cursor-pointer"
               title="Lihat padanan KBLI 2009, 2015, dan 2020"
               @click.stop
             >
@@ -267,32 +261,32 @@ async function copyCitation() {
             </button>
             <template #content>
               <div class="space-y-2 p-1" @click.stop>
-                <div class="flex items-center justify-between pb-1.5 border-b border-[#E7E4DC]">
-                  <span class="font-bold text-[#1A1D1B] flex items-center gap-1 font-display">
-                    <UIcon name="i-solar-route-bold-duotone" class="w-3.5 h-3.5 text-[#0F4C3A]" />
+                <div class="flex items-center justify-between pb-1.5 border-b border-[#141917]/[0.08]">
+                  <span class="font-bold text-[#141917] flex items-center gap-1 font-display">
+                    <UIcon name="i-solar-route-bold-duotone" class="w-3.5 h-3.5 text-[#0B3D2E]" />
                     Jembatan Konkordansi 4-Generasi
                   </span>
-                  <span class="text-[10px] bg-[#E7F3EE] text-[#0F4C3A] font-bold px-1.5 py-0.5 rounded font-mono">BPS KTT</span>
+                  <span class="text-[10px] bg-[#E3F0EA] text-[#0B3D2E] font-bold px-1.5 py-0.5 rounded font-mono">BPS KTT</span>
                 </div>
                 <div class="space-y-1.5 text-[11px]">
-                  <div class="flex items-start gap-1.5 bg-[#E7F3EE]/70 p-1.5 rounded-lg border border-[#C3DFD3]">
-                    <span class="font-bold text-[#0F4C3A] w-16 shrink-0 font-mono">KBLI 2025:</span>
-                    <span class="text-[#1A1D1B] font-semibold">{{ kbliBridge.code2025 }} • {{ kbliBridge.title2025 }}</span>
+                  <div class="flex items-start gap-1.5 bg-[#E3F0EA]/70 p-1.5 rounded-lg border border-[#BBD8CB]">
+                    <span class="font-bold text-[#0B3D2E] w-16 shrink-0 font-mono">KBLI 2025:</span>
+                    <span class="text-[#141917] font-semibold">{{ kbliBridge.code2025 }} • {{ kbliBridge.title2025 }}</span>
                   </div>
-                  <div class="flex items-start gap-1.5 p-1.5 rounded-lg bg-[#FAF9F7] border border-[#E7E4DC]">
-                    <span class="font-bold text-[#575B58] w-16 shrink-0">KBLI 2020:</span>
-                    <span class="text-[#575B58]">{{ kbliBridge.code2020 }} • {{ kbliBridge.title2020 }}</span>
+                  <div class="flex items-start gap-1.5 p-1.5 rounded-lg bg-[#F6F5F1] border border-[#141917]/[0.08]">
+                    <span class="font-bold text-[#4A524E] w-16 shrink-0 font-mono">KBLI 2020:</span>
+                    <span class="text-[#4A524E]">{{ kbliBridge.code2020 }} • {{ kbliBridge.title2020 }}</span>
                   </div>
-                  <div class="flex items-start gap-1.5 p-1.5 rounded-lg bg-[#FAF9F7] border border-[#E7E4DC]">
-                    <span class="font-bold text-[#575B58] w-16 shrink-0">KBLI 2015:</span>
-                    <span class="text-[#575B58]">{{ kbliBridge.code2015 }} • {{ kbliBridge.title2015 }}</span>
+                  <div class="flex items-start gap-1.5 p-1.5 rounded-lg bg-[#F6F5F1] border border-[#141917]/[0.08]">
+                    <span class="font-bold text-[#4A524E] w-16 shrink-0 font-mono">KBLI 2015:</span>
+                    <span class="text-[#4A524E]">{{ kbliBridge.code2015 }} • {{ kbliBridge.title2015 }}</span>
                   </div>
-                  <div class="flex items-start gap-1.5 p-1.5 rounded-lg bg-[#FAF9F7] border border-[#E7E4DC]">
-                    <span class="font-bold text-[#575B58] w-16 shrink-0">KBLI 2009:</span>
-                    <span class="text-[#575B58]">{{ kbliBridge.code2009 }} • {{ kbliBridge.title2009 }}</span>
+                  <div class="flex items-start gap-1.5 p-1.5 rounded-lg bg-[#F6F5F1] border border-[#141917]/[0.08]">
+                    <span class="font-bold text-[#4A524E] w-16 shrink-0 font-mono">KBLI 2009:</span>
+                    <span class="text-[#4A524E]">{{ kbliBridge.code2009 }} • {{ kbliBridge.title2009 }}</span>
                   </div>
                 </div>
-                <div class="text-[10px] text-[#6B6F6C] pt-1 border-t border-[#EFECE6] leading-tight">
+                <div class="text-[10px] text-[#737B76] pt-1 border-t border-[#141917]/[0.08] leading-tight">
                   {{ kbliBridge.changeNotes }}
                 </div>
               </div>
@@ -301,7 +295,7 @@ async function copyCitation() {
         </div>
         <div class="flex items-center justify-between gap-2 flex-wrap">
           <span
-            class="font-semibold text-[#1A1D1B] truncate min-w-0"
+            class="font-semibold text-[#141917] truncate min-w-0"
             :title="getKbliLabel(article.kbliCategory, true)"
           >
             {{ getKbliLabel(article.kbliCategory, true) }}
@@ -318,10 +312,10 @@ async function copyCitation() {
         <!-- Sektor Sekunder jika ada -->
         <div
           v-if="article.secondaryKbliCategory"
-          class="flex items-center justify-between gap-2 pt-1 border-t border-[#EFECE6] text-[11px]"
+          class="flex items-center justify-between gap-2 pt-1 border-t border-[#141917]/[0.06] text-[11px]"
         >
-          <span class="text-[#5C615E] flex items-center gap-1 truncate" :title="getKbliLabel(article.secondaryKbliCategory, true)">
-            <span class="font-bold text-[#3D423F]">+ Sekunder:</span>
+          <span class="text-[#4A524E] flex items-center gap-1 truncate" :title="getKbliLabel(article.secondaryKbliCategory, true)">
+            <span class="font-bold text-[#141917]">+ Sekunder:</span>
             <span class="truncate">{{ getKbliLabel(article.secondaryKbliCategory, true) }}</span>
           </span>
           <span
@@ -336,14 +330,14 @@ async function copyCitation() {
       </div>
 
       <!-- Right: Pengeluaran PDRB -->
-      <div class="flex flex-col gap-1.5 md:border-l md:border-[#EFECE6] md:pl-4 min-w-0">
-        <div class="flex items-center gap-1.5 text-xs font-semibold text-[#5C615E]">
+      <div class="flex flex-col gap-1.5 md:border-l md:border-[#141917]/[0.08] md:pl-4 min-w-0">
+        <div class="flex items-center gap-1.5 text-xs font-semibold text-[#737B76]">
           <span class="w-2 h-2 rounded-full shrink-0" :class="expenditureTheme.dotClass" />
-          <span>Pengeluaran PDRB</span>
+          <span class="font-display">Pengeluaran PDRB</span>
         </div>
         <div class="flex items-center justify-between gap-2 flex-wrap">
           <span
-            class="font-semibold text-[#1A1D1B] truncate min-w-0"
+            class="font-semibold text-[#141917] truncate min-w-0"
             :title="getExpenditureLabel(article.expenditureComponent, true)"
           >
             {{ getExpenditureLabel(article.expenditureComponent, true) }}
@@ -359,10 +353,10 @@ async function copyCitation() {
         <!-- Pengeluaran Sekunder jika ada -->
         <div
           v-if="article.secondaryExpenditureComponent"
-          class="flex items-center justify-between gap-2 pt-1 border-t border-[#EFECE6] text-[11px]"
+          class="flex items-center justify-between gap-2 pt-1 border-t border-[#141917]/[0.06] text-[11px]"
         >
-          <span class="text-[#5C615E] flex items-center gap-1 truncate" :title="getExpenditureLabel(article.secondaryExpenditureComponent, true)">
-            <span class="font-bold text-[#3D423F]">+ Sekunder:</span>
+          <span class="text-[#4A524E] flex items-center gap-1 truncate" :title="getExpenditureLabel(article.secondaryExpenditureComponent, true)">
+            <span class="font-bold text-[#141917]">+ Sekunder:</span>
             <span class="truncate">{{ getExpenditureLabel(article.secondaryExpenditureComponent, true) }}</span>
           </span>
           <span

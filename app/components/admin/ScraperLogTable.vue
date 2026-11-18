@@ -45,14 +45,14 @@ function formatAvgLatency(entry: ScraperProviderStatEntry): string {
       <div
         v-for="idx in 4"
         :key="idx"
-        class="h-14 rounded-xl bg-slate-100/80 animate-pulse border border-slate-200/60"
+        class="h-14 rounded-xl bg-[#ECEAE2]/80 animate-pulse border border-[#141917]/10"
       />
     </div>
 
     <!-- Empty State -->
     <div
       v-else-if="logs.length === 0"
-      class="px-5 py-10 text-center text-xs sm:text-sm text-slate-600"
+      class="px-5 py-10 text-center text-xs sm:text-sm text-[#737B76]"
     >
       Belum ada riwayat eksekusi scraper.
     </div>
@@ -69,7 +69,7 @@ function formatAvgLatency(entry: ScraperProviderStatEntry): string {
           Riwayat eksekusi harian dan manual crawler beserta metrik pipeline URL, klasifikasi AI, dan pemakaian token LLM
         </caption>
         <thead>
-          <tr class="border-b border-slate-200/90 bg-slate-50/90 text-[11px] font-bold uppercase tracking-wider text-slate-600">
+          <tr class="border-b border-[#141917]/10 bg-[#F6F5F1] text-[11px] font-bold uppercase tracking-wider text-[#737B76]">
             <th scope="col" class="w-[21%] py-3 pl-4 pr-2.5">Waktu &amp; Jenis Sesi</th>
             <th scope="col" class="w-[14%] py-3 px-2.5">Status &amp; Durasi</th>
             <th scope="col" class="w-[18%] py-3 px-2.5">Pipeline URL</th>
@@ -78,15 +78,15 @@ function formatAvgLatency(entry: ScraperProviderStatEntry): string {
             <th scope="col" class="w-[10%] py-3 pl-2.5 pr-4 text-right">Log</th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-slate-200/70 bg-white">
+        <tbody class="divide-y divide-[#141917]/10 bg-white">
           <tr
             v-for="log in logs"
             :key="log.id"
-            class="hover:bg-slate-50/80 transition-colors align-top"
+            class="hover:bg-[#F6F5F1] transition-colors align-top"
           >
             <!-- 1. Waktu & Jenis Sesi -->
             <td class="py-3 pl-4 pr-2.5">
-              <div class="font-bold tabular-nums text-slate-900 leading-snug">
+              <div class="font-bold tabular-nums text-[#141917] leading-snug font-mono">
                 {{ formatDateTimeWita(log.startedAt) }}
               </div>
               <div class="mt-1 flex flex-wrap items-center gap-1.5">
@@ -95,7 +95,7 @@ function formatAvgLatency(entry: ScraperProviderStatEntry): string {
                 </UBadge>
                 <span
                   v-if="log.triggeredByName"
-                  class="text-[11px] text-slate-500 truncate max-w-[130px]"
+                  class="text-[11px] text-[#737B76] truncate max-w-[130px]"
                   :title="`Dipicu oleh: ${log.triggeredByName}`"
                 >
                   • {{ log.triggeredByName }}
@@ -115,26 +115,26 @@ function formatAvgLatency(entry: ScraperProviderStatEntry): string {
                   {{ getScraperStatusBadge(log.status).label }}
                 </UBadge>
               </div>
-              <div class="mt-1 text-[11px] font-medium tabular-nums text-slate-600 font-mono flex items-center gap-1">
-                <UIcon name="i-lucide-timer" class="w-3 h-3 text-slate-400 shrink-0" />
+              <div class="mt-1 text-[11px] font-medium tabular-nums text-[#737B76] font-mono flex items-center gap-1">
+                <UIcon name="i-lucide-timer" class="w-3 h-3 text-[#737B76]/70 shrink-0" />
                 <span>{{ formatDurationMs(log.durationMs) }}</span>
               </div>
             </td>
 
             <!-- 3. Pipeline URL -->
             <td class="py-3 px-2.5 tabular-nums">
-              <div class="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-slate-700 leading-snug">
-                <span><strong class="font-semibold text-slate-900">{{ log.articlesFetched }}</strong> diambil</span>
-                <span class="text-slate-300">•</span>
-                <span class="text-slate-600">{{ log.articlesDeduplicated }} dedup</span>
+              <div class="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[#4A524E] leading-snug">
+                <span><strong class="font-semibold text-[#141917]">{{ log.articlesFetched }}</strong> diambil</span>
+                <span class="text-[#141917]/20">•</span>
+                <span class="text-[#737B76]">{{ log.articlesDeduplicated }} dedup</span>
               </div>
               <div class="mt-1">
                 <span
                   class="inline-flex items-center px-1.5 py-0.5 rounded-md text-[11px] font-bold"
                   :class="
                     log.articlesInserted > 0
-                      ? 'bg-indigo-50 text-indigo-700 border border-indigo-200/70'
-                      : 'bg-slate-100 text-slate-600'
+                      ? 'bg-[#E3F0EA] text-[#0B3D2E] border border-[#BBD8CB]'
+                      : 'bg-[#ECEAE2] text-[#737B76]'
                   "
                 >
                   +{{ log.articlesInserted }} artikel baru
@@ -145,19 +145,19 @@ function formatAvgLatency(entry: ScraperProviderStatEntry): string {
             <!-- 4. Klasifikasi AI -->
             <td class="py-3 px-2.5 tabular-nums">
               <div class="flex flex-wrap items-center gap-1 leading-snug">
-                <span class="text-emerald-700 font-bold">{{ log.economicCount }} Ekon</span>
-                <span class="text-slate-300">/</span>
-                <span class="text-slate-600 font-medium">{{ log.nonEconomicCount }} Non</span>
+                <span class="text-[#0B3D2E] font-bold">{{ log.economicCount }} Ekon</span>
+                <span class="text-[#141917]/20">/</span>
+                <span class="text-[#737B76] font-medium">{{ log.nonEconomicCount }} Non</span>
               </div>
               <div class="mt-1">
                 <span
                   v-if="log.llmFailedCount > 0"
-                  class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-rose-50 text-rose-700 border border-rose-200/80 text-[10px] font-bold"
+                  class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-[#FBECE8] text-[#C8553D] border border-[#F2C9BE] text-[10px] font-bold"
                 >
                   <UIcon name="i-lucide-alert-circle" class="w-3 h-3 shrink-0" />
                   <span>{{ log.llmFailedCount }} gagal AI</span>
                 </span>
-                <span v-else class="text-[11px] text-slate-500">
+                <span v-else class="text-[11px] text-[#737B76]">
                   0 gagal AI
                 </span>
               </div>
@@ -181,19 +181,19 @@ function formatAvgLatency(entry: ScraperProviderStatEntry): string {
                 </span>
                 <span
                   v-if="getProviderEntries(log).length > 2"
-                  class="inline-flex items-center px-1.5 py-0.5 rounded-full bg-slate-100 border border-slate-200 text-[10px] font-bold text-slate-700 tabular-nums"
+                  class="inline-flex items-center px-1.5 py-0.5 rounded-full bg-[#ECEAE2] border border-[#141917]/10 text-[10px] font-bold text-[#4A524E] tabular-nums"
                   :title="getProviderEntries(log).slice(2).map((e) => `${e.slotId}: ${e.successes}/${e.calls}`).join(', ')"
                 >
                   +{{ getProviderEntries(log).length - 2 }}
                 </span>
               </div>
-              <div v-else class="text-[11px] text-slate-400">
+              <div v-else class="text-[11px] text-[#737B76]">
                 Tanpa panggilan LLM
               </div>
 
-              <div class="mt-1 text-[11px] tabular-nums text-slate-600 font-mono truncate">
-                <strong class="font-semibold text-slate-900">{{ formatNumberId(log.totalTokens) }} tk</strong>
-                <span class="text-slate-400 mx-1">•</span>
+              <div class="mt-1 text-[11px] tabular-nums text-[#737B76] font-mono truncate">
+                <strong class="font-semibold text-[#141917]">{{ formatNumberId(log.totalTokens) }} tk</strong>
+                <span class="text-[#737B76]/50 mx-1">•</span>
                 <span>{{ formatNumberId(log.totalInputTokens) }} in / {{ formatNumberId(log.totalOutputTokens) }} out</span>
               </div>
             </td>
@@ -209,7 +209,7 @@ function formatAvgLatency(entry: ScraperProviderStatEntry): string {
                 @click="() => { openDetail(log); }"
               >
                 <span>Detail</span>
-                <span v-if="log.errorSummary?.length" class="ml-0.5 font-bold tabular-nums text-rose-600">
+                <span v-if="log.errorSummary?.length" class="ml-0.5 font-bold tabular-nums text-[#C8553D]">
                   ({{ log.errorSummary.length }})
                 </span>
               </UButton>
@@ -224,24 +224,24 @@ function formatAvgLatency(entry: ScraperProviderStatEntry): string {
       v-if="logs.length > 0"
       role="region"
       aria-label="Daftar Riwayat Eksekusi Scraper Mobile"
-      class="md:hidden divide-y divide-slate-200/80"
+      class="md:hidden divide-y divide-[#141917]/10"
     >
       <div
         v-for="log in logs"
         :key="`mob-${log.id}`"
-        class="p-4 space-y-3 bg-white hover:bg-slate-50/60 transition-colors"
+        class="p-4 space-y-3 bg-white hover:bg-[#F6F5F1] transition-colors"
       >
         <!-- Baris Atas: Waktu & Status -->
         <div class="flex items-start justify-between gap-2">
           <div class="min-w-0">
-            <div class="text-xs font-bold tabular-nums text-slate-900">
+            <div class="text-xs font-bold tabular-nums text-[#141917] font-mono">
               {{ formatDateTimeWita(log.startedAt) }}
             </div>
             <div class="mt-1 flex flex-wrap items-center gap-1.5">
               <UBadge color="neutral" variant="outline" size="xs" class="text-[10px]">
                 {{ getScraperRunTypeLabel(log.runType) }}
               </UBadge>
-              <span v-if="log.triggeredByName" class="text-[11px] text-slate-500 truncate">
+              <span v-if="log.triggeredByName" class="text-[11px] text-[#737B76] truncate">
                 • {{ log.triggeredByName }}
               </span>
             </div>
@@ -256,38 +256,38 @@ function formatAvgLatency(entry: ScraperProviderStatEntry): string {
             >
               {{ getScraperStatusBadge(log.status).label }}
             </UBadge>
-            <span class="text-[11px] font-mono tabular-nums text-slate-500">
+            <span class="text-[11px] font-mono tabular-nums text-[#737B76]">
               {{ formatDurationMs(log.durationMs) }}
             </span>
           </div>
         </div>
 
         <!-- Baris Tengah: 2 Kolom Pipeline & Klasifikasi -->
-        <div class="grid grid-cols-2 gap-2.5 rounded-xl bg-slate-50/90 border border-slate-200/70 p-2.5 text-xs tabular-nums">
+        <div class="grid grid-cols-2 gap-2.5 rounded-xl bg-[#F6F5F1] border border-[#141917]/10 p-2.5 text-xs tabular-nums font-mono">
           <div>
-            <div class="text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+            <div class="text-[10px] font-semibold uppercase tracking-wider text-[#737B76]">
               Pipeline URL
             </div>
-            <div class="mt-0.5 text-slate-700">
+            <div class="mt-0.5 text-[#4A524E]">
               {{ log.articlesFetched }} ambil • {{ log.articlesDeduplicated }} dedup
             </div>
-            <div class="font-bold text-indigo-700 mt-0.5">
+            <div class="font-bold text-[#0B3D2E] mt-0.5">
               +{{ log.articlesInserted }} baru
             </div>
           </div>
 
           <div>
-            <div class="text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+            <div class="text-[10px] font-semibold uppercase tracking-wider text-[#737B76]">
               Klasifikasi AI
             </div>
             <div class="mt-0.5">
-              <span class="font-bold text-emerald-700">{{ log.economicCount }} Ekon</span>
-              <span class="text-slate-400 mx-1">/</span>
-              <span class="text-slate-700">{{ log.nonEconomicCount }} Non</span>
+              <span class="font-bold text-[#0B3D2E]">{{ log.economicCount }} Ekon</span>
+              <span class="text-[#737B76]/50 mx-1">/</span>
+              <span class="text-[#4A524E]">{{ log.nonEconomicCount }} Non</span>
             </div>
             <div
               class="mt-0.5 text-[11px] font-semibold"
-              :class="log.llmFailedCount > 0 ? 'text-rose-600' : 'text-slate-500'"
+              :class="log.llmFailedCount > 0 ? 'text-[#C8553D]' : 'text-[#737B76]'"
             >
               {{ log.llmFailedCount > 0 ? `+${log.llmFailedCount} gagal AI` : '0 gagal AI' }}
             </div>
@@ -309,13 +309,13 @@ function formatAvgLatency(entry: ScraperProviderStatEntry): string {
               </span>
               <span
                 v-if="getProviderEntries(log).length > 2"
-                class="px-1.5 py-0.5 rounded-full bg-slate-100 border border-slate-200 text-[10px] font-bold text-slate-700"
+                class="px-1.5 py-0.5 rounded-full bg-[#ECEAE2] border border-[#141917]/10 text-[10px] font-bold text-[#4A524E]"
               >
                 +{{ getProviderEntries(log).length - 2 }}
               </span>
             </div>
-            <div class="text-[11px] font-mono tabular-nums text-slate-600">
-              <strong class="text-slate-900">{{ formatNumberId(log.totalTokens) }} tk</strong>
+            <div class="text-[11px] font-mono tabular-nums text-[#737B76]">
+              <strong class="text-[#141917]">{{ formatNumberId(log.totalTokens) }} tk</strong>
               ({{ formatNumberId(log.totalInputTokens) }} in / {{ formatNumberId(log.totalOutputTokens) }} out)
             </div>
           </div>
@@ -329,7 +329,7 @@ function formatAvgLatency(entry: ScraperProviderStatEntry): string {
             @click="() => { openDetail(log); }"
           >
             Detail
-            <span v-if="log.errorSummary?.length" class="ml-1 font-bold tabular-nums text-rose-600">
+            <span v-if="log.errorSummary?.length" class="ml-1 font-bold tabular-nums text-[#C8553D]">
               ({{ log.errorSummary.length }})
             </span>
           </UButton>
@@ -347,27 +347,27 @@ function formatAvgLatency(entry: ScraperProviderStatEntry): string {
       <template #body>
         <div v-if="selectedLog" class="space-y-4">
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 text-xs">
-            <div class="rounded-xl bg-slate-50/70 border border-slate-200/90 p-3">
-              <div class="text-slate-600 font-medium">Portal / Keyword</div>
-              <div class="font-extrabold text-slate-900 mt-0.5 tabular-nums">
+            <div class="rounded-xl bg-[#F6F5F1] border border-[#141917]/10 p-3">
+              <div class="text-[#737B76] font-medium">Portal / Keyword</div>
+              <div class="font-extrabold text-[#141917] mt-0.5 tabular-nums font-mono">
                 {{ selectedLog.portalsChecked }} / {{ selectedLog.keywordsChecked }}
               </div>
             </div>
-            <div class="rounded-xl bg-slate-50/70 border border-slate-200/90 p-3">
-              <div class="text-slate-600 font-medium">Rata-rata AI</div>
-              <div class="font-extrabold text-slate-900 mt-0.5 tabular-nums">
+            <div class="rounded-xl bg-[#F6F5F1] border border-[#141917]/10 p-3">
+              <div class="text-[#737B76] font-medium">Rata-rata AI</div>
+              <div class="font-extrabold text-[#141917] mt-0.5 tabular-nums font-mono">
                 {{ selectedLog.avgResponseTimeMs ? `${selectedLog.avgResponseTimeMs} ms` : '-' }}
               </div>
             </div>
-            <div class="rounded-xl bg-slate-50/70 border border-slate-200/90 p-3">
-              <div class="text-slate-600 font-medium">Total Token</div>
-              <div class="font-extrabold text-slate-900 mt-0.5 tabular-nums">
+            <div class="rounded-xl bg-[#F6F5F1] border border-[#141917]/10 p-3">
+              <div class="text-[#737B76] font-medium">Total Token</div>
+              <div class="font-extrabold text-[#141917] mt-0.5 tabular-nums font-mono">
                 {{ formatNumberId(selectedLog.totalTokens) }}
               </div>
             </div>
-            <div class="rounded-xl bg-slate-50/70 border border-slate-200/90 p-3">
-              <div class="text-slate-600 font-medium">Total Durasi</div>
-              <div class="font-extrabold text-slate-900 mt-0.5 tabular-nums">
+            <div class="rounded-xl bg-[#F6F5F1] border border-[#141917]/10 p-3">
+              <div class="text-[#737B76] font-medium">Total Durasi</div>
+              <div class="font-extrabold text-[#141917] mt-0.5 tabular-nums font-mono">
                 {{ formatDurationMs(selectedLog.durationMs) }}
               </div>
             </div>
@@ -375,13 +375,13 @@ function formatAvgLatency(entry: ScraperProviderStatEntry): string {
 
           <!-- Rincian Pemakaian per Slot Penyedia LLM -->
           <div class="space-y-2">
-            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-600">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-[#737B76]">
               Rincian Pemakaian per Slot LLM
             </h3>
 
             <div
               v-if="getProviderEntries(selectedLog).length === 0"
-              class="rounded-xl border border-slate-200/80 bg-slate-50/70 px-3.5 py-2.5 text-xs text-slate-600"
+              class="rounded-xl border border-[#141917]/10 bg-[#F6F5F1] px-3.5 py-2.5 text-xs text-[#737B76]"
             >
               Belum ada panggilan LLM tercatat pada sesi ini.
             </div>
@@ -390,13 +390,13 @@ function formatAvgLatency(entry: ScraperProviderStatEntry): string {
               v-else
               role="region"
               aria-label="Rincian pemakaian per slot penyedia LLM"
-              class="rounded-xl border border-slate-200/80 overflow-hidden"
+              class="rounded-xl border border-[#141917]/10 overflow-hidden"
             >
-              <table class="w-full table-fixed divide-y divide-slate-200 text-left text-xs">
+              <table class="w-full table-fixed divide-y divide-[#141917]/10 text-left text-xs">
                 <caption class="sr-only">
                   Rincian panggilan, keberhasilan, HTTP 429, latensi rata-rata, dan token per slot LLM pada sesi ini
                 </caption>
-                <thead class="bg-slate-50/70 text-[11px] font-semibold text-slate-600">
+                <thead class="bg-[#F6F5F1] text-[11px] font-semibold text-[#737B76]">
                   <tr>
                     <th scope="col" class="w-[36%] px-3 py-2">Slot / Model</th>
                     <th scope="col" class="w-[14%] px-2 py-2 text-right">Calls</th>
@@ -405,7 +405,7 @@ function formatAvgLatency(entry: ScraperProviderStatEntry): string {
                     <th scope="col" class="w-[18%] px-3 py-2 text-right">Token</th>
                   </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100 bg-white">
+                <tbody class="divide-y divide-[#141917]/10 bg-white">
                   <tr v-for="entry in getProviderEntries(selectedLog)" :key="entry.slotId">
                     <td class="px-3 py-2 min-w-0">
                       <span
@@ -414,25 +414,25 @@ function formatAvgLatency(entry: ScraperProviderStatEntry): string {
                       >
                         <span class="truncate">{{ formatLlmProviderBadge(`${entry.provider}:${entry.model}`).shortLabel }}</span>
                       </span>
-                      <div class="text-[10px] text-slate-500 mt-0.5 truncate">{{ entry.slotId }}</div>
+                      <div class="text-[10px] text-[#737B76] mt-0.5 truncate font-mono">{{ entry.slotId }}</div>
                     </td>
-                    <td class="px-2 py-2 text-right tabular-nums font-semibold text-slate-900">
+                    <td class="px-2 py-2 text-right tabular-nums font-semibold text-[#141917] font-mono">
                       {{ formatNumberId(entry.calls) }}
-                      <div v-if="entry.rateLimits > 0" class="text-[10px] text-amber-700 font-medium">
+                      <div v-if="entry.rateLimits > 0" class="text-[10px] text-[#B45309] font-medium">
                         {{ entry.rateLimits }}x 429
                       </div>
                     </td>
-                    <td class="px-2 py-2 text-right tabular-nums">
-                      <span class="font-semibold text-emerald-700">{{ formatNumberId(entry.successes) }}</span>
+                    <td class="px-2 py-2 text-right tabular-nums font-mono">
+                      <span class="font-semibold text-[#0B3D2E]">{{ formatNumberId(entry.successes) }}</span>
                       /
-                      <span :class="entry.failures > 0 ? 'font-semibold text-rose-600' : 'text-slate-600'">
+                      <span :class="entry.failures > 0 ? 'font-semibold text-[#C8553D]' : 'text-[#737B76]'">
                         {{ formatNumberId(entry.failures) }}
                       </span>
                     </td>
-                    <td class="px-2 py-2 text-right tabular-nums text-slate-700 hidden sm:table-cell">
+                    <td class="px-2 py-2 text-right tabular-nums text-[#4A524E] hidden sm:table-cell font-mono">
                       {{ formatAvgLatency(entry) }}
                     </td>
-                    <td class="px-3 py-2 text-right tabular-nums font-semibold text-indigo-700">
+                    <td class="px-3 py-2 text-right tabular-nums font-semibold text-[#0B3D2E] font-mono">
                       {{ formatNumberId(entry.totalTokens) }}
                     </td>
                   </tr>
@@ -442,7 +442,7 @@ function formatAvgLatency(entry: ScraperProviderStatEntry): string {
           </div>
 
           <div class="space-y-2">
-            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-600">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-[#737B76]">
               Ringkasan Error ({{ selectedLog.errorSummary?.length ?? 0 }})
             </h3>
 
@@ -458,16 +458,16 @@ function formatAvgLatency(entry: ScraperProviderStatEntry): string {
               <div
                 v-for="(entry, idx) in selectedLog.errorSummary"
                 :key="idx"
-                class="rounded-xl border border-rose-200/80 bg-rose-50/50 p-3 text-xs space-y-1"
+                class="rounded-xl border border-[#F2C9BE] bg-[#FBECE8]/50 p-3 text-xs space-y-1"
               >
                 <div class="flex items-center justify-between gap-2">
-                  <span class="font-semibold text-slate-900 break-words min-w-0">{{ entry.source }}</span>
+                  <span class="font-semibold text-[#141917] break-words min-w-0">{{ entry.source }}</span>
                   <UBadge color="error" variant="subtle" size="xs" class="shrink-0">
                     {{ entry.stage }}
                   </UBadge>
                 </div>
-                <p class="text-slate-700 leading-relaxed break-words">{{ entry.message }}</p>
-                <div v-if="entry.url" class="text-[11px] text-slate-600 break-all">
+                <p class="text-[#4A524E] leading-relaxed break-words">{{ entry.message }}</p>
+                <div v-if="entry.url" class="text-[11px] text-[#737B76] break-all font-mono">
                   {{ entry.url }}
                 </div>
               </div>

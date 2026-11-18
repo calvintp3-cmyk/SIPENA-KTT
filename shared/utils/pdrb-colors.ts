@@ -38,12 +38,12 @@ const CLUSTER_THEMES: Record<PdrbClusterKey, PdrbClusterTheme> = {
   TRADE_LOGISTICS: {
     key: 'TRADE_LOGISTICS',
     label: 'Perdagangan, Logistik & Digital',
-    hex: '#2563EB',
-    hexLight: '#DBEAFE',
-    pillClass: 'bg-blue-50 text-blue-800 border-blue-200/90',
-    accentBarClass: 'bg-blue-600',
-    softStripClass: 'bg-blue-50/55 border-blue-200/60',
-    iconBgClass: 'bg-blue-100/90 text-blue-700',
+    hex: '#0F766E',
+    hexLight: '#E8F4F1',
+    pillClass: 'bg-[#E8F4F1] text-[#0F766E] border-[#A7D7CF]',
+    accentBarClass: 'bg-[#0F766E]',
+    softStripClass: 'bg-[#E8F4F1]/60 border-[#A7D7CF]/70',
+    iconBgClass: 'bg-[#E8F4F1] text-[#0F766E]',
   },
   FINANCE_PUBLIC: {
     key: 'FINANCE_PUBLIC',
@@ -58,12 +58,12 @@ const CLUSTER_THEMES: Record<PdrbClusterKey, PdrbClusterTheme> = {
   DEFAULT: {
     key: 'DEFAULT',
     label: 'Lainnya',
-    hex: '#475569',
-    hexLight: '#E2E8F0',
-    pillClass: 'bg-slate-100 text-slate-700 border-slate-200',
-    accentBarClass: 'bg-slate-400',
-    softStripClass: 'bg-slate-50/80 border-slate-200/80',
-    iconBgClass: 'bg-slate-100 text-slate-700',
+    hex: '#4A524E',
+    hexLight: '#ECEAE2',
+    pillClass: 'bg-[#ECEAE2] text-[#4A524E] border-[#141917]/10',
+    accentBarClass: 'bg-[#737B76]',
+    softStripClass: 'bg-[#F6F5F1] border-[#141917]/10',
+    iconBgClass: 'bg-[#ECEAE2] text-[#4A524E]',
   },
 };
 
@@ -109,9 +109,9 @@ export interface ExpenditureColorTheme {
 
 const EXPENDITURE_COLOR_MAP: Record<ExpenditureComponentEnum, ExpenditureColorTheme> = {
   [ExpenditureComponentEnum.PK_RT]: {
-    hex: '#2563EB',
-    pillClass: 'bg-blue-50 text-blue-800 border-blue-200/90',
-    dotClass: 'bg-blue-600',
+    hex: '#0F766E',
+    pillClass: 'bg-[#E8F4F1] text-[#0F766E] border-[#A7D7CF]',
+    dotClass: 'bg-[#0F766E]',
   },
   [ExpenditureComponentEnum.PK_LNPRT]: {
     hex: '#7C3AED',
@@ -141,9 +141,9 @@ const EXPENDITURE_COLOR_MAP: Record<ExpenditureComponentEnum, ExpenditureColorTh
 };
 
 const DEFAULT_EXPENDITURE_THEME: ExpenditureColorTheme = {
-  hex: '#64748B',
-  pillClass: 'bg-slate-100 text-slate-700 border-slate-200',
-  dotClass: 'bg-slate-400',
+  hex: '#737B76',
+  pillClass: 'bg-[#ECEAE2] text-[#4A524E] border-[#141917]/10',
+  dotClass: 'bg-[#737B76]',
 };
 
 export function getExpenditureColorTheme(
