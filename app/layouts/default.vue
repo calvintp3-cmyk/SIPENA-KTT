@@ -112,11 +112,11 @@ onBeforeUnmount(() => {
 
 <template>
   <div
-    class="min-h-screen canvas-aurora-light text-slate-900 font-sans relative flex flex-col selection:bg-indigo-100 selection:text-indigo-900"
+    class="min-h-screen canvas-aurora-light text-[#1A1D1B] font-sans relative flex flex-col selection:bg-[#E7F3EE] selection:text-[#0F4C3A]"
   >
     <a
       href="#main-content"
-      class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:px-4 focus:py-2 focus:rounded-xl focus:bg-indigo-700 focus:text-white focus:text-xs focus:font-semibold focus:shadow-lg"
+      class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:px-4 focus:py-2 focus:rounded-xl focus:bg-[#0F4C3A] focus:text-white focus:text-xs focus:font-semibold focus:shadow-lg"
     >
       Lewati ke konten utama
     </a>
@@ -261,21 +261,21 @@ onBeforeUnmount(() => {
             class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition-colors"
             :class="
               item.active
-                ? 'bg-blue-50 text-blue-800 font-semibold border border-blue-200/80'
-                : 'text-slate-700 hover:bg-slate-100 font-medium'
+                ? 'bg-[#E7F3EE] text-[#0F4C3A] font-semibold border border-[#C3DFD3]'
+                : 'text-[#3D423F] hover:bg-[#F2F0EB] font-medium'
             "
             @click="(e: MouseEvent) => handleNavClick(item.to, e)"
           >
             <UIcon
               :name="item.icon"
               class="w-5 h-5 shrink-0"
-              :class="item.active ? 'text-indigo-600' : 'text-slate-400'"
+              :class="item.active ? 'text-[#0F4C3A]' : 'text-[#6B6F6C]'"
             />
             <span>{{ item.label }}</span>
           </NuxtLink>
 
-          <div class="pt-4 mt-4 border-t border-slate-200/80 space-y-3">
-            <div class="px-3 py-2 rounded-xl bg-emerald-50/80 border border-emerald-200/70 text-xs text-emerald-900 font-medium flex items-center justify-between">
+          <div class="pt-4 mt-4 border-t border-[#EFECE6] space-y-3">
+            <div class="px-3 py-2 rounded-xl bg-[#E7F3EE] border border-[#C3DFD3] text-xs text-[#0F4C3A] font-medium flex items-center justify-between">
               <span>Periode Aktif</span>
               <span class="font-bold tabular-nums">{{ shortHeaderPeriod }}</span>
             </div>
@@ -329,19 +329,19 @@ onBeforeUnmount(() => {
           <NuxtLink to="/" class="py-1.5 px-1 hover:text-[#0F4C3A] transition-colors">
             Beranda
           </NuxtLink>
-          <NuxtLink to="/linimasa" class="py-1.5 px-1 hover:text-[#0B57D0] transition-colors">
+          <NuxtLink to="/linimasa" class="py-1.5 px-1 hover:text-[#0F4C3A] transition-colors">
             Linimasa Ekonomi
           </NuxtLink>
           <button
             type="button"
-            class="py-1.5 px-1 hover:text-[#0B57D0] transition-colors cursor-pointer text-left"
+            class="py-1.5 px-1 hover:text-[#0F4C3A] transition-colors cursor-pointer text-left"
             @click="(e: MouseEvent) => handleNavClick('/#cara-kerja', e)"
           >
             Metodologi
           </button>
           <NuxtLink
             :to="user ? '/admin' : '/login'"
-            class="inline-flex items-center gap-1.5 px-3.5 py-2 min-h-9 rounded-lg bg-[#EFF6FF] text-[#0B57D0] hover:bg-blue-100 font-semibold transition-colors"
+            class="inline-flex items-center gap-1.5 px-3.5 py-2 min-h-9 rounded-lg bg-[#E7F3EE] text-[#0F4C3A] hover:bg-[#D7E5DF] font-semibold transition-colors"
           >
             <span>{{ user ? 'Workstation Admin' : 'Workstation Nerwilis' }}</span>
           </NuxtLink>

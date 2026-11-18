@@ -43,29 +43,29 @@ const deltaBadge = computed(() => {
 <template>
   <section aria-label="Ringkasan KPI Fenomena Ekonomi Triwulanan">
     <div v-if="pending && !overview" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      <div v-for="idx in 4" :key="idx" class="saas-card rounded-xl p-4 sm:p-5">
+      <div v-for="idx in 4" :key="idx" class="saas-card rounded-2xl p-4 sm:p-5 border border-[#E7E4DC]">
         <div class="space-y-3 py-1">
-          <div class="h-3 w-28 rounded-full bg-slate-200" />
-          <div class="h-7 w-24 rounded-lg bg-slate-200" />
-          <div class="h-3 w-36 rounded-full bg-slate-100" />
+          <div class="h-3 w-28 rounded-full bg-[#E7E4DC]" />
+          <div class="h-7 w-24 rounded-lg bg-[#E7E4DC]" />
+          <div class="h-3 w-36 rounded-full bg-[#FAF9F7]" />
         </div>
       </div>
     </div>
 
     <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       <!-- KPI 1: Total Fenomena Valid -->
-      <div class="saas-card rounded-xl p-4 sm:p-5 space-y-2.5">
+      <div class="saas-card rounded-2xl p-4 sm:p-5 space-y-2.5 bg-white border border-[#E7E4DC]">
         <div class="flex items-center justify-between gap-2">
-          <span class="text-xs font-semibold text-slate-600">
+          <span class="text-xs font-semibold text-[#5C615E]">
             Total Fenomena Valid
           </span>
-          <div class="w-7 h-7 rounded-md bg-blue-50 text-blue-700 flex items-center justify-center shrink-0">
+          <div class="w-7 h-7 rounded-lg bg-[#E7F3EE] text-[#0F4C3A] flex items-center justify-center shrink-0">
             <UIcon name="i-solar-document-text-bold-duotone" class="w-4 h-4" />
           </div>
         </div>
-        <div class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 tabular-nums font-mono">
+        <div class="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#1A1D1B] tabular-nums font-mono">
           {{ formatNumberId(overview?.kpi.totalVerified) }}
-          <span class="text-xs font-semibold text-slate-500 font-sans">Catatan</span>
+          <span class="text-xs font-semibold text-[#6B6F6C] font-sans">Catatan</span>
         </div>
         <div v-if="deltaBadge" class="flex items-center gap-1.5">
           <UBadge :color="deltaBadge.color" variant="subtle" size="xs" :icon="deltaBadge.icon">
@@ -75,79 +75,79 @@ const deltaBadge = computed(() => {
       </div>
 
       <!-- KPI 2: Sektor KBLI Dominan -->
-      <div class="saas-card rounded-xl p-4 sm:p-5 space-y-2.5">
+      <div class="saas-card rounded-2xl p-4 sm:p-5 space-y-2.5 bg-white border border-[#E7E4DC]">
         <div class="flex items-center justify-between gap-2">
-          <span class="text-xs font-semibold text-slate-600">
+          <span class="text-xs font-semibold text-[#5C615E]">
             Sektor KBLI Dominan
           </span>
           <div
-            class="w-7 h-7 rounded-md flex items-center justify-center shrink-0"
+            class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
             :class="
               overview?.kpi.dominantKbli
                 ? getKbliClusterTheme(overview.kpi.dominantKbli.code).iconBgClass
-                : 'bg-indigo-50 text-indigo-700'
+                : 'bg-[#E7F3EE] text-[#0F4C3A]'
             "
           >
             <UIcon name="i-solar-buildings-2-bold-duotone" class="w-4 h-4" />
           </div>
         </div>
         <template v-if="overview?.kpi.dominantKbli">
-          <div class="text-sm sm:text-[15px] font-bold text-slate-900 leading-snug line-clamp-2">
+          <div class="text-sm sm:text-[15px] font-bold text-[#1A1D1B] leading-snug line-clamp-2">
             {{ overview.kpi.dominantKbli.code }} - {{ overview.kpi.dominantKbli.name }}
           </div>
-          <div class="text-xs text-slate-600 font-medium tabular-nums font-mono">
+          <div class="text-xs text-[#5C615E] font-medium tabular-nums font-mono">
             {{ formatNumberId(overview.kpi.dominantKbli.count) }} fenomena ({{
               overview.kpi.dominantKbli.percentage
             }}%)
           </div>
         </template>
         <template v-else>
-          <div class="text-base font-bold text-slate-600">Belum ada data</div>
-          <div class="text-xs text-slate-600">Menunggu kurasi terverifikasi</div>
+          <div class="text-base font-bold text-[#5C615E]">Belum ada data</div>
+          <div class="text-xs text-[#6B6F6C]">Menunggu kurasi terverifikasi</div>
         </template>
       </div>
 
       <!-- KPI 3: Komponen Pengeluaran Teraktif -->
-      <div class="saas-card rounded-xl p-4 sm:p-5 space-y-2.5">
+      <div class="saas-card rounded-2xl p-4 sm:p-5 space-y-2.5 bg-white border border-[#E7E4DC]">
         <div class="flex items-center justify-between gap-2">
-          <span class="text-xs font-semibold text-slate-600">
+          <span class="text-xs font-semibold text-[#5C615E]">
             Pengeluaran Teraktif
           </span>
-          <div class="w-7 h-7 rounded-md bg-amber-50 text-amber-700 flex items-center justify-center shrink-0">
+          <div class="w-7 h-7 rounded-lg bg-[#FEF3C7] text-[#92400E] flex items-center justify-center shrink-0">
             <UIcon name="i-solar-wallet-money-bold-duotone" class="w-4 h-4" />
           </div>
         </div>
         <template v-if="overview?.kpi.dominantExpenditure">
-          <div class="text-sm sm:text-[15px] font-bold text-slate-900 leading-snug line-clamp-2">
+          <div class="text-sm sm:text-[15px] font-bold text-[#1A1D1B] leading-snug line-clamp-2">
             {{ overview.kpi.dominantExpenditure.label }}
           </div>
-          <div class="text-xs text-slate-600 font-medium tabular-nums font-mono">
+          <div class="text-xs text-[#5C615E] font-medium tabular-nums font-mono">
             {{ formatNumberId(overview.kpi.dominantExpenditure.count) }} fenomena ({{
               overview.kpi.dominantExpenditure.percentage
             }}%)
           </div>
         </template>
         <template v-else>
-          <div class="text-base font-bold text-slate-600">Belum ada data</div>
-          <div class="text-xs text-slate-600">Menunggu kurasi terverifikasi</div>
+          <div class="text-base font-bold text-[#5C615E]">Belum ada data</div>
+          <div class="text-xs text-[#6B6F6C]">Menunggu kurasi terverifikasi</div>
         </template>
       </div>
 
       <!-- KPI 4: Rasio Ekspansi -->
-      <div class="saas-card rounded-xl p-4 sm:p-5 space-y-2.5">
+      <div class="saas-card rounded-2xl p-4 sm:p-5 space-y-2.5 bg-white border border-[#E7E4DC]">
         <div class="flex items-center justify-between gap-2">
-          <span class="text-xs font-semibold text-slate-600">
+          <span class="text-xs font-semibold text-[#5C615E]">
             Rasio Ekspansi Riil
           </span>
-          <div class="w-7 h-7 rounded-md bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0">
+          <div class="w-7 h-7 rounded-lg bg-[#E7F3EE] text-[#0F4C3A] flex items-center justify-center shrink-0">
             <UIcon name="i-solar-graph-up-bold-duotone" class="w-4 h-4" />
           </div>
         </div>
-        <div class="text-2xl sm:text-3xl font-extrabold tracking-tight text-emerald-700 tabular-nums font-mono">
+        <div class="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#0F4C3A] tabular-nums font-mono">
           {{ overview?.kpi.expansionStats.positiveRealPercent ?? 0 }}%
-          <span class="text-xs font-semibold text-slate-500 font-sans">Naik NTB</span>
+          <span class="text-xs font-semibold text-[#6B6F6C] font-sans">Naik NTB</span>
         </div>
-        <div class="text-xs text-slate-600 font-medium tabular-nums font-mono">
+        <div class="text-xs text-[#5C615E] font-medium tabular-nums font-mono">
           {{ formatNumberId(overview?.kpi.expansionStats.expansionCount) }} ekspansi •
           {{ formatNumberId(overview?.kpi.expansionStats.pressureOrContractionCount) }} harga/lainnya
         </div>

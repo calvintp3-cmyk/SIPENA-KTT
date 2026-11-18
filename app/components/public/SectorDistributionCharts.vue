@@ -220,17 +220,17 @@ function handleExpenditureChartClick(params: unknown) {
     class="grid grid-cols-1 lg:grid-cols-2 gap-4"
   >
     <!-- Grafik KBLI A-V -->
-    <div class="saas-card rounded-2xl overflow-hidden flex flex-col">
-      <div class="px-5 py-3.5 border-b border-slate-200/80 flex items-center justify-between gap-2 bg-slate-50/75">
+    <div class="saas-card rounded-2xl overflow-hidden flex flex-col bg-white border border-[#E7E4DC]">
+      <div class="px-5 py-3.5 border-b border-[#EFECE6] flex items-center justify-between gap-2 bg-[#FAF9F7]">
         <div class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 border border-blue-200/80 flex items-center justify-center shrink-0">
+          <div class="w-8 h-8 rounded-lg bg-[#E7F3EE] text-[#0F4C3A] border border-[#C3DFD3] flex items-center justify-center shrink-0">
             <UIcon name="i-solar-chart-square-bold-duotone" class="w-4 h-4" />
           </div>
           <div>
-            <h2 class="text-sm font-bold text-slate-900">
+            <h2 class="text-sm font-bold text-[#1A1D1B]">
               Sebaran Lapangan Usaha (KBLI A–V)
             </h2>
-            <p class="text-[11px] text-slate-600">
+            <p class="text-[11px] text-[#5C615E]">
               Klik batang grafik atau badge sektor untuk menyaring linimasa
             </p>
           </div>
@@ -238,10 +238,10 @@ function handleExpenditureChartClick(params: unknown) {
         <button
           v-if="selectedKbli && selectedKbli !== 'ALL'"
           type="button"
-          class="min-h-8 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-800 border border-blue-200 hover:bg-blue-100 cursor-pointer font-mono"
+          class="min-h-8 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-[#E7F3EE] text-[#0F4C3A] border border-[#C3DFD3] hover:bg-[#D7E5DF] cursor-pointer font-mono"
           @click="() => { emit('update:kbli', 'ALL'); }"
         >
-          <UIcon name="i-lucide-x" class="w-3 h-3 text-blue-700" />
+          <UIcon name="i-lucide-x" class="w-3 h-3 text-[#0F4C3A]" />
           <span>KBLI {{ selectedKbli }}</span>
         </button>
       </div>
@@ -258,7 +258,7 @@ function handleExpenditureChartClick(params: unknown) {
         />
 
         <!-- Keyboard-accessible quick sector filter pills -->
-        <div v-if="kbliItems.length > 0" class="flex flex-wrap gap-1.5 pt-2 border-t border-slate-100">
+        <div v-if="kbliItems.length > 0" class="flex flex-wrap gap-1.5 pt-2 border-t border-[#EFECE6]">
           <button
             v-for="item in kbliItems"
             :key="item.code"
@@ -267,8 +267,8 @@ function handleExpenditureChartClick(params: unknown) {
             class="min-h-8 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border transition-colors font-mono tabular-nums cursor-pointer"
             :class="
               isKbliCodeActive(item.code)
-                ? 'bg-blue-700 text-white border-blue-700 shadow-xs'
-                : 'bg-white text-slate-700 border-slate-200 hover:border-blue-300'
+                ? 'bg-[#0F4C3A] text-white border-[#0F4C3A] shadow-xs'
+                : 'bg-white text-[#3D423F] border-[#E7E4DC] hover:border-[#0F4C3A]/50'
             "
             @click="() => { toggleKbliFilter(item.code); }"
           >
@@ -285,17 +285,17 @@ function handleExpenditureChartClick(params: unknown) {
     </div>
 
     <!-- Grafik Komponen PDRB Pengeluaran -->
-    <div class="saas-card rounded-2xl overflow-hidden flex flex-col">
-      <div class="px-5 py-3.5 border-b border-slate-200/80 flex items-center justify-between gap-2 bg-slate-50/75">
+    <div class="saas-card rounded-2xl overflow-hidden flex flex-col bg-white border border-[#E7E4DC]">
+      <div class="px-5 py-3.5 border-b border-[#EFECE6] flex items-center justify-between gap-2 bg-[#FAF9F7]">
         <div class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200/80 flex items-center justify-center shrink-0">
+          <div class="w-8 h-8 rounded-lg bg-[#E7F3EE] text-[#0F4C3A] border border-[#C3DFD3] flex items-center justify-center shrink-0">
             <UIcon name="i-solar-pie-chart-2-bold-duotone" class="w-4 h-4" />
           </div>
           <div>
-            <h2 class="text-sm font-bold text-slate-900 font-display">
+            <h2 class="text-sm font-bold text-[#1A1D1B] font-display">
               Sebaran Komponen PDRB Pengeluaran
             </h2>
-            <p class="text-[11px] text-slate-600">
+            <p class="text-[11px] text-[#5C615E]">
               Klik segmen donat atau komponen untuk menyaring sisi pengeluaran
             </p>
           </div>
@@ -303,10 +303,10 @@ function handleExpenditureChartClick(params: unknown) {
         <button
           v-if="selectedExpenditure && selectedExpenditure !== 'ALL'"
           type="button"
-          class="min-h-8 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100 cursor-pointer font-mono"
+          class="min-h-8 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-[#E7F3EE] text-[#0F4C3A] border border-[#C3DFD3] hover:bg-[#D7E5DF] cursor-pointer font-mono"
           @click="() => { emit('update:expenditure', 'ALL'); }"
         >
-          <UIcon name="i-lucide-x" class="w-3 h-3" />
+          <UIcon name="i-lucide-x" class="w-3 h-3 text-[#0F4C3A]" />
           <span>Reset</span>
         </button>
       </div>
@@ -334,8 +334,8 @@ function handleExpenditureChartClick(params: unknown) {
               class="w-full min-h-9 flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-xl text-xs border transition-colors text-left cursor-pointer"
               :class="
                 selectedExpenditure === item.code
-                  ? 'bg-blue-50/90 border-blue-300 text-blue-950 font-semibold'
-                  : 'bg-white border-slate-200/80 hover:border-slate-300 text-slate-700 font-medium'
+                  ? 'bg-[#E7F3EE] border-[#C3DFD3] text-[#0F4C3A] font-semibold'
+                  : 'bg-white border-[#E7E4DC] hover:border-[#0F4C3A]/40 text-[#3D423F] font-medium'
               "
               @click="() => { toggleExpenditureFilter(item.code); }"
             >
@@ -346,7 +346,7 @@ function handleExpenditureChartClick(params: unknown) {
                 />
                 <span class="truncate">{{ item.label }}</span>
               </span>
-              <span class="font-bold text-slate-900 tabular-nums shrink-0">
+              <span class="font-bold text-[#1A1D1B] tabular-nums shrink-0">
                 {{ item.count }} ({{ item.percentage }}%)
               </span>
             </button>

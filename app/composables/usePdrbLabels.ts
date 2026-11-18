@@ -239,8 +239,8 @@ export function usePdrbLabels() {
         label: 'Kerangka Template Terkurasi',
         shortLabel: 'Template',
         provider: 'template',
-        pillClass: 'bg-slate-100 text-slate-700 border-slate-200',
-        dotClass: 'bg-slate-400',
+        pillClass: 'bg-[#F2F0EB] text-[#575B58] border-[#DDD9D0]',
+        dotClass: 'bg-[#6B6F6C]',
         icon: 'i-lucide-file-text',
       };
     }
@@ -250,8 +250,8 @@ export function usePdrbLabels() {
         label: lower === 'title-geo-filter' ? 'Filter Judul Noise' : 'Filter Geografis KTT',
         shortLabel: lower === 'title-geo-filter' ? 'Noise Filter' : 'Geo Filter',
         provider: 'filter',
-        pillClass: 'bg-slate-100 text-slate-700 border-slate-200',
-        dotClass: 'bg-slate-500',
+        pillClass: 'bg-[#F2F0EB] text-[#575B58] border-[#DDD9D0]',
+        dotClass: 'bg-[#6B6F6C]',
         icon: 'i-lucide-shield-ban',
       };
     }
@@ -265,8 +265,8 @@ export function usePdrbLabels() {
         label: `Gemini (${strippedModel})`,
         shortLabel: `Gemini • ${strippedModel}`,
         provider: 'gemini',
-        pillClass: 'bg-blue-50 text-blue-800 border-blue-200',
-        dotClass: 'bg-blue-600',
+        pillClass: 'bg-[#E7F3EE] text-[#0F4C3A] border-[#C3DFD3]',
+        dotClass: 'bg-[#0F4C3A]',
         icon: 'i-lucide-sparkles',
       };
     }
@@ -276,8 +276,8 @@ export function usePdrbLabels() {
         label: `Cerebras (${strippedModel})`,
         shortLabel: `Cerebras • ${strippedModel}`,
         provider: 'cerebras',
-        pillClass: 'bg-indigo-50 text-indigo-800 border-indigo-200',
-        dotClass: 'bg-indigo-600',
+        pillClass: 'bg-[#FCECE8] text-[#B4482D] border-[#F5C6BA]',
+        dotClass: 'bg-[#C2593F]',
         icon: 'i-lucide-cpu',
       };
     }
@@ -287,8 +287,8 @@ export function usePdrbLabels() {
         label: `Mistral (${strippedModel})`,
         shortLabel: `Mistral • ${strippedModel}`,
         provider: 'mistral',
-        pillClass: 'bg-sky-50 text-sky-800 border-sky-200',
-        dotClass: 'bg-sky-600',
+        pillClass: 'bg-[#FEF3C7] text-[#92400E] border-[#FDE68A]',
+        dotClass: 'bg-[#D97706]',
         icon: 'i-lucide-wind',
       };
     }
@@ -298,8 +298,8 @@ export function usePdrbLabels() {
         label: `NVIDIA NIM (${strippedModel})`,
         shortLabel: `NVIDIA • ${strippedModel}`,
         provider: 'nvidia',
-        pillClass: 'bg-teal-50 text-teal-800 border-teal-200',
-        dotClass: 'bg-teal-700',
+        pillClass: 'bg-[#E7F3EE] text-[#0F4C3A] border-[#C3DFD3]',
+        dotClass: 'bg-[#0F4C3A]',
         icon: 'i-lucide-microchip',
       };
     }
@@ -310,8 +310,8 @@ export function usePdrbLabels() {
         label: `Groq (${strippedModel})`,
         shortLabel: `Groq • ${compactModel}`,
         provider: 'groq',
-        pillClass: 'bg-amber-50 text-amber-800 border-amber-200',
-        dotClass: 'bg-amber-600',
+        pillClass: 'bg-[#FEF3C7] text-[#92400E] border-[#FDE68A]',
+        dotClass: 'bg-[#D97706]',
         icon: 'i-lucide-zap',
       };
     }
@@ -322,8 +322,8 @@ export function usePdrbLabels() {
         label: `OpenRouter (${strippedModel})`,
         shortLabel: `OpenRouter • ${shortModel}`,
         provider: 'openrouter',
-        pillClass: 'bg-emerald-50 text-emerald-800 border-emerald-200',
-        dotClass: 'bg-emerald-700',
+        pillClass: 'bg-[#E7F3EE] text-[#0F4C3A] border-[#C3DFD3]',
+        dotClass: 'bg-[#0F4C3A]',
         icon: 'i-lucide-network',
       };
     }
@@ -332,8 +332,8 @@ export function usePdrbLabels() {
       label: raw,
       shortLabel: raw,
       provider: 'gemini',
-      pillClass: 'bg-indigo-50 text-indigo-800 border-indigo-200',
-      dotClass: 'bg-indigo-600',
+      pillClass: 'bg-[#E7F3EE] text-[#0F4C3A] border-[#C3DFD3]',
+      dotClass: 'bg-[#0F4C3A]',
       icon: 'i-lucide-cpu',
     };
   }
@@ -354,31 +354,31 @@ export function usePdrbLabels() {
       return {
         label: 'Regional Kalimantan Utara',
         shortLabel: 'Kaltara',
-        pillClass: 'bg-blue-50 text-blue-800 border-blue-200/80',
-        dotClass: 'bg-blue-600',
+        pillClass: 'bg-[#E7F3EE] text-[#0F4C3A] border-[#C3DFD3]',
+        dotClass: 'bg-[#0F4C3A]',
       };
     }
     if (scope === 'NATIONAL_MACRO_IMPACT') {
       return {
         label: 'Dampak Makro Nasional',
         shortLabel: 'Makro Nasional',
-        pillClass: 'bg-amber-50 text-amber-800 border-amber-200/80',
-        dotClass: 'bg-amber-700',
+        pillClass: 'bg-[#FEF3C7] text-[#92400E] border-[#FDE68A]',
+        dotClass: 'bg-[#D97706]',
       };
     }
     if (fallbackSourceType === ArticleSourceTypeEnum.REGIONAL) {
       return {
         label: 'Portal Regional KTT/Kaltara',
         shortLabel: 'Lokal / Kaltara',
-        pillClass: 'bg-emerald-50 text-emerald-800 border-emerald-200/80',
-        dotClass: 'bg-emerald-700',
+        pillClass: 'bg-[#E7F3EE] text-[#0F4C3A] border-[#C3DFD3]',
+        dotClass: 'bg-[#0F4C3A]',
       };
     }
     return {
       label: 'Nasional / Referensi',
       shortLabel: 'Nasional',
-      pillClass: 'bg-slate-100 text-slate-700 border-slate-200',
-      dotClass: 'bg-slate-600',
+      pillClass: 'bg-[#F2F0EB] text-[#575B58] border-[#DDD9D0]',
+      dotClass: 'bg-[#6B6F6C]',
     };
   }
 

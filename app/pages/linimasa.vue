@@ -314,7 +314,7 @@ const activeFilterChips = computed(() => {
     chips.push({
       key: 'q',
       label: `Cari: "${debouncedSearch.value}"`,
-      dotClass: 'bg-blue-700',
+      dotClass: 'bg-[#0F4C3A]',
       clear: () => {
         searchInput.value = '';
         debouncedSearch.value = '';
@@ -379,7 +379,7 @@ const activeFilterChips = computed(() => {
     chips.push({
       key: 'dateRange',
       label: `Rentang: ${customDateRangeLabel.value}`,
-      dotClass: 'bg-blue-700',
+      dotClass: 'bg-[#0F4C3A]',
       clear: () => {
         selectedDateFrom.value = '';
         selectedDateTo.value = '';
@@ -515,29 +515,9 @@ const latestPopulatedPeriod = computed(() => {
   };
 });
 
-const inspectedArticle = ref<PublicArticleItem | null>(null);
-
-watch(
-  () => articlesResponse.value?.items,
-  (items) => {
-    if (!items || items.length === 0) {
-      inspectedArticle.value = null;
-      return;
-    }
-    const stillPresent = inspectedArticle.value
-      ? items.find((i) => i.id === inspectedArticle.value?.id)
-      : undefined;
-    inspectedArticle.value = stillPresent ?? items[0] ?? null;
-  },
-  { immediate: true },
-);
-
 function openDetailModal(article: PublicArticleItem) {
-  inspectedArticle.value = article;
   selectedArticle.value = article;
-  if (typeof window !== 'undefined' && window.innerWidth < 1280) {
-    detailModalOpen.value = true;
-  }
+  detailModalOpen.value = true;
 }
 </script>
 
@@ -596,8 +576,8 @@ function openDetailModal(article: PublicArticleItem) {
                 "
                 @click="() => { viewMode = 'stream'; }"
               >
-                <UIcon name="i-solar-list-heart-bold-duotone" class="w-4 h-4" />
-                <span>Split Inspector</span>
+                <UIcon name="i-solar-list-bold-duotone" class="w-4 h-4" />
+                <span>Mode Linimasa</span>
               </button>
               <button
                 type="button"
@@ -619,12 +599,12 @@ function openDetailModal(article: PublicArticleItem) {
 
         <!-- Period Control Bar: Unified Period Switcher Capsule -->
         <div
-          class="pt-4 border-t border-slate-200/80 flex flex-wrap items-center justify-between gap-3"
+          class="pt-4 border-t border-[#EFECE6] flex flex-wrap items-center justify-between gap-3"
         >
           <div class="flex flex-wrap items-center gap-3">
             <!-- Unified Period Switcher Capsule (Tahun & Triwulan Rapi Terpadu) -->
             <div
-              class="inline-flex items-center p-1 rounded-xl bg-slate-100/95 border border-slate-200/90 shadow-2xs divide-x divide-slate-200/80"
+              class="inline-flex items-center p-1 rounded-xl bg-[#F2F0EB] border border-[#E7E4DC] shadow-2xs divide-x divide-[#E7E4DC]"
             >
               <!-- Integrated Year Dropdown using Nuxt UI USelect -->
               <div class="pr-2 pl-1.5 py-0.5">
@@ -637,7 +617,7 @@ function openDetailModal(article: PublicArticleItem) {
                   leading-icon="i-solar-calendar-bold-duotone"
                   size="xs"
                   aria-label="Tahun PDRB"
-                  class="w-24 font-bold font-mono text-slate-800"
+                  class="w-24 font-bold font-mono text-[#1A1D1B]"
                   @update:model-value="(val: unknown) => handlePeriodChange(Number(val), selectedQuarter)"
                 />
               </div>
@@ -656,8 +636,8 @@ function openDetailModal(article: PublicArticleItem) {
                   class="min-h-8 px-2.5 py-1 rounded-lg text-xs transition-colors tabular-nums cursor-pointer"
                   :class="
                     selectedQuarter === qBtn.value
-                      ? 'bg-blue-700 text-white font-semibold shadow-2xs'
-                      : 'text-slate-600 hover:text-slate-950 font-medium'
+                      ? 'bg-[#0F4C3A] text-white font-semibold shadow-2xs'
+                      : 'text-[#575B58] hover:text-[#1A1D1B] font-medium'
                   "
                   :title="`${qBtn.label} (${qBtn.range})`"
                   @click="() => { handlePeriodChange(selectedYear, qBtn.value); }"
@@ -671,20 +651,20 @@ function openDetailModal(article: PublicArticleItem) {
             <div class="hidden sm:inline-flex items-center gap-2 font-mono">
               <span
                 v-if="!hasCustomDateRange"
-                class="text-xs text-slate-700 font-semibold"
+                class="text-xs text-[#575B58] font-semibold"
               >
                 {{ periodDisplayLabel }}
               </span>
 
               <div
                 v-else
-                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-50 border border-blue-200/80 text-xs font-semibold text-blue-900"
+                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#E7F3EE] border border-[#C3DFD3] text-xs font-semibold text-[#0F4C3A]"
               >
-                <UIcon name="i-solar-calendar-bold-duotone" class="w-3.5 h-3.5 text-blue-700" />
+                <UIcon name="i-solar-calendar-bold-duotone" class="w-3.5 h-3.5 text-[#0F4C3A]" />
                 <span>Rentang Khusus: {{ customDateRangeLabel }}</span>
                 <button
                   type="button"
-                  class="ml-1 text-blue-500 hover:text-blue-800 cursor-pointer"
+                  class="ml-1 text-[#0F4C3A]/70 hover:text-[#0F4C3A] cursor-pointer"
                   title="Hapus rentang kustom & kembali ke Triwulan murni"
                   @click="() => { selectedDateFrom = ''; selectedDateTo = ''; page = 1; }"
                 >
@@ -696,8 +676,8 @@ function openDetailModal(article: PublicArticleItem) {
 
           <!-- Right Meta & Analytics Panel Toggle -->
           <div class="flex flex-wrap items-center gap-2.5">
-            <span class="text-xs text-slate-600 tabular-nums">
-              Sinkronisasi Terakhir: <strong class="text-slate-800 font-semibold">{{ lastSyncText }}</strong>
+            <span class="text-xs text-[#575B58] tabular-nums">
+              Sinkronisasi Terakhir: <strong class="text-[#1A1D1B] font-semibold">{{ lastSyncText }}</strong>
             </span>
 
             <button
@@ -706,12 +686,12 @@ function openDetailModal(article: PublicArticleItem) {
               class="min-h-9 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-colors cursor-pointer"
               :class="
                 showAnalyticsPanel
-                  ? 'bg-blue-50 text-blue-800 border-blue-200 hover:bg-blue-100'
-                  : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                  ? 'bg-[#E7F3EE] text-[#0F4C3A] border-[#C3DFD3] hover:bg-[#D7E5DF]'
+                  : 'bg-white text-[#3D423F] border-[#E7E4DC] hover:bg-[#FAF9F7]'
               "
               @click="() => { showAnalyticsPanel = !showAnalyticsPanel; }"
             >
-              <UIcon name="i-solar-pie-chart-2-bold-duotone" class="w-4 h-4 text-blue-700" />
+              <UIcon name="i-solar-pie-chart-2-bold-duotone" class="w-4 h-4 text-[#0F4C3A]" />
               <span>{{ showAnalyticsPanel ? 'Tutup Statistik' : 'Lihat Statistik' }}</span>
             </button>
           </div>
@@ -736,14 +716,14 @@ function openDetailModal(article: PublicArticleItem) {
 
       <button
         type="button"
-        class="h-11 px-3.5 rounded-xl bg-white border border-slate-200 text-xs font-semibold text-slate-800 inline-flex items-center gap-1.5 shrink-0 shadow-2xs cursor-pointer font-display"
+        class="h-11 px-3.5 rounded-xl bg-white border border-[#E7E4DC] text-xs font-semibold text-[#1A1D1B] inline-flex items-center gap-1.5 shrink-0 shadow-2xs cursor-pointer font-display hover:bg-[#FAF9F7]"
         @click="() => { mobileFiltersOpen = true; }"
       >
-        <UIcon name="i-solar-filter-bold-duotone" class="w-4 h-4 text-blue-700" />
+        <UIcon name="i-solar-filter-bold-duotone" class="w-4 h-4 text-[#0F4C3A]" />
         <span>Filter</span>
         <span
           v-if="activeFilterCount > 0"
-          class="px-1.5 py-0.5 rounded-full bg-blue-700 text-white text-[10px] font-bold font-mono tabular-nums"
+          class="px-1.5 py-0.5 rounded-full bg-[#0F4C3A] text-white text-[10px] font-bold font-mono tabular-nums"
         >
           {{ activeFilterCount }}
         </span>
@@ -818,30 +798,30 @@ function openDetailModal(article: PublicArticleItem) {
       </div>
 
       <!-- Right Stream / Table Area (Frame terkunci rata dengan sidebar, body internal scrollable) -->
-      <div class="flex-1 min-w-0 w-full h-full flex flex-col overflow-hidden saas-card rounded-2xl bg-white border border-slate-200/90 shadow-sm p-4 sm:p-5">
+      <div class="flex-1 min-w-0 w-full h-full flex flex-col overflow-hidden saas-card rounded-2xl bg-white border border-[#E7E4DC] shadow-sm p-4 sm:p-5">
         <!-- Active Filter Chips Strip -->
         <div
           v-if="activeFilterChips.length > 0"
-          class="px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200/80 mb-3 flex flex-wrap items-center justify-between gap-2 shrink-0"
+          class="px-3.5 py-2.5 rounded-xl bg-[#FAF9F7] border border-[#E7E4DC] mb-3 flex flex-wrap items-center justify-between gap-2 shrink-0"
         >
           <div class="flex flex-wrap items-center gap-1.5">
-            <span class="text-[11px] font-bold text-slate-700">Filter Aktif:</span>
+            <span class="text-[11px] font-bold text-[#3D423F]">Filter Aktif:</span>
             <button
               v-for="chip in activeFilterChips"
               :key="chip.key"
               type="button"
-              class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 hover:bg-blue-100 border border-blue-200 text-[11px] font-semibold text-blue-900 transition-colors cursor-pointer"
+              class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#E7F3EE] hover:bg-[#D7E5DF] border border-[#C3DFD3] text-[11px] font-semibold text-[#0F4C3A] transition-colors cursor-pointer"
               @click="() => { chip.clear(); }"
             >
               <span class="w-1.5 h-1.5 rounded-full shrink-0" :class="chip.dotClass" />
               <span>{{ chip.label }}</span>
-              <UIcon name="i-lucide-x" class="w-3 h-3 text-blue-700" />
+              <UIcon name="i-lucide-x" class="w-3 h-3 text-[#0F4C3A]" />
             </button>
           </div>
 
           <button
             type="button"
-            class="text-[11px] font-semibold text-blue-700 hover:text-blue-900 hover:underline cursor-pointer font-display"
+            class="text-[11px] font-semibold text-[#0F4C3A] hover:underline cursor-pointer font-display"
             @click="resetAllFilters"
           >
             Reset Semua
@@ -873,10 +853,10 @@ function openDetailModal(article: PublicArticleItem) {
 
           <!-- Loading Skeleton -->
           <div v-else-if="articlesPending && !articlesResponse" class="space-y-4">
-            <div v-for="idx in 4" :key="idx" class="rounded-xl border border-slate-100 p-5 space-y-3">
-              <div class="h-3 w-36 rounded bg-slate-200" />
-              <div class="h-5 w-4/5 rounded bg-slate-200" />
-              <div class="h-14 w-full rounded bg-slate-100" />
+            <div v-for="idx in 4" :key="idx" class="rounded-xl border border-[#EFECE6] p-5 space-y-3">
+              <div class="h-3 w-36 rounded bg-[#E7E4DC]" />
+              <div class="h-5 w-4/5 rounded bg-[#E7E4DC]" />
+              <div class="h-14 w-full rounded bg-[#FAF9F7]" />
             </div>
           </div>
 
@@ -886,20 +866,20 @@ function openDetailModal(article: PublicArticleItem) {
             class="p-8 sm:p-10 text-center space-y-4"
           >
             <div
-              class="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-200/80 text-indigo-600 flex items-center justify-center mx-auto"
+              class="w-12 h-12 rounded-2xl bg-[#E7F3EE] border border-[#C3DFD3] text-[#0F4C3A] flex items-center justify-center mx-auto"
             >
               <UIcon name="i-solar-inbox-line-bold-duotone" class="w-6 h-6" />
             </div>
 
             <div class="space-y-1.5 max-w-md mx-auto">
-              <h2 class="text-base font-extrabold text-slate-900">
+              <h2 class="text-base font-extrabold text-[#1A1D1B]">
                 {{
                   activeFilterCount > 0
                     ? 'Tidak ada fenomena yang cocok dengan kombinasi filter'
                     : `Belum ada catatan terverifikasi pada ${currentPeriodLabel}`
                 }}
               </h2>
-              <p class="text-xs text-slate-600 leading-relaxed">
+              <p class="text-xs text-[#5C615E] leading-relaxed">
                 {{
                   activeFilterCount > 0
                     ? 'Coba longgarkan sebagian kriteria sektor KBLI, kelompok permintaan, atau kata kunci pencarian.'
@@ -921,10 +901,10 @@ function openDetailModal(article: PublicArticleItem) {
 
               <button
                 type="button"
-                class="h-9 px-3.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-800 inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+                class="h-9 px-3.5 rounded-xl bg-white hover:bg-[#FAF9F7] border border-[#E7E4DC] text-xs font-semibold text-[#1A1D1B] inline-flex items-center gap-1.5 transition-colors cursor-pointer"
                 @click="() => { handlePeriodChange(previousQuarterInfo.year, previousQuarterInfo.quarter); }"
               >
-                <UIcon name="i-lucide-arrow-left" class="w-3.5 h-3.5 text-slate-500" />
+                <UIcon name="i-lucide-arrow-left" class="w-3.5 h-3.5 text-[#6B6F6C]" />
                 <span>Ke {{ previousQuarterInfo.label }}</span>
               </button>
 
@@ -940,10 +920,9 @@ function openDetailModal(article: PublicArticleItem) {
             </div>
           </div>
 
-          <!-- Mode 1: Master-Detail Split View on XL+ / Stream on Smaller Screens -->
-          <div v-else-if="viewMode === 'stream'" class="grid grid-cols-1 xl:grid-cols-12 gap-5 pt-1">
-            <!-- Left Feed List -->
-            <div class="xl:col-span-6 timeline-spine space-y-6">
+          <!-- Mode 1: Feed Linimasa Penuh & Seimbang -->
+          <div v-else-if="viewMode === 'stream'" class="w-full space-y-6 pt-1">
+            <div class="timeline-spine space-y-6">
               <section
                 v-for="group in timelineDateGroups"
                 :key="group.dateKey"
@@ -965,104 +944,25 @@ function openDetailModal(article: PublicArticleItem) {
                   </span>
                 </div>
 
-                <div class="space-y-3">
-                  <div
+                <div class="space-y-3.5">
+                  <PublicPhenomenonFeedCard
                     v-for="article in group.items"
                     :key="article.id"
-                    class="rounded-2xl transition-all"
-                    :class="
-                      inspectedArticle?.id === article.id
-                        ? 'xl:ring-2 xl:ring-[#0F4C3A] xl:bg-[#F2F7F5]/60'
-                        : ''
-                    "
-                  >
-                    <PublicPhenomenonFeedCard
-                      :article="article"
-                      @select="openDetailModal"
-                    />
-                  </div>
+                    :article="article"
+                    @select="openDetailModal"
+                  />
                 </div>
               </section>
             </div>
-
-            <!-- Right Sticky Master-Detail Article Inspector (Desktop XL+) -->
-            <aside
-              v-if="inspectedArticle"
-              aria-label="Panel Baca Detail Fenomena"
-              class="hidden xl:block xl:col-span-6"
-            >
-              <div class="sticky top-2 bg-[#FAF9F7] border border-[#E7E4DC] rounded-2xl p-6 space-y-5">
-                <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-[#5C615E]">
-                  <span class="px-2.5 py-1 rounded-full bg-[#E7F3EE] text-[#0F4C3A] font-bold">
-                    KBLI {{ inspectedArticle.kbliCategory }}
-                  </span>
-                  <span class="tabular-nums font-medium">
-                    {{ formatDateId(inspectedArticle.publishedAt) }} • {{ inspectedArticle.sourcePortal }}
-                  </span>
-                </div>
-
-                <h2 class="text-xl font-extrabold text-[#1A1D1B] leading-snug font-display">
-                  {{ inspectedArticle.title }}
-                </h2>
-
-                <div class="grid grid-cols-2 gap-3">
-                  <div class="bg-white border border-[#E7E4DC] rounded-xl p-3.5 space-y-1">
-                    <div class="text-[10.5px] font-bold uppercase tracking-wider text-[#6B6F6C]">
-                      Lapangan Usaha (KBLI)
-                    </div>
-                    <div class="text-xs font-bold text-[#1A1D1B]">
-                      {{ getKbliShortCodeName(inspectedArticle.kbliCategory) }}
-                    </div>
-                    <div v-if="inspectedArticle.kbliImpact" class="text-[11px] font-semibold text-[#0F4C3A]">
-                      {{ getKbliImpactBadge(inspectedArticle.kbliImpact).label }}
-                    </div>
-                  </div>
-                  <div class="bg-white border border-[#E7E4DC] rounded-xl p-3.5 space-y-1">
-                    <div class="text-[10.5px] font-bold uppercase tracking-wider text-[#6B6F6C]">
-                      Pengeluaran PDRB
-                    </div>
-                    <div class="text-xs font-bold text-[#1A1D1B]">
-                      {{ inspectedArticle.expenditureComponent ? getExpenditureLabel(inspectedArticle.expenditureComponent, false) : '—' }}
-                    </div>
-                    <div v-if="inspectedArticle.expenditureImpact" class="text-[11px] font-semibold text-[#0F4C3A]">
-                      {{ getExpenditureImpactBadge(inspectedArticle.expenditureImpact).label }}
-                    </div>
-                  </div>
-                </div>
-
-                <p class="text-[13.5px] text-[#3D423F] leading-relaxed whitespace-pre-line">
-                  {{ inspectedArticle.summary }}
-                </p>
-
-                <div class="pt-4 border-t border-[#E7E4DC] flex items-center justify-between gap-3 text-xs">
-                  <a
-                    :href="inspectedArticle.url"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="inline-flex items-center gap-1.5 font-semibold text-[#0F4C3A] hover:underline"
-                  >
-                    <span>Buka Berita Asli</span>
-                    <UIcon name="i-lucide-external-link" class="w-3.5 h-3.5" />
-                  </a>
-                  <button
-                    type="button"
-                    class="px-3 py-1.5 rounded-lg bg-white border border-[#DDD9D0] text-xs font-semibold text-[#1A1D1B] hover:bg-[#F2F0EB] cursor-pointer"
-                    @click="() => { selectedArticle = inspectedArticle; detailModalOpen = true; }"
-                  >
-                    Perbesar Modal
-                  </button>
-                </div>
-              </div>
-            </aside>
           </div>
 
           <!-- Mode 2: Tabel Ringkas -->
-          <div v-else class="rounded-xl border border-slate-200 overflow-hidden bg-white">
-            <div class="px-4 py-2.5 border-b border-slate-200/80 bg-slate-50/80 flex items-center justify-between gap-2">
-              <span class="text-xs font-bold text-slate-900 font-display">
+          <div v-else class="rounded-xl border border-[#E7E4DC] overflow-hidden bg-white">
+            <div class="px-4 py-2.5 border-b border-[#EFECE6] bg-[#FAF9F7] flex items-center justify-between gap-2">
+              <span class="text-xs font-bold text-[#1A1D1B] font-display">
                 Daftar Ringkas Fenomena ({{ articlesResponse.pagination.total }})
               </span>
-              <span class="text-[11px] text-slate-500">Klik baris untuk melihat rangkuman lengkap</span>
+              <span class="text-[11px] text-[#6B6F6C]">Klik baris untuk melihat rangkuman lengkap</span>
             </div>
 
             <div
@@ -1071,11 +971,11 @@ function openDetailModal(article: PublicArticleItem) {
               role="region"
               aria-label="Daftar Ringkas Fenomena Ekonomi Terverifikasi"
             >
-              <table class="min-w-full divide-y divide-slate-200 text-left text-xs">
+              <table class="min-w-full divide-y divide-[#E7E4DC] text-left text-xs">
                 <caption class="sr-only">
                   Daftar ringkas fenomena ekonomi terverifikasi Kabupaten Tana Tidung
                 </caption>
-                <thead class="bg-slate-50 text-slate-700 font-semibold sticky top-0 z-10 font-display">
+                <thead class="bg-[#F2F0EB] text-[#3D423F] font-semibold sticky top-0 z-10 font-display">
                   <tr>
                     <th scope="col" class="px-3.5 py-2.5 whitespace-nowrap">Tanggal</th>
                     <th scope="col" class="px-3.5 py-2.5 min-w-[260px]">Judul Fenomena &amp; Sumber</th>
@@ -1083,32 +983,32 @@ function openDetailModal(article: PublicArticleItem) {
                     <th scope="col" class="px-3.5 py-2.5 min-w-[170px]">Kelompok Permintaan</th>
                   </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100 bg-white">
+                <tbody class="divide-y divide-[#EFECE6] bg-white">
                   <tr
                     v-for="article in articlesResponse.items"
                     :key="article.id"
-                    class="hover:bg-blue-50/40 cursor-pointer transition-colors"
+                    class="hover:bg-[#E7F3EE]/40 cursor-pointer transition-colors"
                     @click="openDetailModal(article)"
                   >
-                    <td class="px-3.5 py-3 align-top whitespace-nowrap font-mono tabular-nums text-slate-700 font-medium">
+                    <td class="px-3.5 py-3 align-top whitespace-nowrap font-mono tabular-nums text-[#3D423F] font-medium">
                       {{ formatDateId(article.publishedAt) }}
-                      <div class="text-[11px] text-slate-500">
+                      <div class="text-[11px] text-[#6B6F6C]">
                         TW {{ toRomanQuarter(article.quarter) }} {{ article.year }}
                       </div>
                     </td>
                     <td class="px-3.5 py-3 align-top space-y-1">
                       <button
                         type="button"
-                        class="text-left font-bold text-slate-900 hover:text-blue-700 leading-snug line-clamp-2 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 rounded font-display"
+                        class="text-left font-bold text-[#1A1D1B] hover:text-[#0F4C3A] leading-snug line-clamp-2 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0F4C3A] rounded font-display"
                         @click.stop="openDetailModal(article)"
                       >
                         {{ article.title }}
                       </button>
-                      <div class="flex items-center gap-2 text-[11px] text-slate-500 font-medium">
+                      <div class="flex items-center gap-2 text-[11px] text-[#6B6F6C] font-medium">
                         <span>{{ article.sourcePortal }}</span>
                         <span
                           v-if="article.subdistrict"
-                          class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200"
+                          class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-semibold bg-[#E7F3EE] text-[#0F4C3A] border border-[#C3DFD3]"
                         >
                           <UIcon name="i-lucide-map-pin" class="w-2.5 h-2.5" />
                           <span>Kec. {{ article.subdistrict }}</span>
@@ -1116,7 +1016,7 @@ function openDetailModal(article: PublicArticleItem) {
                       </div>
                     </td>
                     <td class="px-3.5 py-3 align-top space-y-1">
-                      <div class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-800">
+                      <div class="inline-flex items-center gap-1.5 text-xs font-semibold text-[#1A1D1B]">
                         <span
                           class="w-2 h-2 rounded-full shrink-0"
                           :class="getKbliClusterTheme(article.kbliCategory).accentBarClass"
@@ -1134,7 +1034,7 @@ function openDetailModal(article: PublicArticleItem) {
                       </div>
                     </td>
                     <td class="px-3.5 py-3 align-top space-y-1">
-                      <div class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-800">
+                      <div class="inline-flex items-center gap-1.5 text-xs font-semibold text-[#1A1D1B]">
                         <span
                           class="w-2 h-2 rounded-full shrink-0"
                           :class="getExpenditureColorTheme(article.expenditureComponent).dotClass"
@@ -1161,9 +1061,9 @@ function openDetailModal(article: PublicArticleItem) {
         <!-- Locked Bottom Pagination Toolbar (Rata sejajar di bagian bawah panel) -->
         <div
           v-if="articlesResponse && articlesResponse.pagination.totalPages > 1"
-          class="flex items-center justify-between gap-3 pt-3 border-t border-slate-100 shrink-0 mt-2"
+          class="flex items-center justify-between gap-3 pt-3 border-t border-[#EFECE6] shrink-0 mt-2"
         >
-          <span class="text-xs text-slate-600 tabular-nums font-medium">
+          <span class="text-xs text-[#5C615E] tabular-nums font-medium">
             Halaman {{ articlesResponse.pagination.page }} dari {{ articlesResponse.pagination.totalPages }}
             ({{ formatNumberId(articlesResponse.pagination.total) }} fenomena)
           </span>
@@ -1179,15 +1079,15 @@ function openDetailModal(article: PublicArticleItem) {
 
     <!-- Metodologi & Kurasi Berita Fenomena Ekonomi -->
     <div
-      class="rounded-xl bg-slate-50 border border-slate-200/90 p-4 sm:p-5 flex items-start gap-3.5"
+      class="rounded-xl bg-[#FAF9F7] border border-[#E7E4DC] p-4 sm:p-5 flex items-start gap-3.5"
     >
       <div
-        class="w-9 h-9 rounded-lg bg-blue-700 text-white flex items-center justify-center shrink-0 shadow-xs"
+        class="w-9 h-9 rounded-lg bg-[#0F4C3A] text-white flex items-center justify-center shrink-0 shadow-xs"
       >
         <UIcon name="i-solar-verified-check-bold-duotone" class="w-5 h-5 text-white" />
       </div>
-      <div class="text-xs text-slate-600 space-y-1 leading-relaxed">
-        <div class="font-bold text-slate-900 font-display">
+      <div class="text-xs text-[#5C615E] space-y-1 leading-relaxed">
+        <div class="font-bold text-[#1A1D1B] font-display">
           Standar Kurasi Berita Fenomena Ekonomi Kabupaten Tana Tidung
         </div>
         <p>

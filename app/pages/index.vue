@@ -219,25 +219,25 @@ const taxonomyPillars = [
     title: '17 Kategori KBLI 2025',
     caption: 'Memetakan seluruh 22 huruf KBLI (A–V) Lapangan Usaha resmi BPS secara konsisten.',
     icon: 'i-lucide-layout-grid',
-    iconBoxClass: 'bg-[#EFF6FF] text-[#0B57D0]',
+    iconBoxClass: 'bg-[#E7F3EE] text-[#0F4C3A]',
   },
   {
     title: '6 Komponen Pengeluaran',
     caption: 'Dari Konsumsi Rumah Tangga, PMTB, hingga Ekspor Barang & Jasa daerah.',
     icon: 'i-lucide-pie-chart',
-    iconBoxClass: 'bg-[#ECFDF5] text-[#059669]',
+    iconBoxClass: 'bg-[#E7F3EE] text-[#0F4C3A]',
   },
   {
     title: '4 Sinyal Dinamika Riil',
     caption: 'Membedakan dampak volume output riil (ADHK) dengan pergerakan tingkat harga.',
     icon: 'i-lucide-trending-up',
-    iconBoxClass: 'bg-[#ECFDF5] text-[#059669]',
+    iconBoxClass: 'bg-[#FCECE8] text-[#B4482D]',
   },
   {
     title: 'Verifikasi Human-in-the-Loop',
     caption: 'Setiap berita ditelaah lokus kecamatan dan keabsahan faktanya oleh Tim Nerwilis.',
     icon: 'i-lucide-check-circle-2',
-    iconBoxClass: 'bg-[#EFF6FF] text-[#0B57D0]',
+    iconBoxClass: 'bg-[#E7F3EE] text-[#0F4C3A]',
   },
 ];
 

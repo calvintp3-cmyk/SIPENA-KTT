@@ -46,8 +46,6 @@ const { getExpenditureColorTheme } = usePdrbLabels();
 
 const sectorSearchQuery = ref('');
 
-const totalInPeriod = computed(() => props.overview?.kpi.totalVerified ?? 0);
-
 const sectorOptions = computed<Pdrb17DistributionItem[]>(() => {
   if (props.overview?.pdrb17Distribution?.length) {
     return props.overview.pdrb17Distribution;
@@ -91,13 +89,6 @@ function togglePdrbGroup(code: string) {
   emit('update:pdrbGroups', Array.from(current));
 }
 
-function selectAllPdrbGroups() {
-  emit(
-    'update:pdrbGroups',
-    sectorOptions.value.map((s: Pdrb17DistributionItem) => s.groupCode),
-  );
-}
-
 function clearPdrbGroups() {
   emit('update:pdrbGroups', []);
 }
@@ -128,32 +119,32 @@ const bentoImpactItems = [
     label: 'Aktivitas Naik',
     subLabel: 'Produksi & volume',
     icon: 'i-lucide-trending-up',
-    activeClass: 'border-emerald-500 bg-emerald-50 text-emerald-950 ring-1 ring-emerald-500/20',
-    dotClass: 'bg-emerald-600',
+    activeClass: 'border-[#0F4C3A] bg-[#E7F3EE] text-[#0F4C3A] ring-1 ring-[#0F4C3A]/20',
+    dotClass: 'bg-[#0F4C3A]',
   },
   {
     value: 'CONTRACTION',
     label: 'Aktivitas Turun',
     subLabel: 'Penurunan output',
     icon: 'i-lucide-trending-down',
-    activeClass: 'border-rose-500 bg-rose-50 text-rose-950 ring-1 ring-rose-500/20',
-    dotClass: 'bg-rose-600',
+    activeClass: 'border-[#B4482D] bg-[#FCECE8] text-[#B4482D] ring-1 ring-[#B4482D]/20',
+    dotClass: 'bg-[#C2593F]',
   },
   {
     value: 'PRICE_UP',
     label: 'Harga Naik',
     subLabel: 'Inflasi & tarif',
     icon: 'i-lucide-arrow-up-right',
-    activeClass: 'border-amber-500 bg-amber-50 text-amber-950 ring-1 ring-amber-500/20',
-    dotClass: 'bg-amber-600',
+    activeClass: 'border-[#D97706] bg-[#FEF3C7] text-[#92400E] ring-1 ring-[#D97706]/20',
+    dotClass: 'bg-[#D97706]',
   },
   {
     value: 'PRICE_DOWN',
     label: 'Harga Turun',
     subLabel: 'Deflasi & diskon',
     icon: 'i-lucide-arrow-down-right',
-    activeClass: 'border-sky-500 bg-sky-50 text-sky-950 ring-1 ring-sky-500/20',
-    dotClass: 'bg-sky-600',
+    activeClass: 'border-[#0284C7] bg-[#E0F2FE] text-[#0369A1] ring-1 ring-[#0284C7]/20',
+    dotClass: 'bg-[#0284C7]',
   },
 ];
 
@@ -180,24 +171,24 @@ function setThisMonthRange() {
 <template>
   <aside
     aria-label="Filter Portal Fenomena Ekonomi"
-    class="flex flex-col text-slate-800"
+    class="flex flex-col text-[#1A1D1B]"
     :class="
       inDrawer
         ? 'w-full gap-4'
-        : 'w-full lg:w-[310px] h-full overflow-hidden bg-white border border-slate-200/90 shadow-[0_1px_3px_rgba(15,23,42,0.04),0_6px_16px_-4px_rgba(15,23,42,0.04)] rounded-xl flex flex-col'
+        : 'w-full lg:w-[310px] h-full overflow-hidden bg-white border border-[#E7E4DC] shadow-[0_1px_3px_rgba(26,29,27,0.03),0_6px_16px_-4px_rgba(26,29,27,0.04)] rounded-2xl flex flex-col'
     "
   >
     <!-- Filter Card Header Bar -->
-    <div class="px-4 py-3.5 border-b border-slate-200/80 bg-slate-50/70 flex items-center justify-between shrink-0">
+    <div class="px-4 py-3.5 border-b border-[#EFECE6] bg-[#FAF9F7] flex items-center justify-between shrink-0">
       <div class="inline-flex items-center gap-2">
-        <div class="w-7 h-7 rounded-md bg-blue-50 text-blue-700 border border-blue-200/70 flex items-center justify-center">
+        <div class="w-7 h-7 rounded-lg bg-[#E7F3EE] text-[#0F4C3A] border border-[#C3DFD3] flex items-center justify-center">
           <UIcon name="i-solar-filter-bold-duotone" class="w-4 h-4" />
         </div>
         <div>
-          <span class="text-xs font-bold text-slate-900 block leading-tight font-display">
+          <span class="text-xs font-bold text-[#1A1D1B] block leading-tight font-display">
             Filter Terpadu
           </span>
-          <span class="text-[10px] text-slate-500 font-medium leading-tight font-mono">
+          <span class="text-[10px] text-[#6B6F6C] font-medium leading-tight font-mono">
             {{ activeFilterCount > 0 ? `${activeFilterCount} kriteria aktif` : 'Semua fenomena' }}
           </span>
         </div>
@@ -208,8 +199,8 @@ function setThisMonthRange() {
         class="inline-flex items-center gap-1 text-[11px] font-semibold transition-colors rounded-lg px-2 py-1"
         :class="
           activeFilterCount > 0
-            ? 'text-blue-700 hover:text-blue-900 hover:bg-blue-50 cursor-pointer'
-            : 'text-slate-400 cursor-not-allowed opacity-60'
+            ? 'text-[#0F4C3A] hover:underline cursor-pointer'
+            : 'text-[#6B6F6C] cursor-not-allowed opacity-50'
         "
         :disabled="activeFilterCount === 0"
         @click="() => { emit('reset'); }"
@@ -226,7 +217,7 @@ function setThisMonthRange() {
     >
       <!-- Quick Keyword Search Field inside Filter Bar -->
       <div class="space-y-1.5">
-        <label for="filter-sidebar-search" class="block text-[11px] font-bold text-slate-700 font-display">
+        <label for="filter-sidebar-search" class="block text-[11px] font-bold text-[#3D423F] font-display">
           Cari Kata Kunci
         </label>
         <UInput
@@ -240,16 +231,16 @@ function setThisMonthRange() {
         />
       </div>
 
-      <!-- Filter Rentang Tanggal Rilis Kustom (Nuxt UI + Quick Presets) -->
-      <div class="space-y-2 pt-3 border-t border-slate-100">
+      <!-- Filter Rentang Tanggal Rilis Kustom -->
+      <div class="space-y-2 pt-3 border-t border-[#EFECE6]">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-1.5">
-            <span class="block text-[11px] font-bold text-slate-700 font-display">
+            <span class="block text-[11px] font-bold text-[#3D423F] font-display">
               Rentang Tanggal
             </span>
             <span
               v-if="dateFrom || dateTo"
-              class="px-1.5 py-0.2 rounded-full bg-blue-700 text-white text-[9px] font-bold font-mono"
+              class="px-1.5 py-0.2 rounded-full bg-[#0F4C3A] text-white text-[9px] font-bold font-mono"
             >
               Aktif
             </span>
@@ -257,32 +248,32 @@ function setThisMonthRange() {
           <button
             v-if="dateFrom || dateTo"
             type="button"
-            class="text-[10px] font-semibold text-blue-700 hover:text-blue-900 cursor-pointer font-display"
+            class="text-[10px] font-semibold text-[#0F4C3A] hover:underline cursor-pointer font-display"
             @click="() => { emit('update:dateFrom', ''); emit('update:dateTo', ''); }"
           >
             Reset
           </button>
         </div>
 
-        <!-- Quick Preset Chips using Tailwind & Nuxt UI -->
+        <!-- Quick Preset Chips -->
         <div class="grid grid-cols-3 gap-1 text-[10px] font-mono">
           <button
             type="button"
-            class="px-1.5 py-1 rounded-md bg-slate-100 hover:bg-blue-50 hover:text-blue-700 text-slate-600 border border-slate-200/80 transition-colors cursor-pointer text-center font-medium"
+            class="px-1.5 py-1 rounded-md bg-[#F2F0EB] hover:bg-[#E7E4DC] hover:text-[#1A1D1B] text-[#575B58] border border-[#DDD9D0] transition-colors cursor-pointer text-center font-medium"
             @click="setQuickDateRange(7)"
           >
             7 Hari
           </button>
           <button
             type="button"
-            class="px-1.5 py-1 rounded-md bg-slate-100 hover:bg-blue-50 hover:text-blue-700 text-slate-600 border border-slate-200/80 transition-colors cursor-pointer text-center font-medium"
+            class="px-1.5 py-1 rounded-md bg-[#F2F0EB] hover:bg-[#E7E4DC] hover:text-[#1A1D1B] text-[#575B58] border border-[#DDD9D0] transition-colors cursor-pointer text-center font-medium"
             @click="setQuickDateRange(30)"
           >
             30 Hari
           </button>
           <button
             type="button"
-            class="px-1.5 py-1 rounded-md bg-slate-100 hover:bg-blue-50 hover:text-blue-700 text-slate-600 border border-slate-200/80 transition-colors cursor-pointer text-center font-medium"
+            class="px-1.5 py-1 rounded-md bg-[#F2F0EB] hover:bg-[#E7E4DC] hover:text-[#1A1D1B] text-[#575B58] border border-[#DDD9D0] transition-colors cursor-pointer text-center font-medium"
             @click="setThisMonthRange"
           >
             Bulan Ini
@@ -291,7 +282,7 @@ function setThisMonthRange() {
 
         <div class="grid grid-cols-2 gap-1.5">
           <div class="space-y-1">
-            <label for="filter-date-from" class="text-[10px] font-medium text-slate-500 block">Dari Tanggal</label>
+            <label for="filter-date-from" class="text-[10px] font-medium text-[#6B6F6C] block">Dari Tanggal</label>
             <UInput
               id="filter-date-from"
               :model-value="dateFrom"
@@ -303,7 +294,7 @@ function setThisMonthRange() {
             />
           </div>
           <div class="space-y-1">
-            <label for="filter-date-to" class="text-[10px] font-medium text-slate-500 block">Sampai Tanggal</label>
+            <label for="filter-date-to" class="text-[10px] font-medium text-[#6B6F6C] block">Sampai Tanggal</label>
             <UInput
               id="filter-date-to"
               :model-value="dateTo"
@@ -318,14 +309,14 @@ function setThisMonthRange() {
       </div>
 
       <!-- Sumber Berita & Liputan: Semua | Lokal | Nasional -->
-      <div class="space-y-1.5 pt-3 border-t border-slate-100">
-        <span class="block text-[11px] font-bold text-slate-700">
+      <div class="space-y-1.5 pt-3 border-t border-[#EFECE6]">
+        <span class="block text-[11px] font-bold text-[#3D423F]">
           Cakupan Sumber
         </span>
         <div
           role="group"
           aria-label="Filter Sumber Berita"
-          class="grid grid-cols-3 gap-1 p-1 bg-slate-100/90 rounded-xl border border-slate-200/80 text-center"
+          class="grid grid-cols-3 gap-1 p-1 bg-[#F2F0EB] rounded-xl border border-[#E7E4DC] text-center"
         >
           <button
             v-for="src in sourceButtons"
@@ -335,8 +326,8 @@ function setThisMonthRange() {
             class="py-1 px-1 rounded-lg text-[10px] transition-all whitespace-nowrap cursor-pointer"
             :class="
               sourceType === src.value
-                ? 'font-bold bg-white text-blue-700 shadow-2xs border border-blue-200'
-                : 'text-slate-600 hover:text-slate-900 font-medium'
+                ? 'font-bold bg-[#0F4C3A] text-white shadow-2xs'
+                : 'text-[#575B58] hover:text-[#1A1D1B] font-medium'
             "
             @click="() => { emit('update:sourceType', src.value); }"
           >
@@ -346,15 +337,15 @@ function setThisMonthRange() {
       </div>
 
       <!-- Arah Dinamika Ekonomi (2x2 Bento Chips) -->
-      <div class="space-y-1.5 pt-3 border-t border-slate-100">
+      <div class="space-y-1.5 pt-3 border-t border-[#EFECE6]">
         <div class="flex items-center justify-between">
-          <span class="block text-[11px] font-bold text-slate-700">
+          <span class="block text-[11px] font-bold text-[#3D423F]">
             Arah Dinamika
           </span>
           <button
             v-if="impactMacro !== 'ALL'"
             type="button"
-            class="text-[10px] font-semibold text-blue-700 hover:text-blue-900 cursor-pointer"
+            class="text-[10px] font-semibold text-[#0F4C3A] hover:underline cursor-pointer"
             @click="() => { emit('update:impactMacro', 'ALL'); }"
           >
             Hapus
@@ -371,19 +362,19 @@ function setThisMonthRange() {
             :class="
               impactMacro === chip.value
                 ? chip.activeClass
-                : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50/70 text-slate-700'
+                : 'bg-white border-[#E7E4DC] hover:border-[#0F4C3A]/40 hover:bg-[#FAF9F7] text-[#3D423F]'
             "
             @click="() => { emit('update:impactMacro', impactMacro === chip.value ? 'ALL' : chip.value); }"
           >
             <div class="flex items-center justify-between gap-1">
               <span class="w-1.5 h-1.5 rounded-full shrink-0" :class="chip.dotClass" />
-              <UIcon :name="chip.icon" class="w-3.5 h-3.5 text-slate-500" />
+              <UIcon :name="chip.icon" class="w-3.5 h-3.5 text-[#6B6F6C]" />
             </div>
             <div>
               <div class="font-bold text-[11px] leading-tight">
                 {{ chip.label }}
               </div>
-              <div class="text-[9px] text-slate-500 leading-tight">
+              <div class="text-[9px] text-[#6B6F6C] leading-tight">
                 {{ chip.subLabel }}
               </div>
             </div>
@@ -392,15 +383,15 @@ function setThisMonthRange() {
       </div>
 
       <!-- Sektor Lapangan Usaha (Multi-Select Checklist Terbuka) -->
-      <div class="space-y-2 pt-3 border-t border-slate-100">
+      <div class="space-y-2 pt-3 border-t border-[#EFECE6]">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-1.5">
-            <span class="block text-[11px] font-bold text-slate-700">
+            <span class="block text-[11px] font-bold text-[#3D423F]">
               Lapangan Usaha
             </span>
             <span
               v-if="pdrbGroups.length > 0"
-              class="px-1.5 py-0.2 rounded-full bg-blue-700 text-white text-[9px] font-bold tabular-nums font-mono"
+              class="px-1.5 py-0.2 rounded-full bg-[#0F4C3A] text-white text-[9px] font-bold tabular-nums font-mono"
             >
               {{ pdrbGroups.length }}
             </span>
@@ -408,7 +399,7 @@ function setThisMonthRange() {
           <button
             v-if="pdrbGroups.length > 0"
             type="button"
-            class="text-[10px] font-semibold text-blue-700 hover:text-blue-900 cursor-pointer"
+            class="text-[10px] font-semibold text-[#0F4C3A] hover:underline cursor-pointer"
             @click="clearPdrbGroups"
           >
             Reset
@@ -419,29 +410,29 @@ function setThisMonthRange() {
         <div class="relative">
           <UIcon
             name="i-solar-magnifer-line-duotone"
-            class="w-3 h-3 absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+            class="w-3 h-3 absolute left-2 top-1/2 -translate-y-1/2 text-[#6B6F6C] pointer-events-none"
           />
           <input
             v-model="sectorSearchQuery"
             type="search"
             placeholder="Saring sektor A-U..."
-            class="w-full h-6.5 pl-6 pr-5 bg-slate-50 text-[11px] text-slate-800 placeholder:text-slate-400 rounded-md border border-slate-200 focus:bg-white focus:border-blue-500 focus:outline-none"
+            class="w-full h-6.5 pl-6 pr-5 bg-[#FAF9F7] text-[11px] text-[#1A1D1B] placeholder:text-[#6B6F6C] rounded-md border border-[#E7E4DC] focus:bg-white focus:border-[#0F4C3A] focus:outline-none"
           >
           <button
             v-if="sectorSearchQuery"
             type="button"
-            class="absolute right-1 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700"
+            class="absolute right-1 top-1/2 -translate-y-1/2 text-[#6B6F6C] hover:text-[#1A1D1B]"
             @click="sectorSearchQuery = ''"
           >
             <UIcon name="i-lucide-x" class="w-2.5 h-2.5" />
           </button>
         </div>
 
-        <!-- Checklist List Container (Max Height with scroll) -->
+        <!-- Checklist List Container -->
         <div
           role="group"
           aria-label="Daftar Checklist Lapangan Usaha"
-          class="max-h-52 overflow-y-auto saas-scroll space-y-1 pr-1 border border-slate-100 rounded-xl p-1 bg-slate-50/50"
+          class="max-h-52 overflow-y-auto saas-scroll space-y-1 pr-1 border border-[#EFECE6] rounded-xl p-1 bg-[#FAF9F7]"
         >
           <button
             v-for="sector in filteredSectors"
@@ -450,8 +441,8 @@ function setThisMonthRange() {
             class="w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-left transition-colors cursor-pointer group"
             :class="
               pdrbGroups.includes(sector.groupCode)
-                ? 'bg-white font-semibold text-blue-950 shadow-2xs border border-blue-200/80'
-                : 'hover:bg-white text-slate-700 font-normal'
+                ? 'bg-white font-semibold text-[#0F4C3A] shadow-2xs border border-[#C3DFD3]'
+                : 'hover:bg-white text-[#575B58] font-normal'
             "
             @click="togglePdrbGroup(sector.groupCode)"
           >
@@ -460,14 +451,14 @@ function setThisMonthRange() {
                 type="checkbox"
                 tabindex="-1"
                 :checked="pdrbGroups.includes(sector.groupCode)"
-                class="w-3.5 h-3.5 rounded border-slate-300 text-blue-700 focus:ring-blue-600 cursor-pointer pointer-events-none shrink-0"
+                class="w-3.5 h-3.5 rounded border-[#DDD9D0] text-[#0F4C3A] focus:ring-[#0F4C3A] cursor-pointer pointer-events-none shrink-0"
               >
               <span
                 class="min-w-6 px-1 h-4.5 rounded text-[9px] font-bold flex items-center justify-center shrink-0 font-mono"
                 :class="
                   pdrbGroups.includes(sector.groupCode)
-                    ? 'bg-blue-700 text-white'
-                    : 'bg-slate-200 text-slate-700'
+                    ? 'bg-[#0F4C3A] text-white'
+                    : 'bg-[#E7E4DC] text-[#3D423F]'
                 "
               >
                 {{ sector.groupCode }}
@@ -482,9 +473,9 @@ function setThisMonthRange() {
               :class="
                 sector.count > 0
                   ? pdrbGroups.includes(sector.groupCode)
-                    ? 'text-blue-700'
-                    : 'text-slate-700 font-bold'
-                  : 'text-slate-400'
+                    ? 'text-[#0F4C3A]'
+                    : 'text-[#1A1D1B] font-bold'
+                  : 'text-[#DDD9D0]'
               "
             >
               {{ sector.count }}
@@ -494,15 +485,15 @@ function setThisMonthRange() {
       </div>
 
       <!-- Kelompok Permintaan & Pengeluaran (Multi-Select Checklist Terbuka) -->
-      <div class="space-y-2 pt-3 border-t border-slate-100">
+      <div class="space-y-2 pt-3 border-t border-[#EFECE6]">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-1.5">
-            <span class="block text-[11px] font-bold text-slate-700 font-display">
+            <span class="block text-[11px] font-bold text-[#3D423F] font-display">
               Kelompok Pengeluaran
             </span>
             <span
               v-if="expenditures.length > 0"
-              class="px-1.5 py-0.2 rounded-full bg-blue-700 text-white text-[9px] font-bold font-mono tabular-nums"
+              class="px-1.5 py-0.2 rounded-full bg-[#0F4C3A] text-white text-[9px] font-bold font-mono tabular-nums"
             >
               {{ expenditures.length }}
             </span>
@@ -510,7 +501,7 @@ function setThisMonthRange() {
           <button
             v-if="expenditures.length > 0"
             type="button"
-            class="text-[10px] font-semibold text-blue-700 hover:text-blue-900 cursor-pointer font-display"
+            class="text-[10px] font-semibold text-[#0F4C3A] hover:underline cursor-pointer font-display"
             @click="clearExpenditures"
           >
             Reset
@@ -520,7 +511,7 @@ function setThisMonthRange() {
         <div
           role="group"
           aria-label="Filter Kelompok Pengeluaran"
-          class="space-y-1 border border-slate-100 rounded-xl p-1 bg-slate-50/50"
+          class="space-y-1 border border-[#EFECE6] rounded-xl p-1 bg-[#FAF9F7]"
         >
           <button
             v-for="item in PDRB_6_EXPENDITURE_LIST"
@@ -529,8 +520,8 @@ function setThisMonthRange() {
             class="w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-left transition-colors cursor-pointer group"
             :class="
               expenditures.includes(item.code)
-                ? 'bg-white font-semibold text-blue-900 shadow-2xs border border-blue-200/80'
-                : 'hover:bg-white text-slate-700 font-normal'
+                ? 'bg-white font-semibold text-[#0F4C3A] shadow-2xs border border-[#C3DFD3]'
+                : 'hover:bg-white text-[#575B58] font-normal'
             "
             :title="item.official"
             @click="toggleExpenditure(item.code)"
@@ -540,7 +531,7 @@ function setThisMonthRange() {
                 type="checkbox"
                 tabindex="-1"
                 :checked="expenditures.includes(item.code)"
-                class="w-3.5 h-3.5 rounded border-slate-300 text-blue-700 focus:ring-blue-500 cursor-pointer pointer-events-none shrink-0"
+                class="w-3.5 h-3.5 rounded border-[#DDD9D0] text-[#0F4C3A] focus:ring-[#0F4C3A] cursor-pointer pointer-events-none shrink-0"
               >
               <span
                 class="w-2 h-2 rounded-full shrink-0 shadow-xs"
@@ -557,9 +548,9 @@ function setThisMonthRange() {
               :class="
                 (expenditureCountMap.get(item.code) ?? 0) > 0
                   ? expenditures.includes(item.code)
-                    ? 'text-blue-700 font-bold'
-                    : 'text-slate-700 font-bold'
-                  : 'text-slate-400'
+                    ? 'text-[#0F4C3A] font-bold'
+                    : 'text-[#1A1D1B] font-bold'
+                  : 'text-[#DDD9D0]'
               "
             >
               {{ expenditureCountMap.get(item.code) ?? 0 }}

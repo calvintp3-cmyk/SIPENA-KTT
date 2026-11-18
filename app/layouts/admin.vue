@@ -327,7 +327,7 @@ onBeforeUnmount(() => {
       </nav>
 
       <!-- Sidebar Footer Profile & Portal Link -->
-      <div class="p-3 border-t border-slate-200/80 space-y-2.5 bg-slate-50/75">
+      <div class="p-3 border-t border-[#EFECE6] space-y-2.5 bg-[#FAF9F7]">
         <UTooltip
           text="Lihat Portal Publik"
           :disabled="!isSidebarCollapsed"
@@ -336,39 +336,39 @@ onBeforeUnmount(() => {
           <NuxtLink
             to="/linimasa"
             aria-label="Lihat Portal Publik"
-            class="w-full min-h-9 inline-flex items-center rounded-xl border border-slate-200/90 bg-white hover:border-blue-300 hover:bg-blue-50/40 text-xs font-semibold text-slate-700 hover:text-blue-800 transition-colors shadow-2xs"
+            class="w-full min-h-9 inline-flex items-center rounded-xl border border-[#E7E4DC] bg-white hover:border-[#0F4C3A] hover:bg-[#E7F3EE]/40 text-xs font-semibold text-[#3D423F] hover:text-[#0F4C3A] transition-colors shadow-2xs"
             :class="isSidebarCollapsed ? 'justify-center p-2.5' : 'justify-between px-3 py-2'"
           >
             <span class="inline-flex items-center gap-2">
-              <UIcon name="i-solar-calendar-search-bold-duotone" class="w-4 h-4 text-emerald-700 shrink-0" />
+              <UIcon name="i-solar-calendar-search-bold-duotone" class="w-4 h-4 text-[#0F4C3A] shrink-0" />
               <span v-if="!isSidebarCollapsed">Lihat Portal Publik</span>
             </span>
-            <UIcon v-if="!isSidebarCollapsed" name="i-lucide-arrow-up-right" class="w-3.5 h-3.5 text-slate-500" />
+            <UIcon v-if="!isSidebarCollapsed" name="i-lucide-arrow-up-right" class="w-3.5 h-3.5 text-[#6B6F6C]" />
           </NuxtLink>
         </UTooltip>
 
         <div
           v-if="!isSidebarCollapsed"
-          class="rounded-xl bg-white border border-slate-200/90 p-2.5 flex items-center gap-2.5 shadow-2xs"
+          class="rounded-xl bg-white border border-[#E7E4DC] p-2.5 flex items-center gap-2.5 shadow-2xs"
         >
           <div
-            class="h-8 w-8 rounded-full bg-slate-900 text-white font-bold text-xs flex items-center justify-center shrink-0 font-mono shadow-2xs"
+            class="h-8 w-8 rounded-full bg-[#0F4C3A] text-white font-bold text-xs flex items-center justify-center shrink-0 font-mono shadow-2xs"
           >
             {{ userInitials }}
           </div>
           <div class="min-w-0 flex-1">
             <div class="flex items-center gap-1.5">
-              <span class="text-xs font-bold text-slate-900 truncate">
+              <span class="text-xs font-bold text-[#1A1D1B] truncate">
                 {{ user?.name || 'Administrator' }}
               </span>
               <span
                 v-if="user?.role === UserRoleEnum.ADMIN"
-                class="px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200/80 text-[10px] font-bold shrink-0 font-mono"
+                class="px-1.5 py-0.5 rounded-full bg-[#E7F3EE] text-[#0F4C3A] border border-[#C3DFD3] text-[10px] font-bold shrink-0 font-mono"
               >
                 Admin
               </span>
             </div>
-            <div class="text-[11px] text-slate-600 truncate">
+            <div class="text-[11px] text-[#5C615E] truncate">
               {{ user?.email || 'Nerwilis KTT' }}
             </div>
           </div>
@@ -377,7 +377,7 @@ onBeforeUnmount(() => {
             aria-label="Keluar dari sesi admin"
             title="Keluar"
             :disabled="isLoggingOut"
-            class="min-w-9 min-h-9 inline-flex items-center justify-center rounded-lg text-slate-600 hover:text-rose-700 hover:bg-rose-50 transition-colors shrink-0 cursor-pointer"
+            class="min-w-9 min-h-9 inline-flex items-center justify-center rounded-lg text-[#6B6F6C] hover:text-rose-700 hover:bg-rose-50 transition-colors shrink-0 cursor-pointer"
             @click="handleLogout"
           >
             <UIcon name="i-lucide-log-out" class="w-4 h-4" />
@@ -390,7 +390,7 @@ onBeforeUnmount(() => {
               type="button"
               aria-label="Keluar dari sesi admin"
               :disabled="isLoggingOut"
-              class="w-10 h-10 rounded-xl bg-white border border-slate-200 hover:border-rose-200 hover:bg-rose-50 text-slate-600 hover:text-rose-700 inline-flex items-center justify-center transition-colors cursor-pointer"
+              class="w-10 h-10 rounded-xl bg-white border border-[#E7E4DC] hover:border-rose-200 hover:bg-rose-50 text-[#6B6F6C] hover:text-rose-700 inline-flex items-center justify-center transition-colors cursor-pointer"
               @click="handleLogout"
             >
               <UIcon name="i-lucide-log-out" class="w-4 h-4" />
@@ -411,8 +411,8 @@ onBeforeUnmount(() => {
       <template #body>
         <div class="space-y-5">
           <!-- Mobile Global Period Selector inside Drawer -->
-          <div class="rounded-xl bg-slate-50 border border-slate-200/90 p-3 space-y-2.5">
-            <label for="admin-mobile-drawer-year" class="block text-xs font-bold text-slate-800">
+          <div class="rounded-xl bg-[#FAF9F7] border border-[#E7E4DC] p-3 space-y-2.5">
+            <label for="admin-mobile-drawer-year" class="block text-xs font-bold text-[#1A1D1B]">
               Periode Analisis Global ({{ shortPeriodLabel }})
             </label>
             <USelect
@@ -429,7 +429,7 @@ onBeforeUnmount(() => {
             <div
               role="group"
               aria-label="Pilih Triwulan Global Mobile"
-              class="grid grid-cols-4 gap-1 p-1 bg-white rounded-xl border border-slate-200/90 font-mono"
+              class="grid grid-cols-4 gap-1 p-1 bg-white rounded-xl border border-[#E7E4DC] font-mono"
             >
               <button
                 v-for="chip in quarterChips"
@@ -439,8 +439,8 @@ onBeforeUnmount(() => {
                 class="min-h-9 px-2 py-1 rounded-lg text-xs tabular-nums transition-colors cursor-pointer"
                 :class="
                   selectedQuarter === chip.value
-                    ? 'bg-blue-700 text-white font-bold shadow-2xs'
-                    : 'text-slate-700 hover:bg-slate-100 font-medium'
+                    ? 'bg-[#0F4C3A] text-white font-bold shadow-2xs'
+                    : 'text-[#3D423F] hover:bg-[#F2F0EB] font-medium'
                 "
                 @click="() => { setPeriod(selectedYear, chip.value); }"
               >
@@ -451,7 +451,7 @@ onBeforeUnmount(() => {
 
           <nav aria-label="Menu Mobile Admin" class="space-y-5">
             <div v-for="group in navGroups" :key="group.title" class="space-y-1">
-              <div class="px-2 pb-1 text-[11px] font-semibold tracking-wide text-slate-600 font-display">
+              <div class="px-2 pb-1 text-[11px] font-semibold tracking-wide text-[#5C615E] font-display">
                 {{ group.title }}
               </div>
               <NuxtLink
@@ -462,15 +462,15 @@ onBeforeUnmount(() => {
                 class="flex items-center justify-between gap-2 px-3 py-2.5 min-h-11 rounded-xl text-sm transition-colors"
                 :class="
                   isActiveRoute(item)
-                    ? 'active-nav-card text-blue-950 font-semibold shadow-xs border border-blue-200/80 bg-blue-50/70'
-                    : 'text-slate-700 hover:bg-slate-100 font-medium'
+                    ? 'active-nav-card text-[#0F4C3A] font-semibold shadow-xs border border-[#C3DFD3] bg-[#E7F3EE]'
+                    : 'text-[#3D423F] hover:bg-[#F2F0EB] font-medium'
                 "
               >
                 <span class="flex items-center gap-2.5 min-w-0">
                   <UIcon
                     :name="item.icon"
                     class="w-[18px] h-[18px] shrink-0"
-                    :class="isActiveRoute(item) ? 'text-blue-700' : 'text-slate-500'"
+                    :class="isActiveRoute(item) ? 'text-[#0F4C3A]' : 'text-[#6B6F6C]'"
                   />
                   <span class="truncate">{{ item.label }}</span>
                 </span>
