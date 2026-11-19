@@ -2,8 +2,8 @@
 import { load, type CheerioAPI } from 'cheerio';
 
 export const EXTRACTOR_MIN_WORDS = 300;
-export const EXTRACTOR_MAX_WORDS = 450;
-export const EXTRACTOR_MAX_CHARS = 2800;
+export const EXTRACTOR_MAX_WORDS = 25_000;
+export const EXTRACTOR_MAX_CHARS = 180_000;
 export const EXTRACTOR_MIN_VALID_WORDS = 30;
 
 const INDONESIAN_MONTHS: Record<string, number> = {
@@ -89,12 +89,52 @@ const NOISE_ELEMENT_SELECTORS = [
   '.share-buttons',
   '.social-share',
   '.author-box',
+  '.author-bio',
+  '.penulis-wrapper',
+  '.reporter-box',
+  '.editor-box',
   '.breadcrumb',
   '.comments',
   '#comments',
   '.caption-photo',
   'figcaption',
   '[aria-hidden="true"]',
+  '.ads-holder',
+  '.ad-box',
+  '.ad-container',
+  '.ad-middle',
+  '.banner-ad',
+  '.floating-ad',
+  '.newsletter-box',
+  '.newsletter-signup',
+  '.subscription-box',
+  '.paywall',
+  '.membership-prompt',
+  '.baca-juga-link',
+  '.bacajuga-wrapper',
+  '.terkait-wrapper',
+  '.berita-terkait-box',
+  '.kompas-plus',
+  '.baca-cepat',
+  '.kompascom-apps',
+  '.app-promo',
+  '.share-wrapper',
+  '.social-share-wrapper',
+  '.share-box',
+  '.share-bar',
+  '.sosmed-share',
+  '.video-container',
+  '.video-embedded-box',
+  '.jwplayer',
+  '.video-player',
+  '.feed-ad',
+  '.native-ad-box',
+  '.banner-sticky',
+  '.telegram-channel',
+  '.whatsapp-channel',
+  '.wa-channel',
+  '[id*="google_ads"]',
+  '[id*="div-gpt-ad"]',
 ].join(', ');
 
 const CONTENT_CONTAINER_SELECTORS = [
@@ -142,6 +182,20 @@ const NOISE_PARAGRAPH_PATTERNS: RegExp[] = [
   /^(?:rekomendasi\s+untuk\s+anda|pilihan\s+editor|trending\s+topic|populer\s+hari\s+ini)/i,
   /^simak\s+berita\s+lainnya\s+di\s+google\s+news/i,
   /^baca\s+artikel\s+detik(?:news|finance)?\s+/i,
+  /^baca\s+berita\s+tanpa\s+iklan/i,
+  /^gabung\s+kompas(?:\.com)?\s+plus/i,
+  /^(?:download|unduh)\s+aplikasi/i,
+  /^pilihan\s+editor\s*:/i,
+  /^topik\s+terkait\s*:/i,
+  /^jangan\s+lewatkan\s*:/i,
+  /^ikuti\s+(?:kami|saluran|channel|akun)\b/i,
+  /^simak\s+breaking\s+news/i,
+  /^ikuti\s+whatsapp\s+channel/i,
+  /^bergabung\s+di\s+grup\s+telegram/i,
+  /^(?:share|bagikan)\s*:/i,
+  /^(?:sumber|source)\s*:\s*(?:antara|tribunkaltara|korankaltara|radartarakan|benuanta|pemkab tana tidung|bps)/i,
+  /^video\s+terkait\s*:/i,
+  /^baca\s+juga\s+artikel\s+/i,
   /^simak\s+video\b/i,
   /^tonton\s+video\b/i,
   /^klik\s+(?:di\s+sini|tautan|link)\b/i,
@@ -227,7 +281,8 @@ export function trimToWordAndCharBudget(
 }
 
 /**
- * Mengakumulasi teks paragraf bersih hingga ambang batas 150-250 kata (~1.000-1.500 karakter).
+ * Mengakumulasi teks naskah artikel utuh yang bersih secara lengkap tanpa memotong paksa di 300 kata,
+ * menapis seluruh iklan sampah, paragraf noise, serta menjaga batas aman DoS memori.
  */
 export function accumulateParagraphsToThreshold(paragraphs: string[]): {
   snippetText: string;
@@ -244,12 +299,9 @@ export function accumulateParagraphsToThreshold(paragraphs: string[]): {
   for (const p of cleanParagraphs) {
     const pWords = countWords(p);
 
-    if (runningWords >= EXTRACTOR_MIN_WORDS) {
-      break;
-    }
-
     const joinedSoFar = accumulated.length > 0 ? `${accumulated.join('\n\n')}\n\n${p}` : p;
 
+    // Batas pengaman DoS ekstrem (25.000 kata / 180.000 karakter)
     if (
       runningWords + pWords > EXTRACTOR_MAX_WORDS ||
       joinedSoFar.length > EXTRACTOR_MAX_CHARS
@@ -258,7 +310,7 @@ export function accumulateParagraphsToThreshold(paragraphs: string[]): {
         joinedSoFar,
         EXTRACTOR_MAX_WORDS,
         EXTRACTOR_MAX_CHARS,
-        EXTRACTOR_MIN_WORDS,
+        EXTRACTOR_MIN_VALID_WORDS,
       );
       const finalWordCount = countWords(trimmed);
       return {
@@ -273,16 +325,10 @@ export function accumulateParagraphsToThreshold(paragraphs: string[]): {
   }
 
   const combined = accumulated.join('\n\n');
-  const trimmed = trimToWordAndCharBudget(
-    combined,
-    EXTRACTOR_MAX_WORDS,
-    EXTRACTOR_MAX_CHARS,
-    EXTRACTOR_MIN_VALID_WORDS,
-  );
-  const wordCount = countWords(trimmed);
+  const wordCount = countWords(combined);
 
   return {
-    snippetText: trimmed,
+    snippetText: combined,
     wordCount,
     isValidContent: wordCount >= EXTRACTOR_MIN_VALID_WORDS,
   };

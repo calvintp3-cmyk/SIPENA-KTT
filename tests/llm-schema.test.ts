@@ -174,7 +174,7 @@ describe('LLM Classifier Schema & Gemini Worker Resilience', () => {
     const longSentence =
       'Produksi kelapa sawit dan komoditas unggulan di Kabupaten Tana Tidung menunjukkan kenaikan volume pengapalan pada awal triwulan keempat.';
     const longArticle = Array.from({ length: 24 }, () => longSentence).join(' ');
-    const compressed = compressArticleTextForLlm(longArticle);
+    const compressed = compressArticleTextForLlm(longArticle, 290, 1900);
     expect(compressed.split(/\s+/).length).toBeLessThanOrEqual(290);
     expect(compressed.length).toBeLessThanOrEqual(1900);
     expect(compressed.endsWith('.')).toBe(true);

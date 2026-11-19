@@ -39,8 +39,8 @@ export type LlmProviderName =
   | 'nvidia'
   | 'openrouter';
 
-export const DEFAULT_GROQ_PRIMARY_MODEL = 'qwen/qwen3.8-27b' as const;
-export const DEFAULT_GROQ_FALLBACK_MODEL = 'openai/gpt-oss-120b' as const;
+export const DEFAULT_GROQ_PRIMARY_MODEL = 'llama-3.3-70b-versatile' as const;
+export const DEFAULT_GROQ_FALLBACK_MODEL = 'llama-3.1-8b-instant' as const;
 export const DEFAULT_CEREBRAS_MODEL = 'llama-3.3-70b' as const;
 export const DEFAULT_MISTRAL_MODEL = 'mistral-small-latest' as const;
 export const DEFAULT_NVIDIA_MODEL = 'meta/llama-3.3-70b-instruct' as const;

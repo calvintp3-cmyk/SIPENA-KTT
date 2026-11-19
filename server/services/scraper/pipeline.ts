@@ -802,11 +802,6 @@ async function executeLockedScrapePipeline(
               isSameArticlePaginationUrl(rawFinalUrl, currentPageUrl) &&
               hasRemainingBudget(400)
             ) {
-              // Early stop jika akumulasi kata sudah mencukupi target analisis PDRB (>= 300 kata)
-              if (extracted.wordCount >= EXTRACTOR_MIN_WORDS) {
-                break;
-              }
-
               visitedPageUrls.add(currentPageUrl);
               pageIter += 1;
               try {
@@ -839,18 +834,12 @@ async function executeLockedScrapePipeline(
                     }
                     break;
                   } else {
-                    // Jika halaman numerik berantai (mis. /page/2/), sambungkan teksnya dengan batasan anggaran rapi
+                    // Jika halaman numerik berantai (mis. /page/2/), sambungkan teks seluruh halaman secara lengkap
                     const combinedSnippet = `${extracted.snippetText}\n\n${fullExtracted.snippetText}`.trim();
-                    const trimmedSnippet = trimToWordAndCharBudget(
-                      combinedSnippet,
-                      EXTRACTOR_MAX_WORDS,
-                      EXTRACTOR_MAX_CHARS,
-                      EXTRACTOR_MIN_WORDS,
-                    );
                     extracted = {
                       ...extracted,
-                      snippetText: trimmedSnippet,
-                      wordCount: countWords(trimmedSnippet),
+                      snippetText: combinedSnippet,
+                      wordCount: countWords(combinedSnippet),
                     };
                     currentPageUrl = fullExtracted.nextFullPageUrl;
                   }

@@ -33,13 +33,13 @@ function generateWords(n: number, prefix = 'ekonomi'): string {
 }
 
 describe('Scraper Extractor & Portal/RSS Parsers', () => {
-  it('mengakumulasi paragraf pendek menjadi 300-450 kata dan maksimal 2.800 karakter', () => {
+  it('mengakumulasi seluruh paragraf naskah artikel utuh tanpa memotong paksa di 300 kata sambil membuang iklan dan noise', () => {
     const paragraphs = [
       'TANJUNG SELOR --', // dateline noise -> dibuang
       'Baca juga: Daftar wisata terbaru di Kalimantan Utara', // baca juga noise -> dibuang
       `${generateWords(110, 'sawit')}.`,
       `${generateWords(110, 'tana')}.`,
-      `${generateWords(120, 'ekspor')}.`, // total bersih = 340 kata -> berhenti di sini
+      `${generateWords(120, 'ekspor')}.`,
       `${generateWords(110, 'tambahan')}.`,
     ];
 
@@ -49,11 +49,11 @@ describe('Scraper Extractor & Portal/RSS Parsers', () => {
     expect(result.wordCount).toBeLessThanOrEqual(EXTRACTOR_MAX_WORDS);
     expect(result.snippetText.length).toBeLessThanOrEqual(EXTRACTOR_MAX_CHARS);
     expect(result.snippetText).not.toContain('Baca juga');
-    expect(result.snippetText).not.toContain('tambahan1');
+    expect(result.snippetText).toContain('tambahan1');
   });
 
-  it('memangkas artikel paragraf panjang tunggal secara rapi <= 450 kata dan <= 2.800 karakter', () => {
-    const giantParagraph = `${generateWords(280, 'pdrb')}. ${generateWords(250, 'investasi')}.`;
+  it('memangkas artikel paragraf luar biasa panjang bila melebihi batas pengaman DoS', () => {
+    const giantParagraph = `${generateWords(1500, 'pdrb')}. ${generateWords(1500, 'investasi')}.`;
     const result = accumulateParagraphsToThreshold([giantParagraph]);
 
     expect(result.isValidContent).toBe(true);

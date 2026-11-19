@@ -16,8 +16,8 @@ import {
 } from '../../../shared/schemas/llm-output.schema';
 import { formatDateId } from '../../../shared/utils/period';
 
-export const COMPRESS_MAX_WORDS_FOR_LLM = 290;
-export const COMPRESS_MAX_CHARS_FOR_LLM = 1900;
+export const COMPRESS_MAX_WORDS_FOR_LLM = 3_500;
+export const COMPRESS_MAX_CHARS_FOR_LLM = 24_000;
 
 export const SIPENA_SYSTEM_INSTRUCTION_FULL = `Anda adalah Analis Senior Neraca Wilayah (PDRB) Badan Pusat Statistik (BPS) Kabupaten Tana Tidung (KTT), Provinsi Kalimantan Utara.
 
