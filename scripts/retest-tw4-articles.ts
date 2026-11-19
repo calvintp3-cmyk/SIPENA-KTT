@@ -116,12 +116,13 @@ async function main() {
       const classifyChain =
         process.env.LLM_CLASSIFY_CHAIN ||
         runtimeOpts.routerOptions?.env?.llmClassifyChain ||
-        'gemini:gemini-3.5-flash-lite,groq:qwen/qwen3.8-27b,groq:openai/gpt-oss-120b';
+        'gemini:gemini-3.5-flash-lite,groq:qwen/qwen3.8-27b';
 
       const llmRouter = new MultiLlmRouter({
         task: 'classify',
         maxCallsPerRun: 3000,
         transientRetryDelayMs: 3000,
+        rateLimitCooldownMs: 12000,
         ...(runtimeOpts.routerOptions ?? {}),
         env: {
           ...(runtimeOpts.routerOptions?.env ?? {}),
@@ -134,7 +135,7 @@ async function main() {
       let lokusCorrectedCount = 0;
       let econFlippedCount = 0;
 
-      await asyncPool(2, rows, async (row, idx) => {
+      await asyncPool(1, rows, async (row, idx) => {
         try {
           console.log(`[${idx + 1}/${rows.length}] "${row.title.slice(0, 52)}..."`);
           console.log(`    Portal: ${row.source_portal} | Kata lama: ${row.word_count}`);
@@ -175,8 +176,8 @@ async function main() {
           });
 
           if (!classificationRes.ok) {
-            console.warn(`    [AI RETRY] Gagal (${classificationRes.errorCode}): ${classificationRes.errorMessage}. Jeda 3s sebelum retry...`);
-            await new Promise((r) => setTimeout(r, 3000));
+            console.warn(`    [AI RETRY] Gagal (${classificationRes.errorCode}): ${classificationRes.errorMessage}. Jeda 12s sebelum retry...`);
+            await new Promise((r) => setTimeout(r, 12000));
             classificationRes = await llmRouter.classifyArticle({
               title: row.title,
               sourcePortal: row.source_portal,
@@ -261,6 +262,7 @@ async function main() {
         } catch (err: any) {
           console.error(`    [ERROR] Gagal memproses artikel ${row.id}: ${err.message}`);
         }
+        await new Promise((r) => setTimeout(r, 2000));
         console.log('');
       });
 
