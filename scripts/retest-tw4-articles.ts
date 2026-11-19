@@ -163,8 +163,9 @@ async function main() {
             console.log(`    [LOKUS] Koreksi Kecamatan: ${row.subdistrict ?? 'None'} -> ${newSubdistrict ?? 'None'}`);
           }
 
-          // Jalankan klasifikasi ulang AI dengan konteks teks utuh
+          // Jalankan klasifikasi ulang AI dengan konteks teks lead paragraphs (maks 300 kata agar hemat token Groq)
           const period = getQuarterFromDateWita(row.published_at);
+          const classificationSnippet = fullText.split(/\s+/).slice(0, 300).join(' ');
           let classificationRes = await llmRouter.classifyArticle({
             title: row.title,
             sourcePortal: row.source_portal,
@@ -172,12 +173,12 @@ async function main() {
             publishedAtWita: formatDateTimeWita(row.published_at),
             defaultQuarter: period.quarter,
             defaultYear: period.year,
-            snippetText: fullText,
+            snippetText: classificationSnippet,
           });
 
           if (!classificationRes.ok) {
-            console.warn(`    [AI RETRY] Gagal (${classificationRes.errorCode}): ${classificationRes.errorMessage}. Jeda 12s sebelum retry...`);
-            await new Promise((r) => setTimeout(r, 12000));
+            console.warn(`    [AI RETRY] Gagal (${classificationRes.errorCode}): ${classificationRes.errorMessage}. Jeda 25s sebelum retry...`);
+            await new Promise((r) => setTimeout(r, 25000));
             classificationRes = await llmRouter.classifyArticle({
               title: row.title,
               sourcePortal: row.source_portal,
@@ -185,7 +186,7 @@ async function main() {
               publishedAtWita: formatDateTimeWita(row.published_at),
               defaultQuarter: period.quarter,
               defaultYear: period.year,
-              snippetText: fullText,
+              snippetText: classificationSnippet,
             });
           }
 
@@ -262,7 +263,7 @@ async function main() {
         } catch (err: any) {
           console.error(`    [ERROR] Gagal memproses artikel ${row.id}: ${err.message}`);
         }
-        await new Promise((r) => setTimeout(r, 2000));
+        await new Promise((r) => setTimeout(r, 12000));
         console.log('');
       });
 
