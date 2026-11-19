@@ -10,7 +10,7 @@ import { MultiLlmRouter } from '../server/services/llm/router';
 import { mapClassificationToPersistence } from '../server/services/llm/classifier';
 import { safeFetchText } from '../server/utils/ssrf';
 import { formatDateTimeWita, getQuarterFromDateWita } from '../shared/utils/period';
-import { ScraperRunTypeEnum } from '../shared/enums/pdrb';
+import { ScraperRunTypeEnum, VerificationStatusEnum } from '../shared/enums/pdrb';
 
 interface ArticleRow {
   id: string;
@@ -27,6 +27,7 @@ interface ArticleRow {
   is_economic_phenomenon: boolean | null;
   kbli_category: string | null;
   expenditure_component: string | null;
+  verification_status: string;
 }
 
 async function asyncPool<T, R>(
@@ -74,7 +75,7 @@ async function main() {
       SELECT 
         id, url, title, source_portal, source_type, snippet_text, word_count,
         published_at, quarter, year, subdistrict, is_economic_phenomenon,
-        kbli_category, expenditure_component
+        kbli_category, expenditure_component, verification_status
       FROM articles
       WHERE published_at >= '2026-10-01T00:00:00+08:00'
         AND published_at <= '2026-11-18T23:59:59+08:00'
@@ -101,100 +102,113 @@ async function main() {
       let econFlippedCount = 0;
 
       await asyncPool(3, rows, async (row, idx) => {
-        console.log(`[${idx + 1}/${rows.length}] "${row.title.slice(0, 52)}..."`);
-        console.log(`    Portal: ${row.source_portal} | Kata lama: ${row.word_count}`);
-
-        let fullText = row.snippet_text;
-
-        // Ambil ulang naskah utuh dari URL aslinya dengan extractor baru
         try {
-          const fetchRes = await safeFetchText(row.url, { timeoutMs: 12_000 });
-          if (fetchRes.body) {
-            const extracted = extractArticleContent(fetchRes.body, row.published_at, fetchRes.finalUrl);
-            if (extracted.isValidContent && extracted.wordCount > row.word_count) {
-              fullText = extracted.snippetText;
-              refetchedCount += 1;
-              console.log(`    [REFETCH] Berhasil! ${row.word_count} kata -> ${extracted.wordCount} kata utuh`);
+          console.log(`[${idx + 1}/${rows.length}] "${row.title.slice(0, 52)}..."`);
+          console.log(`    Portal: ${row.source_portal} | Kata lama: ${row.word_count}`);
+
+          let fullText = row.snippet_text;
+
+          // Ambil ulang naskah utuh dari URL aslinya dengan extractor baru
+          try {
+            const fetchRes = await safeFetchText(row.url, { timeoutMs: 12_000 });
+            if (fetchRes.body) {
+              const extracted = extractArticleContent(fetchRes.body, row.published_at, fetchRes.finalUrl);
+              if (extracted.isValidContent && extracted.wordCount > row.word_count) {
+                fullText = extracted.snippetText;
+                refetchedCount += 1;
+                console.log(`    [REFETCH] Berhasil! ${row.word_count} kata -> ${extracted.wordCount} kata utuh`);
+              }
+            }
+          } catch {
+            console.log(`    [REFETCH] URL tidak dapat dijangkau, menggunakan teks eksisting.`);
+          }
+
+          const newSubdistrict = detectKttSubdistrict(row.title, fullText);
+          if (newSubdistrict !== row.subdistrict) {
+            lokusCorrectedCount += 1;
+            console.log(`    [LOKUS] Koreksi Kecamatan: ${row.subdistrict ?? 'None'} -> ${newSubdistrict ?? 'None'}`);
+          }
+
+          // Jalankan klasifikasi ulang AI dengan konteks teks utuh
+          const period = getQuarterFromDateWita(row.published_at);
+          const classificationRes = await llmRouter.classifyArticle({
+            title: row.title,
+            sourcePortal: row.source_portal,
+            sourceType: row.source_type as any,
+            publishedAtWita: formatDateTimeWita(row.published_at),
+            defaultQuarter: period.quarter,
+            defaultYear: period.year,
+            snippetText: fullText,
+          });
+
+          if (classificationRes.ok) {
+            const mapped = mapClassificationToPersistence(
+              classificationRes.classification,
+              classificationRes.modelUsed,
+              fullText,
+            );
+
+            if (mapped.isEconomicPhenomenon !== row.is_economic_phenomenon) {
+              econFlippedCount += 1;
+            }
+
+            console.log(
+              `    [AI EVAL] Sektor: ${mapped.kbliCategory ?? 'None'} | Pengeluaran: ${mapped.expenditureComponent ?? 'None'} | Fenomena: ${mapped.isEconomicPhenomenon ? 'YA' : 'TIDAK'} (${classificationRes.modelUsed})`,
+            );
+
+            if (!dryRun) {
+              const nextVerificationStatus =
+                !mapped.isEconomicPhenomenon
+                  ? VerificationStatusEnum.IGNORED
+                  : row.verification_status === 'VERIFIED'
+                    ? VerificationStatusEnum.VERIFIED
+                    : VerificationStatusEnum.PENDING;
+
+              await pool.query(
+                `UPDATE articles SET
+                  snippet_text = $1,
+                  word_count = $2,
+                  subdistrict = $3,
+                  is_economic_phenomenon = $4,
+                  summary = $5,
+                  kbli_category = $6,
+                  kbli_impact = $7,
+                  expenditure_component = $8,
+                  expenditure_impact = $9,
+                  secondary_kbli_category = $10,
+                  secondary_kbli_impact = $11,
+                  secondary_expenditure_component = $12,
+                  secondary_expenditure_impact = $13,
+                  llm_model = $14,
+                  llm_status = $15,
+                  verification_status = $16,
+                  updated_at = NOW()
+                WHERE id = $17`,
+                [
+                  fullText,
+                  fullText.split(/\s+/).filter(Boolean).length,
+                  newSubdistrict,
+                  mapped.isEconomicPhenomenon,
+                  mapped.summary,
+                  mapped.kbliCategory,
+                  mapped.kbliImpact,
+                  mapped.expenditureComponent,
+                  mapped.expenditureImpact,
+                  mapped.secondaryKbliCategory,
+                  mapped.secondaryKbliImpact,
+                  mapped.secondaryExpenditureComponent,
+                  mapped.secondaryExpenditureImpact,
+                  mapped.llmModel,
+                  mapped.llmStatus,
+                  nextVerificationStatus,
+                  row.id,
+                ],
+              );
+              updatedCount += 1;
             }
           }
-        } catch {
-          console.log(`    [REFETCH] URL tidak dapat dijangkau, menggunakan teks eksisting.`);
-        }
-
-        const newSubdistrict = detectKttSubdistrict(row.title, fullText);
-        if (newSubdistrict !== row.subdistrict) {
-          lokusCorrectedCount += 1;
-          console.log(`    [LOKUS] Koreksi Kecamatan: ${row.subdistrict ?? 'None'} -> ${newSubdistrict ?? 'None'}`);
-        }
-
-        // Jalankan klasifikasi ulang AI dengan konteks teks utuh
-        const period = getQuarterFromDateWita(row.published_at);
-        const classificationRes = await llmRouter.classifyArticle({
-          title: row.title,
-          sourcePortal: row.source_portal,
-          sourceType: row.source_type as any,
-          publishedAtWita: formatDateTimeWita(row.published_at),
-          defaultQuarter: period.quarter,
-          defaultYear: period.year,
-          snippetText: fullText,
-        });
-
-        if (classificationRes.ok) {
-          const mapped = mapClassificationToPersistence(
-            classificationRes.classification,
-            classificationRes.modelUsed,
-            fullText,
-          );
-
-          if (mapped.isEconomicPhenomenon !== row.is_economic_phenomenon) {
-            econFlippedCount += 1;
-          }
-
-          console.log(
-            `    [AI EVAL] Sektor: ${mapped.kbliCategory ?? 'None'} | Pengeluaran: ${mapped.expenditureComponent ?? 'None'} | Fenomena: ${mapped.isEconomicPhenomenon ? 'YA' : 'TIDAK'} (${classificationRes.modelUsed})`,
-          );
-
-          if (!dryRun) {
-            await pool.query(
-              `UPDATE articles SET
-                snippet_text = $1,
-                word_count = $2,
-                subdistrict = $3,
-                is_economic_phenomenon = $4,
-                summary = $5,
-                kbli_category = $6,
-                kbli_impact = $7,
-                expenditure_component = $8,
-                expenditure_impact = $9,
-                secondary_kbli_category = $10,
-                secondary_kbli_impact = $11,
-                secondary_expenditure_component = $12,
-                secondary_expenditure_impact = $13,
-                llm_model = $14,
-                llm_status = $15,
-                updated_at = NOW()
-              WHERE id = $16`,
-              [
-                fullText,
-                fullText.split(/\s+/).filter(Boolean).length,
-                newSubdistrict,
-                mapped.isEconomicPhenomenon,
-                mapped.summary,
-                mapped.kbliCategory,
-                mapped.kbliImpact,
-                mapped.expenditureComponent,
-                mapped.expenditureImpact,
-                mapped.secondaryKbliCategory,
-                mapped.secondaryKbliImpact,
-                mapped.secondaryExpenditureComponent,
-                mapped.secondaryExpenditureImpact,
-                mapped.llmModel,
-                mapped.llmStatus,
-                row.id,
-              ],
-            );
-            updatedCount += 1;
-          }
+        } catch (err: any) {
+          console.error(`    [ERROR] Gagal memproses artikel ${row.id}: ${err.message}`);
         }
         console.log('');
       });
