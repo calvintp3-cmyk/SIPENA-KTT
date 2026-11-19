@@ -16,7 +16,8 @@
     "db:seed": "tsx server/db/seed.ts",
     "db:archive-nonktt": "tsx server/db/archive-nonktt.ts",
     "scrape:backfill": "tsx scripts/backfill-historical-tw3.ts",
-    "scrape:retest-tw4": "tsx scripts/retest-tw4-articles.ts"
+    "scrape:retest-tw3": "tsx scripts/retest-tw4-articles.ts refetch-db --quarter=3",
+    "scrape:retest-tw4": "tsx scripts/retest-tw4-articles.ts refetch-db --quarter=4"
   },
   "dependencies": {
     "@google/genai": "^3.1.0",

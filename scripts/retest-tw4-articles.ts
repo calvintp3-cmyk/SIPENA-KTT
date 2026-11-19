@@ -60,16 +60,39 @@ async function main() {
   const limitVal = limitArg ? limitArg.split('=')[1] : null;
   const limit = limitVal === 'all' ? null : limitVal ? Number(limitVal) : null;
 
+  const quarterArg = args.find((a) => a.startsWith('--quarter='));
+  const targetQuarter = quarterArg ? Number(quarterArg.split('=')[1]) : 4;
+  const yearArg = args.find((a) => a.startsWith('--year='));
+  const targetYear = yearArg ? Number(yearArg.split('=')[1]) : 2026;
+
+  let startDateStr = `${targetYear}-10-01T00:00:00+08:00`;
+  let endDateStr = `${targetYear}-11-18T23:59:59+08:00`;
+  let quarterLabel = `Triwulan IV ${targetYear} (01 Oktober s.d. 18 November ${targetYear})`;
+
+  if (targetQuarter === 1) {
+    startDateStr = `${targetYear}-01-01T00:00:00+08:00`;
+    endDateStr = `${targetYear}-03-31T23:59:59+08:00`;
+    quarterLabel = `Triwulan I ${targetYear} (01 Januari s.d. 31 Maret ${targetYear})`;
+  } else if (targetQuarter === 2) {
+    startDateStr = `${targetYear}-04-01T00:00:00+08:00`;
+    endDateStr = `${targetYear}-06-30T23:59:59+08:00`;
+    quarterLabel = `Triwulan II ${targetYear} (01 April s.d. 30 Juni ${targetYear})`;
+  } else if (targetQuarter === 3) {
+    startDateStr = `${targetYear}-07-01T00:00:00+08:00`;
+    endDateStr = `${targetYear}-09-30T23:59:59+08:00`;
+    quarterLabel = `Triwulan III ${targetYear} (01 Juli s.d. 30 September ${targetYear})`;
+  }
+
   console.log('='.repeat(75));
-  console.log('SIPENA KTT — UJI COBA ULANG SCRAPING & REKLASIFIKASI TRIWULAN IV 2026');
-  console.log('Rentang Waktu : 01 Oktober 2026 s.d. 18 November 2026');
+  console.log(`SIPENA KTT — UJI COBA ULANG SCRAPING & REKLASIFIKASI ${quarterLabel.toUpperCase()}`);
+  console.log(`Rentang Waktu : ${startDateStr.slice(0, 10)} s.d. ${endDateStr.slice(0, 10)}`);
   console.log(`Mode Operasi  : ${action.toUpperCase()} ${dryRun ? '(DRY-RUN / PREVIEW)' : '(LIVE DATABASE)'}`);
   console.log(`Batasan Limit : ${limit ? `${limit} artikel` : 'Semua artikel dalam rentang'}`);
   console.log('='.repeat(75));
 
   // TAHAP 1: RE-FETCH FULL BODY & REKLASIFIKASI ARTIKEL EKSISTING DI DATABASE
   if (action === 'all' || action === 'refetch-db') {
-    console.log('\n[MODE A] Memperbarui Naskah Utuh & Reklasifikasi Artikel Database TW IV 2026...');
+    console.log(`\n[MODE A] Memperbarui Naskah Utuh & Reklasifikasi Artikel Database ${quarterLabel}...`);
 
     let query = `
       SELECT 
@@ -77,8 +100,8 @@ async function main() {
         published_at, quarter, year, subdistrict, is_economic_phenomenon,
         kbli_category, expenditure_component, verification_status
       FROM articles
-      WHERE published_at >= '2026-10-01T00:00:00+08:00'
-        AND published_at <= '2026-11-18T23:59:59+08:00'
+      WHERE published_at >= '${startDateStr}'
+        AND published_at <= '${endDateStr}'
       ORDER BY published_at DESC
     `;
     if (limit) {
@@ -86,7 +109,7 @@ async function main() {
     }
 
     const { rows } = await pool.query<ArticleRow>(query);
-    console.log(`Ditemukan ${rows.length} artikel di database dalam rentang Triwulan IV 2026.\n`);
+    console.log(`Ditemukan ${rows.length} artikel di database dalam rentang ${quarterLabel}.\n`);
 
     if (rows.length > 0) {
       const runtimeOpts = buildScraperPipelineRuntimeOptions();
@@ -224,9 +247,9 @@ async function main() {
     }
   }
 
-  // TAHAP 2: LIVE HARVESTING ULANG DARI SELURUH PORTAL (1 OKT - 18 NOV 2026)
+  // TAHAP 2: LIVE HARVESTING ULANG DARI SELURUH PORTAL
   if (action === 'all' || action === 'live-harvest') {
-    console.log('\n[TAHAP 2] Menjalankan Live Harvest Baru ke Seluruh Portal (01 Okt - 18 Nov 2026)...');
+    console.log(`\n[TAHAP 2] Menjalankan Live Harvest Baru ke Seluruh Portal ${quarterLabel}...`);
     const activePortals = REGIONAL_PORTALS.filter((p) => p.isActive !== false);
     console.log(`Menyisir ${activePortals.length} portal regional dan Google/Bing News macro nasional.`);
 
@@ -235,8 +258,8 @@ async function main() {
       const summary = await runScrapePipeline({
         runType: ScraperRunTypeEnum.MANUAL,
         mode: 'ALL',
-        startDate: new Date('2026-10-01T00:00:00+08:00'),
-        endDate: new Date('2026-11-18T23:59:59+08:00'),
+        startDate: new Date(startDateStr),
+        endDate: new Date(endDateStr),
         maxArticlesPerRun: limit,
         fetchTimeoutMs: 14_000,
         maxDurationMs: 15 * 60 * 1000,
