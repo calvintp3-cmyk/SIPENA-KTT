@@ -50,6 +50,9 @@ export const OPENROUTER_DEFAULT_FREE_MODELS = [
   'meta-llama/llama-3.3-70b-instruct:free',
   'qwen/qwen-2.5-72b-instruct:free',
   'mistralai/mistral-small-24b-instruct-2501:free',
+  'google/gemma-2-27b-it:free',
+  'deepseek/deepseek-r1:free',
+  'meta-llama/llama-3.1-8b-instruct:free',
 ] as const;
 
 export const DEFAULT_LLM_MAX_OUTPUT_TOKENS = DEFAULT_GEMINI_MAX_OUTPUT_TOKENS;
