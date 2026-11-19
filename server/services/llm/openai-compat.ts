@@ -177,7 +177,7 @@ function extractErrorDetailFromJson(rawBody: string): string {
 
 function isUnsupportedResponseFormatError(status: number, errorDetail: string): boolean {
   if (status !== 400 && status !== 422) return false;
-  return /response_format|json_schema|json_object|json mode|structured output|unsupported/i.test(
+  return /response_format|json_schema|json_object|json mode|structured output|unsupported|Failed to generate JSON/i.test(
     errorDetail,
   );
 }
