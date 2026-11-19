@@ -115,7 +115,8 @@ async function main() {
       const runtimeOpts = buildScraperPipelineRuntimeOptions();
       const llmRouter = new MultiLlmRouter({
         task: 'classify',
-        maxCallsPerRun: 1000,
+        maxCallsPerRun: 3000,
+        transientRetryDelayMs: 3000,
         ...(runtimeOpts.routerOptions ?? {}),
       });
 
@@ -124,7 +125,7 @@ async function main() {
       let lokusCorrectedCount = 0;
       let econFlippedCount = 0;
 
-      await asyncPool(3, rows, async (row, idx) => {
+      await asyncPool(2, rows, async (row, idx) => {
         try {
           console.log(`[${idx + 1}/${rows.length}] "${row.title.slice(0, 52)}..."`);
           console.log(`    Portal: ${row.source_portal} | Kata lama: ${row.word_count}`);
@@ -154,7 +155,7 @@ async function main() {
 
           // Jalankan klasifikasi ulang AI dengan konteks teks utuh
           const period = getQuarterFromDateWita(row.published_at);
-          const classificationRes = await llmRouter.classifyArticle({
+          let classificationRes = await llmRouter.classifyArticle({
             title: row.title,
             sourcePortal: row.source_portal,
             sourceType: row.source_type as any,
@@ -163,6 +164,20 @@ async function main() {
             defaultYear: period.year,
             snippetText: fullText,
           });
+
+          if (!classificationRes.ok) {
+            console.warn(`    [AI RETRY] Gagal (${classificationRes.errorCode}): ${classificationRes.errorMessage}. Jeda 3s sebelum retry...`);
+            await new Promise((r) => setTimeout(r, 3000));
+            classificationRes = await llmRouter.classifyArticle({
+              title: row.title,
+              sourcePortal: row.source_portal,
+              sourceType: row.source_type as any,
+              publishedAtWita: formatDateTimeWita(row.published_at),
+              defaultQuarter: period.quarter,
+              defaultYear: period.year,
+              snippetText: fullText,
+            });
+          }
 
           if (classificationRes.ok) {
             const mapped = mapClassificationToPersistence(
@@ -229,6 +244,10 @@ async function main() {
               );
               updatedCount += 1;
             }
+          } else {
+            console.error(
+              `    [AI FAILED] Lewati penyimpanan ID ${row.id} - [${classificationRes.errorCode}] ${classificationRes.errorMessage}`,
+            );
           }
         } catch (err: any) {
           console.error(`    [ERROR] Gagal memproses artikel ${row.id}: ${err.message}`);
