@@ -1103,7 +1103,7 @@ export class MultiLlmRouter {
         (slot.provider === 'gemini' && !slot.model.includes('lite')) ||
         slot.model.includes('r1') ||
         slot.model.includes('reason');
-      const classifyMaxTokens = isThinkingModel ? 2048 : 1024;
+      const classifyMaxTokens = slot.provider === 'groq' ? 800 : isThinkingModel ? 2048 : 1024;
 
       let transientAttempts = 0;
       let schemaAttempts = 0;
