@@ -145,6 +145,7 @@ async function handleExtractFromUrl() {
       secondaryKbliImpact?: KbliImpactEnum | null;
       secondaryExpenditureComponent?: ExpenditureComponentEnum | null;
       secondaryExpenditureImpact?: ExpenditureImpactEnum | null;
+      subdistrict?: string | null;
     }>('/api/admin/articles/extract-url', {
       method: 'POST',
       body: { url },
@@ -157,6 +158,7 @@ async function handleExtractFromUrl() {
     formState.year = res.year;
     formState.quarter = res.quarter;
     formState.snippetText = res.snippetText;
+    formState.subdistrict = (res.subdistrict as any) ?? formState.subdistrict ?? null;
     formState.summary = res.summary;
     formState.kbliCategory = res.kbliCategory;
     formState.kbliImpact = res.kbliImpact;

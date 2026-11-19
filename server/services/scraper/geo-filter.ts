@@ -227,38 +227,52 @@ const MURUK_RIAN_RE =
 const SESAYAP_RE =
   /\b(?:sesayap(?!\s+(?:hilir|selor))|tideng\s*pale(?:\s+timur)?|sebawang|pelabuhan\s+sebawang|sedulun|limbu\s+sedulun|gunawan|sebidai|dermaga\s+tideng\s+pale|pusat\s+pemerintahan(?:\s+ktt)?|puspem(?:\s+ktt)?|rsud\s+akhmad\s+berahim|akhmad\s+berahim)\b/i;
 
+const SUBDISTRICT_CONFIGS: Array<{
+  name: KttSubdistrictName;
+  regex: RegExp;
+}> = [
+  { name: 'Sesayap Hilir', regex: SESAYAP_HILIR_RE },
+  { name: 'Tana Lia', regex: TANA_LIA_RE },
+  { name: 'Betayau', regex: BETAYAU_RE },
+  { name: 'Muruk Rian', regex: MURUK_RIAN_RE },
+  { name: 'Sesayap', regex: SESAYAP_RE },
+];
+
+function countRegexMatches(text: string, regex: RegExp): number {
+  if (!text) return 0;
+  const globalRegex = new RegExp(regex.source, regex.flags.includes('g') ? regex.flags : `${regex.flags}g`);
+  const matches = text.match(globalRegex);
+  return matches ? matches.length : 0;
+}
+
 /**
- * Mendeteksi kecamatan spesifik (lokus) di Kabupaten Tana Tidung dari teks judul dan cuplikan berita.
+ * Mendeteksi kecamatan spesifik (lokus) di Kabupaten Tana Tidung dari teks judul dan cuplikan berita
+ * menggunakan Weighted Frequency Scoring: Judul diberi bobot 5x lebih tinggi dibanding naskah isi (1x)
+ * untuk menghindari kesalahan deteksi akibat penyebutan selintas lokasi transit/pelabuhan.
  * Mengembalikan salah satu dari 5 nama kecamatan resmi, atau null jika berita berskala umum/makro.
  */
 export function detectKttSubdistrict(
   title: string,
   snippetText?: string | null,
 ): KttSubdistrictName | null {
-  const combined = `${title || ''} ${snippetText || ''}`.trim();
-  if (!combined) return null;
+  const cleanTitle = (title || '').trim();
+  const cleanSnippet = (snippetText || '').trim();
+  if (!cleanTitle && !cleanSnippet) return null;
 
-  // 1. Cek Sesayap Hilir lebih dulu sebelum Sesayap untuk mencegah ambiguitas kata 'Sesayap'
-  if (SESAYAP_HILIR_RE.test(combined)) {
-    return 'Sesayap Hilir';
-  }
-  // 2. Cek Tana Lia
-  if (TANA_LIA_RE.test(combined)) {
-    return 'Tana Lia';
-  }
-  // 3. Cek Betayau
-  if (BETAYAU_RE.test(combined)) {
-    return 'Betayau';
-  }
-  // 4. Cek Muruk Rian
-  if (MURUK_RIAN_RE.test(combined)) {
-    return 'Muruk Rian';
-  }
-  // 5. Cek Sesayap
-  if (SESAYAP_RE.test(combined)) {
-    return 'Sesayap';
+  let bestSubdistrict: KttSubdistrictName | null = null;
+  let highestScore = 0;
+
+  for (const cfg of SUBDISTRICT_CONFIGS) {
+    const titleMatches = countRegexMatches(cleanTitle, cfg.regex);
+    const snippetMatches = countRegexMatches(cleanSnippet, cfg.regex);
+    const score = titleMatches * 5 + snippetMatches;
+
+    if (score > highestScore) {
+      highestScore = score;
+      bestSubdistrict = cfg.name;
+    }
   }
 
-  return null;
+  return highestScore > 0 ? bestSubdistrict : null;
 }
 

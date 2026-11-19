@@ -10,7 +10,13 @@ import {
 } from '../../../../shared/enums/pdrb';
 import { getQuarterFromDateWita, getWitaDateParts, formatDateTimeWita } from '../../../../shared/utils/period';
 import { MultiLlmRouter } from '../../../services/llm/router';
-import { extractArticleContent, normalizeToFullPageArticleUrl } from '../../../services/scraper/extractor';
+import {
+  countWords,
+  extractArticleContent,
+  isSameArticlePaginationUrl,
+  normalizeToFullPageArticleUrl,
+} from '../../../services/scraper/extractor';
+import { detectKttSubdistrict } from '../../../services/scraper/geo-filter';
 import { parseBodyWithSchema } from '../../../utils/request';
 import { requireAdminSession } from '../../../utils/session';
 import { safeFetchText } from '../../../utils/ssrf';
@@ -60,8 +66,50 @@ export default defineEventHandler(async (event) => {
   const publishedAtStr = `${dateParts.year}-${String(dateParts.month).padStart(2, '0')}-${String(dateParts.day).padStart(2, '0')}`;
   const period = getQuarterFromDateWita(publishedDate);
 
+  let fullSnippetText = extracted.snippetText;
+  let currentPageUrl = extracted.nextFullPageUrl;
+  let pageIter = 0;
+  const MAX_PAGES = 5;
+  const visited = new Set<string>([finalUrl]);
+
+  while (
+    currentPageUrl &&
+    pageIter < MAX_PAGES &&
+    !visited.has(currentPageUrl) &&
+    isSameArticlePaginationUrl(finalUrl, currentPageUrl)
+  ) {
+    visited.add(currentPageUrl);
+    pageIter += 1;
+    try {
+      const nextPageRes = await safeFetchText(currentPageUrl, { timeoutMs: 8_000 });
+      const nextExtracted = extractArticleContent(nextPageRes.body, publishedDate, nextPageRes.finalUrl);
+      if (nextExtracted.isValidContent && !nextExtracted.isSoftBlocked) {
+        if (
+          currentPageUrl.includes('page=all') ||
+          currentPageUrl.includes('show=all') ||
+          currentPageUrl.includes('showpage=all') ||
+          currentPageUrl.includes('single=1')
+        ) {
+          if (nextExtracted.wordCount >= countWords(fullSnippetText)) {
+            fullSnippetText = nextExtracted.snippetText;
+          }
+          break;
+        } else {
+          fullSnippetText = `${fullSnippetText}\n\n${nextExtracted.snippetText}`.trim();
+          currentPageUrl = nextExtracted.nextFullPageUrl;
+        }
+      } else {
+        break;
+      }
+    } catch {
+      break;
+    }
+  }
+
+  const subdistrict = detectKttSubdistrict(extracted.title, fullSnippetText);
+
   // Jalankan klasifikasi cepat dengan MultiLlmRouter
-  let aiSummary = extracted.snippetText ? extracted.snippetText.slice(0, 320) : '';
+  let aiSummary = fullSnippetText ? fullSnippetText.slice(0, 320) : '';
   let kbliCategory = KbliCategoryEnum.A;
   let kbliImpact = KbliImpactEnum.INCREASE_NTB;
   let expenditureComponent = ExpenditureComponentEnum.PK_RT;
@@ -82,7 +130,7 @@ export default defineEventHandler(async (event) => {
       publishedAtWita: formatDateTimeWita(publishedDate),
       defaultQuarter: period.quarter,
       defaultYear: period.year,
-      snippetText: extracted.snippetText,
+      snippetText: fullSnippetText,
     });
 
     if (result.ok && result.classification) {
@@ -116,7 +164,8 @@ export default defineEventHandler(async (event) => {
     url: finalUrl,
     sourcePortal: domain,
     title: extracted.title,
-    snippetText: extracted.snippetText,
+    snippetText: fullSnippetText,
+    subdistrict: subdistrict ?? null,
     publishedAt: publishedAtStr,
     year: period.year,
     quarter: period.quarter,

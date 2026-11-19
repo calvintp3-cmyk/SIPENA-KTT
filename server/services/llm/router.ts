@@ -1079,9 +1079,34 @@ export class MultiLlmRouter {
       lastSlotId = slot.slotId;
       lastProvider = slot.provider;
 
+      // Sesuaikan anggaran kata prompt berdasarkan profil limit TPM slot (Groq 8B = 6k TPM, Groq 70B = 12k TPM)
+      const slotMaxWords =
+        slot.provider === 'groq'
+          ? slot.model.includes('8b')
+            ? 750
+            : 1400
+          : undefined;
+      const slotMaxChars =
+        slot.provider === 'groq'
+          ? slot.model.includes('8b')
+            ? 5200
+            : 9800
+          : undefined;
+
+      const slotBasePrompt =
+        slotMaxWords !== undefined
+          ? buildClassificationPrompt(article, slotMaxWords, slotMaxChars)
+          : basePrompt;
+
+      const isThinkingModel =
+        (slot.provider === 'gemini' && !slot.model.includes('lite')) ||
+        slot.model.includes('r1') ||
+        slot.model.includes('reason');
+      const classifyMaxTokens = isThinkingModel ? 2048 : 1024;
+
       let transientAttempts = 0;
       let schemaAttempts = 0;
-      let activePrompt = basePrompt;
+      let activePrompt = slotBasePrompt;
 
       slotLoop: while (this.callsMade < this.maxCallsPerRun) {
         this.callsMade += 1;
@@ -1098,7 +1123,7 @@ export class MultiLlmRouter {
             userInput: activePrompt,
             jsonMode: true,
             temperature: 0.1,
-            maxOutputTokens: DEFAULT_LLM_MAX_OUTPUT_TOKENS,
+            maxOutputTokens: classifyMaxTokens,
             timeoutMs: GEMINI_REQUEST_TIMEOUT_MS,
             thinkingLevel:
               slot.provider === 'gemini'
@@ -1137,7 +1162,7 @@ export class MultiLlmRouter {
                 userInput: rescuePrompt,
                 jsonMode: true,
                 temperature: 0.1,
-                maxOutputTokens: DEFAULT_LLM_MAX_OUTPUT_TOKENS,
+                maxOutputTokens: classifyMaxTokens,
                 timeoutMs: GEMINI_REQUEST_TIMEOUT_MS,
                 thinkingLevel:
                   slot.provider === 'gemini'
@@ -1241,7 +1266,7 @@ export class MultiLlmRouter {
             lastIsRateLimit = false;
             if (schemaAttempts < 1 && this.hasRemainingBudget(1_500, callOptions)) {
               schemaAttempts += 1;
-              activePrompt = `${basePrompt}\n\nCATATAN PERBAIKAN: Respons wajib JSON valid sesuai skema (sertakan geographic_scope). Jika is_economic_phenomenon = false atau geographic_scope = OTHER_REGION_IRRELEVANT, seluruh field KBLI dan Pengeluaran wajib null; jika true, seluruh 4 field tersebut wajib terisi dan summary minimal 20 karakter.`;
+              activePrompt = `${slotBasePrompt}\n\nCATATAN PERBAIKAN: Respons wajib JSON valid sesuai skema (sertakan geographic_scope). Jika is_economic_phenomenon = false atau geographic_scope = OTHER_REGION_IRRELEVANT, seluruh field KBLI dan Pengeluaran wajib null; jika true, seluruh 4 field tersebut wajib terisi dan summary minimal 20 karakter.`;
               continue slotLoop;
             }
             // Lanjutkan ke slot cadangan berikutnya apabila satu model konsisten mengeluarkan JSON rusak
@@ -1250,8 +1275,9 @@ export class MultiLlmRouter {
 
           lastErrorCode = 'API_ERROR';
           lastIsRateLimit = false;
-          if (/404|not found|unavailable/i.test(failure.message)) {
+          if (/404|not found|unavailable|decommissioned|does not exist|no endpoints?|unsupported model|model not available/i.test(failure.message)) {
             slot.disabledForSession = true;
+            this.persistSlotQuotaState(slot, true);
           } else {
             slot.cooldownUntilMs = this.nowFn() + this.transientCooldownMs;
           }
@@ -1418,7 +1444,14 @@ export class MultiLlmRouter {
         this.recordFailure(slot, failure.kind, latencyMs);
         failedMessages.push(`${slot.slotId}: ${failure.message.slice(0, 80)}`);
 
-        if (failure.kind === 'AUTH' || (failure.kind === 'RATE_LIMIT' && failure.isDailyQuota)) {
+        if (
+          failure.kind === 'AUTH' ||
+          (failure.kind === 'RATE_LIMIT' && failure.isDailyQuota) ||
+          (failure.kind === 'API' &&
+            /404|not found|unavailable|decommissioned|does not exist|no endpoints?|unsupported model|model not available/i.test(
+              failure.message,
+            ))
+        ) {
           slot.disabledForSession = true;
           this.persistSlotQuotaState(slot, true);
         } else {

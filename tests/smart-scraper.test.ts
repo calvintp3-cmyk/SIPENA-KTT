@@ -267,6 +267,14 @@ describe('Smart Scraper Filters, Dedup, Google News Decoder & Geo-Gate', () => {
     // 6. Umum / Makro (null)
     expect(detectKttSubdistrict('Pemprov Kaltara dan BI Perkuat Pengendalian Inflasi Daerah')).toBeNull();
     expect(detectKttSubdistrict('Kabupaten Tana Tidung Tetapkan APBD Perubahan')).toBeNull();
+
+    // 7. Weighted frequency: Judul Betayau menang atas penyebutan selintas transit pelabuhan Bebatu di Sesayap Hilir
+    expect(
+      detectKttSubdistrict(
+        'Panen Raya Padi Sawah di Desa Kujau Betayau',
+        'Hasil panen nantinya akan dikirimkan melalui akses Pelabuhan Bebatu di Sesayap Hilir menuju luar daerah.',
+      ),
+    ).toBe('Betayau');
   });
 
   it('title-filter, Bing News parser, dan buildNationalFallbackSnippet menjaga netralitas lokus serta menyaring noise statis', () => {

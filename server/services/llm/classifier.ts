@@ -225,39 +225,67 @@ export function compressArticleTextForLlm(
   const NUMERIC_ECONOMIC_RE =
     /\b(?:\d+|rp|rupiah|persen|%|miliar|juta|triliun|ton|kg|pdrb|inflasi|ihk|ntb|panen|ekspor|impor|anggaran|sawit|batubara)\b/i;
 
-  const prioritizedSentences: string[] = [];
-  const normalSentences: string[] = [];
-  for (const s of rawSentences) {
-    const trimmed = s.trim();
-    if (!trimmed) continue;
-    if (NUMERIC_ECONOMIC_RE.test(trimmed)) {
-      prioritizedSentences.push(trimmed);
-    } else {
-      normalSentences.push(trimmed);
-    }
+  interface IndexedSentence {
+    text: string;
+    index: number;
+    words: number;
+    chars: number;
+    isPriority: boolean;
   }
 
-  // Gabungkan dengan mendahulukan kalimat berkepadatan data ekonomi
-  const orderedSentences = [...prioritizedSentences, ...normalSentences];
-  const keptSentences: string[] = [];
+  const indexedSentences: IndexedSentence[] = [];
+  for (let i = 0; i < rawSentences.length; i += 1) {
+    const s = rawSentences[i]?.trim();
+    if (!s) continue;
+    indexedSentences.push({
+      text: s,
+      index: i,
+      words: s.split(/\s+/).filter(Boolean).length,
+      chars: s.length,
+      isPriority: NUMERIC_ECONOMIC_RE.test(s),
+    });
+  }
+
+  // Pilih kalimat prioritas ekonomi terlebih dahulu, lalu lengkapi dengan kalimat normal
+  const priorityList = indexedSentences.filter((s) => s.isPriority);
+  const normalList = indexedSentences.filter((s) => !s.isPriority);
+  const selectedIndices = new Set<number>();
+
   let runningWords = 0;
   let runningChars = 0;
 
-  for (const s of orderedSentences) {
-    const sWords = s.split(/\s+/).filter(Boolean).length;
-    if (runningWords + sWords > maxWords || runningChars + s.length > maxChars) {
-      if (keptSentences.length === 0) {
-        keptSentences.push(s);
+  for (const s of priorityList) {
+    if (runningWords + s.words > maxWords || runningChars + s.chars > maxChars) {
+      if (selectedIndices.size === 0) {
+        selectedIndices.add(s.index);
       }
       break;
     }
-    keptSentences.push(s);
-    runningWords += sWords;
-    runningChars += s.length + 1;
+    selectedIndices.add(s.index);
+    runningWords += s.words;
+    runningChars += s.chars + 1;
   }
 
-  if (keptSentences.length > 0) {
-    return keptSentences.join(' ').trim();
+  for (const s of normalList) {
+    if (runningWords + s.words > maxWords || runningChars + s.chars > maxChars) {
+      if (selectedIndices.size === 0) {
+        selectedIndices.add(s.index);
+      }
+      break;
+    }
+    selectedIndices.add(s.index);
+    runningWords += s.words;
+    runningChars += s.chars + 1;
+  }
+
+  // Susun kembali kalimat terpilih sesuai urutan kronologis asli artikel
+  const sortedKept = indexedSentences
+    .filter((s) => selectedIndices.has(s.index))
+    .sort((a, b) => a.index - b.index)
+    .map((s) => s.text);
+
+  if (sortedKept.length > 0) {
+    return sortedKept.join(' ').trim();
   }
 
   const kept: string[] = [];
@@ -273,7 +301,11 @@ export function compressArticleTextForLlm(
   return kept.join(' ').trim();
 }
 
-export function buildClassificationPrompt(params: ArticleClassificationInput): string {
+export function buildClassificationPrompt(
+  params: ArticleClassificationInput,
+  maxWords?: number,
+  maxChars?: number,
+): string {
   const hintParts: string[] = [];
   if (params.defaultKbliHint) {
     hintParts.push(`KBLI Default=${params.defaultKbliHint}`);
@@ -282,7 +314,7 @@ export function buildClassificationPrompt(params: ArticleClassificationInput): s
     hintParts.push(`Pengeluaran Default=${params.defaultExpenditureHint}`);
   }
 
-  const compressedSnippet = compressArticleTextForLlm(params.snippetText);
+  const compressedSnippet = compressArticleTextForLlm(params.snippetText, maxWords, maxChars);
 
   return [
     `SUMBER: ${params.sourcePortal} (${params.sourceType})`,
