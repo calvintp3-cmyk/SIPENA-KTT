@@ -427,6 +427,36 @@ export function enrichClassificationLinkages(
     );
 
   // =========================================================================
+  // GUARDRAIL 0: Penapisan Kebisingan Seremonial Murni Birokrasi
+  // Apel rutin, senam bersama, donor darah rutin tanpa data anggaran/ekonomi nyata
+  // =========================================================================
+  const isPureCeremony =
+    /\b(?:apel pagi(?: rutin)?|senam bersama|senam pagi|donor darah rutin|upacara bendera rutin|ziarah makam|ramah tamah|silaturahmi biasa|halal bihalal)\b/i.test(
+      text,
+    );
+  const hasSubstantiveEconomicData =
+    /\b(?:rp|\d+\s*(?:miliar|juta|triliun|ton|kg|hektare|persen|%|paket)|anggaran|apbd|dak|tpp|gaji|proyek|lelang|kontrak|panen|bantuan|bansos|sembako|jalan poros|jembatan|puspem|sekolah|rsud|tarif|ekspor|ihk|inflasi|pdrb)\b/i.test(
+      text,
+    );
+
+  if (isPureCeremony && !hasSubstantiveEconomicData) {
+    return {
+      ...classification,
+      is_economic_phenomenon: false,
+      rejection_reason:
+        'Seremonial murni / kegiatan rutin birokrasi tanpa komitmen anggaran proyek terukur atau dampak agregat PDRB.',
+      kbli_category: null,
+      kbli_impact: null,
+      expenditure_component: null,
+      expenditure_impact: null,
+      secondary_kbli_category: null,
+      secondary_kbli_impact: null,
+      secondary_expenditure_component: null,
+      secondary_expenditure_impact: null,
+    };
+  }
+
+  // =========================================================================
   // GUARDRAIL 1 (Grup 1 & 3): Koreksi Kontaminasi KBLI 2009 'Q' -> KBLI 2025 'R'
   // (Fasilitas Kesehatan RSUD/Dokter & Bantuan Korban Bencana/Kebakaran)
   // =========================================================================
@@ -570,6 +600,165 @@ export function enrichClassificationLinkages(
     /\b(?:sudah difungsikan|siap difungsikan|diresmikan|rampung dibangun)\b/i.test(text)
   ) {
     priKbliImpact = 'INCREASE_NTB' as typeof priKbliImpact;
+  }
+
+  // =========================================================================
+  // GUARDRAIL 7: Koreksi Pergeseran Huruf KBLI 2025 (K->L, L->M, P->Q, R->S, S/G->T)
+  // =========================================================================
+  // 1. Perbankan / Keuangan / KUR / Asuransi (KBLI 2020: K -> KBLI 2025: L)
+  const isFinanceText =
+    /\b(?:bank|perbankan|bpd kaltimtara|bankaltimtara|kur|kredit usaha|ojk|bpr|koperasi simpan pinjam|asuransi|pegadaian|bunga pinjaman|pembiayaan)\b/i.test(
+      text,
+    );
+  const isItTelecomText =
+    /\b(?:bts|blankspot|sinyal|internet|kominfo|jaringan seluler|server|aplikasi|perangkat lunak|cloud|fiber optik)\b/i.test(
+      text,
+    );
+  if (priKbli === ('K' as KbliCategoryEnum) && isFinanceText && !isItTelecomText) {
+    priKbli = KbliCategoryEnum.L;
+  }
+  if (secKbli === ('K' as KbliCategoryEnum) && isFinanceText && !isItTelecomText) {
+    secKbli = KbliCategoryEnum.L;
+  }
+
+  // 2. Real Estat / Properti / Perumahan (KBLI 2020: L -> KBLI 2025: M)
+  const isRealEstateText =
+    /\b(?:real estat|properti|perumahan|sewa lahan|sewa gedung|pengembang perumahan|developer ruko)\b/i.test(
+      text,
+    );
+  if (priKbli === ('L' as KbliCategoryEnum) && isRealEstateText && !isFinanceText) {
+    priKbli = KbliCategoryEnum.M;
+  }
+  if (secKbli === ('L' as KbliCategoryEnum) && isRealEstateText && !isFinanceText) {
+    secKbli = KbliCategoryEnum.M;
+  }
+
+  // 3. Pendidikan Murni (KBLI 2020: P -> KBLI 2025: Q)
+  const isGovAdminExclusive =
+    /\b(?:tpp|gaji asn|lra|pajak daerah|retribusi|dprd|sidang paripurna|pelantikan bupati|mutasi pejabat|satpol pp|inspektorat)\b/i.test(
+      text,
+    );
+  if (priKbli === KbliCategoryEnum.P && isTrueEducationText && !isGovAdminExclusive) {
+    priKbli = KbliCategoryEnum.Q;
+    if (/\b(?:pemkab|disdikbud|bupati|apbd|dinas pendidikan)\b/i.test(text)) {
+      secKbli = KbliCategoryEnum.P;
+      secKbliImpact = priKbliImpact;
+    }
+  }
+
+  // 4. Kesenian, Olahraga, dan Wisata Alam (KBLI 2020: R -> KBLI 2025: S)
+  const isArtsTourismText =
+    /\b(?:air terjun|gunung rian|wisata alam|destinasi wisata|daya tarik wisata|irau|pesta budaya|seni tari|rekreasi|disporapar|stadion|olahraga)\b/i.test(
+      text,
+    );
+  const isMedicalDisasterText =
+    /\b(?:rsud|rumah sakit|puskesmas|dokter|medis|kesehatan|ispa|stunting|dinkes|plkk|bpjs|kebakaran|bencana|korban)\b/i.test(
+      text,
+    );
+  if (priKbli === ('R' as KbliCategoryEnum) && isArtsTourismText && !isMedicalDisasterText) {
+    priKbli = KbliCategoryEnum.S;
+  }
+  if (secKbli === ('R' as KbliCategoryEnum) && isArtsTourismText && !isMedicalDisasterText) {
+    secKbli = KbliCategoryEnum.S;
+  }
+
+  // 5. Lembaga Adat, Ormas, dan Bengkel Reparasi Kendaraan (KBLI 2020: S/G -> KBLI 2025: T)
+  const isAdatOrmasRepairText =
+    /\b(?:lembaga adat|adat tidung|adat dayak|musyawarah adat|bengkel motor|bengkel mobil|reparasi mobil|reparasi sepeda motor|servis motor|reparasi kendaraan|salon kecantikan|pangkas rambut|laundry)\b/i.test(
+      text,
+    );
+  if (
+    (priKbli === ('S' as KbliCategoryEnum) || priKbli === ('G' as KbliCategoryEnum)) &&
+    isAdatOrmasRepairText &&
+    !isArtsTourismText
+  ) {
+    priKbli = KbliCategoryEnum.T;
+  }
+  if (
+    (secKbli === ('S' as KbliCategoryEnum) || secKbli === ('G' as KbliCategoryEnum)) &&
+    isAdatOrmasRepairText &&
+    !isArtsTourismText
+  ) {
+    secKbli = KbliCategoryEnum.T;
+  }
+
+  // =========================================================================
+  // GUARDRAIL 8: Konstruksi Fisik (KBLI F) Membentuk Modal Tetap Bruto (PMTB)
+  // Menurut SNA 2008, konstruksi menghasilkan aset tetap (PMTB), bukan belanja
+  // konsumsi akhir pemerintah (PK_P). PK_P hanya menjadi komponen sekunder APBD.
+  // =========================================================================
+  if (priKbli === KbliCategoryEnum.F && priExp === ExpenditureComponentEnum.PK_P) {
+    priExp = ExpenditureComponentEnum.PMTB;
+    if (!secExp) {
+      secExp = ExpenditureComponentEnum.PK_P;
+      secExpImpact = priExpImpact;
+    }
+  }
+
+  // =========================================================================
+  // GUARDRAIL 9: Komoditas Ekstraktif & Ekspor Antar-Daerah (B, C, A)
+  // Batubara (B), CPO (C), dan pengapalan kayu/TBS (A) adalah NET_EXPORT/INVENTORY_CHANGE
+  // =========================================================================
+  const isExtractiveExportCommodity =
+    priKbli === KbliCategoryEnum.B ||
+    (priKbli === KbliCategoryEnum.C &&
+      /\b(?:cpo|kelapa sawit|pks|pabrik sawit|chipmill|kayu olahan)\b/i.test(text)) ||
+    (priKbli === KbliCategoryEnum.A &&
+      /\b(?:batubara|tongkang|pengapalan|ekspor|pelabuhan sebawang|log kayu|tbs sawit|kebun sawit)\b/i.test(text));
+
+  const isExportOrStockpileContext =
+    /\b(?:tongkang|pengapalan|ekspor|antardaerah|antar pulau|stockpile|dermaga|pelabuhan sebawang|alur sungai|hba|kapal ponton|pks)\b/i.test(
+      text,
+    );
+
+  if (isExtractiveExportCommodity && isExportOrStockpileContext && priExp === ExpenditureComponentEnum.PK_RT) {
+    if (/\b(?:stockpile|penumpukan|gudang|stok komoditas)\b/i.test(text)) {
+      priExp = ExpenditureComponentEnum.INVENTORY_CHANGE;
+    } else {
+      priExp = ExpenditureComponentEnum.NET_EXPORT;
+    }
+    if (priKbliImpact === KbliImpactEnum.INCREASE_PRICE) {
+      priExpImpact = ExpenditureImpactEnum.INCREASE_DEFLATOR;
+    } else if (priKbliImpact === KbliImpactEnum.DECREASE_PRICE) {
+      priExpImpact = ExpenditureImpactEnum.DECREASE_DEFLATOR;
+    } else if (priKbliImpact === KbliImpactEnum.INCREASE_NTB) {
+      priExpImpact = ExpenditureImpactEnum.INCREASE_REAL;
+    } else if (priKbliImpact === KbliImpactEnum.DECREASE_NTB) {
+      priExpImpact = ExpenditureImpactEnum.DECREASE_REAL;
+    }
+    if (!secExp && /\b(?:petani|masyarakat|pekebun swadaya)\b/i.test(text)) {
+      secExp = ExpenditureComponentEnum.PK_RT;
+      secExpImpact = priExpImpact;
+    }
+  }
+
+  // =========================================================================
+  // GUARDRAIL 10: Konsistensi Lintas-Sumbu Dampak (KBLI Impact vs Expenditure Impact)
+  // =========================================================================
+  if (
+    priKbliImpact === KbliImpactEnum.INCREASE_PRICE &&
+    priExpImpact === ExpenditureImpactEnum.INCREASE_REAL
+  ) {
+    priExpImpact = ExpenditureImpactEnum.INCREASE_DEFLATOR;
+  } else if (
+    priKbliImpact === KbliImpactEnum.DECREASE_PRICE &&
+    priExpImpact === ExpenditureImpactEnum.DECREASE_REAL
+  ) {
+    priExpImpact = ExpenditureImpactEnum.DECREASE_DEFLATOR;
+  }
+
+  if (priKbli === KbliCategoryEnum.F && priExp === ExpenditureComponentEnum.PMTB) {
+    if (
+      priKbliImpact === KbliImpactEnum.INCREASE_NTB &&
+      priExpImpact === ExpenditureImpactEnum.DECREASE_REAL
+    ) {
+      priExpImpact = ExpenditureImpactEnum.INCREASE_REAL;
+    } else if (
+      priKbliImpact === KbliImpactEnum.DECREASE_NTB &&
+      priExpImpact === ExpenditureImpactEnum.INCREASE_REAL
+    ) {
+      priExpImpact = ExpenditureImpactEnum.DECREASE_REAL;
+    }
   }
 
   // =========================================================================

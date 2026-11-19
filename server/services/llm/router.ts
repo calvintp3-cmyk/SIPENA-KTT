@@ -1052,10 +1052,11 @@ export class MultiLlmRouter {
       if (!picked) break;
 
       const { slot, waitMs } = picked;
-      const systemInstruction =
-        slot.provider === 'gemini'
-          ? SIPENA_SYSTEM_INSTRUCTION_FULL
-          : SIPENA_SYSTEM_INSTRUCTION_COMPACT;
+      const isCompactOnly =
+        slot.provider === 'groq' || slot.model.toLowerCase().includes('8b');
+      const systemInstruction = isCompactOnly
+        ? SIPENA_SYSTEM_INSTRUCTION_COMPACT
+        : SIPENA_SYSTEM_INSTRUCTION_FULL;
 
       if (waitMs > 0) {
         const slept = await this.sleepWithBudget(waitMs, callOptions, 1_500);

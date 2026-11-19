@@ -305,6 +305,101 @@ describe('Engine Audit 100/100 Scorecard Suite (8 Engineering Axes)', () => {
       const wisataFixed = enrichClassificationLinkages(wisataInput);
       expect(wisataFixed.expenditure_component).toBe(ExpenditureComponentEnum.PK_RT);
       expect(wisataFixed.secondary_expenditure_component).toBe(ExpenditureComponentEnum.PK_LNPRT);
+
+      // Grup 7: Pergeseran Huruf KBLI 2025 (K->L Perbankan, L->M Properti, P->Q Pendidikan, R->S Wisata, S/G->T Lembaga Adat & Bengkel)
+      const perbankanInput: LlmClassificationOutput = {
+        ...rsudInput,
+        summary: 'Penyaluran kredit usaha rakyat KUR oleh Bank BPD Kaltimtara Cabang Tideng Pale meningkat pesat.',
+        kbli_category: 'K' as unknown as KbliCategoryEnum,
+        expenditure_component: ExpenditureComponentEnum.PK_RT,
+      };
+      expect(enrichClassificationLinkages(perbankanInput).kbli_category).toBe(KbliCategoryEnum.L);
+
+      const realEstatInput: LlmClassificationOutput = {
+        ...rsudInput,
+        summary: 'Pengembang perumahan rakyat di kawasan Sesayap mulai membuka lahan dan sewa ruko komersial.',
+        kbli_category: 'L' as unknown as KbliCategoryEnum,
+        expenditure_component: ExpenditureComponentEnum.PMTB,
+      };
+      expect(enrichClassificationLinkages(realEstatInput).kbli_category).toBe(KbliCategoryEnum.M);
+
+      const pendidikanInput: LlmClassificationOutput = {
+        ...rsudInput,
+        summary: 'Disdikbud Tana Tidung menyalurkan beasiswa pendidikan bagi ribuan siswa sekolah dan mahasiswa KTT.',
+        kbli_category: KbliCategoryEnum.P,
+        expenditure_component: ExpenditureComponentEnum.PK_P,
+        secondary_kbli_category: null,
+      };
+      const pendFixed = enrichClassificationLinkages(pendidikanInput);
+      expect(pendFixed.kbli_category).toBe(KbliCategoryEnum.Q);
+      expect(pendFixed.secondary_kbli_category).toBe(KbliCategoryEnum.P);
+
+      const wisataRInput: LlmClassificationOutput = {
+        ...rsudInput,
+        summary: 'Pesta Budaya Adat Irau dan destinasi wisata alam Air Terjun Gunung Rian menyedot ribuan wisatawan.',
+        kbli_category: 'R' as unknown as KbliCategoryEnum,
+        expenditure_component: ExpenditureComponentEnum.PK_RT,
+      };
+      expect(enrichClassificationLinkages(wisataRInput).kbli_category).toBe(KbliCategoryEnum.S);
+
+      const bengkelInput: LlmClassificationOutput = {
+        ...rsudInput,
+        summary: 'Usaha bengkel motor dan reparasi sepeda motor warga Tideng Pale kebanjiran servis kendaraan.',
+        kbli_category: KbliCategoryEnum.G,
+        expenditure_component: ExpenditureComponentEnum.PK_RT,
+      };
+      expect(enrichClassificationLinkages(bengkelInput).kbli_category).toBe(KbliCategoryEnum.T);
+
+      // Grup 8: Konstruksi KBLI F dengan Belanja PK_P -> dialihkan ke PMTB (pembentukan modal fisik)
+      const konstruksiInput: LlmClassificationOutput = {
+        ...rsudInput,
+        summary: 'Dinas PU Pemkab Tana Tidung menggenjot pembangunan fisik gedung kantor dan jalan poros.',
+        kbli_category: KbliCategoryEnum.F,
+        kbli_impact: KbliImpactEnum.INCREASE_NTB,
+        expenditure_component: ExpenditureComponentEnum.PK_P,
+        expenditure_impact: ExpenditureImpactEnum.INCREASE_REAL,
+        secondary_expenditure_component: null,
+      };
+      const konstrFixed = enrichClassificationLinkages(konstruksiInput);
+      expect(konstrFixed.expenditure_component).toBe(ExpenditureComponentEnum.PMTB);
+      expect(konstrFixed.secondary_expenditure_component).toBe(ExpenditureComponentEnum.PK_P);
+
+      // Grup 9: Ekspor Komoditas Ekstraktif (Batubara B / CPO C) -> dialihkan dari PK_RT ke NET_EXPORT
+      const batubaraInput: LlmClassificationOutput = {
+        ...rsudInput,
+        summary: 'Pengapalan tongkang batubara dari pelabuhan Sesayap Kabupaten Tana Tidung kembali normal setelah pasang surut sungai.',
+        kbli_category: KbliCategoryEnum.B,
+        kbli_impact: KbliImpactEnum.INCREASE_NTB,
+        expenditure_component: ExpenditureComponentEnum.PK_RT,
+        expenditure_impact: ExpenditureImpactEnum.INCREASE_REAL,
+      };
+      const batubaraFixed = enrichClassificationLinkages(batubaraInput);
+      expect(batubaraFixed.expenditure_component).toBe(ExpenditureComponentEnum.NET_EXPORT);
+      expect(batubaraFixed.expenditure_impact).toBe(ExpenditureImpactEnum.INCREASE_REAL);
+
+      // Grup 10: Konsistensi Lintas-Sumbu Dampak (INCREASE_PRICE wajib menghasilkan INCREASE_DEFLATOR)
+      const hargaBerasInput: LlmClassificationOutput = {
+        ...rsudInput,
+        summary: 'Harga beras dan sembako di pasar tradisional Tideng Pale mengalami lonjakan imbas pasokan tersendat.',
+        kbli_category: KbliCategoryEnum.G,
+        kbli_impact: KbliImpactEnum.INCREASE_PRICE,
+        expenditure_component: ExpenditureComponentEnum.PK_RT,
+        expenditure_impact: ExpenditureImpactEnum.INCREASE_REAL, // LLM salah mengasumsikan real kuantum naik
+      };
+      const hargaFixed = enrichClassificationLinkages(hargaBerasInput);
+      expect(hargaFixed.expenditure_impact).toBe(ExpenditureImpactEnum.INCREASE_DEFLATOR);
+
+      // Grup 11: Penapisan Kebisingan Seremonial Murni Birokrasi Tanpa Data Anggaran/Proyek
+      const apelPagiInput: LlmClassificationOutput = {
+        ...rsudInput,
+        summary: 'Bupati Tana Tidung memimpin apel pagi rutin hari Senin dan silaturahmi biasa bersama jajaran ASN.',
+        kbli_category: KbliCategoryEnum.P,
+      };
+      const apelFixed = enrichClassificationLinkages(apelPagiInput);
+      expect(apelFixed.is_economic_phenomenon).toBe(false);
+      expect(apelFixed.kbli_category).toBeNull();
+      expect(apelFixed.expenditure_component).toBeNull();
+      expect(apelFixed.rejection_reason).toContain('Seremonial murni');
     });
   });
 
