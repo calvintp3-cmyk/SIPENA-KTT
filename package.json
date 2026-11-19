@@ -15,7 +15,8 @@
     "db:studio": "drizzle-kit studio",
     "db:seed": "tsx server/db/seed.ts",
     "db:archive-nonktt": "tsx server/db/archive-nonktt.ts",
-    "scrape:backfill": "tsx scripts/backfill-historical-tw3.ts"
+    "scrape:backfill": "tsx scripts/backfill-historical-tw3.ts",
+    "scrape:retest-tw4": "tsx scripts/retest-tw4-articles.ts"
   },
   "dependencies": {
     "@google/genai": "^3.1.0",
