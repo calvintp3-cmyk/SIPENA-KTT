@@ -263,7 +263,7 @@ async function main() {
         } catch (err: any) {
           console.error(`    [ERROR] Gagal memproses artikel ${row.id}: ${err.message}`);
         }
-        await new Promise((r) => setTimeout(r, 12000));
+        await new Promise((r) => setTimeout(r, 3500));
         console.log('');
       });
 
