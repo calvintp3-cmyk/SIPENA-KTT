@@ -113,11 +113,20 @@ async function main() {
 
     if (rows.length > 0) {
       const runtimeOpts = buildScraperPipelineRuntimeOptions();
+      const classifyChain =
+        process.env.LLM_CLASSIFY_CHAIN ||
+        runtimeOpts.routerOptions?.env?.llmClassifyChain ||
+        'gemini:gemini-3.5-flash-lite,groq:qwen/qwen3.8-27b,groq:openai/gpt-oss-120b';
+
       const llmRouter = new MultiLlmRouter({
         task: 'classify',
         maxCallsPerRun: 3000,
         transientRetryDelayMs: 3000,
         ...(runtimeOpts.routerOptions ?? {}),
+        env: {
+          ...(runtimeOpts.routerOptions?.env ?? {}),
+          llmClassifyChain: classifyChain,
+        },
       });
 
       let updatedCount = 0;
