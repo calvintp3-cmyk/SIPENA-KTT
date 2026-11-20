@@ -50,6 +50,12 @@ const sectorSearch = ref('');
 
 const currentSignal = computed(() => macroSignals.find((s) => s.value === props.impactMacro) || macroSignals[0]);
 
+const scopeItems = [
+  { value: 'ALL', label: 'Semua' },
+  { value: ArticleSourceTypeEnum.REGIONAL, label: 'Lokal Kaltara' },
+  { value: ArticleSourceTypeEnum.NATIONAL, label: 'Nasional' },
+];
+
 const sectorOptions = computed<Pdrb17DistributionItem[]>(() => {
   if (props.overview?.pdrb17Distribution?.length) {
     return props.overview.pdrb17Distribution;
@@ -126,7 +132,7 @@ const macroSignals = [
 
 <template>
   <div
-    class="sticky top-16 z-30 w-full bg-canvas/92 backdrop-blur-xl border-y border-border-hairline py-2.5 transition-[background-color,border-color]"
+    class="sticky top-16 z-30 w-full frosted-header border-y border-border-hairline py-2.5 transition-[background-color,border-color]"
   >
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <!-- 1-Row Slim Dock: Search + Scope + KBLI + Pengeluaran + Sinyal + Filter Lengkap + Reset -->
@@ -150,7 +156,7 @@ const macroSignals = [
               v-if="searchInput"
               type="button"
               aria-label="Hapus kata kunci pencarian"
-              class="min-w-8 min-h-8 inline-flex items-center justify-center text-ink-muted hover:text-ink-primary rounded-lg cursor-pointer"
+              class="min-w-8 min-h-8 inline-flex items-center justify-center text-ink-muted hover:text-ink-primary rounded-lg cursor-pointer tactile-press"
               @click="searchInput = ''"
             >
               <UIcon name="i-lucide-x" class="w-3.5 h-3.5" />
@@ -165,36 +171,16 @@ const macroSignals = [
           </div>
         </div>
 
-        <!-- Scope Segmented Control -->
-        <div
-          role="group"
-          aria-label="Filter cakupan berita"
-          class="hidden sm:inline-flex items-center p-0.5 rounded-xl bg-surface-subtle text-xs font-semibold shrink-0"
-        >
-          <button
-            type="button"
-            class="px-2.5 py-1.5 rounded-lg transition-all cursor-pointer min-h-8"
-            :class="sourceType === 'ALL' ? 'bg-white text-ink-primary shadow-2xs font-bold' : 'text-ink-secondary hover:text-ink-primary'"
-            @click="emit('update:sourceType', 'ALL')"
-          >
-            Semua
-          </button>
-          <button
-            type="button"
-            class="px-2.5 py-1.5 rounded-lg transition-all cursor-pointer min-h-8"
-            :class="sourceType === ArticleSourceTypeEnum.REGIONAL ? 'bg-white text-brand-primary shadow-2xs font-bold' : 'text-ink-secondary hover:text-brand-primary'"
-            @click="emit('update:sourceType', ArticleSourceTypeEnum.REGIONAL)"
-          >
-            Lokal Kaltara
-          </button>
-          <button
-            type="button"
-            class="px-2.5 py-1.5 rounded-lg transition-all cursor-pointer min-h-8"
-            :class="sourceType === ArticleSourceTypeEnum.NATIONAL ? 'bg-white text-brand-primary shadow-2xs font-bold' : 'text-ink-secondary hover:text-brand-primary'"
-            @click="emit('update:sourceType', ArticleSourceTypeEnum.NATIONAL)"
-          >
-            Nasional
-          </button>
+        <!-- Scope Segmented Control (Sliding Pill) -->
+        <div class="hidden sm:inline-flex shrink-0">
+          <AppSegmentedControl
+            :model-value="sourceType"
+            :items="scopeItems"
+            aria-label="Filter cakupan berita"
+            variant="surface"
+            size="sm"
+            @update:model-value="(val: any) => emit('update:sourceType', val as string)"
+          />
         </div>
 
         <!-- Popover Trigger: 17 Sektor KBLI -->
@@ -202,7 +188,7 @@ const macroSignals = [
           <button
             type="button"
             aria-label="Filter sektor KBLI"
-            class="h-9.5 px-3 rounded-xl border text-xs font-semibold inline-flex items-center gap-1.5 transition-colors cursor-pointer shrink-0"
+            class="h-9.5 px-3 rounded-xl border text-xs font-semibold inline-flex items-center gap-1.5 transition-colors cursor-pointer shrink-0 tactile-press shadow-2xs"
             :class="pdrbGroups.length > 0 ? 'bg-brand-tint border-brand-border text-brand-primary font-bold' : 'bg-white border-border-hairline text-ink-secondary hover:bg-surface-subtle'"
           >
             <span>KBLI</span>

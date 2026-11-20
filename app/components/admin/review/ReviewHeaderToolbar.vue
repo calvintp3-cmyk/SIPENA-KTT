@@ -1,6 +1,9 @@
 <!-- app/components/admin/review/ReviewHeaderToolbar.vue -->
 <script setup lang="ts">
-defineProps<{
+import { computed } from 'vue';
+import AppSegmentedControl, { type SegmentItem } from '~/components/shared/AppSegmentedControl.vue';
+
+const props = defineProps<{
   periodScope: 'all' | 'period';
   shortPeriodLabel: string;
   onlyLlmFailed: boolean;
@@ -16,6 +19,20 @@ const emit = defineEmits<{
   'update:activeStatus': [value: any];
   'update:searchInput': [value: string];
 }>();
+
+const scopeItems = computed<SegmentItem<'all' | 'period'>[]>(() => [
+  { value: 'all', label: 'Semua Antrean' },
+  { value: 'period', label: `Hanya ${props.shortPeriodLabel}` },
+]);
+
+const statusSegmentItems = computed<SegmentItem<string>[]>(() =>
+  props.statusTabs.map((t) => ({
+    value: t.value,
+    label: t.label,
+    badge: t.count,
+    badgeToneClass: t.toneClass,
+  }))
+);
 </script>
 
 <template>
@@ -36,38 +53,14 @@ const emit = defineEmits<{
 
       <div class="flex flex-wrap items-center gap-2.5">
         <!-- Scope Switcher -->
-        <div
-          role="group"
+        <AppSegmentedControl
+          :model-value="periodScope"
+          :items="scopeItems"
+          variant="brand"
+          size="xs"
           aria-label="Cakupan periode review"
-          class="inline-flex p-1 bg-surface-subtle rounded-xl border border-border-hairline font-mono"
-        >
-          <button
-            type="button"
-            :aria-pressed="periodScope === 'all'"
-            class="min-h-8 px-3 py-1 rounded-lg text-xs transition-colors cursor-pointer"
-            :class="
-              periodScope === 'all'
-                ? 'bg-white font-bold text-brand-primary shadow-2xs border border-brand-border'
-                : 'text-ink-secondary hover:text-ink-primary font-medium'
-            "
-            @click="emit('update:periodScope', 'all')"
-          >
-            Semua Antrean
-          </button>
-          <button
-            type="button"
-            :aria-pressed="periodScope === 'period'"
-            class="min-h-8 px-3 py-1 rounded-lg text-xs tabular-nums transition-colors cursor-pointer"
-            :class="
-              periodScope === 'period'
-                ? 'bg-white font-bold text-brand-primary shadow-2xs border border-brand-border'
-                : 'text-ink-secondary hover:text-ink-primary font-medium'
-            "
-            @click="emit('update:periodScope', 'period')"
-          >
-            Hanya {{ shortPeriodLabel }}
-          </button>
-        </div>
+          @update:model-value="emit('update:periodScope', $event)"
+        />
 
         <div class="inline-flex items-center gap-2 rounded-xl bg-white border border-border-control px-3 min-h-9 py-1 shadow-2xs">
           <USwitch
@@ -92,33 +85,14 @@ const emit = defineEmits<{
 
     <!-- Status Tabs & Search -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-      <div
-        role="group"
+      <AppSegmentedControl
+        :model-value="activeStatus"
+        :items="statusSegmentItems"
+        variant="surface"
+        size="xs"
         aria-label="Status kurasi"
-        class="inline-flex flex-nowrap overflow-x-auto saas-scroll p-1 bg-surface-subtle rounded-xl border border-border-hairline max-w-full gap-1 font-mono"
-      >
-        <button
-          v-for="tab in statusTabs"
-          :key="tab.value"
-          type="button"
-          :aria-pressed="activeStatus === tab.value"
-          class="min-h-8 px-3 py-1 rounded-lg text-xs inline-flex items-center gap-2 whitespace-nowrap transition-colors cursor-pointer"
-          :class="
-            activeStatus === tab.value
-              ? 'bg-white font-bold text-ink-primary shadow-2xs border border-border-hairline'
-              : 'text-ink-secondary hover:text-ink-primary font-medium'
-          "
-          @click="emit('update:activeStatus', tab.value)"
-        >
-          <span class="font-sans">{{ tab.label }}</span>
-          <span
-            class="px-2 py-0.5 rounded-full text-[11px] font-bold tabular-nums border font-mono"
-            :class="tab.toneClass"
-          >
-            {{ tab.count }}
-          </span>
-        </button>
-      </div>
+        @update:model-value="emit('update:activeStatus', $event)"
+      />
 
       <UInput
         id="review-queue-search"

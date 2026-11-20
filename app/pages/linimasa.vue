@@ -279,6 +279,11 @@ const quarterButtons: Array<{ value: PdrbQuarter; label: string; range: string }
   { value: 4, label: 'TW IV', range: 'Okt–Des' },
 ];
 
+const viewModeItems = [
+  { value: 'stream', label: 'Linimasa', icon: 'i-solar-list-bold-duotone' },
+  { value: 'table', label: 'Tabel Ringkas', icon: 'i-solar-widget-4-bold-duotone' },
+];
+
 const QUARTER_MONTH_NAMES: Record<PdrbQuarter, { start: string; end: string }> = {
   1: { start: 'Januari', end: 'Maret' },
   2: { start: 'April', end: 'Juni' },
@@ -523,32 +528,19 @@ function openDetailModal(article: PublicArticleItem) {
 
         <!-- Right: View Switcher & Analytics Toggle -->
         <div class="flex flex-wrap items-center gap-2.5 self-start lg:self-end shrink-0">
-          <!-- View Switcher -->
-          <div class="inline-flex p-1 rounded-xl bg-surface-subtle text-xs font-semibold">
-            <button
-              type="button"
-              class="px-3 py-1.5 rounded-lg inline-flex items-center gap-1.5 transition-all cursor-pointer"
-              :class="viewMode === 'stream' ? 'bg-white text-ink-primary shadow-2xs font-bold' : 'text-ink-secondary hover:text-ink-primary'"
-              @click="viewMode = 'stream'"
-            >
-              <UIcon name="i-solar-list-bold-duotone" class="w-3.5 h-3.5" />
-              <span>Linimasa</span>
-            </button>
-            <button
-              type="button"
-              class="px-3 py-1.5 rounded-lg inline-flex items-center gap-1.5 transition-all cursor-pointer"
-              :class="viewMode === 'table' ? 'bg-white text-ink-primary shadow-2xs font-bold' : 'text-ink-secondary hover:text-ink-primary'"
-              @click="viewMode = 'table'"
-            >
-              <UIcon name="i-solar-widget-4-bold-duotone" class="w-3.5 h-3.5" />
-              <span>Tabel Ringkas</span>
-            </button>
-          </div>
+          <!-- View Switcher (Sliding Pill) -->
+          <AppSegmentedControl
+            v-model="viewMode"
+            :items="viewModeItems"
+            aria-label="Pilih mode tampilan linimasa"
+            variant="surface"
+            size="sm"
+          />
 
           <!-- Analytics Panel Toggle Button -->
           <button
             type="button"
-            class="h-9 px-3.5 rounded-xl border border-border-hairline bg-white text-xs font-semibold text-ink-primary hover:bg-surface-subtle inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+            class="h-9 px-3.5 rounded-xl border border-border-hairline bg-white text-xs font-semibold text-ink-primary hover:bg-surface-subtle inline-flex items-center gap-1.5 transition-colors cursor-pointer tactile-press shadow-2xs"
             :class="showAnalyticsPanel ? 'bg-brand-tint border-brand-border text-brand-primary font-bold' : ''"
             @click="showAnalyticsPanel = !showAnalyticsPanel"
           >
@@ -577,22 +569,16 @@ function openDetailModal(article: PublicArticleItem) {
             />
           </div>
 
-          <!-- Quarter Switcher -->
-          <div class="inline-flex items-center gap-1 pl-2 font-mono">
-            <button
-              v-for="qBtn in quarterButtons"
-              :key="qBtn.value"
-              type="button"
-              class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer"
-              :class="
-                selectedQuarter === qBtn.value
-                  ? 'bg-brand-primary text-white shadow-2xs font-bold'
-                  : 'text-ink-secondary hover:text-ink-primary'
-              "
-              @click="handlePeriodChange(selectedYear, qBtn.value)"
-            >
-              {{ qBtn.label }}
-            </button>
+          <!-- Quarter Switcher (Sliding Brand Pill) -->
+          <div class="pl-2">
+            <AppSegmentedControl
+              :model-value="selectedQuarter"
+              :items="quarterButtons"
+              aria-label="Pilih triwulan PDRB"
+              variant="brand"
+              size="xs"
+              @update:model-value="(val: any) => handlePeriodChange(selectedYear, val as PdrbQuarter)"
+            />
           </div>
         </div>
 

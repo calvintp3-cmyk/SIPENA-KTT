@@ -34,6 +34,13 @@ function toggleSidebarCollapsed() {
   isSidebarCollapsed.value = !isSidebarCollapsed.value;
 }
 
+const quarterSegmentItems = computed(() =>
+  quarterChips.map((c) => ({
+    value: c.value,
+    label: c.shortLabel,
+  })),
+);
+
 interface NavItem {
   label: string;
   to: string;
@@ -248,7 +255,7 @@ onBeforeUnmount(() => {
 
     <!-- Architectural Limestone Rail Sidebar (Desktop) -->
     <aside
-      class="no-print hidden lg:flex lg:flex-col shrink-0 h-full bg-[#F0EFE9]/95 backdrop-blur-md border border-[#141917]/[0.08] rounded-2xl shadow-xs transition-[width] duration-200 ease-out relative"
+      class="no-print hidden lg:flex lg:flex-col shrink-0 h-full frosted-sidebar border border-[#141917]/[0.08] rounded-2xl shadow-xs transition-[width] duration-200 ease-out relative"
       :class="isSidebarCollapsed ? 'w-20' : 'w-64'"
     >
       <!-- Edge Collapse Toggle Button -->
@@ -256,7 +263,7 @@ onBeforeUnmount(() => {
         type="button"
         :aria-label="isSidebarCollapsed ? 'Perluas sidebar navigasi' : 'Ciutkan sidebar navigasi'"
         :title="isSidebarCollapsed ? 'Perluas sidebar' : 'Ciutkan sidebar'"
-        class="hidden lg:inline-flex items-center justify-center w-7 h-7 rounded-full bg-white border border-[#141917]/10 text-[#4A524E] hover:text-[#0B3D2E] hover:border-[#0B3D2E]/40 shadow-xs absolute -right-3.5 top-5 z-40 transition-colors cursor-pointer"
+        class="hidden lg:inline-flex items-center justify-center w-7 h-7 rounded-full bg-white border border-[#141917]/10 text-[#4A524E] hover:text-[#0B3D2E] hover:border-[#0B3D2E]/40 shadow-xs absolute -right-3.5 top-5 z-40 transition-colors cursor-pointer tactile-press"
         @click="toggleSidebarCollapsed"
       >
         <UIcon
@@ -458,27 +465,15 @@ onBeforeUnmount(() => {
               class="w-full font-mono"
               @update:model-value="(val: unknown) => { if (typeof val === 'number') setPeriod(val, selectedQuarter); }"
             />
-            <div
-              role="group"
+            <AppSegmentedControl
+              :model-value="selectedQuarter"
+              :items="quarterSegmentItems"
               aria-label="Pilih Triwulan Global Mobile"
-              class="grid grid-cols-4 gap-1 p-1 bg-[#ECEAE2] rounded-xl font-mono"
-            >
-              <button
-                v-for="chip in quarterChips"
-                :key="chip.value"
-                type="button"
-                :aria-pressed="selectedQuarter === chip.value"
-                class="min-h-9 px-2 py-1 rounded-lg text-xs tabular-nums transition-colors cursor-pointer"
-                :class="
-                  selectedQuarter === chip.value
-                    ? 'bg-[#0B3D2E] text-white font-bold shadow-2xs'
-                    : 'text-[#4A524E] hover:bg-white font-medium'
-                "
-                @click="setPeriod(selectedYear, chip.value)"
-              >
-                {{ chip.shortLabel }}
-              </button>
-            </div>
+              variant="brand"
+              size="xs"
+              block
+              @update:model-value="(val: any) => setPeriod(selectedYear, val as any)"
+            />
           </div>
 
           <nav aria-label="Menu Mobile Admin" class="space-y-5">
@@ -559,7 +554,7 @@ onBeforeUnmount(() => {
     >
       <!-- Docked Top Header (Pinned inside Content Card) -->
       <header
-        class="no-print shrink-0 z-20 w-full bg-white/95 backdrop-blur-sm border-b border-border-hairline"
+        class="no-print shrink-0 z-20 w-full frosted-header border-b border-border-hairline"
         style="view-transition-name: sipena-admin-header"
       >
         <div
@@ -570,7 +565,7 @@ onBeforeUnmount(() => {
               <button
                 type="button"
                 aria-label="Buka menu navigasi admin"
-                class="lg:hidden min-w-10 min-h-10 inline-flex items-center justify-center rounded-xl border border-[#141917]/10 bg-white text-[#141917] hover:bg-[#ECEAE2] cursor-pointer"
+                class="lg:hidden min-w-10 min-h-10 inline-flex items-center justify-center rounded-xl border border-[#141917]/10 bg-white text-[#141917] hover:bg-[#ECEAE2] cursor-pointer tactile-press"
                 @click="mobileNavOpen = true"
               >
                 <UIcon name="i-solar-hamburger-menu-bold-duotone" class="w-5 h-5 text-[#0B3D2E]" />
@@ -607,7 +602,7 @@ onBeforeUnmount(() => {
               <button
                 type="button"
                 aria-label="Cari menu atau artikel dengan pintasan Command K"
-                class="h-9 min-w-9 px-3 rounded-xl border border-border-hairline bg-surface-subtle hover:bg-white hover:border-brand-primary/40 text-xs text-ink-secondary hover:text-ink-primary inline-flex items-center gap-2 transition-colors cursor-pointer"
+                class="h-9 min-w-9 px-3 rounded-xl border border-border-hairline bg-surface-subtle hover:bg-white hover:border-brand-primary/40 text-xs text-ink-secondary hover:text-ink-primary inline-flex items-center gap-2 transition-colors cursor-pointer tactile-press"
                 @click="commandPaletteOpen = true"
               >
                 <UIcon name="i-solar-magnifer-line-duotone" class="w-4 h-4 text-ink-muted" />
@@ -641,33 +636,20 @@ onBeforeUnmount(() => {
                   />
                 </div>
 
-                <div
-                  role="group"
+                <AppSegmentedControl
+                  :model-value="selectedQuarter"
+                  :items="quarterSegmentItems"
                   aria-label="Pilih Triwulan Global"
-                  class="inline-flex p-0.5 bg-surface-subtle rounded-xl border border-border-hairline font-mono"
-                >
-                  <button
-                    v-for="chip in quarterChips"
-                    :key="chip.value"
-                    type="button"
-                    :aria-pressed="selectedQuarter === chip.value"
-                    class="px-2.5 py-1 min-h-8 rounded-lg text-xs tabular-nums transition-all cursor-pointer"
-                    :class="
-                      selectedQuarter === chip.value
-                        ? 'bg-brand-primary text-white font-bold shadow-2xs'
-                        : 'text-ink-secondary hover:text-ink-primary font-medium'
-                    "
-                    @click="setPeriod(selectedYear, chip.value)"
-                  >
-                    {{ chip.shortLabel }}
-                  </button>
-                </div>
+                  variant="brand"
+                  size="xs"
+                  @update:model-value="(val: any) => setPeriod(selectedYear, val as any)"
+                />
               </div>
 
               <!-- Review CTA -->
               <NuxtLink
                 to="/admin/review"
-                class="obs-btn-primary h-9 px-3.5 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 whitespace-nowrap shadow-xs"
+                class="obs-btn-primary h-9 px-3.5 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 whitespace-nowrap shadow-xs tactile-press"
               >
                 <UIcon name="i-solar-inbox-in-bold-duotone" class="w-4 h-4 text-emerald-200" />
                 <span class="hidden sm:inline">Review</span>
@@ -698,26 +680,17 @@ onBeforeUnmount(() => {
                 @update:model-value="(val: unknown) => { if (typeof val === 'number') setPeriod(val, selectedQuarter); }"
               />
             </div>
-            <div
-              role="group"
-              aria-label="Pilih Triwulan Mobile"
-              class="flex-1 grid grid-cols-4 gap-1 p-0.5 bg-[#ECEAE2] rounded-lg border border-[#141917]/10 font-mono"
-            >
-              <button
-                v-for="chip in quarterChips"
-                :key="`m-${chip.value}`"
-                type="button"
-                :aria-pressed="selectedQuarter === chip.value"
-                class="min-h-9 px-1.5 py-1 rounded-md text-xs tabular-nums transition-colors cursor-pointer"
-                :class="
-                  selectedQuarter === chip.value
-                    ? 'bg-[#0B3D2E] text-white font-bold shadow-2xs'
-                    : 'text-[#4A524E] hover:text-[#141917] font-medium'
-                "
-                @click="setPeriod(selectedYear, chip.value)"
-              >
-                {{ chip.shortLabel }}
-              </button>
+            <div class="flex-1 min-w-0">
+              <AppSegmentedControl
+                :model-value="selectedQuarter"
+                :items="quarterSegmentItems"
+                aria-label="Pilih Triwulan Mobile"
+                variant="brand"
+                size="xs"
+                block
+                compact
+                @update:model-value="(val: any) => setPeriod(selectedYear, val as any)"
+              />
             </div>
           </div>
         </header>

@@ -1,6 +1,7 @@
 <!-- app/pages/admin/trends.vue -->
 <script setup lang="ts">
 import type { ExpenditureImpactEnum, KbliImpactEnum } from '#shared/enums/pdrb';
+import AppSegmentedControl, { type SegmentItem } from '~/components/shared/AppSegmentedControl.vue';
 import type { AdminTrendsResponse, TrendPeriodPoint } from '~/types/sipena';
 import { SIPENA_CHART_TOKENS, SIPENA_CHART_TOOLTIP_STYLE } from '~/utils/chart-theme';
 
@@ -31,6 +32,29 @@ const metricMode = ref<'volume' | 'share' | 'netBalance'>('volume');
 const tableFilter = ref<'all' | 'up' | 'down' | 'gap'>('all');
 const sortKey = ref<'delta' | 'current' | 'code' | 'share' | 'nbi'>('delta');
 const hoveredQuarter = ref<TrendPeriodPoint | null>(null);
+
+const modeItems: SegmentItem<'qoq' | 'yoy'>[] = [
+  { value: 'qoq', label: 'Antar-Triwulan (vs Triwulan Lalu)' },
+  { value: 'yoy', label: 'Antar-Tahun (vs Tahun Lalu)' },
+];
+
+const dimensionItems: SegmentItem<'kbli' | 'expenditure'>[] = [
+  { value: 'kbli', label: '17 Lapangan Usaha KBLI' },
+  { value: 'expenditure', label: '6 Komponen Pengeluaran' },
+];
+
+const metricItems: SegmentItem<'volume' | 'share' | 'netBalance'>[] = [
+  { value: 'volume', label: 'Volume (Absolut)' },
+  { value: 'share', label: 'Pangsa Sektor (%)' },
+  { value: 'netBalance', label: 'Saldo Bersih (NBI)' },
+];
+
+const tableFilterItems: SegmentItem<'all' | 'up' | 'down' | 'gap'>[] = [
+  { value: 'all', label: 'Semua' },
+  { value: 'up', label: 'Meningkat (+)' },
+  { value: 'down', label: 'Menurun (-)' },
+  { value: 'gap', label: 'Data Gap (0)' },
+];
 
 const sortOptions = [
   { label: 'Perubahan Terbesar', value: 'delta' },
@@ -267,7 +291,7 @@ function handleExportXlsx() {
           <button
             type="button"
             :disabled="isExporting"
-            class="min-h-9 px-3.5 rounded-xl border border-border-control bg-white hover:bg-surface-subtle text-xs font-semibold text-ink-primary inline-flex items-center gap-1.5 transition-colors disabled:opacity-50 cursor-pointer"
+            class="min-h-9 px-3.5 rounded-xl border border-border-control bg-white hover:bg-surface-subtle text-xs font-semibold text-ink-primary inline-flex items-center gap-1.5 transition-colors disabled:opacity-50 cursor-pointer tactile-press"
             @click="() => { handleExportXlsx(); }"
           >
             <UIcon name="i-solar-download-bold-duotone" class="w-4 h-4 text-brand-primary" />
@@ -283,127 +307,39 @@ function handleExportXlsx() {
             <span class="text-xs font-semibold text-ink-secondary">
               Mode:
             </span>
-            <div
-              role="group"
+            <AppSegmentedControl
+              v-model="mode"
+              :items="modeItems"
+              variant="brand"
+              size="xs"
               aria-label="Mode komparasi periode"
-              class="inline-flex p-1 bg-surface-subtle rounded-xl border border-border-hairline font-mono"
-            >
-              <button
-                type="button"
-                :aria-pressed="mode === 'qoq'"
-                class="min-h-8 px-3 py-1 rounded-lg text-xs transition-colors cursor-pointer"
-                :class="
-                  mode === 'qoq'
-                    ? 'bg-white text-brand-primary font-bold shadow-2xs border border-brand-border'
-                    : 'text-ink-secondary hover:text-ink-primary font-medium'
-                "
-                @click="() => { mode = 'qoq'; }"
-              >
-                Antar-Triwulan (vs Triwulan Lalu)
-              </button>
-              <button
-                type="button"
-                :aria-pressed="mode === 'yoy'"
-                class="min-h-8 px-3 py-1 rounded-lg text-xs transition-colors cursor-pointer"
-                :class="
-                  mode === 'yoy'
-                    ? 'bg-white text-brand-primary font-bold shadow-2xs border border-brand-border'
-                    : 'text-ink-secondary hover:text-ink-primary font-medium'
-                "
-                @click="() => { mode = 'yoy'; }"
-              >
-                Antar-Tahun (vs Tahun Lalu)
-              </button>
-            </div>
+            />
           </div>
 
           <div class="flex items-center gap-2">
             <span class="text-xs font-semibold text-ink-secondary">
               Dimensi:
             </span>
-            <div
-              role="group"
+            <AppSegmentedControl
+              v-model="dimension"
+              :items="dimensionItems"
+              variant="brand"
+              size="xs"
               aria-label="Dimensi klasifikasi PDRB"
-              class="inline-flex p-1 bg-surface-subtle rounded-xl border border-border-hairline font-mono"
-            >
-              <button
-                type="button"
-                :aria-pressed="dimension === 'kbli'"
-                class="min-h-8 px-3 py-1 rounded-lg text-xs transition-colors cursor-pointer"
-                :class="
-                  dimension === 'kbli'
-                    ? 'bg-white text-brand-primary font-bold shadow-2xs border border-brand-border'
-                    : 'text-ink-secondary hover:text-ink-primary font-medium'
-                "
-                @click="() => { dimension = 'kbli'; }"
-              >
-                17 Lapangan Usaha KBLI
-              </button>
-              <button
-                type="button"
-                :aria-pressed="dimension === 'expenditure'"
-                class="min-h-8 px-3 py-1 rounded-lg text-xs transition-colors cursor-pointer"
-                :class="
-                  dimension === 'expenditure'
-                    ? 'bg-white text-brand-primary font-bold shadow-2xs border border-brand-border'
-                    : 'text-ink-secondary hover:text-ink-primary font-medium'
-                "
-                @click="() => { dimension = 'expenditure'; }"
-              >
-                6 Komponen Pengeluaran
-              </button>
-            </div>
+            />
           </div>
 
           <div class="flex items-center gap-2">
             <span class="text-xs font-semibold text-ink-secondary">
               Metrik:
             </span>
-            <div
-              role="group"
+            <AppSegmentedControl
+              v-model="metricMode"
+              :items="metricItems"
+              variant="brand"
+              size="xs"
               aria-label="Metrik perbandingan tren"
-              class="inline-flex p-1 bg-surface-subtle rounded-xl border border-border-hairline font-mono"
-            >
-              <button
-                type="button"
-                :aria-pressed="metricMode === 'volume'"
-                class="min-h-8 px-2.5 py-1 rounded-lg text-xs transition-colors cursor-pointer"
-                :class="
-                  metricMode === 'volume'
-                    ? 'bg-white text-brand-primary font-bold shadow-2xs border border-brand-border'
-                    : 'text-ink-secondary hover:text-ink-primary font-medium'
-                "
-                @click="() => { metricMode = 'volume'; }"
-              >
-                Volume (Absolut)
-              </button>
-              <button
-                type="button"
-                :aria-pressed="metricMode === 'share'"
-                class="min-h-8 px-2.5 py-1 rounded-lg text-xs transition-colors cursor-pointer"
-                :class="
-                  metricMode === 'share'
-                    ? 'bg-white text-brand-primary font-bold shadow-2xs border border-brand-border'
-                    : 'text-ink-secondary hover:text-ink-primary font-medium'
-                "
-                @click="() => { metricMode = 'share'; }"
-              >
-                Pangsa Sektor (%)
-              </button>
-              <button
-                type="button"
-                :aria-pressed="metricMode === 'netBalance'"
-                class="min-h-8 px-2.5 py-1 rounded-lg text-xs transition-colors cursor-pointer"
-                :class="
-                  metricMode === 'netBalance'
-                    ? 'bg-white text-brand-primary font-bold shadow-2xs border border-brand-border'
-                    : 'text-ink-secondary hover:text-ink-primary font-medium'
-                "
-                @click="() => { metricMode = 'netBalance'; }"
-              >
-                Saldo Bersih (NBI)
-              </button>
-            </div>
+            />
           </div>
         </div>
 
@@ -629,48 +565,13 @@ function handleExportXlsx() {
     <!-- Comparison Table -->
     <section v-if="trendData" aria-label="Tabel Perbandingan per Sektor atau Komponen" class="space-y-3">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div
-          role="group"
+        <AppSegmentedControl
+          v-model="tableFilter"
+          :items="tableFilterItems"
+          variant="brand"
+          size="xs"
           aria-label="Filter perubahan tren"
-          class="inline-flex flex-wrap p-1 bg-surface-subtle rounded-xl border border-border-hairline gap-1"
-        >
-          <button
-            type="button"
-            :aria-pressed="tableFilter === 'all'"
-            class="min-h-8 px-3 py-1 rounded-lg text-xs transition-colors cursor-pointer"
-            :class="tableFilter === 'all' ? 'bg-white font-bold shadow-2xs text-brand-primary border border-brand-border' : 'text-ink-secondary font-medium'"
-            @click="() => { tableFilter = 'all'; }"
-          >
-            Semua
-          </button>
-          <button
-            type="button"
-            :aria-pressed="tableFilter === 'up'"
-            class="min-h-8 px-3 py-1 rounded-lg text-xs transition-colors cursor-pointer"
-            :class="tableFilter === 'up' ? 'bg-white font-bold shadow-2xs text-brand-primary border border-brand-border' : 'text-ink-secondary font-medium'"
-            @click="() => { tableFilter = 'up'; }"
-          >
-            Meningkat (+)
-          </button>
-          <button
-            type="button"
-            :aria-pressed="tableFilter === 'down'"
-            class="min-h-8 px-3 py-1 rounded-lg text-xs transition-colors cursor-pointer"
-            :class="tableFilter === 'down' ? 'bg-white font-bold shadow-2xs text-terracotta-ink border border-terracotta/30' : 'text-ink-secondary font-medium'"
-            @click="() => { tableFilter = 'down'; }"
-          >
-            Menurun (-)
-          </button>
-          <button
-            type="button"
-            :aria-pressed="tableFilter === 'gap'"
-            class="min-h-8 px-3 py-1 rounded-lg text-xs transition-colors cursor-pointer"
-            :class="tableFilter === 'gap' ? 'bg-white font-bold shadow-2xs text-ink-primary border border-border-control' : 'text-ink-secondary font-medium'"
-            @click="() => { tableFilter = 'gap'; }"
-          >
-            Data Gap (0)
-          </button>
-        </div>
+        />
 
         <div class="flex items-center gap-2 text-xs">
           <label for="trends-sort-select" class="font-semibold text-ink-secondary cursor-pointer">

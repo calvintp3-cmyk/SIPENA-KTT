@@ -125,12 +125,12 @@ onBeforeUnmount(() => {
 
     <!-- Full-Width Edge-to-Edge Sticky Masthead -->
     <header
-      class="sticky top-0 z-40 w-full bg-canvas/85 backdrop-blur-xl border-b border-border-hairline transition-[background-color,border-color]"
+      class="sticky top-0 z-40 w-full frosted-header border-b border-border-hairline transition-[background-color,border-color]"
       style="view-transition-name: sipena-public-header"
     >
       <div class="max-w-7xl mx-auto h-16 px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4">
         <!-- Brand Lockup -->
-        <NuxtLink to="/" class="flex items-center gap-3 group shrink-0 rounded-lg py-1 focus-visible:outline-[#0B3D2E]">
+        <NuxtLink to="/" class="flex items-center gap-3 group shrink-0 rounded-lg py-1 focus-visible:outline-[#0B3D2E] tactile-press">
           <div class="flex items-baseline gap-2">
             <span class="font-display font-extrabold tracking-tight text-ink-primary text-lg sm:text-[19px] whitespace-nowrap">
               SIPENA <span class="text-brand-primary">KTT</span>
@@ -152,7 +152,7 @@ onBeforeUnmount(() => {
             :key="item.to"
             :to="item.to"
             :aria-current="item.active ? 'page' : undefined"
-            class="relative px-3.5 py-1.5 rounded-lg text-[13px] transition-colors whitespace-nowrap"
+            class="relative px-3.5 py-1.5 rounded-lg text-[13px] transition-colors whitespace-nowrap tactile-press"
             :class="
               item.active
                 ? 'text-brand-primary font-bold bg-brand-tint/70'
@@ -181,7 +181,7 @@ onBeforeUnmount(() => {
           <NuxtLink
             v-if="user"
             to="/admin"
-            class="obs-btn-primary h-9 text-xs sm:text-[13px] font-semibold px-4 rounded-xl inline-flex items-center gap-1.5 whitespace-nowrap"
+            class="obs-btn-primary h-9 text-xs sm:text-[13px] font-semibold px-4 rounded-xl inline-flex items-center gap-1.5 whitespace-nowrap tactile-press shadow-xs"
           >
             <span>Workstation</span>
             <UIcon name="i-lucide-arrow-right" class="w-3.5 h-3.5" />
@@ -189,7 +189,7 @@ onBeforeUnmount(() => {
           <NuxtLink
             v-else
             to="/login"
-            class="obs-btn-primary h-9 text-xs sm:text-[13px] font-semibold px-4 rounded-xl inline-flex items-center gap-1.5 whitespace-nowrap"
+            class="obs-btn-primary h-9 text-xs sm:text-[13px] font-semibold px-4 rounded-xl inline-flex items-center gap-1.5 whitespace-nowrap tactile-press shadow-xs"
           >
             <span>Workstation</span>
             <UIcon name="i-lucide-arrow-right" class="w-3.5 h-3.5" />
@@ -198,7 +198,7 @@ onBeforeUnmount(() => {
           <button
             type="button"
             aria-label="Buka menu navigasi publik"
-            class="md:hidden min-w-10 min-h-10 inline-flex items-center justify-center rounded-xl border border-border-hairline bg-white text-ink-primary hover:bg-surface-subtle cursor-pointer"
+            class="md:hidden min-w-10 min-h-10 inline-flex items-center justify-center rounded-xl border border-border-hairline bg-white text-ink-primary hover:bg-surface-subtle cursor-pointer tactile-press"
             @click="() => { mobileMenuOpen = true; }"
           >
             <UIcon name="i-solar-hamburger-menu-bold-duotone" class="w-5 h-5 text-brand-primary" />

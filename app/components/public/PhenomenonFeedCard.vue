@@ -160,7 +160,7 @@ async function copyCitation() {
 
 <template>
   <article
-    class="group bg-white rounded-2xl border border-border-hairline hover:border-brand-primary/35 hover:shadow-[0_12px_32px_-12px_rgba(11,61,46,0.12)] transition-all duration-200 flex flex-col gap-3.5 relative p-5 sm:p-6"
+    class="group bg-white rounded-2xl border border-border-hairline hover:border-brand-primary/35 hover:-translate-y-0.5 hover:shadow-[0_16px_36px_-12px_rgba(11,61,46,0.14)] active:scale-[0.995] transition-all duration-200 flex flex-col gap-3.5 relative p-5 sm:p-6"
   >
     <!-- Top Metadata Header Strip -->
     <div class="flex items-start justify-between gap-3">
@@ -170,7 +170,7 @@ async function copyCitation() {
           :href="article.url"
           target="_blank"
           rel="noopener noreferrer"
-          class="relative z-10 inline-flex items-center gap-1 font-semibold text-ink-primary bg-surface-subtle hover:bg-brand-tint hover:text-brand-primary px-2.5 py-0.5 rounded-lg border border-border-hairline transition-colors"
+          class="relative z-10 inline-flex items-center gap-1 font-semibold text-ink-primary bg-surface-subtle hover:bg-brand-tint hover:text-brand-primary px-2.5 py-0.5 rounded-lg border border-border-hairline transition-colors tactile-press"
         >
           <span class="truncate max-w-[180px] sm:max-w-[240px]">{{ article.sourcePortal }}</span>
           <UIcon name="i-lucide-arrow-up-right" class="w-3 h-3 text-ink-muted shrink-0" />
@@ -212,7 +212,7 @@ async function copyCitation() {
         type="button"
         aria-label="Salin Sitasi Fenomena"
         title="Salin format sitasi BPS"
-        class="relative z-10 min-w-8 min-h-8 inline-flex items-center justify-center rounded-lg text-ink-muted hover:text-brand-primary hover:bg-brand-tint transition-colors shrink-0 cursor-pointer"
+        class="relative z-10 min-w-8 min-h-8 inline-flex items-center justify-center rounded-lg text-ink-muted hover:text-brand-primary hover:bg-brand-tint transition-colors shrink-0 cursor-pointer tactile-press"
         @click="copyCitation"
       >
         <UIcon

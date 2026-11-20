@@ -313,27 +313,15 @@ function setThisMonthRange() {
         <span class="block text-[11px] font-bold text-ink-primary">
           Cakupan Sumber
         </span>
-        <div
-          role="group"
+        <AppSegmentedControl
+          :model-value="sourceType"
+          :items="sourceButtons"
           aria-label="Filter Sumber Berita"
-          class="grid grid-cols-3 gap-1 p-1 bg-surface-subtle rounded-xl border border-border-hairline text-center"
-        >
-          <button
-            v-for="src in sourceButtons"
-            :key="src.value"
-            type="button"
-            :aria-pressed="sourceType === src.value"
-            class="py-1 px-1 rounded-lg text-[10px] transition-all whitespace-nowrap cursor-pointer"
-            :class="
-              sourceType === src.value
-                ? 'font-bold bg-brand-primary text-white shadow-2xs'
-                : 'text-ink-secondary hover:text-ink-primary font-medium'
-            "
-            @click="emit('update:sourceType', src.value)"
-          >
-            {{ src.label }}
-          </button>
-        </div>
+          variant="brand"
+          size="xs"
+          block
+          @update:model-value="(val: any) => emit('update:sourceType', val as string)"
+        />
       </div>
 
       <!-- Arah Dinamika Ekonomi (2x2 Bento Chips) -->

@@ -135,7 +135,7 @@ const {
               v-if="activeStatus !== VerificationStatusEnum.VERIFIED"
               type="button"
               :disabled="isBusy"
-              class="min-h-8 px-2.5 py-1 rounded-lg bg-brand-tint hover:bg-[#d0e7dc] text-brand-primary border border-brand-border text-[11px] font-semibold inline-flex items-center gap-1 cursor-pointer transition-colors"
+              class="min-h-8 px-2.5 py-1 rounded-lg bg-brand-tint hover:bg-[#d0e7dc] text-brand-primary border border-brand-border text-[11px] font-semibold inline-flex items-center gap-1 cursor-pointer transition-colors tactile-press"
               @click="emit('verify')"
             >
               <UIcon name="i-lucide-check" class="w-3 h-3" />
@@ -144,7 +144,7 @@ const {
 
             <button
               type="button"
-              class="lg:hidden min-h-8 px-2.5 py-1 rounded-lg bg-white border border-border-control text-ink-primary text-[11px] font-semibold inline-flex items-center gap-1 cursor-pointer"
+              class="lg:hidden min-h-8 px-2.5 py-1 rounded-lg bg-white border border-border-control text-ink-primary text-[11px] font-semibold inline-flex items-center gap-1 cursor-pointer tactile-press"
               @click="emit('openMobile')"
             >
               <UIcon name="i-lucide-pencil" class="w-3 h-3" />
@@ -155,7 +155,7 @@ const {
               v-if="activeStatus !== VerificationStatusEnum.IGNORED"
               type="button"
               :disabled="isBusy"
-              class="min-h-8 px-2.5 py-1 rounded-lg hover:bg-surface-subtle text-ink-secondary text-[11px] font-semibold cursor-pointer transition-colors"
+              class="min-h-8 px-2.5 py-1 rounded-lg hover:bg-surface-subtle text-ink-secondary text-[11px] font-semibold cursor-pointer transition-colors tactile-press"
               @click="emit('ignore')"
             >
               Abaikan

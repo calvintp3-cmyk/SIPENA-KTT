@@ -311,7 +311,7 @@ const methodologyColumns = [
         <!-- Lead Editorial Feature Brief (7 Cols) -->
         <article
           v-if="leadArticle"
-          class="relative lg:col-span-7 bg-white rounded-2xl border border-border-hairline p-6 sm:p-8 flex flex-col justify-between hover:border-brand-primary/35 hover:shadow-[0_12px_32px_-12px_rgba(11,61,46,0.12)] transition-all group"
+          class="relative lg:col-span-7 bg-white rounded-2xl border border-border-hairline p-6 sm:p-8 flex flex-col justify-between hover:border-brand-primary/35 hover:-translate-y-0.5 hover:shadow-[0_16px_36px_-12px_rgba(11,61,46,0.14)] active:scale-[0.995] transition-all duration-200 group"
         >
           <div>
             <!-- Top Metadata Strip -->
@@ -376,7 +376,7 @@ const methodologyColumns = [
           <article
             v-for="item in secondaryArticles"
             :key="item.id"
-            class="relative bg-white rounded-2xl border border-border-hairline p-5 flex flex-col justify-between hover:border-brand-primary/35 hover:shadow-sm transition-all group flex-1"
+            class="relative bg-white rounded-2xl border border-border-hairline p-5 flex flex-col justify-between hover:border-brand-primary/35 hover:-translate-y-0.5 hover:shadow-[0_14px_30px_-10px_rgba(11,61,46,0.12)] active:scale-[0.995] transition-all duration-200 group flex-1"
           >
             <div>
               <div class="flex items-center justify-between text-[11px] text-ink-muted mb-2 font-mono">

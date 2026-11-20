@@ -1,5 +1,6 @@
 <!-- app/components/admin/synthesis/SynthesisParameterBar.vue -->
 <script setup lang="ts">
+import AppSegmentedControl, { type SegmentItem } from '~/components/shared/AppSegmentedControl.vue';
 import type { SynthesisStyle } from '~/types/sipena';
 
 const props = defineProps<{
@@ -17,6 +18,11 @@ const emit = defineEmits<{
   requestTargetCodeChange: [code: string | undefined];
   'update:style': [style: SynthesisStyle];
 }>();
+
+const dimensionItems: SegmentItem<'kbli' | 'expenditure'>[] = [
+  { value: 'kbli', label: '17 KBLI' },
+  { value: 'expenditure', label: '6 Pengeluaran' },
+];
 </script>
 
 <template>
@@ -26,38 +32,15 @@ const emit = defineEmits<{
       <span class="block text-xs font-semibold text-ink-secondary">
         Dimensi PDRB
       </span>
-      <div
-        role="group"
+      <AppSegmentedControl
+        :model-value="dimension"
+        :items="dimensionItems"
+        variant="brand"
+        size="xs"
+        block
         aria-label="Pilih dimensi sintesis"
-        class="grid grid-cols-2 p-1 bg-surface-subtle rounded-xl border border-border-hairline gap-1 font-mono"
-      >
-        <button
-          type="button"
-          :aria-pressed="dimension === 'kbli'"
-          class="min-h-8 py-1.5 px-2 rounded-lg text-xs transition-colors cursor-pointer"
-          :class="
-            dimension === 'kbli'
-              ? 'bg-white font-bold text-brand-primary shadow-2xs border border-brand-border'
-              : 'text-ink-secondary hover:text-ink-primary font-medium'
-          "
-          @click="emit('requestDimensionChange', 'kbli')"
-        >
-          17 KBLI
-        </button>
-        <button
-          type="button"
-          :aria-pressed="dimension === 'expenditure'"
-          class="min-h-8 py-1.5 px-2 rounded-lg text-xs transition-colors cursor-pointer"
-          :class="
-            dimension === 'expenditure'
-              ? 'bg-white font-bold text-brand-primary shadow-2xs border border-brand-border'
-              : 'text-ink-secondary hover:text-ink-primary font-medium'
-          "
-          @click="emit('requestDimensionChange', 'expenditure')"
-        >
-          6 Pengeluaran
-        </button>
-      </div>
+        @update:model-value="emit('requestDimensionChange', $event)"
+      />
     </div>
 
     <!-- Target Sektor / Komponen -->

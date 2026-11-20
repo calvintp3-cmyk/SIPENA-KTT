@@ -232,7 +232,7 @@ const {
         </template>
 
         <template #actions-cell="{ row }">
-          <div class="flex items-center gap-1">
+          <div class="flex items-center gap-1 contextual-actions">
             <UTooltip text="Edit Arsip">
               <UButton
                 size="xs"
@@ -240,7 +240,7 @@ const {
                 variant="subtle"
                 icon="i-lucide-pencil"
                 aria-label="Edit artikel arsip"
-                class="w-7 h-7 p-0 flex items-center justify-center cursor-pointer"
+                class="w-7 h-7 p-0 flex items-center justify-center cursor-pointer tactile-press"
                 @click="emit('edit', row.original)"
               />
             </UTooltip>
@@ -252,7 +252,7 @@ const {
                 variant="ghost"
                 icon="i-lucide-trash-2"
                 aria-label="Hapus artikel arsip"
-                class="w-7 h-7 p-0 flex items-center justify-center cursor-pointer"
+                class="w-7 h-7 p-0 flex items-center justify-center cursor-pointer tactile-press"
                 @click="emit('delete', row.original)"
               />
             </UTooltip>
