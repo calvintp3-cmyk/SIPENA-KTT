@@ -244,7 +244,7 @@ onBeforeUnmount(() => {
 
 <template>
   <div
-    class="min-h-screen lg:h-screen lg:max-h-screen lg:overflow-hidden bg-[#F6F5F1] text-[#141917] font-sans selection:bg-[#E3F0EA] selection:text-[#0B3D2E] flex flex-col lg:flex-row p-0 lg:p-4 xl:p-5 2xl:p-6 lg:gap-4 xl:gap-5 print:h-auto print:overflow-visible print:p-0"
+    class="min-h-screen bg-[#F6F5F1] text-[#141917] font-sans selection:bg-[#E3F0EA] selection:text-[#0B3D2E] flex flex-col lg:flex-row p-0 lg:p-4 xl:p-5 2xl:p-6 lg:gap-4 xl:gap-5 print:p-0"
   >
     <a
       href="#main-content"
@@ -255,7 +255,7 @@ onBeforeUnmount(() => {
 
     <!-- Architectural Limestone Rail Sidebar (Desktop) -->
     <aside
-      class="no-print hidden lg:flex lg:flex-col shrink-0 h-full frosted-sidebar border border-[#141917]/[0.08] rounded-2xl shadow-xs transition-[width] duration-200 ease-out relative"
+      class="no-print hidden lg:flex lg:flex-col shrink-0 frosted-sidebar border border-[#141917]/[0.08] rounded-2xl shadow-xs transition-[width] duration-200 ease-out sticky top-4 xl:top-5 2xl:top-6 self-start max-h-[calc(100vh-2rem)] xl:max-h-[calc(100vh-2.5rem)] 2xl:max-h-[calc(100vh-3rem)] overflow-hidden"
       :class="isSidebarCollapsed ? 'w-20' : 'w-64'"
     >
       <!-- Edge Collapse Toggle Button -->
@@ -550,11 +550,11 @@ onBeforeUnmount(() => {
 
     <!-- Main Floating Workspace Canvas -->
     <div
-      class="flex-1 min-w-0 min-h-screen lg:min-h-0 lg:h-full flex flex-col bg-white lg:border lg:border-border-hairline lg:rounded-2xl lg:shadow-xs lg:overflow-hidden print:border-none print:shadow-none print:rounded-none print:h-auto print:overflow-visible transition-all duration-200 ease-out"
+      class="flex-1 min-w-0 flex flex-col bg-white border-0 lg:border lg:border-border-hairline rounded-none lg:rounded-2xl lg:shadow-xs print:border-none print:shadow-none print:rounded-none transition-all duration-200 ease-out mb-0 lg:mb-4 xl:mb-5 2xl:mb-6"
     >
       <!-- Docked Top Header (Pinned inside Content Card) -->
       <header
-        class="no-print shrink-0 z-20 w-full frosted-header !bg-white border-b border-border-hairline"
+        class="no-print shrink-0 z-20 w-full frosted-header !bg-white border-b border-border-hairline sticky top-0 lg:top-4 xl:top-5 2xl:top-6 rounded-none lg:rounded-t-2xl shadow-2xs"
         style="view-transition-name: sipena-admin-header"
       >
         <div
@@ -695,11 +695,11 @@ onBeforeUnmount(() => {
           </div>
         </header>
 
-      <!-- Scrollable Main Content Area (Only inside this container scrolls) -->
+      <!-- Main Content Area (Flows naturally with the single page scroll) -->
       <main
         id="main-content"
         tabindex="-1"
-        class="flex-1 min-h-0 w-full overflow-y-auto saas-scroll print:overflow-visible print:h-auto focus:outline-none"
+        class="flex-1 w-full print:overflow-visible focus:outline-none"
       >
         <div class="max-w-[1360px] mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-6">
           <slot />
