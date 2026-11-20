@@ -101,6 +101,56 @@ Dokumen ini mencatat seluruh proses eksekusi otonom per sesi: branch, commit has
   - Vitest: 24 files, 178 tests PASSED (100%).
   - Forbidden Path Gate: 0 perubahan pada `server/**`, `prisma/**`, `shared/schemas/**`.
 
+---
+
+## Sesi Fase 2: Admin Monolith Decomposition & Polish
+- **Branch:** `refactor/ui-f2-admin-monolith-decomposition`
+- **ID Temuan:** `UX-011`, `UX-012`, `UX-013`, `UX-017`, `UX-020`, Amandemen 2
+- **Status:** COMPLETED
+- **Ringkasan Perubahan:**
+  1. `UX-020 (Modular Highlighted Snippet)`:
+     - Mengekstrak `app/components/admin/HighlightedSnippetBox.vue` untuk modularisasi parser snippet beranotasi lokus dan angka.
+     - Diintegrasikan ke `review.vue` dan `ReviewSlideover.vue`.
+  2. `UX-017 Monolith 1 (review.vue)`:
+     - Penurunan baris kode dari 1.322 baris menjadi **338 baris** (`<= 550 baris`).
+     - Sub-komponen diekstrak ke:
+       - `app/components/admin/review/ReviewHeaderToolbar.vue`
+       - `app/components/admin/review/ReviewQueueCard.vue`
+       - `app/components/admin/review/ReviewInspectorPanel.vue`
+       - `app/components/admin/review/ReviewBatchBar.vue`
+       - `app/composables/useReviewQueue.ts`
+     - Fitur: Dirty guard navigasi (`onBeforeRouteLeave`), Undo toast interaktif dengan snapshot ganda (`verificationStatus` dan `isEconomicPhenomenon` sesuai Amandemen 2).
+  3. `UX-017 Monolith 2 (articles.vue)`:
+     - Penurunan baris kode dari 1.721 baris menjadi **544 baris** (`<= 550 baris`).
+     - Sub-komponen diekstrak ke:
+       - `app/components/admin/articles/ArticleFilterPanel.vue`
+       - `app/components/admin/articles/ArticleTableList.vue`
+       - `app/components/admin/articles/ArticleBatchModal.vue`
+       - `app/components/admin/articles/ArticleDeleteModal.vue`
+       - `app/composables/useArticleQuery.ts`
+  4. `UX-017 Monolith 3 (synthesis.vue)`:
+     - Penurunan baris kode dari 1.737 baris menjadi **543 baris** (`<= 550 baris`).
+     - Sub-komponen diekstrak ke:
+       - `app/components/admin/synthesis/SynthesisParameterBar.vue`
+       - `app/components/admin/synthesis/SynthesisEvidencePool.vue`
+       - `app/components/admin/synthesis/SynthesisNarrativeEditor.vue`
+       - `app/components/admin/synthesis/SynthesisDraftHistoryDrawer.vue`
+       - `app/components/admin/synthesis/SynthesisDiscardModal.vue`
+       - `app/composables/useSynthesisStudio.ts`
+       - `app/composables/useSynthesisDraftGuard.ts`
+     - Fitur:
+       - `UX-011`: Modal konfirmasi hapus draf pada riwayat draf sebelum eksekusi DELETE.
+       - `UX-013`: Letterhead resmi BRS pada `@media print` (`hidden print:block`) dan styling print A4 bersih tanpa panel navigasi/kontrol.
+  5. `Global Period Context (UX-012)`:
+     - `app/layouts/admin.vue` mendeteksi rute konfigurasi lintas-periode (`/admin/users`, `/admin/scrapers`, `/admin/portals`, `/admin/keywords`, `/admin/taxonomy`, `/admin/kbli`).
+     - Menggantikan period selector dengan badge `Pengaturan Global` dan pill breadcrumb `Lintas Periode`.
+  6. `tests/admin-decomposition.test.ts`: 6 test cases baru ditambahkan dan lulus (100%).
+- **Gate:**
+  - `nuxi typecheck`: 0 errors.
+  - Vitest: 25 files, 184 tests PASSED (100%).
+  - Forbidden Path Gate: 0 perubahan pada `server/**`, `prisma/**`, `shared/schemas/**`.
+
+
 
 ---
 
@@ -176,6 +226,56 @@ Dokumen ini mencatat seluruh proses eksekusi otonom per sesi: branch, commit has
   - `nuxi typecheck`: 0 errors.
   - Vitest: 24 files, 178 tests PASSED (100%).
   - Forbidden Path Gate: 0 perubahan pada `server/**`, `prisma/**`, `shared/schemas/**`.
+
+---
+
+## Sesi Fase 2: Admin Monolith Decomposition & Polish
+- **Branch:** `refactor/ui-f2-admin-monolith-decomposition`
+- **ID Temuan:** `UX-011`, `UX-012`, `UX-013`, `UX-017`, `UX-020`, Amandemen 2
+- **Status:** COMPLETED
+- **Ringkasan Perubahan:**
+  1. `UX-020 (Modular Highlighted Snippet)`:
+     - Mengekstrak `app/components/admin/HighlightedSnippetBox.vue` untuk modularisasi parser snippet beranotasi lokus dan angka.
+     - Diintegrasikan ke `review.vue` dan `ReviewSlideover.vue`.
+  2. `UX-017 Monolith 1 (review.vue)`:
+     - Penurunan baris kode dari 1.322 baris menjadi **338 baris** (`<= 550 baris`).
+     - Sub-komponen diekstrak ke:
+       - `app/components/admin/review/ReviewHeaderToolbar.vue`
+       - `app/components/admin/review/ReviewQueueCard.vue`
+       - `app/components/admin/review/ReviewInspectorPanel.vue`
+       - `app/components/admin/review/ReviewBatchBar.vue`
+       - `app/composables/useReviewQueue.ts`
+     - Fitur: Dirty guard navigasi (`onBeforeRouteLeave`), Undo toast interaktif dengan snapshot ganda (`verificationStatus` dan `isEconomicPhenomenon` sesuai Amandemen 2).
+  3. `UX-017 Monolith 2 (articles.vue)`:
+     - Penurunan baris kode dari 1.721 baris menjadi **544 baris** (`<= 550 baris`).
+     - Sub-komponen diekstrak ke:
+       - `app/components/admin/articles/ArticleFilterPanel.vue`
+       - `app/components/admin/articles/ArticleTableList.vue`
+       - `app/components/admin/articles/ArticleBatchModal.vue`
+       - `app/components/admin/articles/ArticleDeleteModal.vue`
+       - `app/composables/useArticleQuery.ts`
+  4. `UX-017 Monolith 3 (synthesis.vue)`:
+     - Penurunan baris kode dari 1.737 baris menjadi **543 baris** (`<= 550 baris`).
+     - Sub-komponen diekstrak ke:
+       - `app/components/admin/synthesis/SynthesisParameterBar.vue`
+       - `app/components/admin/synthesis/SynthesisEvidencePool.vue`
+       - `app/components/admin/synthesis/SynthesisNarrativeEditor.vue`
+       - `app/components/admin/synthesis/SynthesisDraftHistoryDrawer.vue`
+       - `app/components/admin/synthesis/SynthesisDiscardModal.vue`
+       - `app/composables/useSynthesisStudio.ts`
+       - `app/composables/useSynthesisDraftGuard.ts`
+     - Fitur:
+       - `UX-011`: Modal konfirmasi hapus draf pada riwayat draf sebelum eksekusi DELETE.
+       - `UX-013`: Letterhead resmi BRS pada `@media print` (`hidden print:block`) dan styling print A4 bersih tanpa panel navigasi/kontrol.
+  5. `Global Period Context (UX-012)`:
+     - `app/layouts/admin.vue` mendeteksi rute konfigurasi lintas-periode (`/admin/users`, `/admin/scrapers`, `/admin/portals`, `/admin/keywords`, `/admin/taxonomy`, `/admin/kbli`).
+     - Menggantikan period selector dengan badge `Pengaturan Global` dan pill breadcrumb `Lintas Periode`.
+  6. `tests/admin-decomposition.test.ts`: 6 test cases baru ditambahkan dan lulus (100%).
+- **Gate:**
+  - `nuxi typecheck`: 0 errors.
+  - Vitest: 25 files, 184 tests PASSED (100%).
+  - Forbidden Path Gate: 0 perubahan pada `server/**`, `prisma/**`, `shared/schemas/**`.
+
 
 
 

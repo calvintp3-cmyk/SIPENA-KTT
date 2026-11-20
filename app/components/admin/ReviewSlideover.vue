@@ -9,13 +9,9 @@ import {
 } from '#shared/enums/pdrb';
 import { formatDateTimeWita, getCurrentQuarterYearWita, type PdrbQuarter } from '#shared/utils/period';
 import type { AdminArticleItem } from '~/types/sipena';
-import { parseEconomicSnippetSegments } from '~/utils/snippetHighlight';
 import type { CurationFormData } from '~/components/admin/ArticleCurationForm.vue';
 
 const fullSnippetModalOpen = ref(false);
-const highlightedSnippetSegments = computed(() =>
-  parseEconomicSnippetSegments(props.article?.snippetText || ''),
-);
 
 const props = withDefaults(
   defineProps<{
@@ -235,19 +231,10 @@ async function submitUpdate(action: 'VERIFIED' | 'IGNORED' | 'DRAFT') {
     :ui="{ content: 'max-w-2xl' }"
   >
     <template #body>
-      <div class="max-h-[60vh] overflow-y-auto saas-scroll rounded-xl bg-canvas border border-border-hairline p-4 text-sm text-ink-primary leading-relaxed whitespace-pre-line">
-        <template v-for="(seg, idx) in highlightedSnippetSegments" :key="idx">
-          <mark
-            v-if="seg.kind === 'location'"
-            class="bg-brand-tint text-brand-primary px-1 rounded font-semibold"
-          >{{ seg.text }}</mark>
-          <mark
-            v-else-if="seg.kind === 'metric'"
-            class="bg-[#FEF3C7] text-ochre-ink px-1 rounded font-mono font-semibold"
-          >{{ seg.text }}</mark>
-          <template v-else>{{ seg.text }}</template>
-        </template>
-      </div>
+      <HighlightedSnippetBox
+        :text="article?.snippetText || ''"
+        max-height-class="max-h-[60vh] overflow-y-auto"
+      />
     </template>
   </UModal>
 </template>

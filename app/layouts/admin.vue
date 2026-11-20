@@ -145,6 +145,18 @@ function isActiveRoute(item: NavItem): boolean {
   return route.path.startsWith(item.to);
 }
 
+const isPeriodAgnosticRoute = computed(() => {
+  const p = route.path;
+  return (
+    p.startsWith('/admin/users') ||
+    p.startsWith('/admin/scrapers') ||
+    p.startsWith('/admin/portals') ||
+    p.startsWith('/admin/keywords') ||
+    p.startsWith('/admin/taxonomy') ||
+    p.startsWith('/admin/kbli')
+  );
+});
+
 const currentBreadcrumb = computed(() => {
   for (const group of navGroups.value) {
     for (const item of group.items) {
@@ -576,10 +588,18 @@ onBeforeUnmount(() => {
               </span>
 
               <span
-                class="hidden xl:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#E3F0EA] border border-[#BBD8CB] text-xs font-semibold text-[#0B3D2E] tabular-nums shrink-0 font-mono"
+                v-if="!isPeriodAgnosticRoute"
+                class="hidden xl:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-brand-tint border border-brand-border text-xs font-semibold text-brand-primary tabular-nums shrink-0 font-mono"
               >
-                <span class="w-1.5 h-1.5 rounded-full bg-[#0B3D2E]" />
+                <span class="w-1.5 h-1.5 rounded-full bg-brand-primary" />
                 <span>{{ shortPeriodLabel }}</span>
+              </span>
+              <span
+                v-else
+                class="hidden xl:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-subtle border border-border-hairline text-xs font-semibold text-ink-secondary shrink-0 font-mono"
+              >
+                <span class="w-1.5 h-1.5 rounded-full bg-ink-muted" />
+                <span>Lintas Periode</span>
               </span>
             </div>
 
@@ -589,21 +609,25 @@ onBeforeUnmount(() => {
               <button
                 type="button"
                 aria-label="Cari menu atau artikel dengan pintasan Command K"
-                class="h-9 min-w-9 px-3 rounded-xl border border-[#141917]/10 bg-[#F6F5F1] hover:bg-white hover:border-[#0B3D2E]/40 text-xs text-[#4A524E] hover:text-[#141917] inline-flex items-center gap-2 transition-colors cursor-pointer"
+                class="h-9 min-w-9 px-3 rounded-xl border border-border-hairline bg-surface-subtle hover:bg-white hover:border-brand-primary/40 text-xs text-ink-secondary hover:text-ink-primary inline-flex items-center gap-2 transition-colors cursor-pointer"
                 @click="commandPaletteOpen = true"
               >
-                <UIcon name="i-solar-magnifer-line-duotone" class="w-4 h-4 text-[#737B76]" />
+                <UIcon name="i-solar-magnifer-line-duotone" class="w-4 h-4 text-ink-muted" />
                 <span class="hidden md:inline font-medium">Cari menu / artikel...</span>
                 <kbd
                   :title="shortcutTitle"
-                  class="hidden sm:inline text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-white border border-[#141917]/10 text-[#4A524E] leading-none font-mono"
+                  class="hidden sm:inline text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-white border border-border-hairline text-ink-secondary leading-none font-mono"
                 >
                   {{ shortcutKey }}
                 </kbd>
               </button>
 
               <!-- Shared Global Period Selector (Desktop >= md) -->
-              <div class="hidden md:flex items-center gap-1.5">
+              <div v-if="isPeriodAgnosticRoute" class="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-surface-subtle border border-border-hairline text-xs font-semibold text-ink-secondary" title="Halaman master konfigurasi berlaku lintas periode">
+                <UIcon name="i-solar-settings-minimalistic-bold-duotone" class="w-4 h-4 text-brand-primary" />
+                <span>Pengaturan Global</span>
+              </div>
+              <div v-else class="hidden md:flex items-center gap-1.5">
                 <div class="w-24">
                   <USelect
                     id="admin-global-year"
@@ -622,7 +646,7 @@ onBeforeUnmount(() => {
                 <div
                   role="group"
                   aria-label="Pilih Triwulan Global"
-                  class="inline-flex p-0.5 bg-[#ECEAE2] rounded-xl border border-[#141917]/10 font-mono"
+                  class="inline-flex p-0.5 bg-surface-subtle rounded-xl border border-border-hairline font-mono"
                 >
                   <button
                     v-for="chip in quarterChips"
@@ -632,8 +656,8 @@ onBeforeUnmount(() => {
                     class="px-2.5 py-1 min-h-8 rounded-lg text-xs tabular-nums transition-all cursor-pointer"
                     :class="
                       selectedQuarter === chip.value
-                        ? 'bg-[#0B3D2E] text-white font-bold shadow-2xs'
-                        : 'text-[#4A524E] hover:text-[#141917] font-medium'
+                        ? 'bg-brand-primary text-white font-bold shadow-2xs'
+                        : 'text-ink-secondary hover:text-ink-primary font-medium'
                     "
                     @click="setPeriod(selectedYear, chip.value)"
                   >
