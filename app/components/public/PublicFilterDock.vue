@@ -93,11 +93,31 @@ function toggleExpenditure(code: string) {
 }
 
 const macroSignals = [
-  { value: 'all', label: 'Semua Sinyal' },
-  { value: 'output_up', label: '↗ Aktivitas Naik' },
-  { value: 'output_down', label: '↘ Aktivitas Turun' },
-  { value: 'price_up', label: '↑ Harga Naik' },
-  { value: 'price_down', label: '↓ Harga Turun' },
+  {
+    value: 'all',
+    label: 'Semua Sinyal',
+    icon: 'i-solar-layers-minimalistic-bold-duotone',
+  },
+  {
+    value: 'EXPANSION',
+    label: 'Aktivitas Naik',
+    icon: 'i-solar-graph-new-up-bold-duotone',
+  },
+  {
+    value: 'CONTRACTION',
+    label: 'Aktivitas Turun',
+    icon: 'i-solar-graph-down-bold-duotone',
+  },
+  {
+    value: 'PRICE_UP',
+    label: 'Harga Naik',
+    icon: 'i-solar-course-up-bold-duotone',
+  },
+  {
+    value: 'PRICE_DOWN',
+    label: 'Harga Turun',
+    icon: 'i-solar-course-down-bold-duotone',
+  },
 ];
 </script>
 
@@ -321,21 +341,24 @@ const macroSignals = [
           v-for="sig in macroSignals"
           :key="sig.value"
           type="button"
-          class="px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors cursor-pointer shrink-0"
+          class="px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors cursor-pointer shrink-0 inline-flex items-center gap-1.5"
           :class="[
             impactMacro === sig.value
-              ? sig.value === 'output_up'
+              ? sig.value === 'EXPANSION'
                 ? 'bg-[#E3F0EA] text-[#0B3D2E] border border-[#BBD8CB] font-bold'
-                : sig.value === 'price_up'
+                : sig.value === 'PRICE_UP'
                   ? 'bg-[#FEF7E6] text-[#B45309] border border-[#F3D89C] font-bold'
-                  : sig.value === 'output_down'
+                  : sig.value === 'CONTRACTION'
                     ? 'bg-[#FBECE8] text-[#C8553D] border border-[#F8D2C9] font-bold'
-                    : 'bg-[#0B3D2E] text-white font-bold'
+                    : sig.value === 'PRICE_DOWN'
+                      ? 'bg-[#E6F4F2] text-[#0F766E] border border-[#B2DFDB] font-bold'
+                      : 'bg-[#0B3D2E] text-white font-bold'
               : 'bg-white border border-[#141917]/10 text-[#4A524E] hover:bg-[#ECEAE2]',
           ]"
           @click="emit('update:impactMacro', sig.value)"
         >
-          {{ sig.label }}
+          <UIcon v-if="sig.icon" :name="sig.icon" class="w-3.5 h-3.5 shrink-0" />
+          <span>{{ sig.label }}</span>
         </button>
       </div>
     </div>

@@ -14,6 +14,7 @@ import type {
   PublicArticleItem,
   PublicArticlesResponse,
   PublicOverviewResponse,
+  UiSemanticColor,
 } from '~/types/sipena';
 
 const route = useRoute();
@@ -46,6 +47,21 @@ const {
   getKbliImpactBadge,
   getExpenditureLabel,
 } = usePdrbLabels();
+
+function getImpactBadgeClasses(color: UiSemanticColor | undefined) {
+  switch (color) {
+    case 'success':
+      return 'bg-[#E3F0EA] text-[#0B3D2E] border border-[#BBD8CB]';
+    case 'error':
+      return 'bg-[#FBECE8] text-[#C8553D] border border-[#F8D2C9]';
+    case 'warning':
+      return 'bg-[#FEF7E6] text-[#B45309] border border-[#F3D89C]';
+    case 'info':
+      return 'bg-[#E6F4F2] text-[#0F766E] border border-[#B2DFDB]';
+    default:
+      return 'bg-[#ECEAE2] text-[#4A524E] border border-[#141917]/10';
+  }
+}
 
 const currentWita = getCurrentQuarterYearWita();
 
@@ -293,20 +309,19 @@ const methodologyColumns = [
       <!-- Content -->
       <div v-else-if="recentArticles.length > 0" class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
         <!-- Lead Editorial Feature Brief (7 Cols) -->
-        <div
+        <article
           v-if="leadArticle"
-          class="lg:col-span-7 bg-white rounded-2xl border border-[#141917]/[0.08] p-6 sm:p-8 flex flex-col justify-between hover:border-[#0B3D2E]/35 hover:shadow-[0_12px_32px_-12px_rgba(11,61,46,0.12)] transition-all cursor-pointer group"
-          @click="openPreviewModal(leadArticle)"
+          class="relative lg:col-span-7 bg-white rounded-2xl border border-[#141917]/[0.08] p-6 sm:p-8 flex flex-col justify-between hover:border-[#0B3D2E]/35 hover:shadow-[0_12px_32px_-12px_rgba(11,61,46,0.12)] transition-all group"
         >
           <div>
             <!-- Top Metadata Strip -->
             <div class="flex items-center justify-between gap-3 text-xs text-[#737B76] pb-4 border-b border-[#141917]/[0.06]">
               <div class="flex items-center gap-2">
-                <span class="font-bold text-[#141917]">{{ leadArticle.portalName }}</span>
+                <span class="font-bold text-[#141917]">{{ leadArticle.sourcePortal }}</span>
                 <span>&bull;</span>
                 <span class="font-mono text-[11px]">{{ formatDateId(leadArticle.publishedAt) }}</span>
-                <span v-if="leadArticle.districtName" class="px-2 py-0.5 rounded-md bg-[#ECEAE2] text-[#141917] text-[10.5px] font-medium">
-                  {{ leadArticle.districtName }}
+                <span v-if="leadArticle.subdistrict" class="px-2 py-0.5 rounded-md bg-[#ECEAE2] text-[#141917] text-[10.5px] font-medium">
+                  {{ leadArticle.subdistrict }}
                 </span>
               </div>
               <span class="px-2 py-0.5 rounded-full bg-[#E3F0EA] text-[#0B3D2E] text-[10.5px] font-bold">
@@ -316,30 +331,36 @@ const methodologyColumns = [
 
             <!-- Title & Excerpt -->
             <div class="mt-5 space-y-3">
-              <h3 class="font-display font-bold text-xl sm:text-2xl text-[#141917] group-hover:text-[#0B3D2E] transition-colors leading-snug">
-                {{ leadArticle.title }}
+              <h3 class="font-display font-bold text-xl sm:text-2xl text-[#141917] leading-snug">
+                <button
+                  type="button"
+                  class="text-left group-hover:text-[#0B3D2E] transition-colors rounded cursor-pointer after:content-[''] after:absolute after:inset-0 focus-visible:outline-none focus-visible:after:ring-2 focus-visible:after:ring-[#0B3D2E] focus-visible:after:ring-offset-2"
+                  @click="openPreviewModal(leadArticle)"
+                >
+                  {{ leadArticle.title }}
+                </button>
               </h3>
-              <p class="text-sm text-[#4A524E] leading-relaxed line-clamp-3">
-                {{ leadArticle.economicSummary || leadArticle.excerpt }}
+              <p v-if="leadArticle.summary" class="text-sm text-[#4A524E] leading-relaxed line-clamp-3">
+                {{ leadArticle.summary }}
               </p>
             </div>
           </div>
 
           <!-- Bottom Dual-Axis Linkage Strip -->
-          <div class="mt-6 pt-5 border-t border-[#141917]/[0.06] flex flex-wrap items-center justify-between gap-3">
+          <div class="mt-6 pt-5 border-t border-[#141917]/[0.06] flex flex-wrap items-center justify-between gap-3 relative z-10 pointer-events-none">
             <div class="flex flex-wrap items-center gap-2 text-xs">
-              <span class="px-2.5 py-1 rounded-lg bg-[#E3F0EA] text-[#0B3D2E] font-semibold font-mono">
+              <span v-if="leadArticle.kbliCategory" class="px-2.5 py-1 rounded-lg bg-[#E3F0EA] text-[#0B3D2E] font-semibold font-mono">
                 KBLI {{ leadArticle.kbliCategory }}
               </span>
               <span v-if="leadArticle.expenditureComponent" class="px-2.5 py-1 rounded-lg bg-[#ECEAE2] text-[#141917] font-semibold">
                 {{ leadArticle.expenditureComponent }}
               </span>
               <span
-                v-if="leadArticle.impactTypeKbli"
+                v-if="leadArticle.kbliImpact && getKbliImpactBadge(leadArticle.kbliImpact)"
                 class="px-2.5 py-1 rounded-lg text-xs font-bold"
-                :class="leadArticle.impactTypeKbli === 'ekspansi_riil' ? 'bg-[#E3F0EA] text-[#0B3D2E]' : 'bg-[#FBECE8] text-[#C8553D]'"
+                :class="getImpactBadgeClasses(getKbliImpactBadge(leadArticle.kbliImpact).color)"
               >
-                {{ getKbliImpactBadge(leadArticle.impactTypeKbli)?.label }}
+                {{ getKbliImpactBadge(leadArticle.kbliImpact).shortLabel || getKbliImpactBadge(leadArticle.kbliImpact).label }}
               </span>
             </div>
 
@@ -348,36 +369,41 @@ const methodologyColumns = [
               <UIcon name="i-lucide-arrow-right" class="w-3.5 h-3.5" />
             </span>
           </div>
-        </div>
+        </article>
 
         <!-- Stacked Secondary Briefs (5 Cols) -->
         <div class="lg:col-span-5 flex flex-col gap-4 justify-between">
-          <div
+          <article
             v-for="item in secondaryArticles"
             :key="item.id"
-            class="bg-white rounded-2xl border border-[#141917]/[0.08] p-5 flex flex-col justify-between hover:border-[#0B3D2E]/35 hover:shadow-sm transition-all cursor-pointer group flex-1"
-            @click="openPreviewModal(item)"
+            class="relative bg-white rounded-2xl border border-[#141917]/[0.08] p-5 flex flex-col justify-between hover:border-[#0B3D2E]/35 hover:shadow-sm transition-all group flex-1"
           >
             <div>
               <div class="flex items-center justify-between text-[11px] text-[#737B76] mb-2 font-mono">
-                <span>{{ item.portalName }} &bull; {{ formatDateId(item.publishedAt) }}</span>
-                <span class="font-bold text-[#0B3D2E]">KBLI {{ item.kbliCategory }}</span>
+                <span>{{ item.sourcePortal }} &bull; {{ formatDateId(item.publishedAt) }}</span>
+                <span v-if="item.kbliCategory" class="font-bold text-[#0B3D2E]">KBLI {{ item.kbliCategory }}</span>
               </div>
-              <h4 class="font-display font-bold text-sm sm:text-base text-[#141917] group-hover:text-[#0B3D2E] transition-colors line-clamp-2 leading-snug">
-                {{ item.title }}
+              <h4 class="font-display font-bold text-sm sm:text-base text-[#141917] leading-snug">
+                <button
+                  type="button"
+                  class="text-left group-hover:text-[#0B3D2E] transition-colors rounded cursor-pointer after:content-[''] after:absolute after:inset-0 focus-visible:outline-none focus-visible:after:ring-2 focus-visible:after:ring-[#0B3D2E] focus-visible:after:ring-offset-2"
+                  @click="openPreviewModal(item)"
+                >
+                  {{ item.title }}
+                </button>
               </h4>
             </div>
 
-            <div class="mt-3 pt-3 border-t border-[#141917]/[0.06] flex items-center justify-between text-xs">
+            <div class="mt-3 pt-3 border-t border-[#141917]/[0.06] flex items-center justify-between text-xs relative z-10 pointer-events-none">
               <span class="text-[#4A524E] truncate max-w-[200px]">
-                {{ item.districtName || 'Kab. Tana Tidung' }}
+                {{ item.subdistrict || 'Kab. Tana Tidung' }}
               </span>
               <span class="text-[11.5px] font-semibold text-[#0B3D2E] group-hover:translate-x-0.5 transition-transform inline-flex items-center gap-1">
                 <span>Telaah</span>
                 <UIcon name="i-lucide-arrow-right" class="w-3 h-3" />
               </span>
             </div>
-          </div>
+          </article>
         </div>
       </div>
 

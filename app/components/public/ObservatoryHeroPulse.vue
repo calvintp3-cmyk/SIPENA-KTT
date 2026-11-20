@@ -25,6 +25,7 @@ const dominantExpenditure = computed(() => {
   if (!top || top.count === 0) return null;
   const total = Math.max(1, totalVerified.value);
   return {
+    code: top.code,
     component: top.code,
     label: getExpenditureLabel(top.code, false),
     count: top.count,

@@ -64,11 +64,23 @@ const MONTH_NAMES_ID = [
 
 const IMPACT_MACRO_LABELS: Record<string, string> = {
   all: 'Semua Sinyal',
-  output_up: '↗ Aktivitas Naik',
-  output_down: '↘ Aktivitas Turun',
-  price_up: '↑ Harga Naik',
-  price_down: '↓ Harga Turun',
+  EXPANSION: 'Aktivitas Naik',
+  CONTRACTION: 'Aktivitas Turun',
+  PRICE_UP: 'Harga Naik',
+  PRICE_DOWN: 'Harga Turun',
 };
+
+function parseImpactMacro(raw: unknown): string {
+  if (typeof raw === 'string') {
+    const val = raw.trim();
+    if (val === 'output_up') return 'EXPANSION';
+    if (val === 'output_down') return 'CONTRACTION';
+    if (val === 'price_up') return 'PRICE_UP';
+    if (val === 'price_down') return 'PRICE_DOWN';
+    if (['EXPANSION', 'CONTRACTION', 'PRICE_UP', 'PRICE_DOWN'].includes(val)) return val;
+  }
+  return 'all';
+}
 
 const currentWita = getCurrentQuarterYearWita();
 
@@ -120,7 +132,7 @@ useSeoMeta({
 const selectedPdrbGroups = ref<string[]>(parseListParam(route.query.pdrbGroup));
 const selectedExpenditures = ref<string[]>(parseListParam(route.query.expenditure));
 const selectedSourceType = ref<string>(strParam(route.query.sourceType, 'ALL'));
-const selectedImpactMacro = ref<string>(strParam(route.query.impactMacro, 'all'));
+const selectedImpactMacro = ref<string>(parseImpactMacro(route.query.impactMacro));
 const selectedDateFrom = ref<string>(strParam(route.query.from, ''));
 const selectedDateTo = ref<string>(strParam(route.query.to, ''));
 const viewMode = ref<'stream' | 'table'>(route.query.view === 'table' ? 'table' : 'stream');
