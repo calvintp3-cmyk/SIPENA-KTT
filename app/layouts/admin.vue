@@ -554,7 +554,7 @@ onBeforeUnmount(() => {
     >
       <!-- Docked Top Header (Pinned inside Content Card) -->
       <header
-        class="no-print shrink-0 z-20 w-full frosted-header border-b border-border-hairline"
+        class="no-print shrink-0 z-20 w-full frosted-header !bg-white border-b border-border-hairline"
         style="view-transition-name: sipena-admin-header"
       >
         <div
