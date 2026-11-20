@@ -17,6 +17,7 @@ import {
 } from '#shared/utils/period';
 import type { AdminArticleItem, AdminArticlesResponse } from '~/types/sipena';
 import { parseEconomicSnippetSegments } from '~/utils/snippetHighlight';
+import type { CurationFormData } from '~/components/admin/ArticleCurationForm.vue';
 
 definePageMeta({
   layout: 'admin',
@@ -174,7 +175,7 @@ const autoAdvanceNext = ref(true);
 const drawerOpen = ref(false);
 
 const defaultPeriod = getCurrentQuarterYearWita();
-const inspectorForm = reactive({
+const inspectorForm = reactive<CurationFormData>({
   title: '',
   summary: '',
   kbliCategory: '' as KbliCategoryEnum | '',
@@ -185,6 +186,8 @@ const inspectorForm = reactive({
   secondaryKbliImpact: '' as KbliImpactEnum | '',
   secondaryExpenditureComponent: '' as ExpenditureComponentEnum | '',
   secondaryExpenditureImpact: '' as ExpenditureImpactEnum | '',
+  subdistrict: '',
+  curatorNotes: '',
   quarter: defaultPeriod.quarter as PdrbQuarter,
   year: defaultPeriod.year,
   isEconomicPhenomenon: true,
@@ -214,6 +217,8 @@ watch(
     inspectorForm.secondaryKbliImpact = nextArt.secondaryKbliImpact ?? '';
     inspectorForm.secondaryExpenditureComponent = nextArt.secondaryExpenditureComponent ?? '';
     inspectorForm.secondaryExpenditureImpact = nextArt.secondaryExpenditureImpact ?? '';
+    inspectorForm.subdistrict = nextArt.subdistrict ?? '';
+    inspectorForm.curatorNotes = nextArt.curatorNotes ?? '';
     inspectorForm.quarter = nextArt.quarter as PdrbQuarter;
     inspectorForm.year = nextArt.year;
     inspectorForm.isEconomicPhenomenon = nextArt.isEconomicPhenomenon ?? true;
@@ -460,6 +465,8 @@ async function submitInspectorAction(action: 'VERIFIED' | 'IGNORED' | 'DRAFT') {
         secondaryKbliImpact: inspectorForm.secondaryKbliImpact || null,
         secondaryExpenditureComponent: inspectorForm.secondaryExpenditureComponent || null,
         secondaryExpenditureImpact: inspectorForm.secondaryExpenditureImpact || null,
+        subdistrict: inspectorForm.subdistrict || null,
+        curatorNotes: inspectorForm.curatorNotes.trim() || null,
         quarter: inspectorForm.quarter,
         year: Number(inspectorForm.year),
         ...(nextStatus ? { verificationStatus: nextStatus } : {}),
@@ -1202,324 +1209,21 @@ onBeforeUnmount(() => {
 
           <!-- Scrollable Inspector Body -->
           <div class="flex-1 overflow-y-auto saas-scroll p-4 space-y-4">
-            <div class="text-xs font-medium text-[#4A524E] flex items-center justify-between font-mono tabular-nums">
-              <span class="font-semibold text-[#141917]">{{ inspectedArticle.sourcePortal }}</span>
-              <span>{{ formatDateTimeWita(inspectedArticle.publishedAt) }}</span>
-            </div>
-
-            <UAlert
-              v-if="inspectedArticle.llmStatus === LlmStatusEnum.FAILED"
-              color="warning"
-              variant="subtle"
-              icon="i-lucide-alert-triangle"
-              title="Klasifikasi AI tertunda/gagal"
-              :description="
-                inspectedArticle.llmError ||
-                'Lengkapi ringkasan dan pemetaan PDRB secara manual.'
-              "
+            <ArticleCurationForm
+              :article="inspectedArticle"
+              v-model="inspectorForm"
+              mode="inspector"
+              :submitting-action="inspectorSubmitting"
+              :validation-alert="inspectorAlert"
+              :highlight-incomplete="highlightIncomplete"
+              :show-auto-next-toggle="activeStatus === VerificationStatusEnum.PENDING"
+              :auto-advance-next="autoAdvanceNext"
+              :can-restore-ai-summary="canRestoreAiSummary"
+              @update:auto-advance-next="autoAdvanceNext = $event"
+              @restore-ai-summary="restoreAiSummary"
+              @submit="submitInspectorAction"
+              @open-full-snippet="fullSnippetModalOpen = true"
             />
-
-            <UAlert
-              v-if="inspectorAlert"
-              color="error"
-              variant="subtle"
-              icon="i-lucide-shield-alert"
-              :title="inspectorAlert"
-            />
-
-            <!-- Auto-Advance & Economic Relevance Toggle -->
-            <div class="grid grid-cols-2 gap-2 text-xs">
-              <div
-                role="group"
-                aria-label="Relevansi Fenomena Ekonomi"
-                class="col-span-2 grid grid-cols-2 p-1 bg-[#ECEAE2] rounded-xl border border-[#141917]/[0.08] gap-1 font-display"
-              >
-                <button
-                  type="button"
-                  :aria-pressed="inspectorForm.isEconomicPhenomenon === true"
-                  class="min-h-8 py-1.5 px-2 rounded-lg text-xs transition-colors cursor-pointer"
-                  :class="
-                    inspectorForm.isEconomicPhenomenon === true
-                      ? 'bg-white font-bold text-[#0B3D2E] shadow-2xs border border-[#BBD8CB]'
-                      : 'text-[#4A524E] font-medium'
-                  "
-                  @click="() => { inspectorForm.isEconomicPhenomenon = true; }"
-                >
-                  Fenomena Ekonomi Sah
-                </button>
-                <button
-                  type="button"
-                  :aria-pressed="inspectorForm.isEconomicPhenomenon === false"
-                  class="min-h-8 py-1.5 px-2 rounded-lg text-xs transition-colors cursor-pointer"
-                  :class="
-                    inspectorForm.isEconomicPhenomenon === false
-                      ? 'bg-white font-bold text-[#C8553D] shadow-2xs border border-[#C8553D]/30'
-                      : 'text-[#4A524E] font-medium'
-                  "
-                  @click="() => { inspectorForm.isEconomicPhenomenon = false; }"
-                >
-                  Non-Ekonomi / Abaikan
-                </button>
-              </div>
-            </div>
-
-            <!-- Editable Title -->
-            <div class="space-y-1">
-              <label for="insp-title" class="text-xs font-semibold text-[#141917] font-display">
-                Judul Berita
-              </label>
-              <UInput id="insp-title" v-model="inspectorForm.title" size="sm" class="w-full" />
-            </div>
-
-            <!-- Editable Summary + Kembalikan Teks AI -->
-            <div class="space-y-1">
-              <div class="flex items-center justify-between gap-2">
-                <label for="insp-summary" class="text-xs font-semibold text-[#141917] font-display">
-                  Ringkasan Publik (Min. 10 Karakter)
-                </label>
-                <button
-                  v-if="canRestoreAiSummary"
-                  type="button"
-                  class="inline-flex items-center gap-1 min-h-8 px-2 rounded-lg text-xs font-semibold text-[#0B3D2E] hover:bg-[#E3F0EA] transition-colors cursor-pointer"
-                  @click="() => { restoreAiSummary(); }"
-                >
-                  <UIcon name="i-lucide-rotate-ccw" class="w-3 h-3" />
-                  <span>Kembalikan Teks AI</span>
-                </button>
-              </div>
-              <UTextarea
-                id="insp-summary"
-                v-model="inspectorForm.summary"
-                :rows="6"
-                placeholder="Ringkasan faktual 2–3 kalimat..."
-                class="w-full text-xs"
-                :ui="{ base: 'leading-relaxed resize-y' }"
-              />
-              <p
-                v-if="highlightIncomplete && inspectorForm.summary.trim().length < 10"
-                class="text-xs text-[#C8553D] font-semibold"
-              >
-                Wajib diisi minimal 10 karakter sebelum verifikasi.
-              </p>
-            </div>
-
-            <!-- Sisi Lapangan Usaha (KBLI + Concise 2x2 Grid) -->
-            <div class="rounded-xl border border-[#BBD8CB] bg-[#E3F0EA]/40 p-3.5 space-y-2.5">
-              <label for="insp-kbli-select" class="block text-xs font-bold text-[#0B3D2E] font-display">
-                1. Lapangan Usaha (KBLI A–V)
-              </label>
-              <USelectMenu
-                id="insp-kbli-select"
-                v-model="kbliSelectModel"
-                :items="kbliOptions"
-                value-key="value"
-                label-key="label"
-                placeholder="Pilih kategori KBLI..."
-                aria-label="Kategori Lapangan Usaha KBLI"
-                size="sm"
-                class="w-full"
-              />
-              <div role="group" aria-label="Dampak Lapangan Usaha" class="grid grid-cols-2 gap-1.5 font-mono">
-                <button
-                  v-for="opt in kbliImpactOptions"
-                  :key="opt.value"
-                  type="button"
-                  :aria-pressed="inspectorForm.kbliImpact === opt.value"
-                  class="min-h-8 px-2.5 py-1.5 rounded-lg border text-xs font-semibold text-left transition-colors cursor-pointer"
-                  :class="
-                    inspectorForm.kbliImpact === opt.value
-                      ? 'bg-[#0B3D2E] text-white border-[#0B3D2E] shadow-2xs'
-                      : 'bg-white text-[#4A524E] border-[#141917]/[0.12] hover:border-[#0B3D2E]/40'
-                  "
-                  @click="() => { inspectorForm.kbliImpact = opt.value; }"
-                >
-                  {{ opt.shortLabel }}
-                </button>
-              </div>
-            </div>
-
-            <!-- Sisi Pengeluaran (Component + Concise 2x2 Grid) -->
-            <div class="rounded-xl border border-[#BBD8CB] bg-[#E3F0EA]/40 p-3.5 space-y-2.5">
-              <label for="insp-exp-select" class="block text-xs font-bold text-[#0B3D2E] font-display">
-                2. Komponen Pengeluaran PDRB
-              </label>
-              <USelect
-                id="insp-exp-select"
-                v-model="expSelectModel"
-                :items="expenditureOptions"
-                value-key="value"
-                label-key="label"
-                placeholder="Pilih komponen pengeluaran..."
-                aria-label="Komponen Pengeluaran PDRB"
-                size="sm"
-                class="w-full"
-              />
-              <div role="group" aria-label="Dampak Pengeluaran" class="grid grid-cols-2 gap-1.5 font-mono">
-                <button
-                  v-for="opt in expenditureImpactOptions"
-                  :key="opt.value"
-                  type="button"
-                  :aria-pressed="inspectorForm.expenditureImpact === opt.value"
-                  class="min-h-8 px-2.5 py-1.5 rounded-lg border text-xs font-semibold text-left transition-colors cursor-pointer"
-                  :class="
-                    inspectorForm.expenditureImpact === opt.value
-                      ? 'bg-[#0B3D2E] text-white border-[#0B3D2E] shadow-2xs'
-                      : 'bg-white text-[#4A524E] border-[#141917]/[0.12] hover:border-[#0B3D2E]/40'
-                  "
-                  @click="() => { inspectorForm.expenditureImpact = opt.value; }"
-                >
-                  {{ opt.shortLabel }}
-                </button>
-              </div>
-            </div>
-
-            <!-- Keterkaitan Sektoral Sekunder (Opsional / Inter-industry Linkage) -->
-            <div class="rounded-xl border border-[#141917]/[0.08] bg-[#F6F5F1] p-3.5 space-y-2.5">
-              <div class="flex items-center gap-1.5">
-                <UIcon name="i-solar-link-round-bold-duotone" class="w-4 h-4 text-[#0B3D2E]" />
-                <span class="text-xs font-bold text-[#141917] font-display">Keterkaitan Sektoral Sekunder (Opsional)</span>
-              </div>
-              <div class="space-y-2">
-                <label for="insp-sec-kbli-select" class="block text-xs font-semibold text-[#4A524E]">
-                  KBLI Sekunder
-                </label>
-                <USelectMenu
-                  id="insp-sec-kbli-select"
-                  v-model="secondaryKbliSelectModel"
-                  :items="secondaryKbliOptions"
-                  value-key="value"
-                  label-key="label"
-                  placeholder="Pilih KBLI sekunder (opsional)..."
-                  aria-label="KBLI Sekunder"
-                  size="sm"
-                  class="w-full"
-                />
-                <div v-if="inspectorForm.secondaryKbliCategory" role="group" aria-label="Dampak KBLI Sekunder" class="grid grid-cols-2 gap-1.5 pt-1 font-mono">
-                  <button
-                    v-for="opt in kbliImpactOptions"
-                    :key="opt.value"
-                    type="button"
-                    :aria-pressed="inspectorForm.secondaryKbliImpact === opt.value"
-                    class="min-h-8 px-2 py-1 rounded-lg border text-xs font-semibold text-left transition-colors cursor-pointer"
-                    :class="
-                      inspectorForm.secondaryKbliImpact === opt.value
-                        ? 'bg-[#0B3D2E] text-white border-[#0B3D2E] shadow-2xs'
-                        : 'bg-white text-[#4A524E] border-[#141917]/[0.12] hover:border-[#0B3D2E]/40'
-                    "
-                    @click="() => { inspectorForm.secondaryKbliImpact = opt.value; }"
-                  >
-                    {{ opt.shortLabel }}
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <!-- Periode -->
-            <div class="grid grid-cols-2 gap-2.5">
-              <div class="space-y-1">
-                <label for="insp-quarter-select" class="block text-xs font-semibold text-[#4A524E]">
-                  Triwulan PDRB
-                </label>
-                <USelect
-                  id="insp-quarter-select"
-                  v-model="inspectorForm.quarter"
-                  :items="quarterOptions"
-                  value-key="value"
-                  label-key="label"
-                  aria-label="Triwulan PDRB"
-                  size="sm"
-                  class="w-full"
-                />
-              </div>
-              <div class="space-y-1">
-                <label for="insp-year-input" class="block text-xs font-semibold text-[#4A524E]">
-                  Tahun
-                </label>
-                <UInput
-                  id="insp-year-input"
-                  v-model.number="inspectorForm.year"
-                  type="number"
-                  size="sm"
-                  :min="2000"
-                  :max="2100"
-                  class="w-full"
-                />
-              </div>
-            </div>
-
-            <!-- Cuplikan Sumber Asli -->
-            <div class="space-y-1">
-              <div class="flex items-center justify-between gap-2">
-                <label for="insp-snippet-source" class="block text-xs font-semibold text-[#4A524E] font-display">
-                  Cuplikan Teks Asli (Referensi Verifikasi)
-                </label>
-                <button
-                  type="button"
-                  class="inline-flex items-center gap-1 min-h-7 px-2 rounded-lg text-[11px] font-semibold text-[#0B3D2E] hover:bg-[#E3F0EA] transition-colors cursor-pointer"
-                  @click="() => { fullSnippetModalOpen = true; }"
-                >
-                  <UIcon name="i-solar-maximize-square-2-linear" class="w-3.5 h-3.5" />
-                  <span>Baca Penuh</span>
-                </button>
-              </div>
-              <UTextarea
-                id="insp-snippet-source"
-                :model-value="inspectedArticle.snippetText"
-                readonly
-                :rows="8"
-                class="w-full text-xs"
-                :ui="{ base: 'bg-[#F6F5F1] text-[#141917] leading-relaxed resize-y' }"
-              />
-            </div>
-          </div>
-
-          <!-- Sticky Inspector Footer -->
-          <div class="px-4 py-3 border-t border-[#141917]/[0.08] bg-[#F6F5F1] space-y-2.5">
-            <div
-              v-if="activeStatus === VerificationStatusEnum.PENDING"
-              class="flex items-center justify-between text-xs text-[#141917]"
-            >
-              <label for="insp-auto-advance" class="cursor-pointer font-medium">
-                Otomatis buka antrean berikutnya
-              </label>
-              <USwitch
-                id="insp-auto-advance"
-                v-model="autoAdvanceNext"
-                size="xs"
-                aria-label="Otomatis buka antrean berikutnya"
-              />
-            </div>
-
-            <div class="flex items-center justify-between gap-2">
-              <button
-                type="button"
-                :disabled="inspectorSubmitting !== null"
-                class="min-h-9 px-3 rounded-lg border border-[#141917]/[0.12] bg-white hover:bg-[#ECEAE2] text-xs font-semibold text-[#4A524E] disabled:opacity-50 transition-colors cursor-pointer"
-                @click="() => { void submitInspectorAction('IGNORED'); }"
-              >
-                Abaikan
-              </button>
-
-              <div class="flex items-center gap-2">
-                <button
-                  type="button"
-                  :disabled="inspectorSubmitting !== null"
-                  class="min-h-9 px-3 rounded-lg border border-[#141917]/[0.12] bg-white hover:bg-[#ECEAE2] text-xs font-semibold text-[#141917] disabled:opacity-50 transition-colors cursor-pointer"
-                  @click="() => { void submitInspectorAction('DRAFT'); }"
-                >
-                  Simpan Draft
-                </button>
-                <button
-                  type="button"
-                  :disabled="inspectorSubmitting !== null"
-                  class="obs-btn-primary min-h-9 px-3.5 rounded-lg text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer font-display"
-                  @click="() => { void submitInspectorAction('VERIFIED'); }"
-                >
-                  <UIcon name="i-solar-check-circle-bold-duotone" class="w-4 h-4 text-[#BBD8CB]" />
-                  <span>Verifikasi</span>
-                </button>
-              </div>
-            </div>
           </div>
         </div>
       </aside>

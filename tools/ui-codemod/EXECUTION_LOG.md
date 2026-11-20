@@ -18,3 +18,20 @@ Dokumen ini mencatat seluruh proses eksekusi otonom per sesi: branch, commit has
   - Vitest: 21 files, 163 tests PASSED (100%).
   - Forbidden Path Gate: 0 perubahan pada `server/**`, `prisma/**`, `shared/schemas/**`.
 
+---
+
+## Sesi 1B: Shared Curation Form Extraction
+- **Branch:** `fix/ui-1b-shared-curation-form`
+- **ID Temuan:** `UX-004`
+- **Status:** COMPLETED
+- **Ringkasan Perubahan:**
+  1. `app/composables/usePdrbLabels.ts`: Menambahkan konstanta `KTT_SUBDISTRICTS` (5 kecamatan Tana Tidung) dan `subdistrictOptions`.
+  2. `app/components/admin/ArticleCurationForm.vue`: Mengekstrak form kurasi bersama yang mendukung mode `inspector` (desktop) dan `slideover` (mobile/drawer). Mencakup seluruh field: judul, kutipan teks sumber, ringkasan, KBLI primer & dampak, Komponen Pengeluaran primer & dampak, KBLI sekunder & dampak, Komponen Pengeluaran sekunder & dampak, kecamatan (`subdistrict`), catatan kurator (`curatorNotes`), triwulan, tahun, dan switch fenomena ekonomi sah.
+  3. `app/components/admin/ReviewSlideover.vue`: Mengganti duplikasi markup form kurasi dengan `<ArticleCurationForm />`.
+  4. `app/pages/admin/review.vue`: Mengganti markup inspector desktop dengan `<ArticleCurationForm />`, melengkapi `inspectorForm` dengan `subdistrict` dan `curatorNotes`, serta menyertakannya pada payload PATCH `/api/admin/articles/:id`.
+  5. `tests/article-curation-form.test.ts`: 3 test cases lulus (100%).
+- **Gate:**
+  - Vitest: 22 files, 166 tests PASSED (100%).
+  - Forbidden Path Gate: 0 perubahan pada `server/**`, `prisma/**`, `shared/schemas/**`.
+
+

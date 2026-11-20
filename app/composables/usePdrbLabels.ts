@@ -169,6 +169,23 @@ const SCRAPER_STATUS_VISUAL: Record<ScraperRunStatusEnum, BadgeVisualMeta> = {
   },
 };
 
+export const KTT_SUBDISTRICTS = [
+  'Sesayap',
+  'Sesayap Hilir',
+  'Tana Lia',
+  'Betayau',
+  'Muruk Rian',
+] as const;
+
+export const subdistrictOptions = [
+  { label: 'Tidak Ditentukan / Makro KTT', value: '' },
+  { label: 'Kec. Sesayap', value: 'Sesayap' },
+  { label: 'Kec. Sesayap Hilir', value: 'Sesayap Hilir' },
+  { label: 'Kec. Tana Lia', value: 'Tana Lia' },
+  { label: 'Kec. Betayau', value: 'Betayau' },
+  { label: 'Kec. Muruk Rian', value: 'Muruk Rian' },
+];
+
 export function usePdrbLabels() {
   const kbliOptions: SelectOptionItem<KbliCategoryEnum>[] = (
     Object.values(KbliCategoryEnum) as KbliCategoryEnum[]
@@ -491,6 +508,7 @@ export function usePdrbLabels() {
     expenditureOptions,
     expenditureImpactOptions,
     quarterOptions,
+    subdistrictOptions,
     verificationStatusOptions,
     getKbliLabel,
     getKbliShortCodeName,
