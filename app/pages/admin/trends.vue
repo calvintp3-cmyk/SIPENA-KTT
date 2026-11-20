@@ -246,19 +246,19 @@ function handleExportXlsx() {
       <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
           <div
-            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#E3F0EA] text-[#0B3D2E] border border-[#BBD8CB] text-xs font-semibold"
+            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-brand-tint text-brand-primary border border-brand-border text-xs font-semibold"
           >
-            <UIcon name="i-solar-graph-new-up-bold-duotone" class="w-3.5 h-3.5 text-[#0B3D2E]" />
+            <UIcon name="i-solar-graph-new-up-bold-duotone" class="w-3.5 h-3.5 text-brand-primary" />
             <span>Komparasi Dinamika Sinyal Antar Periode</span>
           </div>
-          <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-[#141917] text-balance mt-2 font-display">
+          <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-ink-primary text-balance mt-2 font-display">
             Tren &amp; Komparasi Fenomena PDRB
           </h1>
-          <p v-if="trendData" class="text-xs sm:text-sm text-[#4A524E] mt-0.5 text-pretty">
+          <p v-if="trendData" class="text-xs sm:text-sm text-ink-secondary mt-0.5 text-pretty">
             Membandingkan
-            <strong class="text-[#141917]">{{ trendData.period.label }}</strong>
+            <strong class="text-ink-primary">{{ trendData.period.label }}</strong>
             terhadap
-            <strong class="text-[#141917]">{{ trendData.baseline.label }}</strong>
+            <strong class="text-ink-primary">{{ trendData.baseline.label }}</strong>
             ({{ mode === 'qoq' ? 'Quarter-to-Quarter' : 'Year-on-Year' }}).
           </p>
         </div>
@@ -267,10 +267,10 @@ function handleExportXlsx() {
           <button
             type="button"
             :disabled="isExporting"
-            class="min-h-9 px-3.5 rounded-xl border border-[#141917]/[0.12] bg-white hover:bg-[#ECEAE2] text-xs font-semibold text-[#141917] inline-flex items-center gap-1.5 transition-colors disabled:opacity-50 cursor-pointer"
+            class="min-h-9 px-3.5 rounded-xl border border-border-control bg-white hover:bg-surface-subtle text-xs font-semibold text-ink-primary inline-flex items-center gap-1.5 transition-colors disabled:opacity-50 cursor-pointer"
             @click="() => { handleExportXlsx(); }"
           >
-            <UIcon name="i-solar-download-bold-duotone" class="w-4 h-4 text-[#0B3D2E]" />
+            <UIcon name="i-solar-download-bold-duotone" class="w-4 h-4 text-brand-primary" />
             <span>Export {{ shortPeriodLabel }} (.XLSX)</span>
           </button>
         </div>
@@ -280,13 +280,13 @@ function handleExportXlsx() {
       <div class="obs-panel rounded-xl p-3.5 flex flex-wrap items-center justify-between gap-3">
         <div class="flex flex-wrap items-center gap-3">
           <div class="flex items-center gap-2">
-            <span class="text-xs font-semibold text-[#4A524E]">
+            <span class="text-xs font-semibold text-ink-secondary">
               Mode:
             </span>
             <div
               role="group"
               aria-label="Mode komparasi periode"
-              class="inline-flex p-1 bg-[#ECEAE2] rounded-xl border border-[#141917]/[0.08] font-mono"
+              class="inline-flex p-1 bg-surface-subtle rounded-xl border border-border-hairline font-mono"
             >
               <button
                 type="button"
@@ -294,8 +294,8 @@ function handleExportXlsx() {
                 class="min-h-8 px-3 py-1 rounded-lg text-xs transition-colors cursor-pointer"
                 :class="
                   mode === 'qoq'
-                    ? 'bg-white text-[#0B3D2E] font-bold shadow-2xs border border-[#BBD8CB]'
-                    : 'text-[#4A524E] hover:text-[#141917] font-medium'
+                    ? 'bg-white text-brand-primary font-bold shadow-2xs border border-brand-border'
+                    : 'text-ink-secondary hover:text-ink-primary font-medium'
                 "
                 @click="() => { mode = 'qoq'; }"
               >
@@ -307,8 +307,8 @@ function handleExportXlsx() {
                 class="min-h-8 px-3 py-1 rounded-lg text-xs transition-colors cursor-pointer"
                 :class="
                   mode === 'yoy'
-                    ? 'bg-white text-[#0B3D2E] font-bold shadow-2xs border border-[#BBD8CB]'
-                    : 'text-[#4A524E] hover:text-[#141917] font-medium'
+                    ? 'bg-white text-brand-primary font-bold shadow-2xs border border-brand-border'
+                    : 'text-ink-secondary hover:text-ink-primary font-medium'
                 "
                 @click="() => { mode = 'yoy'; }"
               >
@@ -318,13 +318,13 @@ function handleExportXlsx() {
           </div>
 
           <div class="flex items-center gap-2">
-            <span class="text-xs font-semibold text-[#4A524E]">
+            <span class="text-xs font-semibold text-ink-secondary">
               Dimensi:
             </span>
             <div
               role="group"
               aria-label="Dimensi klasifikasi PDRB"
-              class="inline-flex p-1 bg-[#ECEAE2] rounded-xl border border-[#141917]/[0.08] font-mono"
+              class="inline-flex p-1 bg-surface-subtle rounded-xl border border-border-hairline font-mono"
             >
               <button
                 type="button"
@@ -332,8 +332,8 @@ function handleExportXlsx() {
                 class="min-h-8 px-3 py-1 rounded-lg text-xs transition-colors cursor-pointer"
                 :class="
                   dimension === 'kbli'
-                    ? 'bg-white text-[#0B3D2E] font-bold shadow-2xs border border-[#BBD8CB]'
-                    : 'text-[#4A524E] hover:text-[#141917] font-medium'
+                    ? 'bg-white text-brand-primary font-bold shadow-2xs border border-brand-border'
+                    : 'text-ink-secondary hover:text-ink-primary font-medium'
                 "
                 @click="() => { dimension = 'kbli'; }"
               >
@@ -345,8 +345,8 @@ function handleExportXlsx() {
                 class="min-h-8 px-3 py-1 rounded-lg text-xs transition-colors cursor-pointer"
                 :class="
                   dimension === 'expenditure'
-                    ? 'bg-white text-[#0B3D2E] font-bold shadow-2xs border border-[#BBD8CB]'
-                    : 'text-[#4A524E] hover:text-[#141917] font-medium'
+                    ? 'bg-white text-brand-primary font-bold shadow-2xs border border-brand-border'
+                    : 'text-ink-secondary hover:text-ink-primary font-medium'
                 "
                 @click="() => { dimension = 'expenditure'; }"
               >
@@ -356,13 +356,13 @@ function handleExportXlsx() {
           </div>
 
           <div class="flex items-center gap-2">
-            <span class="text-xs font-semibold text-[#4A524E]">
+            <span class="text-xs font-semibold text-ink-secondary">
               Metrik:
             </span>
             <div
               role="group"
               aria-label="Metrik perbandingan tren"
-              class="inline-flex p-1 bg-[#ECEAE2] rounded-xl border border-[#141917]/[0.08] font-mono"
+              class="inline-flex p-1 bg-surface-subtle rounded-xl border border-border-hairline font-mono"
             >
               <button
                 type="button"
@@ -370,8 +370,8 @@ function handleExportXlsx() {
                 class="min-h-8 px-2.5 py-1 rounded-lg text-xs transition-colors cursor-pointer"
                 :class="
                   metricMode === 'volume'
-                    ? 'bg-white text-[#0B3D2E] font-bold shadow-2xs border border-[#BBD8CB]'
-                    : 'text-[#4A524E] hover:text-[#141917] font-medium'
+                    ? 'bg-white text-brand-primary font-bold shadow-2xs border border-brand-border'
+                    : 'text-ink-secondary hover:text-ink-primary font-medium'
                 "
                 @click="() => { metricMode = 'volume'; }"
               >
@@ -383,8 +383,8 @@ function handleExportXlsx() {
                 class="min-h-8 px-2.5 py-1 rounded-lg text-xs transition-colors cursor-pointer"
                 :class="
                   metricMode === 'share'
-                    ? 'bg-white text-[#0B3D2E] font-bold shadow-2xs border border-[#BBD8CB]'
-                    : 'text-[#4A524E] hover:text-[#141917] font-medium'
+                    ? 'bg-white text-brand-primary font-bold shadow-2xs border border-brand-border'
+                    : 'text-ink-secondary hover:text-ink-primary font-medium'
                 "
                 @click="() => { metricMode = 'share'; }"
               >
@@ -396,8 +396,8 @@ function handleExportXlsx() {
                 class="min-h-8 px-2.5 py-1 rounded-lg text-xs transition-colors cursor-pointer"
                 :class="
                   metricMode === 'netBalance'
-                    ? 'bg-white text-[#0B3D2E] font-bold shadow-2xs border border-[#BBD8CB]'
-                    : 'text-[#4A524E] hover:text-[#141917] font-medium'
+                    ? 'bg-white text-brand-primary font-bold shadow-2xs border border-brand-border'
+                    : 'text-ink-secondary hover:text-ink-primary font-medium'
                 "
                 @click="() => { metricMode = 'netBalance'; }"
               >
@@ -409,7 +409,7 @@ function handleExportXlsx() {
 
         <span
           v-if="trendData"
-          class="text-xs font-semibold text-[#0B3D2E] tabular-nums px-3 py-1 rounded-full bg-[#E3F0EA] border border-[#BBD8CB] font-mono"
+          class="text-xs font-semibold text-brand-primary tabular-nums px-3 py-1 rounded-full bg-brand-tint border border-brand-border font-mono"
         >
           {{ trendData.period.label }} vs {{ trendData.baseline.label }}
         </span>
@@ -433,26 +433,26 @@ function handleExportXlsx() {
     <!-- 4 KPI Comparison Strip -->
     <div v-if="pending && !trendData" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
       <div v-for="i in 4" :key="i" class="obs-panel rounded-xl p-5 space-y-2">
-        <div class="h-3 w-28 rounded bg-[#ECEAE2]" />
-        <div class="h-8 w-20 rounded bg-[#ECEAE2]" />
+        <div class="h-3 w-28 rounded bg-surface-subtle" />
+        <div class="h-8 w-20 rounded bg-surface-subtle" />
       </div>
     </div>
 
     <div v-else-if="trendData" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
       <div class="obs-panel rounded-xl p-5 space-y-2.5">
         <div class="flex items-center justify-between gap-2">
-          <span class="text-xs font-semibold text-[#4A524E]">
+          <span class="text-xs font-semibold text-ink-secondary">
             Volume Periode Aktif
           </span>
-          <div class="w-7 h-7 rounded-md bg-[#E3F0EA] text-[#0B3D2E] border border-[#BBD8CB] flex items-center justify-center shrink-0">
+          <div class="w-7 h-7 rounded-md bg-brand-tint text-brand-primary border border-brand-border flex items-center justify-center shrink-0">
             <UIcon name="i-solar-chart-square-bold-duotone" class="w-4 h-4" />
           </div>
         </div>
         <div class="flex items-baseline gap-2 font-mono">
-          <span class="text-3xl font-extrabold tabular-nums text-[#141917]">
+          <span class="text-3xl font-extrabold tabular-nums text-ink-primary">
             {{ formatNumberId(trendData.kpi.currentTotal) }}
           </span>
-          <span class="text-xs text-[#737B76] tabular-nums font-sans">
+          <span class="text-xs text-ink-muted tabular-nums font-sans">
             vs {{ trendData.kpi.baselineTotal }}
           </span>
         </div>
@@ -461,10 +461,10 @@ function handleExportXlsx() {
             class="px-2 py-0.5 rounded-full border font-semibold tabular-nums"
             :class="
               trendData.kpi.deltaCount > 0
-                ? 'bg-[#E3F0EA] text-[#0B3D2E] border-[#BBD8CB]'
+                ? 'bg-brand-tint text-brand-primary border-brand-border'
                 : trendData.kpi.deltaCount < 0
-                  ? 'bg-[#FBECE8] text-[#C8553D] border-[#C8553D]/30'
-                  : 'bg-[#ECEAE2] text-[#4A524E] border-[#141917]/[0.08]'
+                  ? 'bg-terracotta-surface text-terracotta-ink border-terracotta/30'
+                  : 'bg-surface-subtle text-ink-secondary border-border-hairline'
             "
           >
             {{ trendData.kpi.deltaCount > 0 ? '+' : '' }}{{ trendData.kpi.deltaCount }} artikel
@@ -477,61 +477,61 @@ function handleExportXlsx() {
 
       <div class="obs-panel rounded-xl p-5 space-y-2.5">
         <div class="flex items-center justify-between gap-2">
-          <span class="text-xs font-semibold text-[#4A524E]">
+          <span class="text-xs font-semibold text-ink-secondary">
             Kenaikan Sinyal Tertinggi
           </span>
-          <div class="w-7 h-7 rounded-md bg-[#E3F0EA] text-[#0B3D2E] border border-[#BBD8CB] flex items-center justify-center shrink-0">
+          <div class="w-7 h-7 rounded-md bg-brand-tint text-brand-primary border border-brand-border flex items-center justify-center shrink-0">
             <UIcon name="i-solar-diagram-up-bold-duotone" class="w-4 h-4" />
           </div>
         </div>
         <template v-if="trendData.kpi.topRiser">
-          <div class="text-sm font-bold text-[#141917] leading-snug line-clamp-2">
+          <div class="text-sm font-bold text-ink-primary leading-snug line-clamp-2">
             {{ trendData.kpi.topRiser.code }} - {{ trendData.kpi.topRiser.label }}
           </div>
-          <div class="text-xs font-bold text-[#0B3D2E] tabular-nums font-mono">
+          <div class="text-xs font-bold text-brand-primary tabular-nums font-mono">
             +{{ trendData.kpi.topRiser.deltaCount }} bukti vs baseline
           </div>
         </template>
-        <div v-else class="text-sm text-[#4A524E] font-medium pt-1">
+        <div v-else class="text-sm text-ink-secondary font-medium pt-1">
           Belum ada sektor meningkat
         </div>
       </div>
 
       <div class="obs-panel rounded-xl p-5 space-y-2.5">
         <div class="flex items-center justify-between gap-2">
-          <span class="text-xs font-semibold text-[#4A524E]">
+          <span class="text-xs font-semibold text-ink-secondary">
             Penurunan Sinyal Terbesar
           </span>
-          <div class="w-7 h-7 rounded-md bg-[#FBECE8] text-[#C8553D] border border-[#C8553D]/30 flex items-center justify-center shrink-0">
+          <div class="w-7 h-7 rounded-md bg-terracotta-surface text-terracotta-ink border border-terracotta/30 flex items-center justify-center shrink-0">
             <UIcon name="i-solar-heart-pulse-2-bold-duotone" class="w-4 h-4" />
           </div>
         </div>
         <template v-if="trendData.kpi.topDecliner">
-          <div class="text-sm font-bold text-[#141917] leading-snug line-clamp-2">
+          <div class="text-sm font-bold text-ink-primary leading-snug line-clamp-2">
             {{ trendData.kpi.topDecliner.code }} - {{ trendData.kpi.topDecliner.label }}
           </div>
-          <div class="text-xs font-bold text-[#C8553D] tabular-nums font-mono">
+          <div class="text-xs font-bold text-terracotta-ink tabular-nums font-mono">
             {{ trendData.kpi.topDecliner.deltaCount }} bukti vs baseline
           </div>
         </template>
-        <div v-else class="text-sm text-[#4A524E] font-medium pt-1">
+        <div v-else class="text-sm text-ink-secondary font-medium pt-1">
           Tidak ada sektor menurun
         </div>
       </div>
 
       <div class="obs-panel rounded-xl p-5 space-y-2.5">
         <div class="flex items-center justify-between gap-2">
-          <span class="text-xs font-semibold text-[#4A524E]">
+          <span class="text-xs font-semibold text-ink-secondary">
             Gap {{ dimension === 'kbli' ? '17 Sektor' : '6 Pengeluaran' }}
           </span>
-          <div class="w-7 h-7 rounded-md bg-[#FEF3C7] text-[#B45309] border border-[#B45309]/30 flex items-center justify-center shrink-0">
+          <div class="w-7 h-7 rounded-md bg-[#FEF3C7] text-ochre-ink border border-ochre/30 flex items-center justify-center shrink-0">
             <UIcon name="i-solar-radar-2-bold-duotone" class="w-4 h-4" />
           </div>
         </div>
-        <div class="text-3xl font-extrabold tabular-nums text-[#141917] font-mono">
+        <div class="text-3xl font-extrabold tabular-nums text-ink-primary font-mono">
           {{ trendData.kpi.gapCount }}
         </div>
-        <div class="text-xs text-[#4A524E]">
+        <div class="text-xs text-ink-secondary">
           {{ trendData.kpi.gapCount === 0 ? 'Seluruh pos memiliki bukti' : 'Pos belum ada berita terverifikasi' }}
         </div>
       </div>
@@ -545,29 +545,29 @@ function handleExportXlsx() {
     >
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 class="text-base font-extrabold text-[#141917] text-balance">
+          <h2 class="text-base font-extrabold text-ink-primary text-balance">
             Dinamika Sinyal 8 Triwulan Terakhir
           </h2>
-          <p class="text-xs text-[#4A524E] text-pretty">
+          <p class="text-xs text-ink-secondary text-pretty">
             Arahkan kursor untuk rincian dampak atau klik grafik / kartu periode untuk memindahkan periode aktif.
           </p>
         </div>
 
         <div class="flex flex-wrap items-center gap-3 text-xs font-semibold">
-          <span class="inline-flex items-center gap-1.5 text-[#0B3D2E]">
-            <span class="w-3 h-0.5 rounded-full bg-[#0B3D2E]" />
+          <span class="inline-flex items-center gap-1.5 text-brand-primary">
+            <span class="w-3 h-0.5 rounded-full bg-brand-primary" />
             Total Artikel
           </span>
-          <span class="inline-flex items-center gap-1.5 text-[#0B3D2E]">
-            <span class="w-2.5 h-2.5 rounded-sm bg-[#0B3D2E]" />
+          <span class="inline-flex items-center gap-1.5 text-brand-primary">
+            <span class="w-2.5 h-2.5 rounded-sm bg-brand-primary" />
             Naik NTB
           </span>
-          <span class="inline-flex items-center gap-1.5 text-[#B45309]">
-            <span class="w-2.5 h-2.5 rounded-sm bg-[#B45309]" />
+          <span class="inline-flex items-center gap-1.5 text-ochre-ink">
+            <span class="w-2.5 h-2.5 rounded-sm bg-ochre" />
             Tekanan Harga
           </span>
-          <span class="inline-flex items-center gap-1.5 text-[#C8553D]">
-            <span class="w-2.5 h-2.5 rounded-sm bg-[#C8553D]" />
+          <span class="inline-flex items-center gap-1.5 text-terracotta-ink">
+            <span class="w-2.5 h-2.5 rounded-sm bg-terracotta" />
             Turun NTB
           </span>
         </div>
@@ -576,22 +576,22 @@ function handleExportXlsx() {
       <!-- Readout Banner -->
       <div
         v-if="hoveredQuarter"
-        class="rounded-xl bg-[#F6F5F1] border border-[#141917]/[0.08] px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 text-xs"
+        class="rounded-xl bg-canvas border border-border-hairline px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 text-xs"
       >
-        <div class="font-bold text-[#141917] flex items-center gap-2">
+        <div class="font-bold text-ink-primary flex items-center gap-2">
           <span>{{ hoveredQuarter.label }}</span>
           <span
             v-if="hoveredQuarter.isTarget"
-            class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[#E3F0EA] text-[#0B3D2E] border border-[#BBD8CB]"
+            class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-brand-tint text-brand-primary border border-brand-border"
           >
             Periode Aktif
           </span>
         </div>
         <div class="flex flex-wrap items-center gap-4 font-semibold tabular-nums font-mono">
-          <span class="text-[#141917]">Total: {{ hoveredQuarter.total }}</span>
-          <span class="text-[#0B3D2E]">Ekspansi: {{ hoveredQuarter.increaseNtb }}</span>
-          <span class="text-[#B45309]">Harga: {{ hoveredQuarter.pricePressure }}</span>
-          <span class="text-[#C8553D]">Kontraksi: {{ hoveredQuarter.decreaseNtb }}</span>
+          <span class="text-ink-primary">Total: {{ hoveredQuarter.total }}</span>
+          <span class="text-brand-primary">Ekspansi: {{ hoveredQuarter.increaseNtb }}</span>
+          <span class="text-ochre-ink">Harga: {{ hoveredQuarter.pricePressure }}</span>
+          <span class="text-terracotta-ink">Kontraksi: {{ hoveredQuarter.decreaseNtb }}</span>
         </div>
       </div>
 
@@ -605,7 +605,7 @@ function handleExportXlsx() {
       />
 
       <!-- Accessible Interactive Quarter Selector Strip -->
-      <div class="grid grid-cols-4 sm:grid-cols-8 gap-2 pt-2 border-t border-[#141917]/[0.08]">
+      <div class="grid grid-cols-4 sm:grid-cols-8 gap-2 pt-2 border-t border-border-hairline">
         <button
           v-for="pt in trendData.history8Quarters"
           :key="`${pt.year}-${pt.quarter}`"
@@ -613,15 +613,15 @@ function handleExportXlsx() {
           class="min-h-11 flex flex-col items-center justify-center gap-0.5 px-2 py-2 rounded-xl border text-xs tabular-nums transition-colors cursor-pointer font-mono"
           :class="
             pt.isTarget
-              ? 'bg-[#E3F0EA] border-[#0B3D2E] text-[#0B3D2E] font-bold shadow-2xs'
-              : 'bg-white border-[#141917]/[0.08] text-[#4A524E] hover:border-[#0B3D2E]/30 hover:bg-[#F6F5F1] font-medium'
+              ? 'bg-brand-tint border-brand-primary text-brand-primary font-bold shadow-2xs'
+              : 'bg-white border-border-hairline text-ink-secondary hover:border-brand-primary/30 hover:bg-canvas font-medium'
           "
           @mouseenter="hoveredQuarter = pt"
           @focus="hoveredQuarter = pt"
           @click="() => { setPeriod(pt.year, pt.quarter); }"
         >
           <span class="text-[11px]">{{ pt.shortLabel }}</span>
-          <span class="text-sm font-extrabold text-[#141917]">{{ pt.total }}</span>
+          <span class="text-sm font-extrabold text-ink-primary">{{ pt.total }}</span>
         </button>
       </div>
     </section>
@@ -632,13 +632,13 @@ function handleExportXlsx() {
         <div
           role="group"
           aria-label="Filter perubahan tren"
-          class="inline-flex flex-wrap p-1 bg-[#ECEAE2] rounded-xl border border-[#141917]/[0.08] gap-1"
+          class="inline-flex flex-wrap p-1 bg-surface-subtle rounded-xl border border-border-hairline gap-1"
         >
           <button
             type="button"
             :aria-pressed="tableFilter === 'all'"
             class="min-h-8 px-3 py-1 rounded-lg text-xs transition-colors cursor-pointer"
-            :class="tableFilter === 'all' ? 'bg-white font-bold shadow-2xs text-[#0B3D2E] border border-[#BBD8CB]' : 'text-[#4A524E] font-medium'"
+            :class="tableFilter === 'all' ? 'bg-white font-bold shadow-2xs text-brand-primary border border-brand-border' : 'text-ink-secondary font-medium'"
             @click="() => { tableFilter = 'all'; }"
           >
             Semua
@@ -647,7 +647,7 @@ function handleExportXlsx() {
             type="button"
             :aria-pressed="tableFilter === 'up'"
             class="min-h-8 px-3 py-1 rounded-lg text-xs transition-colors cursor-pointer"
-            :class="tableFilter === 'up' ? 'bg-white font-bold shadow-2xs text-[#0B3D2E] border border-[#BBD8CB]' : 'text-[#4A524E] font-medium'"
+            :class="tableFilter === 'up' ? 'bg-white font-bold shadow-2xs text-brand-primary border border-brand-border' : 'text-ink-secondary font-medium'"
             @click="() => { tableFilter = 'up'; }"
           >
             Meningkat (+)
@@ -656,7 +656,7 @@ function handleExportXlsx() {
             type="button"
             :aria-pressed="tableFilter === 'down'"
             class="min-h-8 px-3 py-1 rounded-lg text-xs transition-colors cursor-pointer"
-            :class="tableFilter === 'down' ? 'bg-white font-bold shadow-2xs text-[#C8553D] border border-[#C8553D]/30' : 'text-[#4A524E] font-medium'"
+            :class="tableFilter === 'down' ? 'bg-white font-bold shadow-2xs text-terracotta-ink border border-terracotta/30' : 'text-ink-secondary font-medium'"
             @click="() => { tableFilter = 'down'; }"
           >
             Menurun (-)
@@ -665,7 +665,7 @@ function handleExportXlsx() {
             type="button"
             :aria-pressed="tableFilter === 'gap'"
             class="min-h-8 px-3 py-1 rounded-lg text-xs transition-colors cursor-pointer"
-            :class="tableFilter === 'gap' ? 'bg-white font-bold shadow-2xs text-[#141917] border border-[#141917]/[0.12]' : 'text-[#4A524E] font-medium'"
+            :class="tableFilter === 'gap' ? 'bg-white font-bold shadow-2xs text-ink-primary border border-border-control' : 'text-ink-secondary font-medium'"
             @click="() => { tableFilter = 'gap'; }"
           >
             Data Gap (0)
@@ -673,7 +673,7 @@ function handleExportXlsx() {
         </div>
 
         <div class="flex items-center gap-2 text-xs">
-          <label for="trends-sort-select" class="font-semibold text-[#4A524E] cursor-pointer">
+          <label for="trends-sort-select" class="font-semibold text-ink-secondary cursor-pointer">
             Urutkan:
           </label>
           <div class="w-48">
@@ -705,7 +705,7 @@ function handleExportXlsx() {
               {{ trendData.baseline.label }}
             </caption>
             <thead>
-              <tr class="border-b border-[#141917]/[0.08] bg-[#F6F5F1] text-[11px] font-bold uppercase tracking-wider text-[#4A524E]">
+              <tr class="border-b border-border-hairline bg-canvas text-[11px] font-bold uppercase tracking-wider text-ink-secondary">
                 <th scope="col" class="w-[27%] px-3.5 py-3">Pos {{ dimension === 'kbli' ? 'KBLI (17 Sektor)' : 'Pengeluaran' }}</th>
                 <th scope="col" class="w-[10%] px-2 py-3 text-right">
                   {{ metricMode === 'volume' ? trendData.baseline.label : metricMode === 'share' ? `Pangsa ${trendData.baseline.shortLabel}` : `NBI ${trendData.baseline.shortLabel}` }}
@@ -725,9 +725,9 @@ function handleExportXlsx() {
               <tr
                 v-for="row in filteredSortedRows"
                 :key="row.code"
-                class="hover:bg-[#F6F5F1] transition-colors"
+                class="hover:bg-canvas transition-colors"
               >
-                <th scope="row" class="px-3.5 py-3 text-left font-medium text-[#141917] min-w-0">
+                <th scope="row" class="px-3.5 py-3 text-left font-medium text-ink-primary min-w-0">
                   <span
                     class="inline-block text-[10px] font-bold px-1.5 py-0.5 rounded-full border mr-1.5 font-mono"
                     :class="
@@ -740,12 +740,12 @@ function handleExportXlsx() {
                   </span>
                   <span class="break-words">{{ row.label }}</span>
                 </th>
-                <td class="px-2 py-3 text-right tabular-nums text-[#4A524E] font-medium font-mono">
+                <td class="px-2 py-3 text-right tabular-nums text-ink-secondary font-medium font-mono">
                   <template v-if="metricMode === 'volume'">{{ row.baselineCount }}</template>
                   <template v-else-if="metricMode === 'share'">{{ row.baselineSharePercent }}%</template>
                   <template v-else>{{ row.baselineNetBalanceIndex !== null ? (row.baselineNetBalanceIndex > 0 ? `+${row.baselineNetBalanceIndex}%` : `${row.baselineNetBalanceIndex}%`) : '—' }}</template>
                 </td>
-                <td class="px-2 py-3 text-right font-extrabold tabular-nums text-[#141917] font-mono">
+                <td class="px-2 py-3 text-right font-extrabold tabular-nums text-ink-primary font-mono">
                   <template v-if="metricMode === 'volume'">{{ row.currentCount }}</template>
                   <template v-else-if="metricMode === 'share'">{{ row.currentSharePercent }}%</template>
                   <template v-else>{{ row.netBalanceIndex !== null ? (row.netBalanceIndex > 0 ? `+${row.netBalanceIndex}%` : `${row.netBalanceIndex}%`) : '—' }}</template>
@@ -756,10 +756,10 @@ function handleExportXlsx() {
                     class="inline-flex items-center px-2 py-0.5 rounded-full border text-[10px] font-bold"
                     :class="
                       row.deltaCount > 0
-                        ? 'bg-[#E3F0EA] text-[#0B3D2E] border-[#BBD8CB]'
+                        ? 'bg-brand-tint text-brand-primary border-brand-border'
                         : row.deltaCount < 0
-                          ? 'bg-[#FBECE8] text-[#C8553D] border-[#C8553D]/30'
-                          : 'bg-[#ECEAE2] text-[#4A524E] border-[#141917]/[0.08]'
+                          ? 'bg-terracotta-surface text-terracotta-ink border-terracotta/30'
+                          : 'bg-surface-subtle text-ink-secondary border-border-hairline'
                     "
                   >
                     {{ row.deltaCount > 0 ? `+${row.deltaCount}` : row.deltaCount }}
@@ -772,10 +772,10 @@ function handleExportXlsx() {
                     class="inline-flex items-center px-2 py-0.5 rounded-full border text-[10px] font-bold"
                     :class="
                       (row.deltaSharePercent ?? 0) > 0
-                        ? 'bg-[#E3F0EA] text-[#0B3D2E] border-[#BBD8CB]'
+                        ? 'bg-brand-tint text-brand-primary border-brand-border'
                         : (row.deltaSharePercent ?? 0) < 0
-                          ? 'bg-[#FBECE8] text-[#C8553D] border-[#C8553D]/30'
-                          : 'bg-[#ECEAE2] text-[#4A524E] border-[#141917]/[0.08]'
+                          ? 'bg-terracotta-surface text-terracotta-ink border-terracotta/30'
+                          : 'bg-surface-subtle text-ink-secondary border-border-hairline'
                     "
                   >
                     {{ (row.deltaSharePercent ?? 0) > 0 ? `+${row.deltaSharePercent}` : (row.deltaSharePercent ?? 0) }}% pt
@@ -785,12 +785,12 @@ function handleExportXlsx() {
                     class="inline-flex items-center px-2 py-0.5 rounded-full border text-[10px] font-bold"
                     :class="
                       row.netBalanceIndex === null
-                        ? 'bg-[#ECEAE2] text-[#737B76] border-[#141917]/[0.08]'
+                        ? 'bg-surface-subtle text-ink-muted border-border-hairline'
                         : row.netBalanceIndex > 0
-                          ? 'bg-[#E3F0EA] text-[#0B3D2E] border-[#BBD8CB]'
+                          ? 'bg-brand-tint text-brand-primary border-brand-border'
                           : row.netBalanceIndex < 0
-                            ? 'bg-[#FBECE8] text-[#C8553D] border-[#C8553D]/30'
-                            : 'bg-[#FEF3C7] text-[#B45309] border-[#B45309]/30'
+                            ? 'bg-terracotta-surface text-terracotta-ink border-terracotta/30'
+                            : 'bg-[#FEF3C7] text-ochre-ink border-ochre/30'
                     "
                   >
                     {{
@@ -814,13 +814,13 @@ function handleExportXlsx() {
                   >
                     {{ renderImpactBadge(row.dominantImpact)!.shortLabel }}
                   </UBadge>
-                  <span v-else class="text-[#C8553D] font-semibold text-xs">Data Gap</span>
+                  <span v-else class="text-terracotta-ink font-semibold text-xs">Data Gap</span>
                 </td>
                 <td class="px-3 py-3 min-w-0">
-                  <span v-if="row.latestHeadline" class="line-clamp-2 text-[#4A524E] leading-snug" :title="row.latestHeadline">
+                  <span v-if="row.latestHeadline" class="line-clamp-2 text-ink-secondary leading-snug" :title="row.latestHeadline">
                     {{ row.latestHeadline }}
                   </span>
-                  <span v-else class="text-[#737B76] italic">Belum ada catatan</span>
+                  <span v-else class="text-ink-muted italic">Belum ada catatan</span>
                 </td>
                 <td class="px-3.5 py-3 text-right whitespace-nowrap">
                   <NuxtLink
@@ -829,7 +829,7 @@ function handleExportXlsx() {
                         ? `/admin/articles?year=${selectedYear}&quarter=${selectedQuarter}&pdrbGroup=${encodeURIComponent(row.code)}&status=VERIFIED`
                         : `/admin/articles?year=${selectedYear}&quarter=${selectedQuarter}&expenditure=${encodeURIComponent(row.code)}&status=VERIFIED`
                     "
-                    class="min-h-8 inline-flex items-center text-[#0B3D2E] hover:text-[#072B20] font-semibold hover:underline"
+                    class="min-h-8 inline-flex items-center text-brand-primary hover:text-[#072B20] font-semibold hover:underline"
                   >
                     Arsip →
                   </NuxtLink>
@@ -858,7 +858,7 @@ function handleExportXlsx() {
                 >
                   {{ row.code }}
                 </span>
-                <span class="font-bold text-xs text-[#141917]">{{ row.label }}</span>
+                <span class="font-bold text-xs text-ink-primary">{{ row.label }}</span>
               </div>
               <NuxtLink
                 :to="
@@ -866,45 +866,45 @@ function handleExportXlsx() {
                     ? `/admin/articles?year=${selectedYear}&quarter=${selectedQuarter}&pdrbGroup=${encodeURIComponent(row.code)}&status=VERIFIED`
                     : `/admin/articles?year=${selectedYear}&quarter=${selectedQuarter}&expenditure=${encodeURIComponent(row.code)}&status=VERIFIED`
                 "
-                class="text-xs font-semibold text-[#0B3D2E] shrink-0"
+                class="text-xs font-semibold text-brand-primary shrink-0"
               >
                 Arsip →
               </NuxtLink>
             </div>
 
-            <div class="grid grid-cols-3 gap-2 rounded-xl bg-[#F6F5F1] border border-[#141917]/[0.08] p-2.5 text-xs tabular-nums font-mono">
+            <div class="grid grid-cols-3 gap-2 rounded-xl bg-canvas border border-border-hairline p-2.5 text-xs tabular-nums font-mono">
               <div>
-                <div class="text-[10px] text-[#737B76] font-sans">
+                <div class="text-[10px] text-ink-muted font-sans">
                   {{ metricMode === 'volume' ? trendData.baseline.shortLabel : metricMode === 'share' ? `Pangsa ${trendData.baseline.shortLabel}` : `NBI ${trendData.baseline.shortLabel}` }}
                 </div>
-                <div class="font-semibold text-[#4A524E] mt-0.5">
+                <div class="font-semibold text-ink-secondary mt-0.5">
                   <template v-if="metricMode === 'volume'">{{ row.baselineCount }}</template>
                   <template v-else-if="metricMode === 'share'">{{ row.baselineSharePercent }}%</template>
                   <template v-else>{{ row.baselineNetBalanceIndex !== null ? (row.baselineNetBalanceIndex > 0 ? `+${row.baselineNetBalanceIndex}%` : `${row.baselineNetBalanceIndex}%`) : '—' }}</template>
                 </div>
               </div>
               <div>
-                <div class="text-[10px] text-[#737B76] font-sans">
+                <div class="text-[10px] text-ink-muted font-sans">
                   {{ metricMode === 'volume' ? trendData.period.shortLabel : metricMode === 'share' ? `Pangsa ${trendData.period.shortLabel}` : `NBI ${trendData.period.shortLabel}` }}
                 </div>
-                <div class="font-extrabold text-[#141917] mt-0.5">
+                <div class="font-extrabold text-ink-primary mt-0.5">
                   <template v-if="metricMode === 'volume'">{{ row.currentCount }}</template>
                   <template v-else-if="metricMode === 'share'">{{ row.currentSharePercent }}%</template>
                   <template v-else>{{ row.netBalanceIndex !== null ? (row.netBalanceIndex > 0 ? `+${row.netBalanceIndex}%` : `${row.netBalanceIndex}%`) : '—' }}</template>
                 </div>
               </div>
               <div>
-                <div class="text-[10px] text-[#737B76] font-sans">
+                <div class="text-[10px] text-ink-muted font-sans">
                   {{ metricMode === 'volume' ? 'Delta' : metricMode === 'share' ? 'Delta Pt' : 'Sentimen' }}
                 </div>
                 <div
                   class="font-bold mt-0.5"
                   :class="
                     metricMode === 'volume'
-                      ? (row.deltaCount > 0 ? 'text-[#0B3D2E]' : row.deltaCount < 0 ? 'text-[#C8553D]' : 'text-[#4A524E]')
+                      ? (row.deltaCount > 0 ? 'text-brand-primary' : row.deltaCount < 0 ? 'text-terracotta-ink' : 'text-ink-secondary')
                       : metricMode === 'share'
-                        ? ((row.deltaSharePercent ?? 0) > 0 ? 'text-[#0B3D2E]' : (row.deltaSharePercent ?? 0) < 0 ? 'text-[#C8553D]' : 'text-[#4A524E]')
-                        : (row.netBalanceIndex !== null && row.netBalanceIndex > 0 ? 'text-[#0B3D2E]' : row.netBalanceIndex !== null && row.netBalanceIndex < 0 ? 'text-[#C8553D]' : 'text-[#4A524E]')
+                        ? ((row.deltaSharePercent ?? 0) > 0 ? 'text-brand-primary' : (row.deltaSharePercent ?? 0) < 0 ? 'text-terracotta-ink' : 'text-ink-secondary')
+                        : (row.netBalanceIndex !== null && row.netBalanceIndex > 0 ? 'text-brand-primary' : row.netBalanceIndex !== null && row.netBalanceIndex < 0 ? 'text-terracotta-ink' : 'text-ink-secondary')
                   "
                 >
                   <template v-if="metricMode === 'volume'">
@@ -931,9 +931,9 @@ function handleExportXlsx() {
                 >
                   {{ renderImpactBadge(row.dominantImpact)!.shortLabel }}
                 </UBadge>
-                <span v-else class="text-[#C8553D] font-semibold text-xs">Data Gap</span>
+                <span v-else class="text-terracotta-ink font-semibold text-xs">Data Gap</span>
               </div>
-              <span v-if="row.latestHeadline" class="text-[11px] text-[#4A524E] truncate max-w-[60%]">
+              <span v-if="row.latestHeadline" class="text-[11px] text-ink-secondary truncate max-w-[60%]">
                 {{ row.latestHeadline }}
               </span>
             </div>

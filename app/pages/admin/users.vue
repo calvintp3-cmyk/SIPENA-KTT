@@ -200,15 +200,15 @@ const columns: TableColumn<AdminUserItem>[] = [
       <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
           <div
-            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#E3F0EA] text-[#0B3D2E] border border-[#BBD8CB] text-xs font-semibold"
+            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-brand-tint text-brand-primary border border-brand-border text-xs font-semibold"
           >
-            <UIcon name="i-solar-shield-user-bold-duotone" class="w-3.5 h-3.5 text-[#0B3D2E]" />
+            <UIcon name="i-solar-shield-user-bold-duotone" class="w-3.5 h-3.5 text-brand-primary" />
             <span>Tata Kelola Akses &amp; RBAC</span>
           </div>
-          <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-[#141917] mt-2 font-display">
+          <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-ink-primary mt-2 font-display">
             Kelola Akses Admin &amp; Whitelist Google
           </h1>
-          <p class="text-xs sm:text-sm text-[#4A524E] mt-0.5">
+          <p class="text-xs sm:text-sm text-ink-secondary mt-0.5">
             Daftar email staf yang diizinkan masuk ke workspace admin menggunakan Login with Google
             maupun kata sandi lokal.
           </p>
@@ -240,24 +240,24 @@ const columns: TableColumn<AdminUserItem>[] = [
       </div>
 
       <!-- Whitelist Security Notice Card -->
-      <div class="obs-panel rounded-xl p-5 flex items-start gap-3.5 border-[#BBD8CB] bg-[#E3F0EA]/40">
+      <div class="obs-panel rounded-xl p-5 flex items-start gap-3.5 border-brand-border bg-brand-tint/40">
         <div
-          class="w-10 h-10 rounded-xl bg-white border border-[#BBD8CB] text-[#0B3D2E] flex items-center justify-center shrink-0"
+          class="w-10 h-10 rounded-xl bg-white border border-brand-border text-brand-primary flex items-center justify-center shrink-0"
         >
-          <UIcon name="i-solar-shield-check-bold-duotone" class="w-5 h-5 text-[#0B3D2E]" />
+          <UIcon name="i-solar-shield-check-bold-duotone" class="w-5 h-5 text-brand-primary" />
         </div>
         <div class="space-y-1">
           <div class="flex flex-wrap items-center gap-2">
-            <h2 class="text-sm font-bold text-[#141917] font-display">
+            <h2 class="text-sm font-bold text-ink-primary font-display">
               Mekanisme Whitelist Aktif
             </h2>
             <span
-              class="px-2.5 py-0.5 rounded-full bg-[#E3F0EA] text-[#0B3D2E] border border-[#BBD8CB] text-[11px] font-semibold tabular-nums font-mono"
+              class="px-2.5 py-0.5 rounded-full bg-brand-tint text-brand-primary border border-brand-border text-[11px] font-semibold tabular-nums font-mono"
             >
               {{ activeCount }} aktif / {{ usersList.length }} terdaftar
             </span>
           </div>
-          <p class="text-xs text-[#4A524E] leading-relaxed">
+          <p class="text-xs text-ink-secondary leading-relaxed">
             Siapa pun yang mencoba masuk menggunakan Google OAuth akan ditolak secara otomatis
             apabila alamat Gmail-nya tidak terdaftar atau berstatus nonaktif dalam tabel ini.
           </p>
@@ -284,7 +284,7 @@ const columns: TableColumn<AdminUserItem>[] = [
             :columns="columns"
             :loading="pending"
             :ui="{
-              th: 'py-3 px-3.5 text-[11px] font-bold text-[#4A524E] bg-[#F6F5F1]',
+              th: 'py-3 px-3.5 text-[11px] font-bold text-ink-secondary bg-canvas',
               td: 'py-3 px-3.5 text-xs whitespace-normal align-middle',
             }"
             empty="Belum ada akun staf admin yang terdaftar."
@@ -295,15 +295,15 @@ const columns: TableColumn<AdminUserItem>[] = [
                   class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-extrabold shrink-0"
                   :class="
                     row.original.role === UserRoleEnum.ADMIN
-                      ? 'bg-[#0B3D2E] text-white'
-                      : 'bg-[#E3F0EA] text-[#0B3D2E] border border-[#BBD8CB]'
+                      ? 'bg-brand-primary text-white'
+                      : 'bg-brand-tint text-brand-primary border border-brand-border'
                   "
                 >
                   {{ row.original.name.trim().charAt(0).toUpperCase() || 'A' }}
                 </div>
                 <div class="space-y-0.5">
                   <div class="flex items-center gap-2">
-                    <span class="font-semibold text-sm text-[#141917]">{{ row.original.name }}</span>
+                    <span class="font-semibold text-sm text-ink-primary">{{ row.original.name }}</span>
                     <UBadge
                       v-if="row.original.id === user?.id"
                       color="primary"
@@ -313,7 +313,7 @@ const columns: TableColumn<AdminUserItem>[] = [
                       Anda
                     </UBadge>
                   </div>
-                  <div class="text-xs text-[#4A524E]">{{ row.original.email }}</div>
+                  <div class="text-xs text-ink-secondary">{{ row.original.email }}</div>
                 </div>
               </div>
             </template>
@@ -347,11 +347,11 @@ const columns: TableColumn<AdminUserItem>[] = [
             <template #lastLoginAt-cell="{ row }">
               <span
                 v-if="row.original.lastLoginAt"
-                class="text-xs font-medium tabular-nums text-[#4A524E] font-mono"
+                class="text-xs font-medium tabular-nums text-ink-secondary font-mono"
               >
                 {{ formatDateTimeWita(row.original.lastLoginAt) }}
               </span>
-              <span v-else class="text-xs text-[#737B76]">Belum pernah login</span>
+              <span v-else class="text-xs text-ink-muted">Belum pernah login</span>
             </template>
 
             <template #isActive-cell="{ row }">
@@ -375,7 +375,7 @@ const columns: TableColumn<AdminUserItem>[] = [
                 </UTooltip>
                 <span
                   class="text-xs font-semibold"
-                  :class="row.original.isActive ? 'text-[#0B3D2E]' : 'text-[#737B76]'"
+                  :class="row.original.isActive ? 'text-brand-primary' : 'text-ink-muted'"
                 >
                   {{ row.original.isActive ? 'Aktif' : 'Nonaktif' }}
                 </span>
@@ -433,7 +433,7 @@ const columns: TableColumn<AdminUserItem>[] = [
         <div class="md:hidden divide-y divide-[#141917]/[0.08]">
           <div
             v-if="!pending && filteredUsers.length === 0"
-            class="p-6 text-center text-xs text-[#737B76]"
+            class="p-6 text-center text-xs text-ink-muted"
           >
             Belum ada akun staf admin yang terdaftar.
           </div>
@@ -448,20 +448,20 @@ const columns: TableColumn<AdminUserItem>[] = [
                   class="w-9 h-9 rounded-full flex items-center justify-center text-xs font-extrabold shrink-0"
                   :class="
                     u.role === UserRoleEnum.ADMIN
-                      ? 'bg-[#0B3D2E] text-white'
-                      : 'bg-[#E3F0EA] text-[#0B3D2E] border border-[#BBD8CB]'
+                      ? 'bg-brand-primary text-white'
+                      : 'bg-brand-tint text-brand-primary border border-brand-border'
                   "
                 >
                   {{ u.name.trim().charAt(0).toUpperCase() || 'A' }}
                 </div>
                 <div class="min-w-0">
                   <div class="flex items-center gap-1.5 flex-wrap">
-                    <span class="font-bold text-sm text-[#141917] truncate">{{ u.name }}</span>
+                    <span class="font-bold text-sm text-ink-primary truncate">{{ u.name }}</span>
                     <UBadge v-if="u.id === user?.id" color="primary" variant="soft" size="xs">
                       Anda
                     </UBadge>
                   </div>
-                  <div class="text-xs text-[#4A524E] break-all">{{ u.email }}</div>
+                  <div class="text-xs text-ink-secondary break-all">{{ u.email }}</div>
                 </div>
               </div>
 
@@ -497,7 +497,7 @@ const columns: TableColumn<AdminUserItem>[] = [
               </div>
             </div>
 
-            <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-[#141917]/[0.08] text-xs">
+            <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-border-hairline text-xs">
               <div class="flex flex-wrap items-center gap-1.5">
                 <UBadge
                   :color="u.role === UserRoleEnum.ADMIN ? 'primary' : 'info'"
@@ -523,7 +523,7 @@ const columns: TableColumn<AdminUserItem>[] = [
                   :aria-label="`Status aktif untuk ${u.email}`"
                   @update:model-value="(val: boolean) => { void toggleActiveStatus(u, val); }"
                 />
-                <span class="text-xs font-semibold" :class="u.isActive ? 'text-[#0B3D2E]' : 'text-[#737B76]'">
+                <span class="text-xs font-semibold" :class="u.isActive ? 'text-brand-primary' : 'text-ink-muted'">
                   {{ u.isActive ? 'Aktif' : 'Nonaktif' }}
                 </span>
               </div>
@@ -551,10 +551,10 @@ const columns: TableColumn<AdminUserItem>[] = [
         description="Staf bersangkutan tidak lagi dapat masuk via Google OAuth maupun kata sandi. Riwayat verifikasi artikel tetap tersimpan aman."
       >
         <template #body>
-          <p class="text-sm text-[#4A524E] leading-relaxed">
+          <p class="text-sm text-ink-secondary leading-relaxed">
             Anda yakin ingin menghapus akun
             <strong>{{ deleteTarget?.name }}</strong>
-            (<span class="font-medium text-[#141917]">{{ deleteTarget?.email }}</span>)
+            (<span class="font-medium text-ink-primary">{{ deleteTarget?.email }}</span>)
             dari daftar akses admin SIPENA KTT?
           </p>
         </template>

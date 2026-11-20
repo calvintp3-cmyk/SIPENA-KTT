@@ -235,15 +235,15 @@ async function submitUpdate(action: 'VERIFIED' | 'IGNORED' | 'DRAFT') {
     :ui="{ content: 'max-w-2xl' }"
   >
     <template #body>
-      <div class="max-h-[60vh] overflow-y-auto saas-scroll rounded-xl bg-[#F6F5F1] border border-[#141917]/[0.08] p-4 text-sm text-[#141917] leading-relaxed whitespace-pre-line">
+      <div class="max-h-[60vh] overflow-y-auto saas-scroll rounded-xl bg-canvas border border-border-hairline p-4 text-sm text-ink-primary leading-relaxed whitespace-pre-line">
         <template v-for="(seg, idx) in highlightedSnippetSegments" :key="idx">
           <mark
             v-if="seg.kind === 'location'"
-            class="bg-[#E3F0EA] text-[#0B3D2E] px-1 rounded font-semibold"
+            class="bg-brand-tint text-brand-primary px-1 rounded font-semibold"
           >{{ seg.text }}</mark>
           <mark
             v-else-if="seg.kind === 'metric'"
-            class="bg-[#FEF3C7] text-[#B45309] px-1 rounded font-mono font-semibold"
+            class="bg-[#FEF3C7] text-ochre-ink px-1 rounded font-mono font-semibold"
           >{{ seg.text }}</mark>
           <template v-else>{{ seg.text }}</template>
         </template>

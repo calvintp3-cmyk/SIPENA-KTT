@@ -164,15 +164,15 @@ const columns: TableColumn<KeywordItem>[] = [
     <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
       <div>
         <div
-          class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#E3F0EA] text-[#0B3D2E] border border-[#BBD8CB] text-xs font-semibold"
+          class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-brand-tint text-brand-primary border border-brand-border text-xs font-semibold"
         >
-          <UIcon name="i-solar-tag-price-bold-duotone" class="w-3.5 h-3.5 text-[#0B3D2E]" />
+          <UIcon name="i-solar-tag-price-bold-duotone" class="w-3.5 h-3.5 text-brand-primary" />
           <span>Penjaringan Transmisi Ekonomi Nasional</span>
         </div>
-        <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-[#141917] mt-2 font-display">
+        <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-ink-primary mt-2 font-display">
           Master Keyword Berita Nasional
         </h1>
-        <p class="text-xs sm:text-sm text-[#4A524E] mt-0.5">
+        <p class="text-xs sm:text-sm text-ink-secondary mt-0.5">
           Kata kunci isu strategis nasional yang memengaruhi ekonomi Kabupaten Tana Tidung (dijaring
           otomatis setiap 04:00 WITA).
         </p>
@@ -226,62 +226,62 @@ const columns: TableColumn<KeywordItem>[] = [
         class="obs-panel rounded-xl p-5 space-y-3"
       >
         <div class="flex items-center justify-between gap-2">
-          <USkeleton class="h-3.5 w-32 rounded bg-[#ECEAE2]" />
-          <USkeleton class="h-8 w-8 rounded-xl bg-[#ECEAE2]" />
+          <USkeleton class="h-3.5 w-32 rounded bg-surface-subtle" />
+          <USkeleton class="h-8 w-8 rounded-xl bg-surface-subtle" />
         </div>
-        <USkeleton class="h-8 w-16 rounded-lg bg-[#ECEAE2]" />
-        <USkeleton class="h-3 w-40 rounded bg-[#ECEAE2]" />
+        <USkeleton class="h-8 w-16 rounded-lg bg-surface-subtle" />
+        <USkeleton class="h-3 w-40 rounded bg-surface-subtle" />
       </div>
     </div>
 
     <div v-else class="grid grid-cols-1 sm:grid-cols-3 gap-4">
       <div class="obs-panel rounded-2xl p-5 space-y-2">
         <div class="flex items-center justify-between gap-2">
-          <span class="text-xs font-semibold text-[#4A524E]">
+          <span class="text-xs font-semibold text-ink-secondary">
             Total Keyword Terdaftar
           </span>
-          <div class="w-8 h-8 rounded-xl bg-[#E3F0EA] text-[#0B3D2E] border border-[#BBD8CB] flex items-center justify-center shrink-0">
+          <div class="w-8 h-8 rounded-xl bg-brand-tint text-brand-primary border border-brand-border flex items-center justify-center shrink-0">
             <UIcon name="i-solar-tag-price-bold-duotone" class="w-4 h-4" />
           </div>
         </div>
-        <div class="text-3xl font-extrabold tabular-nums text-[#141917] font-mono">
+        <div class="text-3xl font-extrabold tabular-nums text-ink-primary font-mono">
           {{ formatNumberId(keywordMetrics.total) }}
         </div>
-        <div class="text-xs text-[#4A524E] tabular-nums">
+        <div class="text-xs text-ink-secondary tabular-nums">
           Query Google News Indonesia
         </div>
       </div>
 
       <div class="obs-panel rounded-2xl p-5 space-y-2">
         <div class="flex items-center justify-between gap-2">
-          <span class="text-xs font-semibold text-[#4A524E]">
+          <span class="text-xs font-semibold text-ink-secondary">
             Keyword Aktif Dijaring
           </span>
-          <div class="w-8 h-8 rounded-xl bg-[#E3F0EA] text-[#0B3D2E] border border-[#BBD8CB] flex items-center justify-center shrink-0">
+          <div class="w-8 h-8 rounded-xl bg-brand-tint text-brand-primary border border-brand-border flex items-center justify-center shrink-0">
             <UIcon name="i-solar-check-circle-bold-duotone" class="w-4 h-4" />
           </div>
         </div>
-        <div class="text-3xl font-extrabold tabular-nums text-[#0B3D2E] font-mono">
+        <div class="text-3xl font-extrabold tabular-nums text-brand-primary font-mono">
           {{ formatNumberId(keywordMetrics.active) }}
         </div>
-        <div class="text-xs text-[#4A524E] tabular-nums font-mono">
+        <div class="text-xs text-ink-secondary tabular-nums font-mono">
           {{ formatNumberId(keywordMetrics.inactive) }} keyword sedang dijeda
         </div>
       </div>
 
       <div class="obs-panel rounded-2xl p-5 space-y-2">
         <div class="flex items-center justify-between gap-2">
-          <span class="text-xs font-semibold text-[#4A524E]">
+          <span class="text-xs font-semibold text-ink-secondary">
             Total Artikel Terjaring
           </span>
-          <div class="w-8 h-8 rounded-xl bg-[#E3F0EA] text-[#0B3D2E] border border-[#BBD8CB] flex items-center justify-center shrink-0">
+          <div class="w-8 h-8 rounded-xl bg-brand-tint text-brand-primary border border-brand-border flex items-center justify-center shrink-0">
             <UIcon name="i-solar-documents-bold-duotone" class="w-4 h-4" />
           </div>
         </div>
-        <div class="text-3xl font-extrabold tabular-nums text-[#141917] font-mono">
+        <div class="text-3xl font-extrabold tabular-nums text-ink-primary font-mono">
           {{ formatNumberId(keywordMetrics.capturedArticles) }}
         </div>
-        <div class="text-xs text-[#4A524E]">Akumulasi di Bank Data SIPENA</div>
+        <div class="text-xs text-ink-secondary">Akumulasi di Bank Data SIPENA</div>
       </div>
     </div>
 
@@ -297,15 +297,15 @@ const columns: TableColumn<KeywordItem>[] = [
           :columns="columns"
           :loading="pending"
           :ui="{
-            th: 'py-3 px-3.5 text-[11px] font-bold text-[#4A524E] bg-[#F6F5F1]',
+            th: 'py-3 px-3.5 text-[11px] font-bold text-ink-secondary bg-canvas',
             td: 'py-3 px-3.5 text-xs whitespace-normal align-top',
           }"
           empty="Belum ada kata kunci nasional terdaftar."
         >
           <template #keyword-cell="{ row }">
             <div class="space-y-0.5 max-w-sm">
-              <div class="font-semibold text-sm text-[#141917]">{{ row.original.keyword }}</div>
-              <p v-if="row.original.description" class="text-xs text-[#4A524E] leading-snug">
+              <div class="font-semibold text-sm text-ink-primary">{{ row.original.keyword }}</div>
+              <p v-if="row.original.description" class="text-xs text-ink-secondary leading-snug">
                 {{ row.original.description }}
               </p>
             </div>
@@ -319,7 +319,7 @@ const columns: TableColumn<KeywordItem>[] = [
             >
               {{ getKbliShortCodeName(row.original.defaultKbliCategory) }}
             </span>
-            <span v-else class="text-xs text-[#737B76]">Otomatis via AI</span>
+            <span v-else class="text-xs text-ink-muted">Otomatis via AI</span>
           </template>
 
           <template #defaultExpenditure-cell="{ row }">
@@ -334,11 +334,11 @@ const columns: TableColumn<KeywordItem>[] = [
               />
               <span>{{ getExpenditureLabel(row.original.defaultExpenditureComponent, false) }}</span>
             </span>
-            <span v-else class="text-xs text-[#737B76]">Otomatis via AI</span>
+            <span v-else class="text-xs text-ink-muted">Otomatis via AI</span>
           </template>
 
           <template #articleCount-cell="{ row }">
-            <span class="text-xs tabular-nums font-semibold text-[#141917] font-mono">
+            <span class="text-xs tabular-nums font-semibold text-ink-primary font-mono">
               {{ row.original.articleCount }} artikel
             </span>
           </template>
@@ -385,7 +385,7 @@ const columns: TableColumn<KeywordItem>[] = [
       <div class="md:hidden divide-y divide-[#141917]/[0.08]">
         <div
           v-if="!pending && filteredKeywords.length === 0"
-          class="p-6 text-center text-xs text-[#737B76]"
+          class="p-6 text-center text-xs text-ink-muted"
         >
           Belum ada kata kunci nasional terdaftar.
         </div>
@@ -396,8 +396,8 @@ const columns: TableColumn<KeywordItem>[] = [
         >
           <div class="flex items-start justify-between gap-2">
             <div class="min-w-0">
-              <div class="font-bold text-sm text-[#141917] break-words">{{ kw.keyword }}</div>
-              <p v-if="kw.description" class="text-xs text-[#4A524E] mt-0.5 leading-snug">
+              <div class="font-bold text-sm text-ink-primary break-words">{{ kw.keyword }}</div>
+              <p v-if="kw.description" class="text-xs text-ink-secondary mt-0.5 leading-snug">
                 {{ kw.description }}
               </p>
             </div>
@@ -430,14 +430,14 @@ const columns: TableColumn<KeywordItem>[] = [
             </span>
             <span
               v-if="!kw.defaultKbliCategory && !kw.defaultExpenditureComponent"
-              class="text-[11px] text-[#737B76]"
+              class="text-[11px] text-ink-muted"
             >
               Klasifikasi Otomatis via AI
             </span>
           </div>
 
-          <div class="flex items-center justify-between pt-2 border-t border-[#141917]/[0.08]">
-            <span class="text-xs tabular-nums font-semibold text-[#141917] font-mono">
+          <div class="flex items-center justify-between pt-2 border-t border-border-hairline">
+            <span class="text-xs tabular-nums font-semibold text-ink-primary font-mono">
               {{ kw.articleCount }} artikel terjaring
             </span>
             <div class="flex items-center gap-1">
@@ -477,7 +477,7 @@ const columns: TableColumn<KeywordItem>[] = [
       description="Artikel berita yang sudah terjaring ke Bank Data tidak akan ikut terhapus."
     >
       <template #body>
-        <p class="text-sm text-[#4A524E] leading-relaxed">
+        <p class="text-sm text-ink-secondary leading-relaxed">
           Anda yakin ingin menghapus kata kunci
           <strong>"{{ deleteTarget?.keyword }}"</strong> dari daftar penjaringan berita nasional?
         </p>

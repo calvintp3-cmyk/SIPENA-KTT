@@ -194,12 +194,12 @@ async function handleSubmit(event: FormSubmitEvent<CreateKeywordInput>) {
           />
         </UFormField>
 
-        <div class="flex items-center justify-between rounded-xl border border-[#BBD8CB] bg-[#E3F0EA]/40 px-3.5 py-2.5">
+        <div class="flex items-center justify-between rounded-xl border border-brand-border bg-brand-tint/40 px-3.5 py-2.5">
           <div class="flex items-center gap-2">
-            <UIcon name="i-solar-check-circle-bold-duotone" class="w-4 h-4 text-[#0B3D2E] shrink-0" />
+            <UIcon name="i-solar-check-circle-bold-duotone" class="w-4 h-4 text-brand-primary shrink-0" />
             <label
               for="keyword-active-switch"
-              class="text-xs sm:text-sm font-semibold text-[#141917] cursor-pointer"
+              class="text-xs sm:text-sm font-semibold text-ink-primary cursor-pointer"
             >
               Aktifkan saat crawling harian
             </label>
@@ -207,7 +207,7 @@ async function handleSubmit(event: FormSubmitEvent<CreateKeywordInput>) {
           <USwitch id="keyword-active-switch" v-model="formState.isActive" />
         </div>
 
-        <div class="flex justify-end gap-2 pt-3 border-t border-[#141917]/[0.08]">
+        <div class="flex justify-end gap-2 pt-3 border-t border-border-hairline">
           <UButton color="neutral" variant="ghost" @click="() => { modalOpen = false; }">
             Batal
           </UButton>

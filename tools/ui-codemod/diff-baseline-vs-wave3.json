@@ -1,0 +1,254 @@
+[
+  {
+    "file": "admin-articles-1280.png",
+    "status": "CHANGED",
+    "diffPercent": 0.03,
+    "diffPixels": 297
+  },
+  {
+    "file": "admin-articles-375.png",
+    "status": "CHANGED",
+    "diffPercent": 0.17,
+    "diffPixels": 514
+  },
+  {
+    "file": "admin-articles-768.png",
+    "status": "CHANGED",
+    "diffPercent": 0.06,
+    "diffPixels": 485
+  },
+  {
+    "file": "admin-dashboard-1280.png",
+    "status": "CHANGED",
+    "diffPercent": 0.02,
+    "diffPixels": 254
+  },
+  {
+    "file": "admin-dashboard-375.png",
+    "status": "CHANGED",
+    "diffPercent": 0.15,
+    "diffPixels": 466
+  },
+  {
+    "file": "admin-dashboard-768.png",
+    "status": "CHANGED",
+    "diffPercent": 0.07,
+    "diffPixels": 516
+  },
+  {
+    "file": "admin-kbli-1280.png",
+    "status": "CHANGED",
+    "diffPercent": 0.03,
+    "diffPixels": 292
+  },
+  {
+    "file": "admin-kbli-375.png",
+    "status": "CHANGED",
+    "diffPercent": 0.15,
+    "diffPixels": 467
+  },
+  {
+    "file": "admin-kbli-768.png",
+    "status": "CHANGED",
+    "diffPercent": 0.06,
+    "diffPixels": 503
+  },
+  {
+    "file": "admin-keywords-1280.png",
+    "status": "CHANGED",
+    "diffPercent": 0.03,
+    "diffPixels": 287
+  },
+  {
+    "file": "admin-keywords-375.png",
+    "status": "CHANGED",
+    "diffPercent": 0.15,
+    "diffPixels": 463
+  },
+  {
+    "file": "admin-keywords-768.png",
+    "status": "CHANGED",
+    "diffPercent": 0.06,
+    "diffPixels": 470
+  },
+  {
+    "file": "admin-portals-1280.png",
+    "status": "CHANGED",
+    "diffPercent": 0.03,
+    "diffPixels": 302
+  },
+  {
+    "file": "admin-portals-375.png",
+    "status": "CHANGED",
+    "diffPercent": 0.15,
+    "diffPixels": 463
+  },
+  {
+    "file": "admin-portals-768.png",
+    "status": "CHANGED",
+    "diffPercent": 0.06,
+    "diffPixels": 485
+  },
+  {
+    "file": "admin-review-1280.png",
+    "status": "CHANGED",
+    "diffPercent": 0.03,
+    "diffPixels": 347
+  },
+  {
+    "file": "admin-review-375.png",
+    "status": "CHANGED",
+    "diffPercent": 0.15,
+    "diffPixels": 463
+  },
+  {
+    "file": "admin-review-768.png",
+    "status": "CHANGED",
+    "diffPercent": 0.06,
+    "diffPixels": 478
+  },
+  {
+    "file": "admin-scrapers-1280.png",
+    "status": "CHANGED",
+    "diffPercent": 0.03,
+    "diffPixels": 341
+  },
+  {
+    "file": "admin-scrapers-375.png",
+    "status": "CHANGED",
+    "diffPercent": 0.16,
+    "diffPixels": 500
+  },
+  {
+    "file": "admin-scrapers-768.png",
+    "status": "CHANGED",
+    "diffPercent": 0.07,
+    "diffPixels": 527
+  },
+  {
+    "file": "admin-synthesis-1280.png",
+    "status": "CHANGED",
+    "diffPercent": 0.03,
+    "diffPixels": 292
+  },
+  {
+    "file": "admin-synthesis-375.png",
+    "status": "CHANGED",
+    "diffPercent": 0.15,
+    "diffPixels": 469
+  },
+  {
+    "file": "admin-synthesis-768.png",
+    "status": "CHANGED",
+    "diffPercent": 0.06,
+    "diffPixels": 487
+  },
+  {
+    "file": "admin-taxonomy-1280.png",
+    "status": "CHANGED",
+    "diffPercent": 0.03,
+    "diffPixels": 284
+  },
+  {
+    "file": "admin-taxonomy-375.png",
+    "status": "CHANGED",
+    "diffPercent": 0.15,
+    "diffPixels": 467
+  },
+  {
+    "file": "admin-taxonomy-768.png",
+    "status": "CHANGED",
+    "diffPercent": 0.07,
+    "diffPixels": 539
+  },
+  {
+    "file": "admin-trends-1280.png",
+    "status": "CHANGED",
+    "diffPercent": 0.03,
+    "diffPixels": 322
+  },
+  {
+    "file": "admin-trends-375.png",
+    "status": "CHANGED",
+    "diffPercent": 0.14,
+    "diffPixels": 418
+  },
+  {
+    "file": "admin-trends-768.png",
+    "status": "CHANGED",
+    "diffPercent": 0.06,
+    "diffPixels": 481
+  },
+  {
+    "file": "admin-users-1280.png",
+    "status": "CHANGED",
+    "diffPercent": 0.03,
+    "diffPixels": 319
+  },
+  {
+    "file": "admin-users-375.png",
+    "status": "CHANGED",
+    "diffPercent": 0.17,
+    "diffPixels": 510
+  },
+  {
+    "file": "admin-users-768.png",
+    "status": "CHANGED",
+    "diffPercent": 0.06,
+    "diffPixels": 478
+  },
+  {
+    "file": "auth-login-1280.png",
+    "status": "CHANGED",
+    "diffPercent": 0.03,
+    "diffPixels": 292
+  },
+  {
+    "file": "auth-login-375.png",
+    "status": "CHANGED",
+    "diffPercent": 0.15,
+    "diffPixels": 454
+  },
+  {
+    "file": "auth-login-768.png",
+    "status": "CHANGED",
+    "diffPercent": 0.06,
+    "diffPixels": 503
+  },
+  {
+    "file": "public-index-1280.png",
+    "status": "CHANGED",
+    "diffPercent": 0.13,
+    "diffPixels": 1357
+  },
+  {
+    "file": "public-index-375.png",
+    "status": "CHANGED",
+    "diffPercent": 0.32,
+    "diffPixels": 974
+  },
+  {
+    "file": "public-index-768.png",
+    "status": "CHANGED",
+    "diffPercent": 0.12,
+    "diffPixels": 978
+  },
+  {
+    "file": "public-linimasa-1280.png",
+    "status": "CHANGED",
+    "diffPercent": 0.3,
+    "diffPixels": 3094
+  },
+  {
+    "file": "public-linimasa-375.png",
+    "status": "CHANGED",
+    "diffPercent": 0.68,
+    "diffPixels": 2081
+  },
+  {
+    "file": "public-linimasa-768.png",
+    "status": "CHANGED",
+    "diffPercent": 0.4,
+    "diffPixels": 3112
+  }
+]

@@ -4,8 +4,8 @@
 export const SIPENA_CHART_TOKENS = {
   inkObsidian: '#141917',
   inkSecondary: '#4A524E',
-  inkAxis: '#737B76',
-  inkMuted: '#737B76',
+  inkAxis: '#5F6762',
+  inkMuted: '#5F6762',
   surfaceWhite: '#FFFFFF',
   surfaceMuted: '#F6F5F1',
   borderHairline: '#E2DFD7',

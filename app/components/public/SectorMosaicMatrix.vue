@@ -78,27 +78,27 @@ const nationalPct = computed(() => 100 - localPct.value);
 </script>
 
 <template>
-  <div class="py-12 border-t border-[#141917]/[0.08]">
+  <div class="py-12 border-t border-border-hairline">
     <!-- Section Title & Filter Tabs -->
     <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
       <div>
-        <div class="text-[11px] font-mono font-bold uppercase tracking-wider text-[#C8553D] mb-1">
+        <div class="text-[11px] font-mono font-bold uppercase tracking-wider text-terracotta-ink mb-1">
           KALTARA OBSERVATORY MATRIX
         </div>
-        <h2 class="font-display font-bold text-2xl sm:text-3xl text-[#141917] tracking-tight">
+        <h2 class="font-display font-bold text-2xl sm:text-3xl text-ink-primary tracking-tight">
           Peta Denyut 17 Lapangan Usaha KBLI
         </h2>
-        <p class="text-xs sm:text-sm text-[#4A524E] mt-1 max-w-xl">
+        <p class="text-xs sm:text-sm text-ink-secondary mt-1 max-w-xl">
           Visualisasi daya tangkap bukti empiris pada 17 kategori PDRB Lapangan Usaha dan 6 Komponen Pengeluaran di Kabupaten Tana Tidung.
         </p>
       </div>
 
       <!-- Segmented Mosaic Filter -->
-      <div class="inline-flex items-center p-1 rounded-xl bg-[#ECEAE2] text-xs font-semibold self-start sm:self-auto shrink-0">
+      <div class="inline-flex items-center p-1 rounded-xl bg-surface-subtle text-xs font-semibold self-start sm:self-auto shrink-0">
         <button
           type="button"
           class="px-3 py-1.5 rounded-lg transition-all cursor-pointer"
-          :class="activeFilter === 'all' ? 'bg-white text-[#141917] shadow-2xs font-bold' : 'text-[#4A524E] hover:text-[#141917]'"
+          :class="activeFilter === 'all' ? 'bg-white text-ink-primary shadow-2xs font-bold' : 'text-ink-secondary hover:text-ink-primary'"
           @click="activeFilter = 'all'"
         >
           Semua (17)
@@ -106,7 +106,7 @@ const nationalPct = computed(() => 100 - localPct.value);
         <button
           type="button"
           class="px-3 py-1.5 rounded-lg transition-all cursor-pointer"
-          :class="activeFilter === 'covered' ? 'bg-white text-[#0B3D2E] shadow-2xs font-bold' : 'text-[#4A524E] hover:text-[#0B3D2E]'"
+          :class="activeFilter === 'covered' ? 'bg-white text-brand-primary shadow-2xs font-bold' : 'text-ink-secondary hover:text-brand-primary'"
           @click="activeFilter = 'covered'"
         >
           Terpantau ({{ coveredCount }})
@@ -114,7 +114,7 @@ const nationalPct = computed(() => 100 - localPct.value);
         <button
           type="button"
           class="px-3 py-1.5 rounded-lg transition-all cursor-pointer"
-          :class="activeFilter === 'gap' ? 'bg-white text-[#C8553D] shadow-2xs font-bold' : 'text-[#4A524E] hover:text-[#C8553D]'"
+          :class="activeFilter === 'gap' ? 'bg-white text-terracotta-ink shadow-2xs font-bold' : 'text-ink-secondary hover:text-terracotta-ink'"
           @click="activeFilter = 'gap'"
         >
           Senyap / Gap 0 ({{ gapCount }})
@@ -134,12 +134,12 @@ const nationalPct = computed(() => 100 - localPct.value);
             class="group p-4 rounded-2xl border transition-all duration-200 flex flex-col justify-between min-h-[110px]"
             :class="[
               s.status === 'strong'
-                ? 'bg-[#E3F0EA] border-[#BBD8CB] hover:border-[#0B3D2E]/50 hover:shadow-sm'
+                ? 'bg-brand-tint border-brand-border hover:border-brand-primary/50 hover:shadow-sm'
                 : s.status === 'moderate'
-                  ? 'bg-white border-[#141917]/10 hover:border-[#0B3D2E]/40 hover:shadow-sm'
+                  ? 'bg-white border-border-hairline hover:border-brand-primary/40 hover:shadow-sm'
                   : s.status === 'thin'
-                    ? 'bg-[#FEF7E6] border-[#F3D89C] hover:border-[#B45309]/50'
-                    : 'bg-[#F6F5F1] border-dashed border-[#C8553D]/40 hover:border-[#C8553D]',
+                    ? 'bg-ochre-surface border-ochre-border hover:border-ochre/50'
+                    : 'bg-canvas border-dashed border-terracotta/40 hover:border-terracotta',
             ]"
           >
             <!-- Sector Code & Count -->
@@ -148,12 +148,12 @@ const nationalPct = computed(() => 100 - localPct.value);
                 class="font-mono font-bold text-sm"
                 :class="[
                   s.status === 'strong'
-                    ? 'text-[#0B3D2E]'
+                    ? 'text-brand-primary'
                     : s.status === 'thin'
-                      ? 'text-[#B45309]'
+                      ? 'text-ochre-ink'
                       : s.status === 'gap'
-                        ? 'text-[#C8553D]'
-                        : 'text-[#141917]',
+                        ? 'text-terracotta-ink'
+                        : 'text-ink-primary',
                 ]"
               >
                 KBLI {{ s.shortCode }}
@@ -162,12 +162,12 @@ const nationalPct = computed(() => 100 - localPct.value);
                 class="px-2 py-0.5 rounded-md font-mono text-[11px] font-bold tabular-nums"
                 :class="[
                   s.status === 'strong'
-                    ? 'bg-[#0B3D2E] text-white'
+                    ? 'bg-brand-primary text-white'
                     : s.status === 'moderate'
-                      ? 'bg-[#ECEAE2] text-[#141917]'
+                      ? 'bg-surface-subtle text-ink-primary'
                       : s.status === 'thin'
                         ? 'bg-[#F8E7C5] text-[#92400E]'
-                        : 'bg-[#FBECE8] text-[#C8553D]',
+                        : 'bg-terracotta-surface text-terracotta-ink',
                 ]"
               >
                 {{ s.count }}
@@ -177,47 +177,47 @@ const nationalPct = computed(() => 100 - localPct.value);
             <!-- Sector Name -->
             <div class="mt-3">
               <div
-                class="text-xs font-semibold line-clamp-2 leading-snug group-hover:text-[#0B3D2E] transition-colors"
-                :class="s.status === 'gap' ? 'text-[#737B76]' : 'text-[#141917]'"
+                class="text-xs font-semibold line-clamp-2 leading-snug group-hover:text-brand-primary transition-colors"
+                :class="s.status === 'gap' ? 'text-ink-muted' : 'text-ink-primary'"
               >
                 {{ s.name }}
               </div>
-              <div class="text-[10px] text-[#737B76] font-mono mt-1">
+              <div class="text-[10px] text-ink-muted font-mono mt-1">
                 {{ s.status === 'gap' ? 'Belum ada bukti' : `${s.count} sinyal terarsip` }}
               </div>
             </div>
           </NuxtLink>
         </div>
 
-        <div class="mt-4 flex flex-wrap items-center gap-4 text-[11.5px] text-[#737B76] font-mono">
+        <div class="mt-4 flex flex-wrap items-center gap-4 text-[11.5px] text-ink-muted font-mono">
           <div class="flex items-center gap-1.5">
-            <span class="w-3 h-3 rounded bg-[#E3F0EA] border border-[#BBD8CB]" />
+            <span class="w-3 h-3 rounded bg-brand-tint border border-brand-border" />
             <span>Kuat (&ge; 5 bukti)</span>
           </div>
           <div class="flex items-center gap-1.5">
-            <span class="w-3 h-3 rounded bg-white border border-[#141917]/10" />
+            <span class="w-3 h-3 rounded bg-white border border-border-hairline" />
             <span>Moderat (3–4)</span>
           </div>
           <div class="flex items-center gap-1.5">
-            <span class="w-3 h-3 rounded bg-[#FEF7E6] border border-[#F3D89C]" />
+            <span class="w-3 h-3 rounded bg-ochre-surface border border-ochre-border" />
             <span>Tipis (1–2)</span>
           </div>
           <div class="flex items-center gap-1.5">
-            <span class="w-3 h-3 rounded bg-[#F6F5F1] border border-dashed border-[#C8553D]/50" />
+            <span class="w-3 h-3 rounded bg-canvas border border-dashed border-terracotta/50" />
             <span>Senyap / Gap 0</span>
           </div>
         </div>
       </div>
 
       <!-- Right (4 Cols): Expenditure Components & Source Transmission Strip -->
-      <div class="lg:col-span-4 space-y-6 lg:pl-6 lg:border-l lg:border-[#141917]/[0.08]">
+      <div class="lg:col-span-4 space-y-6 lg:pl-6 lg:border-l lg:border-border-hairline">
         <!-- 6 Expenditure Components -->
         <div>
           <div class="flex items-center justify-between mb-3">
-            <h3 class="font-display font-bold text-sm text-[#141917]">
+            <h3 class="font-display font-bold text-sm text-ink-primary">
               Sisi Pengeluaran PDRB
             </h3>
-            <span class="text-[11px] font-mono text-[#737B76]">6 Komponen</span>
+            <span class="text-[11px] font-mono text-ink-muted">6 Komponen</span>
           </div>
 
           <div class="space-y-3">
@@ -227,17 +227,17 @@ const nationalPct = computed(() => 100 - localPct.value);
               class="space-y-1"
             >
               <div class="flex items-center justify-between text-xs">
-                <span class="font-medium text-[#141917] truncate max-w-[200px]" :title="exp.name">
-                  <strong class="font-mono text-[#0B3D2E] mr-1">{{ exp.code }}</strong>
+                <span class="font-medium text-ink-primary truncate max-w-[200px]" :title="exp.name">
+                  <strong class="font-mono text-brand-primary mr-1">{{ exp.code }}</strong>
                   {{ exp.name }}
                 </span>
-                <span class="font-mono text-[11px] font-bold text-[#4A524E] tabular-nums">
+                <span class="font-mono text-[11px] font-bold text-ink-secondary tabular-nums">
                   {{ exp.count }} ({{ exp.percent }}%)
                 </span>
               </div>
-              <div class="w-full h-1.5 rounded-full bg-[#ECEAE2] overflow-hidden">
+              <div class="w-full h-1.5 rounded-full bg-surface-subtle overflow-hidden">
                 <div
-                  class="h-full bg-[#0B3D2E] rounded-full transition-all duration-300"
+                  class="h-full bg-brand-primary rounded-full transition-all duration-300"
                   :style="{ width: `${Math.max(4, exp.percent)}%` }"
                 />
               </div>
@@ -246,30 +246,30 @@ const nationalPct = computed(() => 100 - localPct.value);
         </div>
 
         <!-- Transmission Sources -->
-        <div class="pt-6 border-t border-[#141917]/[0.08]">
+        <div class="pt-6 border-t border-border-hairline">
           <div class="flex items-center justify-between mb-3">
-            <h3 class="font-display font-bold text-sm text-[#141917]">
+            <h3 class="font-display font-bold text-sm text-ink-primary">
               Transmisi Sumber Data
             </h3>
-            <span class="text-[11px] font-mono text-[#737B76]">{{ formatNumberId(sourceTotal) }} total</span>
+            <span class="text-[11px] font-mono text-ink-muted">{{ formatNumberId(sourceTotal) }} total</span>
           </div>
 
           <div class="space-y-2">
-            <div class="w-full h-2 rounded-full bg-[#ECEAE2] overflow-hidden flex">
+            <div class="w-full h-2 rounded-full bg-surface-subtle overflow-hidden flex">
               <div
-                class="h-full bg-[#0B3D2E] transition-all duration-500"
+                class="h-full bg-brand-primary transition-all duration-500"
                 :style="{ width: `${localPct}%` }"
               />
               <div
-                class="h-full bg-[#C8553D] transition-all duration-500"
+                class="h-full bg-terracotta transition-all duration-500"
                 :style="{ width: `${nationalPct}%` }"
               />
             </div>
             <div class="flex items-center justify-between text-xs font-mono">
-              <span class="text-[#0B3D2E] font-semibold">
+              <span class="text-brand-primary font-semibold">
                 ● Portal Lokal Kaltara ({{ localPct }}%)
               </span>
-              <span class="text-[#C8553D] font-semibold">
+              <span class="text-terracotta-ink font-semibold">
                 Kebijakan Nasional ({{ nationalPct }}%) ●
               </span>
             </div>
@@ -277,16 +277,16 @@ const nationalPct = computed(() => 100 - localPct.value);
         </div>
 
         <!-- CTA Callout -->
-        <div class="p-4 rounded-2xl bg-white border border-[#141917]/[0.08]">
-          <div class="text-xs font-semibold text-[#141917]">
+        <div class="p-4 rounded-2xl bg-white border border-border-hairline">
+          <div class="text-xs font-semibold text-ink-primary">
             Analisis Berbasis Bukti
           </div>
-          <p class="text-[11.5px] text-[#4A524E] mt-1 leading-relaxed">
+          <p class="text-[11.5px] text-ink-secondary mt-1 leading-relaxed">
             Data dikumpulkan secara berkala untuk mendukung rekonsiliasi angka PDRB triwulanan dengan metodologi SNA 2008.
           </p>
           <NuxtLink
             to="/linimasa"
-            class="mt-3 inline-flex items-center gap-1 text-xs font-bold text-[#0B3D2E] hover:underline"
+            class="mt-3 inline-flex items-center gap-1 text-xs font-bold text-brand-primary hover:underline"
           >
             <span>Buka Eksplorasi Interaktif</span>
             <UIcon name="i-lucide-arrow-right" class="w-3.5 h-3.5" />

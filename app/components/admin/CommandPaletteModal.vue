@@ -262,13 +262,13 @@ async function executeSelected() {
     v-model:open="modalOpen"
     title="Command Palette SIPENA KTT"
     description="Navigasi cepat menu workstation dan pencarian arsip fenomena ekonomi"
-    :ui="{ content: 'sm:max-w-xl p-0 overflow-hidden rounded-2xl bg-white border border-[#141917]/[0.08]' }"
+    :ui="{ content: 'sm:max-w-xl p-0 overflow-hidden rounded-2xl bg-white border border-border-hairline' }"
   >
     <template #content>
       <div class="bg-white flex flex-col max-h-[80vh]">
         <!-- Search Header -->
-        <div class="px-4 py-3.5 border-b border-[#141917]/[0.08] flex items-center gap-3 focus-within:border-[#0B3D2E]">
-          <UIcon name="i-solar-magnifer-line-duotone" class="w-4 h-4 text-[#0B3D2E] shrink-0" />
+        <div class="px-4 py-3.5 border-b border-border-hairline flex items-center gap-3 focus-within:border-brand-primary">
+          <UIcon name="i-solar-magnifer-line-duotone" class="w-4 h-4 text-brand-primary shrink-0" />
           <label for="admin-command-palette-input" class="sr-only">
             Cari halaman atau fenomena ekonomi
           </label>
@@ -283,12 +283,12 @@ async function executeSelected() {
             aria-controls="command-palette-listbox"
             :aria-activedescendant="flatEntries[selectedIndex] ? `palette-opt-${selectedIndex}` : undefined"
             placeholder="Lompat ke menu atau ketik minimal 2 huruf untuk cari artikel..."
-            class="w-full bg-transparent text-sm text-[#141917] placeholder:text-[#737B76] focus:outline-none"
+            class="w-full bg-transparent text-sm text-ink-primary placeholder:text-ink-muted focus:outline-none"
             @keydown="handleKeydown"
           >
           <button
             type="button"
-            class="min-h-8 text-[11px] font-semibold px-2.5 py-0.5 rounded-md border border-[#141917]/10 bg-[#F6F5F1] text-[#4A524E] hover:text-[#141917] shrink-0 cursor-pointer font-mono"
+            class="min-h-8 text-[11px] font-semibold px-2.5 py-0.5 rounded-md border border-border-hairline bg-canvas text-ink-secondary hover:text-ink-primary shrink-0 cursor-pointer font-mono"
             @click="modalOpen = false"
           >
             ESC
@@ -304,7 +304,7 @@ async function executeSelected() {
         >
           <!-- Routes Section -->
           <div v-if="filteredRoutes.length > 0" class="space-y-1">
-            <div class="px-2 py-1 text-[11px] font-semibold tracking-wide text-[#737B76] uppercase font-mono">
+            <div class="px-2 py-1 text-[11px] font-semibold tracking-wide text-ink-muted uppercase font-mono">
               Menu Workstation
             </div>
             <button
@@ -317,47 +317,47 @@ async function executeSelected() {
               class="w-full flex items-center justify-between gap-3 px-2.5 py-2 rounded-xl text-left border transition-colors cursor-pointer"
               :class="
                 selectedIndex === idx
-                  ? 'border-[#BBD8CB] bg-[#E3F0EA]/60 ring-1 ring-[#0B3D2E]/20'
-                  : 'border-transparent hover:bg-[#E3F0EA]/50 hover:border-[#BBD8CB]'
+                  ? 'border-brand-border bg-brand-tint/60 ring-1 ring-brand-primary/20'
+                  : 'border-transparent hover:bg-brand-tint/50 hover:border-brand-border'
               "
               @click="goToRoute(item.to)"
               @mouseenter="selectedIndex = idx"
             >
               <div class="flex items-center gap-2.5 min-w-0">
-                <div class="w-8 h-8 rounded-lg bg-[#E3F0EA] text-[#0B3D2E] border border-[#BBD8CB] flex items-center justify-center shrink-0">
+                <div class="w-8 h-8 rounded-lg bg-brand-tint text-brand-primary border border-brand-border flex items-center justify-center shrink-0">
                   <UIcon :name="item.icon" class="w-4 h-4" />
                 </div>
                 <div class="min-w-0">
-                  <div class="text-xs font-semibold text-[#141917] truncate font-display">{{ item.label }}</div>
-                  <div class="text-[11px] text-[#737B76] truncate">{{ item.section }}</div>
+                  <div class="text-xs font-semibold text-ink-primary truncate font-display">{{ item.label }}</div>
+                  <div class="text-[11px] text-ink-muted truncate">{{ item.section }}</div>
                 </div>
               </div>
               <div class="flex items-center gap-2 shrink-0">
                 <span
                   v-if="item.badge"
-                  class="px-2 py-0.5 rounded-full bg-[#FEF7E6] text-[#B45309] border border-[#F3D89C] text-[11px] font-bold font-mono tabular-nums"
+                  class="px-2 py-0.5 rounded-full bg-ochre-surface text-ochre-ink border border-ochre-border text-[11px] font-bold font-mono tabular-nums"
                 >
                   {{ item.badge }}
                 </span>
-                <UIcon name="i-lucide-corner-down-left" class="w-3.5 h-3.5 text-[#737B76]" />
+                <UIcon name="i-lucide-corner-down-left" class="w-3.5 h-3.5 text-ink-muted" />
               </div>
             </button>
           </div>
 
           <!-- Articles Section -->
-          <div v-if="query.trim().length >= 2" class="space-y-1 pt-2 border-t border-[#141917]/[0.08]">
+          <div v-if="query.trim().length >= 2" class="space-y-1 pt-2 border-t border-border-hairline">
             <div class="px-2 py-1 flex items-center justify-between">
-              <span class="text-[11px] font-semibold tracking-wide text-[#737B76] uppercase font-mono">
+              <span class="text-[11px] font-semibold tracking-wide text-ink-muted uppercase font-mono">
                 Hasil Fenomena Ekonomi
               </span>
-              <span v-if="searchingArticles" class="text-xs font-semibold text-[#0B3D2E] font-mono">
+              <span v-if="searchingArticles" class="text-xs font-semibold text-brand-primary font-mono">
                 Mencari...
               </span>
             </div>
 
             <div
               v-if="!searchingArticles && matchedArticles.length === 0"
-              class="px-2 py-4 text-center text-xs text-[#737B76]"
+              class="px-2 py-4 text-center text-xs text-ink-muted"
             >
               Tidak ditemukan fenomena yang cocok dengan "{{ query.trim() }}".
             </div>
@@ -372,23 +372,23 @@ async function executeSelected() {
               class="w-full flex items-start justify-between gap-3 px-2.5 py-2.5 rounded-xl text-left border transition-colors cursor-pointer"
               :class="
                 selectedIndex === (filteredRoutes.length + artIdx)
-                  ? 'border-[#BBD8CB] bg-[#E3F0EA]/60 ring-1 ring-[#0B3D2E]/20'
-                  : 'border-transparent hover:bg-[#E3F0EA]/45 hover:border-[#BBD8CB]'
+                  ? 'border-brand-border bg-brand-tint/60 ring-1 ring-brand-primary/20'
+                  : 'border-transparent hover:bg-brand-tint/45 hover:border-brand-border'
               "
               @click="openArticleInReview(art)"
               @mouseenter="selectedIndex = filteredRoutes.length + artIdx"
             >
               <div class="min-w-0 space-y-1">
-                <div class="text-xs font-semibold text-[#141917] line-clamp-1 font-display">
+                <div class="text-xs font-semibold text-ink-primary line-clamp-1 font-display">
                   {{ art.title }}
                 </div>
-                <div class="flex flex-wrap items-center gap-1.5 text-[11px] text-[#737B76] font-mono tabular-nums">
+                <div class="flex flex-wrap items-center gap-1.5 text-[11px] text-ink-muted font-mono tabular-nums">
                   <span>{{ formatDateId(art.publishedAt) }}</span>
                   <span>&bull;</span>
                   <span>{{ art.sourcePortal }}</span>
                   <span>&bull;</span>
                   <span>TW {{ toRomanQuarter(art.quarter) }} {{ art.year }}</span>
-                  <span v-if="art.kbliCategory" class="text-[#0B3D2E] font-bold">&bull; KBLI {{ art.kbliCategory }}</span>
+                  <span v-if="art.kbliCategory" class="text-brand-primary font-bold">&bull; KBLI {{ art.kbliCategory }}</span>
                 </div>
               </div>
               <UBadge
@@ -407,11 +407,11 @@ async function executeSelected() {
               role="option"
               :aria-selected="selectedIndex === (filteredRoutes.length + matchedArticles.length)"
               type="button"
-              class="w-full mt-1 px-2.5 py-2 rounded-xl text-xs font-semibold text-[#0B3D2E] flex items-center justify-between cursor-pointer font-display transition-colors"
+              class="w-full mt-1 px-2.5 py-2 rounded-xl text-xs font-semibold text-brand-primary flex items-center justify-between cursor-pointer font-display transition-colors"
               :class="
                 selectedIndex === (filteredRoutes.length + matchedArticles.length)
-                  ? 'bg-[#E3F0EA] ring-1 ring-[#0B3D2E]/20'
-                  : 'hover:bg-[#E3F0EA]'
+                  ? 'bg-brand-tint ring-1 ring-brand-primary/20'
+                  : 'hover:bg-brand-tint'
               "
               @click="goToRoute(`/admin/articles?q=${encodeURIComponent(query.trim())}`)"
               @mouseenter="selectedIndex = filteredRoutes.length + matchedArticles.length"

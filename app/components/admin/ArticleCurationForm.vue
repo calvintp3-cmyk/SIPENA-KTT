@@ -172,7 +172,7 @@ const hasHttpUrl = computed(() => isSafeHttpUrl(props.article?.url));
 <template>
   <div v-if="article" class="space-y-4">
     <!-- Header Context Strip -->
-    <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-[#141917]/10">
+    <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-border-hairline">
       <div class="flex flex-wrap items-center gap-1.5">
         <UBadge
           :color="getLlmStatusBadge(article.llmStatus).color"
@@ -213,10 +213,10 @@ const hasHttpUrl = computed(() => isSafeHttpUrl(props.article?.url));
     <!-- Toggle Otomatis Lanjut Antrean -->
     <div
       v-if="showAutoNextToggle"
-      class="flex items-center justify-between gap-3 rounded-lg bg-[#F6F5F1] border border-[#141917]/[0.08] px-3 py-2"
+      class="flex items-center justify-between gap-3 rounded-lg bg-canvas border border-border-hairline px-3 py-2"
     >
-      <label for="curation-auto-next" class="text-xs text-[#4A524E] cursor-pointer">
-        Otomatis buka antrean <strong class="text-[#141917]">Pending</strong> berikutnya setelah simpan
+      <label for="curation-auto-next" class="text-xs text-ink-secondary cursor-pointer">
+        Otomatis buka antrean <strong class="text-ink-primary">Pending</strong> berikutnya setelah simpan
       </label>
       <USwitch id="curation-auto-next" v-model="autoNextModel" size="sm" />
     </div>
@@ -244,8 +244,8 @@ const hasHttpUrl = computed(() => isSafeHttpUrl(props.article?.url));
 
     <!-- Judul Berita -->
     <div class="space-y-1">
-      <label for="curation-title-input" class="block text-xs font-semibold text-[#141917]">
-        Judul Berita <span class="text-[#C8553D]">*</span>
+      <label for="curation-title-input" class="block text-xs font-semibold text-ink-primary">
+        Judul Berita <span class="text-terracotta-ink">*</span>
       </label>
       <UInput
         id="curation-title-input"
@@ -258,16 +258,16 @@ const hasHttpUrl = computed(() => isSafeHttpUrl(props.article?.url));
     <!-- Cuplikan Teks Asli -->
     <div class="space-y-1.5">
       <div class="flex items-center justify-between gap-2">
-        <label for="curation-snippet-textarea" class="text-xs font-semibold text-[#4A524E]">
+        <label for="curation-snippet-textarea" class="text-xs font-semibold text-ink-secondary">
           Cuplikan Teks Asli (Verifikasi Konten)
         </label>
         <div class="flex items-center gap-2">
-          <span class="text-xs font-semibold tabular-nums text-[#4A524E] font-mono">
+          <span class="text-xs font-semibold tabular-nums text-ink-secondary font-mono">
             {{ snippetWordCount }} kata
           </span>
           <button
             type="button"
-            class="inline-flex items-center gap-1 min-h-7 px-2 rounded-lg text-[11px] font-semibold text-[#0B3D2E] hover:bg-[#E3F0EA] transition-colors cursor-pointer"
+            class="inline-flex items-center gap-1 min-h-7 px-2 rounded-lg text-[11px] font-semibold text-brand-primary hover:bg-brand-tint transition-colors cursor-pointer"
             @click="emit('openFullSnippet')"
           >
             <UIcon name="i-solar-maximize-square-2-linear" class="w-3.5 h-3.5" />
@@ -281,20 +281,20 @@ const hasHttpUrl = computed(() => isSafeHttpUrl(props.article?.url));
         readonly
         :rows="mode === 'inspector' ? 6 : 8"
         class="w-full text-xs"
-        :ui="{ base: 'bg-[#F6F5F1] text-[#141917] leading-relaxed resize-y font-normal' }"
+        :ui="{ base: 'bg-canvas text-ink-primary leading-relaxed resize-y font-normal' }"
       />
     </div>
 
     <!-- Ringkasan Berita -->
     <div class="space-y-1.5">
       <div class="flex items-center justify-between gap-2">
-        <label for="curation-summary-textarea" class="text-xs font-semibold text-[#141917]">
-          Ringkasan Berita (2–3 Kalimat untuk Publik &amp; Excel) <span class="text-[#C8553D]">*</span>
+        <label for="curation-summary-textarea" class="text-xs font-semibold text-ink-primary">
+          Ringkasan Berita (2–3 Kalimat untuk Publik &amp; Excel) <span class="text-terracotta-ink">*</span>
         </label>
         <button
           v-if="canRestoreAiSummary"
           type="button"
-          class="inline-flex items-center gap-1 min-h-8 px-1.5 rounded-lg text-xs font-semibold text-[#0B3D2E] hover:text-[#072B20] hover:bg-[#E3F0EA] cursor-pointer"
+          class="inline-flex items-center gap-1 min-h-8 px-1.5 rounded-lg text-xs font-semibold text-brand-primary hover:text-[#072B20] hover:bg-brand-tint cursor-pointer"
           @click="emit('restoreAiSummary')"
         >
           <UIcon name="i-lucide-rotate-ccw" class="w-3 h-3" />
@@ -323,14 +323,14 @@ const hasHttpUrl = computed(() => isSafeHttpUrl(props.article?.url));
     <!-- Grid Klasifikasi Dua Sisi PDRB -->
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
       <!-- Sisi Lapangan Usaha -->
-      <div class="rounded-xl border border-[#BBD8CB] bg-[#E3F0EA]/40 p-3.5 space-y-3">
-        <div class="text-xs font-bold text-[#0B3D2E] font-display">
+      <div class="rounded-xl border border-brand-border bg-brand-tint/40 p-3.5 space-y-3">
+        <div class="text-xs font-bold text-brand-primary font-display">
           1. Sisi Lapangan Usaha (KBLI)
         </div>
 
         <div class="space-y-1">
-          <label for="curation-kbli-select" class="block text-xs font-semibold text-[#141917]">
-            Kategori KBLI (A–V) <span class="text-[#C8553D]">*</span>
+          <label for="curation-kbli-select" class="block text-xs font-semibold text-ink-primary">
+            Kategori KBLI (A–V) <span class="text-terracotta-ink">*</span>
           </label>
           <USelectMenu
             id="curation-kbli-select"
@@ -343,21 +343,21 @@ const hasHttpUrl = computed(() => isSafeHttpUrl(props.article?.url));
           />
           <p
             v-if="bpsBridgingHint"
-            class="mt-1 text-[11px] font-medium text-[#0B3D2E] bg-[#E3F0EA] px-2 py-0.5 rounded border border-[#BBD8CB]"
+            class="mt-1 text-[11px] font-medium text-brand-primary bg-brand-tint px-2 py-0.5 rounded border border-brand-border"
           >
             {{ bpsBridgingHint }}
           </p>
           <p
             v-if="highlightIncomplete && !modelValue.kbliCategory"
-            class="text-xs text-[#C8553D] font-semibold mt-1"
+            class="text-xs text-terracotta-ink font-semibold mt-1"
           >
             Wajib dipilih sebelum verifikasi
           </p>
         </div>
 
         <div class="space-y-1">
-          <label for="curation-kbli-impact-select" class="block text-xs font-semibold text-[#141917]">
-            Dampak Lapangan Usaha <span class="text-[#C8553D]">*</span>
+          <label for="curation-kbli-impact-select" class="block text-xs font-semibold text-ink-primary">
+            Dampak Lapangan Usaha <span class="text-terracotta-ink">*</span>
           </label>
           <USelect
             id="curation-kbli-impact-select"
@@ -371,7 +371,7 @@ const hasHttpUrl = computed(() => isSafeHttpUrl(props.article?.url));
           />
           <p
             v-if="highlightIncomplete && !modelValue.kbliImpact"
-            class="text-xs text-[#C8553D] font-semibold mt-1"
+            class="text-xs text-terracotta-ink font-semibold mt-1"
           >
             Wajib dipilih sebelum verifikasi
           </p>
@@ -379,14 +379,14 @@ const hasHttpUrl = computed(() => isSafeHttpUrl(props.article?.url));
       </div>
 
       <!-- Sisi Pengeluaran -->
-      <div class="rounded-xl border border-[#BBD8CB] bg-[#E3F0EA]/40 p-3.5 space-y-3">
-        <div class="text-xs font-bold text-[#0B3D2E] font-display">
+      <div class="rounded-xl border border-brand-border bg-brand-tint/40 p-3.5 space-y-3">
+        <div class="text-xs font-bold text-brand-primary font-display">
           2. Sisi Pengeluaran PDRB
         </div>
 
         <div class="space-y-1">
-          <label for="curation-exp-select" class="block text-xs font-semibold text-[#141917]">
-            Komponen Pengeluaran <span class="text-[#C8553D]">*</span>
+          <label for="curation-exp-select" class="block text-xs font-semibold text-ink-primary">
+            Komponen Pengeluaran <span class="text-terracotta-ink">*</span>
           </label>
           <USelect
             id="curation-exp-select"
@@ -399,15 +399,15 @@ const hasHttpUrl = computed(() => isSafeHttpUrl(props.article?.url));
           />
           <p
             v-if="highlightIncomplete && !modelValue.expenditureComponent"
-            class="text-xs text-[#C8553D] font-semibold mt-1"
+            class="text-xs text-terracotta-ink font-semibold mt-1"
           >
             Wajib dipilih sebelum verifikasi
           </p>
         </div>
 
         <div class="space-y-1">
-          <label for="curation-exp-impact-select" class="block text-xs font-semibold text-[#141917]">
-            Dampak Pengeluaran <span class="text-[#C8553D]">*</span>
+          <label for="curation-exp-impact-select" class="block text-xs font-semibold text-ink-primary">
+            Dampak Pengeluaran <span class="text-terracotta-ink">*</span>
           </label>
           <USelect
             id="curation-exp-impact-select"
@@ -421,7 +421,7 @@ const hasHttpUrl = computed(() => isSafeHttpUrl(props.article?.url));
           />
           <p
             v-if="highlightIncomplete && !modelValue.expenditureImpact"
-            class="text-xs text-[#C8553D] font-semibold mt-1"
+            class="text-xs text-terracotta-ink font-semibold mt-1"
           >
             Wajib dipilih sebelum verifikasi
           </p>
@@ -430,15 +430,15 @@ const hasHttpUrl = computed(() => isSafeHttpUrl(props.article?.url));
     </div>
 
     <!-- Keterkaitan Sektoral Sekunder (Opsional) -->
-    <div class="rounded-xl border border-[#141917]/[0.08] bg-[#F6F5F1] p-3.5 space-y-3">
+    <div class="rounded-xl border border-border-hairline bg-canvas p-3.5 space-y-3">
       <div class="flex items-center gap-2">
-        <UIcon name="i-solar-link-round-bold-duotone" class="w-4 h-4 text-[#0B3D2E]" />
-        <span class="text-xs font-bold text-[#141917] font-display">Keterkaitan Sektoral Sekunder (Opsional)</span>
+        <UIcon name="i-solar-link-round-bold-duotone" class="w-4 h-4 text-brand-primary" />
+        <span class="text-xs font-bold text-ink-primary font-display">Keterkaitan Sektoral Sekunder (Opsional)</span>
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div class="space-y-1">
-          <label for="curation-sec-kbli-select" class="block text-xs font-semibold text-[#4A524E]">
+          <label for="curation-sec-kbli-select" class="block text-xs font-semibold text-ink-secondary">
             KBLI Sekunder
           </label>
           <USelectMenu
@@ -453,7 +453,7 @@ const hasHttpUrl = computed(() => isSafeHttpUrl(props.article?.url));
         </div>
 
         <div class="space-y-1">
-          <label for="curation-sec-kbli-impact-select" class="block text-xs font-semibold text-[#4A524E]">
+          <label for="curation-sec-kbli-impact-select" class="block text-xs font-semibold text-ink-secondary">
             Dampak KBLI Sekunder
           </label>
           <USelect
@@ -469,7 +469,7 @@ const hasHttpUrl = computed(() => isSafeHttpUrl(props.article?.url));
         </div>
 
         <div class="space-y-1">
-          <label for="curation-sec-exp-select" class="block text-xs font-semibold text-[#4A524E]">
+          <label for="curation-sec-exp-select" class="block text-xs font-semibold text-ink-secondary">
             Pengeluaran Sekunder
           </label>
           <USelect
@@ -484,7 +484,7 @@ const hasHttpUrl = computed(() => isSafeHttpUrl(props.article?.url));
         </div>
 
         <div class="space-y-1">
-          <label for="curation-sec-exp-impact-select" class="block text-xs font-semibold text-[#4A524E]">
+          <label for="curation-sec-exp-impact-select" class="block text-xs font-semibold text-ink-secondary">
             Dampak Pengeluaran Sekunder
           </label>
           <USelect
@@ -504,7 +504,7 @@ const hasHttpUrl = computed(() => isSafeHttpUrl(props.article?.url));
     <!-- Lokus Kecamatan KTT & Catatan Kurator Nerwilis -->
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
       <div class="space-y-1 sm:col-span-1">
-        <label for="curation-subdistrict-select" class="block text-xs font-semibold text-[#141917]">
+        <label for="curation-subdistrict-select" class="block text-xs font-semibold text-ink-primary">
           Lokus Kecamatan KTT
         </label>
         <USelect
@@ -520,7 +520,7 @@ const hasHttpUrl = computed(() => isSafeHttpUrl(props.article?.url));
       </div>
 
       <div class="space-y-1 sm:col-span-2">
-        <label for="curation-notes-input" class="block text-xs font-semibold text-[#141917]">
+        <label for="curation-notes-input" class="block text-xs font-semibold text-ink-primary">
           Catatan Kurator Nerwilis (Opsional)
         </label>
         <UInput
@@ -536,7 +536,7 @@ const hasHttpUrl = computed(() => isSafeHttpUrl(props.article?.url));
     <!-- Periode & Status Fenomena Ekonomi -->
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end pt-1">
       <div class="space-y-1">
-        <label for="curation-quarter-select" class="block text-xs font-semibold text-[#141917]">
+        <label for="curation-quarter-select" class="block text-xs font-semibold text-ink-primary">
           Triwulan PDRB
         </label>
         <USelect
@@ -551,7 +551,7 @@ const hasHttpUrl = computed(() => isSafeHttpUrl(props.article?.url));
       </div>
 
       <div class="space-y-1">
-        <label for="curation-year-input" class="block text-xs font-semibold text-[#141917]">
+        <label for="curation-year-input" class="block text-xs font-semibold text-ink-primary">
           Tahun
         </label>
         <UInput
@@ -566,9 +566,9 @@ const hasHttpUrl = computed(() => isSafeHttpUrl(props.article?.url));
       </div>
 
       <div
-        class="flex items-center justify-between gap-2 rounded-xl border border-[#141917]/[0.12] px-3 py-2 bg-white min-h-[38px]"
+        class="flex items-center justify-between gap-2 rounded-xl border border-border-control px-3 py-2 bg-white min-h-[38px]"
       >
-        <label for="curation-is-economic" class="text-xs font-semibold text-[#141917] cursor-pointer">
+        <label for="curation-is-economic" class="text-xs font-semibold text-ink-primary cursor-pointer">
           Fenomena Ekonomi Sah
         </label>
         <USwitch
@@ -581,7 +581,7 @@ const hasHttpUrl = computed(() => isSafeHttpUrl(props.article?.url));
     </div>
 
     <!-- Action Decision Buttons -->
-    <div class="pt-3 border-t border-[#141917]/10 flex flex-wrap items-center gap-2">
+    <div class="pt-3 border-t border-border-hairline flex flex-wrap items-center gap-2">
       <UButton
         color="success"
         size="sm"

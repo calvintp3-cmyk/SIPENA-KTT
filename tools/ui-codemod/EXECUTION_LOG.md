@@ -68,6 +68,49 @@ Dokumen ini mencatat seluruh proses eksekusi otonom per sesi: branch, commit has
   - Forbidden Path Gate: 0 perubahan pada `server/**`, `prisma/**`, `shared/schemas/**`.
   - Dev Server: Dimatikan setelah selesai capture (port 3000 bebas).
 
+---
+
+## Sesi 0b: Semantic Tokens & 3-Wave Codemod
+- **Branch:** `refactor/ui-0b-semantic-tokens-codemod`
+- **Status:** COMPLETED
+- **Ringkasan Perubahan:**
+  1. `app/assets/css/main.css`: Menambahkan semantic design tokens yang telah divalidasi WCAG:
+     - `--color-surface-subtle: #ECEAE2`
+     - `--color-surface-recessed: #F0EFE9`
+     - `--color-border-control: #757C78`
+     - `--color-ink-muted: #5F6762`
+     - `--color-terracotta: #C8553D`, `--color-terracotta-ink: #9E331C`, `--color-terracotta-surface: #FBECE8`, `--color-terracotta-border: #F2C9BE`
+     - `--color-ochre: #B45309`, `--color-ochre-ink: #92400E`, `--color-ochre-surface: #FEF7E6`, `--color-ochre-border: #F3D89C`
+     - `--color-focus-ring-inverse: #86EFAC`
+     - `--color-brand-teal-tint: #E6F4F2`
+  2. `shared/utils/pdrb-colors.ts`: Menyelaraskan palet visual analitik PDRB:
+     - `brand-tint: #E3F0EA`, `brand-border: #BBD8CB`
+     - `terracotta: #C8553D`, `terracotta-ink: #9E331C`, `terracotta-surface: #FBECE8`, `terracotta-border: #F2C9BE`
+     - `ochre: #B45309`, `ochre-ink: #92400E`, `ochre-surface: #FEF7E6`, `ochre-border: #F3D89C`
+     - `ink-muted: #5F6762`, `border-control: #757C78`
+  3. `app/utils/chart-theme.ts`: Menyelaraskan palet ECharts, text style, dan border color dengan token semantik baru.
+  4. `tools/ui-codemod/codemod.mjs`: Mengimplementasikan codemod terkontrol berbasis AST/regex dengan aturan pemetaan presisi (memisahkan fill vs text ink, input border ke border-control, peleburan hijau/kuning/terakota yang disetujui).
+  5. Eksekusi 3 Gelombang Codemod (Total 2.149 penggantian):
+     - Gelombang 1 (Public + Core): 738 penggantian di 10 file.
+     - Gelombang 2 (Admin Primary): 1.179 penggantian di 14 file.
+     - Gelombang 3 (Admin Modals + Components): 232 penggantian di 10 file.
+  6. Tangkapan layar wave3 (42 tangkapan layar) dan perbandingan pixel-diff terhadap baseline:
+     - 42 perbandingan berhasil dijalankan.
+     - Seluruh file memiliki selisih warna subtil (0.02% s.d. 0.68%) sesuai perubahan token semantik tanpa pergeseran layout struktural.
+- **Gate:**
+  - WCAG Contrast Check:
+    - `ink-muted` (#5F6762) pada `surface-subtle` (#ECEAE2): 4.84:1 (PASS WCAG AA >= 4.5:1)
+    - `terracotta-ink` (#9E331C) pada `surface-default` (#F7F6F1): 7.13:1 (PASS AAA)
+    - `terracotta-ink` (#9E331C) pada `terracotta-surface` (#FBECE8): 5.92:1 (PASS AA)
+    - `ochre-ink` (#92400E) pada `surface-default` (#F7F6F1): 7.09:1 (PASS AAA)
+    - `ochre-ink` (#92400E) pada `ochre-surface` (#FEF7E6): 5.89:1 (PASS AA)
+    - `focus-ring-inverse` (#86EFAC) pada dark background: 8.69:1 - 12.66:1 (PASS)
+  - `nuxi typecheck`: 0 errors.
+  - Vitest: 23 files, 173 tests PASSED (100%).
+  - Forbidden Path Gate: 0 perubahan pada `server/**`, `prisma/**`, `shared/schemas/**`.
+  - Dev Server: Dimatikan setelah selesai capture (port 3000 bebas).
+
+
 
 
 

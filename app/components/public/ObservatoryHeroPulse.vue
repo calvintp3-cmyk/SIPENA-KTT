@@ -58,7 +58,7 @@ const deltaBadge = computed(() => {
 
 <template>
   <div
-    class="relative rounded-3xl bg-[#0B3D2E] text-white p-6 sm:p-7 shadow-[0_20px_50px_-15px_rgba(11,61,46,0.35)] border border-white/10 overflow-hidden flex flex-col justify-between"
+    class="relative rounded-3xl bg-brand-primary text-white p-6 sm:p-7 shadow-[0_20px_50px_-15px_rgba(11,61,46,0.35)] border border-white/10 overflow-hidden flex flex-col justify-between"
   >
     <!-- Background Architectural Grid Texture -->
     <div
@@ -91,7 +91,7 @@ const deltaBadge = computed(() => {
         <span
           v-if="deltaBadge"
           class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-md text-xs font-mono font-bold"
-          :class="deltaBadge.isPositive ? 'bg-emerald-400/20 text-emerald-200' : 'bg-[#C8553D]/30 text-[#F9A89B]'"
+          :class="deltaBadge.isPositive ? 'bg-emerald-400/20 text-emerald-200' : 'bg-terracotta/30 text-[#F9A89B]'"
         >
           <span>{{ deltaBadge.isPositive ? '↑' : '↓' }}</span>
           <span>{{ deltaBadge.text }}</span>
@@ -111,7 +111,7 @@ const deltaBadge = computed(() => {
         </span>
         <span class="text-[#F9A89B] flex items-center gap-1.5">
           Tekanan / Kontraksi ({{ pressurePct }}%)
-          <span class="w-1.5 h-1.5 rounded-full bg-[#C8553D]" />
+          <span class="w-1.5 h-1.5 rounded-full bg-terracotta" />
         </span>
       </div>
 
@@ -122,7 +122,7 @@ const deltaBadge = computed(() => {
           :style="{ width: `${expansionPct}%` }"
         />
         <div
-          class="h-full bg-[#C8553D] transition-all duration-500"
+          class="h-full bg-terracotta transition-all duration-500"
           :style="{ width: `${pressurePct}%` }"
         />
       </div>

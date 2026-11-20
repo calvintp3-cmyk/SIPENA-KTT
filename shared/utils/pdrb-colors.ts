@@ -39,10 +39,10 @@ const CLUSTER_THEMES: Record<PdrbClusterKey, PdrbClusterTheme> = {
     key: 'TRADE_LOGISTICS',
     label: 'Perdagangan, Logistik & Digital',
     hex: '#0F766E',
-    hexLight: '#E8F4F1',
-    pillClass: 'bg-[#E8F4F1] text-[#0F766E] border-[#A7D7CF]',
+    hexLight: '#E6F4F2',
+    pillClass: 'bg-[#E6F4F2] text-[#0F766E] border-[#A7D7CF]',
     accentBarClass: 'bg-[#0F766E]',
-    softStripClass: 'bg-[#E8F4F1]/60 border-[#A7D7CF]/70',
+    softStripClass: 'bg-[#E6F4F2]/60 border-[#A7D7CF]/70',
     iconBgClass: 'bg-[#E8F4F1] text-[#0F766E]',
   },
   FINANCE_PUBLIC: {
@@ -61,7 +61,7 @@ const CLUSTER_THEMES: Record<PdrbClusterKey, PdrbClusterTheme> = {
     hex: '#4A524E',
     hexLight: '#ECEAE2',
     pillClass: 'bg-[#ECEAE2] text-[#4A524E] border-[#141917]/10',
-    accentBarClass: 'bg-[#737B76]',
+    accentBarClass: 'bg-[#5F6762]',
     softStripClass: 'bg-[#F6F5F1] border-[#141917]/10',
     iconBgClass: 'bg-[#ECEAE2] text-[#4A524E]',
   },
@@ -110,7 +110,7 @@ export interface ExpenditureColorTheme {
 const EXPENDITURE_COLOR_MAP: Record<ExpenditureComponentEnum, ExpenditureColorTheme> = {
   [ExpenditureComponentEnum.PK_RT]: {
     hex: '#0F766E',
-    pillClass: 'bg-[#E8F4F1] text-[#0F766E] border-[#A7D7CF]',
+    pillClass: 'bg-[#E6F4F2] text-[#0F766E] border-[#A7D7CF]',
     dotClass: 'bg-[#0F766E]',
   },
   [ExpenditureComponentEnum.PK_LNPRT]: {
@@ -141,9 +141,9 @@ const EXPENDITURE_COLOR_MAP: Record<ExpenditureComponentEnum, ExpenditureColorTh
 };
 
 const DEFAULT_EXPENDITURE_THEME: ExpenditureColorTheme = {
-  hex: '#737B76',
+  hex: '#5F6762',
   pillClass: 'bg-[#ECEAE2] text-[#4A524E] border-[#141917]/10',
-  dotClass: 'bg-[#737B76]',
+  dotClass: 'bg-[#5F6762]',
 };
 
 export function getExpenditureColorTheme(

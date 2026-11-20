@@ -123,7 +123,7 @@ const macroSignals = [
 
 <template>
   <div
-    class="sticky top-16 z-30 w-full bg-[#F6F5F1]/92 backdrop-blur-xl border-y border-[#141917]/[0.08] py-3 transition-[background-color,border-color]"
+    class="sticky top-16 z-30 w-full bg-canvas/92 backdrop-blur-xl border-y border-border-hairline py-3 transition-[background-color,border-color]"
   >
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-2.5">
       <!-- Row 1: Search + Scope + Quick Popovers + Drawer Trigger -->
@@ -132,19 +132,19 @@ const macroSignals = [
         <div class="relative flex-1 min-w-[200px] sm:min-w-[260px]">
           <UIcon
             name="i-solar-magnifer-line-duotone"
-            class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#737B76] pointer-events-none"
+            class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none"
           />
           <input
             v-model="searchInput"
             type="search"
             placeholder="Cari sektor, komoditas, atau kata kunci..."
-            class="w-full h-9.5 pl-9 pr-14 bg-white text-xs text-[#141917] placeholder:text-[#737B76] rounded-xl border border-[#141917]/10 focus:border-[#0B3D2E] focus:ring-2 focus:ring-[#0B3D2E]/15 transition-[color,background-color,border-color,box-shadow]"
+            class="w-full h-9.5 pl-9 pr-14 bg-white text-xs text-ink-primary placeholder:text-ink-muted rounded-xl border border-border-hairline focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/15 transition-[color,background-color,border-color,box-shadow]"
           >
           <div class="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
             <button
               v-if="searchInput"
               type="button"
-              class="w-6 h-6 inline-flex items-center justify-center text-[#737B76] hover:text-[#141917] rounded cursor-pointer"
+              class="w-6 h-6 inline-flex items-center justify-center text-ink-muted hover:text-ink-primary rounded cursor-pointer"
               @click="searchInput = ''"
             >
               <UIcon name="i-lucide-x" class="w-3.5 h-3.5" />
@@ -152,7 +152,7 @@ const macroSignals = [
             <kbd
               v-else
               :title="shortcutTitle"
-              class="text-[10px] text-[#737B76] bg-[#F6F5F1] border border-[#141917]/10 rounded px-1.5 py-0.5 font-mono leading-none pointer-events-none"
+              class="text-[10px] text-ink-muted bg-canvas border border-border-hairline rounded px-1.5 py-0.5 font-mono leading-none pointer-events-none"
             >
               {{ shortcutKey }}
             </kbd>
@@ -160,11 +160,11 @@ const macroSignals = [
         </div>
 
         <!-- Scope Segmented Control -->
-        <div class="hidden sm:inline-flex items-center p-0.5 rounded-xl bg-[#ECEAE2] text-xs font-semibold shrink-0">
+        <div class="hidden sm:inline-flex items-center p-0.5 rounded-xl bg-surface-subtle text-xs font-semibold shrink-0">
           <button
             type="button"
             class="px-2.5 py-1.5 rounded-lg transition-all cursor-pointer"
-            :class="sourceType === 'ALL' ? 'bg-white text-[#141917] shadow-2xs font-bold' : 'text-[#4A524E] hover:text-[#141917]'"
+            :class="sourceType === 'ALL' ? 'bg-white text-ink-primary shadow-2xs font-bold' : 'text-ink-secondary hover:text-ink-primary'"
             @click="emit('update:sourceType', 'ALL')"
           >
             Semua
@@ -172,7 +172,7 @@ const macroSignals = [
           <button
             type="button"
             class="px-2.5 py-1.5 rounded-lg transition-all cursor-pointer"
-            :class="sourceType === ArticleSourceTypeEnum.REGIONAL ? 'bg-white text-[#0B3D2E] shadow-2xs font-bold' : 'text-[#4A524E] hover:text-[#0B3D2E]'"
+            :class="sourceType === ArticleSourceTypeEnum.REGIONAL ? 'bg-white text-brand-primary shadow-2xs font-bold' : 'text-ink-secondary hover:text-brand-primary'"
             @click="emit('update:sourceType', ArticleSourceTypeEnum.REGIONAL)"
           >
             Lokal Kaltara
@@ -180,7 +180,7 @@ const macroSignals = [
           <button
             type="button"
             class="px-2.5 py-1.5 rounded-lg transition-all cursor-pointer"
-            :class="sourceType === ArticleSourceTypeEnum.NATIONAL ? 'bg-white text-[#0B3D2E] shadow-2xs font-bold' : 'text-[#4A524E] hover:text-[#0B3D2E]'"
+            :class="sourceType === ArticleSourceTypeEnum.NATIONAL ? 'bg-white text-brand-primary shadow-2xs font-bold' : 'text-ink-secondary hover:text-brand-primary'"
             @click="emit('update:sourceType', ArticleSourceTypeEnum.NATIONAL)"
           >
             Nasional
@@ -192,27 +192,27 @@ const macroSignals = [
           <button
             type="button"
             class="h-9.5 px-3 rounded-xl border text-xs font-semibold inline-flex items-center gap-1.5 transition-colors cursor-pointer"
-            :class="pdrbGroups.length > 0 ? 'bg-[#E3F0EA] border-[#BBD8CB] text-[#0B3D2E] font-bold' : 'bg-white border-[#141917]/10 text-[#4A524E] hover:bg-[#ECEAE2]'"
+            :class="pdrbGroups.length > 0 ? 'bg-brand-tint border-brand-border text-brand-primary font-bold' : 'bg-white border-border-hairline text-ink-secondary hover:bg-surface-subtle'"
           >
             <span>KBLI</span>
             <span
               v-if="pdrbGroups.length > 0"
-              class="w-4.5 h-4.5 rounded-full bg-[#0B3D2E] text-white text-[10px] inline-flex items-center justify-center font-mono font-bold"
+              class="w-4.5 h-4.5 rounded-full bg-brand-primary text-white text-[10px] inline-flex items-center justify-center font-mono font-bold"
             >
               {{ pdrbGroups.length }}
             </span>
-            <span v-else class="text-[11px] text-[#737B76]">17 Sektor</span>
-            <UIcon name="i-lucide-chevron-down" class="w-3.5 h-3.5 text-[#737B76]" />
+            <span v-else class="text-[11px] text-ink-muted">17 Sektor</span>
+            <UIcon name="i-lucide-chevron-down" class="w-3.5 h-3.5 text-ink-muted" />
           </button>
 
           <template #content>
-            <div class="p-3 w-80 space-y-2.5 bg-white rounded-2xl shadow-xl border border-[#141917]/10">
+            <div class="p-3 w-80 space-y-2.5 bg-white rounded-2xl shadow-xl border border-border-hairline">
               <div class="flex items-center justify-between pb-2 border-b border-[#141917]/[0.06]">
-                <span class="text-xs font-bold text-[#141917]">Filter 17 Sektor KBLI</span>
+                <span class="text-xs font-bold text-ink-primary">Filter 17 Sektor KBLI</span>
                 <button
                   v-if="pdrbGroups.length > 0"
                   type="button"
-                  class="text-[11px] text-[#C8553D] hover:underline font-semibold cursor-pointer"
+                  class="text-[11px] text-terracotta-ink hover:underline font-semibold cursor-pointer"
                   @click="emit('update:pdrbGroups', [])"
                 >
                   Reset ({{ pdrbGroups.length }})
@@ -223,7 +223,7 @@ const macroSignals = [
                 v-model="sectorSearch"
                 type="search"
                 placeholder="Cari kode atau nama sektor..."
-                class="w-full h-8 px-2.5 bg-[#F6F5F1] text-xs rounded-lg border border-[#141917]/10 focus:border-[#0B3D2E]"
+                class="w-full h-8 px-2.5 bg-canvas text-xs rounded-lg border border-border-hairline focus:border-brand-primary"
               >
 
               <div class="max-h-60 overflow-y-auto space-y-1">
@@ -232,14 +232,14 @@ const macroSignals = [
                   :key="s.groupCode"
                   type="button"
                   class="w-full px-2 py-1.5 rounded-lg text-left text-xs flex items-center justify-between gap-2 transition-colors cursor-pointer"
-                  :class="pdrbGroups.includes(s.groupCode) ? 'bg-[#E3F0EA] text-[#0B3D2E] font-bold' : 'hover:bg-[#F6F5F1] text-[#141917]'"
+                  :class="pdrbGroups.includes(s.groupCode) ? 'bg-brand-tint text-brand-primary font-bold' : 'hover:bg-canvas text-ink-primary'"
                   @click="togglePdrbGroup(s.groupCode)"
                 >
                   <span class="truncate">
                     <strong class="font-mono mr-1.5">{{ s.groupCode }}</strong>
                     {{ s.shortName }}
                   </span>
-                  <span class="font-mono text-[10.5px] text-[#737B76] tabular-nums shrink-0">
+                  <span class="font-mono text-[10.5px] text-ink-muted tabular-nums shrink-0">
                     {{ s.count }}
                   </span>
                 </button>
@@ -253,27 +253,27 @@ const macroSignals = [
           <button
             type="button"
             class="h-9.5 px-3 rounded-xl border text-xs font-semibold inline-flex items-center gap-1.5 transition-colors cursor-pointer"
-            :class="expenditures.length > 0 ? 'bg-[#E3F0EA] border-[#BBD8CB] text-[#0B3D2E] font-bold' : 'bg-white border-[#141917]/10 text-[#4A524E] hover:bg-[#ECEAE2]'"
+            :class="expenditures.length > 0 ? 'bg-brand-tint border-brand-border text-brand-primary font-bold' : 'bg-white border-border-hairline text-ink-secondary hover:bg-surface-subtle'"
           >
             <span>Pengeluaran</span>
             <span
               v-if="expenditures.length > 0"
-              class="w-4.5 h-4.5 rounded-full bg-[#0B3D2E] text-white text-[10px] inline-flex items-center justify-center font-mono font-bold"
+              class="w-4.5 h-4.5 rounded-full bg-brand-primary text-white text-[10px] inline-flex items-center justify-center font-mono font-bold"
             >
               {{ expenditures.length }}
             </span>
-            <span v-else class="text-[11px] text-[#737B76]">6 Komponen</span>
-            <UIcon name="i-lucide-chevron-down" class="w-3.5 h-3.5 text-[#737B76]" />
+            <span v-else class="text-[11px] text-ink-muted">6 Komponen</span>
+            <UIcon name="i-lucide-chevron-down" class="w-3.5 h-3.5 text-ink-muted" />
           </button>
 
           <template #content>
-            <div class="p-3 w-72 space-y-2 bg-white rounded-2xl shadow-xl border border-[#141917]/10">
+            <div class="p-3 w-72 space-y-2 bg-white rounded-2xl shadow-xl border border-border-hairline">
               <div class="flex items-center justify-between pb-2 border-b border-[#141917]/[0.06]">
-                <span class="text-xs font-bold text-[#141917]">Komponen Pengeluaran</span>
+                <span class="text-xs font-bold text-ink-primary">Komponen Pengeluaran</span>
                 <button
                   v-if="expenditures.length > 0"
                   type="button"
-                  class="text-[11px] text-[#C8553D] hover:underline font-semibold cursor-pointer"
+                  class="text-[11px] text-terracotta-ink hover:underline font-semibold cursor-pointer"
                   @click="emit('update:expenditures', [])"
                 >
                   Reset ({{ expenditures.length }})
@@ -286,7 +286,7 @@ const macroSignals = [
                   :key="item.code"
                   type="button"
                   class="w-full px-2 py-1.5 rounded-lg text-left text-xs flex items-center justify-between gap-2 transition-colors cursor-pointer"
-                  :class="expenditures.includes(item.code) ? 'bg-[#E3F0EA] text-[#0B3D2E] font-bold' : 'hover:bg-[#F6F5F1] text-[#141917]'"
+                  :class="expenditures.includes(item.code) ? 'bg-brand-tint text-brand-primary font-bold' : 'hover:bg-canvas text-ink-primary'"
                   @click="toggleExpenditure(item.code)"
                 >
                   <span class="truncate">
@@ -296,7 +296,7 @@ const macroSignals = [
                   <UIcon
                     v-if="expenditures.includes(item.code)"
                     name="i-lucide-check"
-                    class="w-3.5 h-3.5 text-[#0B3D2E] shrink-0"
+                    class="w-3.5 h-3.5 text-brand-primary shrink-0"
                   />
                 </button>
               </div>
@@ -307,14 +307,14 @@ const macroSignals = [
         <!-- Deep Filter Slideover Trigger -->
         <button
           type="button"
-          class="h-9.5 px-3 rounded-xl border border-[#141917]/10 bg-white text-xs font-semibold text-[#141917] hover:bg-[#ECEAE2] inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+          class="h-9.5 px-3 rounded-xl border border-border-hairline bg-white text-xs font-semibold text-ink-primary hover:bg-surface-subtle inline-flex items-center gap-1.5 transition-colors cursor-pointer"
           @click="emit('openDrawer')"
         >
-          <UIcon name="i-solar-tuning-2-line-duotone" class="w-4 h-4 text-[#737B76]" />
+          <UIcon name="i-solar-tuning-2-line-duotone" class="w-4 h-4 text-ink-muted" />
           <span>Filter Lengkap</span>
           <span
             v-if="activeFilterCount > 0"
-            class="px-1.5 py-0.2 rounded-full bg-[#0B3D2E] text-white text-[10px] font-mono font-bold"
+            class="px-1.5 py-0.2 rounded-full bg-brand-primary text-white text-[10px] font-mono font-bold"
           >
             {{ activeFilterCount }}
           </span>
@@ -324,7 +324,7 @@ const macroSignals = [
         <button
           v-if="activeFilterCount > 0"
           type="button"
-          class="h-9.5 px-2.5 rounded-xl text-xs font-semibold text-[#C8553D] hover:bg-[#FBECE8] transition-colors cursor-pointer inline-flex items-center gap-1"
+          class="h-9.5 px-2.5 rounded-xl text-xs font-semibold text-terracotta-ink hover:bg-terracotta-surface transition-colors cursor-pointer inline-flex items-center gap-1"
           @click="emit('reset')"
         >
           <UIcon name="i-lucide-rotate-ccw" class="w-3.5 h-3.5" />
@@ -334,7 +334,7 @@ const macroSignals = [
 
       <!-- Row 2: Signal Direction Quick Pills (Macroeconomic Pressure / Expansion) -->
       <div class="flex items-center gap-1.5 overflow-x-auto pb-0.5 no-scrollbar text-xs">
-        <span class="text-[11px] font-mono font-semibold text-[#737B76] uppercase tracking-wider mr-1 shrink-0">
+        <span class="text-[11px] font-mono font-semibold text-ink-muted uppercase tracking-wider mr-1 shrink-0">
           Arah Sinyal:
         </span>
         <button
@@ -345,15 +345,15 @@ const macroSignals = [
           :class="[
             impactMacro === sig.value
               ? sig.value === 'EXPANSION'
-                ? 'bg-[#E3F0EA] text-[#0B3D2E] border border-[#BBD8CB] font-bold'
+                ? 'bg-brand-tint text-brand-primary border border-brand-border font-bold'
                 : sig.value === 'PRICE_UP'
-                  ? 'bg-[#FEF7E6] text-[#B45309] border border-[#F3D89C] font-bold'
+                  ? 'bg-ochre-surface text-ochre-ink border border-ochre-border font-bold'
                   : sig.value === 'CONTRACTION'
-                    ? 'bg-[#FBECE8] text-[#C8553D] border border-[#F8D2C9] font-bold'
+                    ? 'bg-terracotta-surface text-terracotta-ink border border-[#F8D2C9] font-bold'
                     : sig.value === 'PRICE_DOWN'
                       ? 'bg-[#E6F4F2] text-[#0F766E] border border-[#B2DFDB] font-bold'
-                      : 'bg-[#0B3D2E] text-white font-bold'
-              : 'bg-white border border-[#141917]/10 text-[#4A524E] hover:bg-[#ECEAE2]',
+                      : 'bg-brand-primary text-white font-bold'
+              : 'bg-white border border-border-hairline text-ink-secondary hover:bg-surface-subtle',
           ]"
           @click="emit('update:impactMacro', sig.value)"
         >

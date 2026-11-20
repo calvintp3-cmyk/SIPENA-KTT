@@ -53,7 +53,7 @@ describe('pdrb-colors taxonomy helpers', () => {
     }
     expect(hexSet.size).toBe(6);
     expect(getExpenditureColorTheme(ExpenditureComponentEnum.NET_EXPORT).hex).toBe('#059669');
-    expect(getExpenditureColorTheme(null).hex).toBe('#737B76');
+    expect(getExpenditureColorTheme(null).hex).toBe('#5F6762');
   });
 });
 

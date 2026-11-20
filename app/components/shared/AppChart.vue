@@ -31,7 +31,7 @@ function handleChartClick(params: unknown) {
   <div class="relative w-full" :class="heightClass">
     <div
       v-if="loading"
-      class="w-full h-full rounded-xl bg-[#ECEAE2] border border-[#141917]/[0.08] flex flex-col justify-end gap-2.5 p-4"
+      class="w-full h-full rounded-xl bg-surface-subtle border border-border-hairline flex flex-col justify-end gap-2.5 p-4"
     >
       <div class="h-3 w-32 rounded-full bg-[#141917]/[0.08] mb-auto" />
       <div class="grid grid-cols-6 gap-2 items-end h-36">
@@ -46,13 +46,13 @@ function handleChartClick(params: unknown) {
 
     <div
       v-else-if="empty || !option"
-      class="w-full h-full rounded-xl bg-[#F6F5F1] border border-dashed border-[#141917]/[0.12] flex flex-col items-center justify-center text-center px-6"
+      class="w-full h-full rounded-xl bg-canvas border border-dashed border-border-control flex flex-col items-center justify-center text-center px-6"
     >
-      <div class="w-10 h-10 rounded-xl bg-[#ECEAE2] text-[#737B76] flex items-center justify-center mb-2.5">
+      <div class="w-10 h-10 rounded-xl bg-surface-subtle text-ink-muted flex items-center justify-center mb-2.5">
         <UIcon name="i-solar-chart-2-bold-duotone" class="w-5 h-5" aria-hidden="true" />
       </div>
-      <div class="text-xs font-semibold text-[#141917]">{{ emptyTitle }}</div>
-      <div class="text-[11px] text-[#4A524E] mt-0.5 max-w-xs">{{ emptyDescription }}</div>
+      <div class="text-xs font-semibold text-ink-primary">{{ emptyTitle }}</div>
+      <div class="text-[11px] text-ink-secondary mt-0.5 max-w-xs">{{ emptyDescription }}</div>
     </div>
 
     <ClientOnly v-else>
@@ -64,7 +64,7 @@ function handleChartClick(params: unknown) {
       />
       <template #fallback>
         <div
-          class="w-full h-full rounded-xl bg-[#ECEAE2] border border-[#141917]/[0.08] flex items-center justify-center text-xs text-[#4A524E]"
+          class="w-full h-full rounded-xl bg-surface-subtle border border-border-hairline flex items-center justify-center text-xs text-ink-secondary"
         >
           Memuat visualisasi interaktif...
         </div>

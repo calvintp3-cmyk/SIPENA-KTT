@@ -146,12 +146,12 @@ async function handleCopyArticleLink() {
         ? `${article.sourcePortal} • ${formatDateTimeWita(article.publishedAt)}`
         : 'Pemetaan dua sisi PDRB BPS Kabupaten Tana Tidung'
     "
-    :ui="{ content: 'sm:max-w-2xl bg-[#F6F5F1]' }"
+    :ui="{ content: 'sm:max-w-2xl bg-canvas' }"
   >
     <template #header="{ close }">
-      <div v-if="article" class="w-full flex items-center justify-between gap-3 pb-2 border-b border-[#141917]/[0.08]">
+      <div v-if="article" class="w-full flex items-center justify-between gap-3 pb-2 border-b border-border-hairline">
         <div class="flex flex-wrap items-center gap-2 min-w-0">
-          <span class="inline-flex items-center gap-1 text-xs font-semibold text-[#141917] bg-[#ECEAE2] px-2.5 py-0.5 rounded-full border border-[#141917]/10 truncate max-w-[200px]">
+          <span class="inline-flex items-center gap-1 text-xs font-semibold text-ink-primary bg-surface-subtle px-2.5 py-0.5 rounded-full border border-border-hairline truncate max-w-[200px]">
             {{ article.sourcePortal }}
           </span>
           <span
@@ -164,16 +164,16 @@ async function handleCopyArticleLink() {
           </span>
           <span
             v-if="article.subdistrict"
-            class="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full border bg-[#E3F0EA] text-[#0B3D2E] border-[#BBD8CB]"
+            class="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full border bg-brand-tint text-brand-primary border-brand-border"
           >
-            <UIcon name="i-lucide-map-pin" class="w-3 h-3 text-[#0B3D2E]" />
+            <UIcon name="i-lucide-map-pin" class="w-3 h-3 text-brand-primary" />
             <span>Kec. {{ article.subdistrict }}</span>
           </span>
-          <span class="text-xs font-mono text-[#737B76]">
+          <span class="text-xs font-mono text-ink-muted">
             {{ formatDateTimeWita(article.publishedAt) }}
           </span>
-          <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#E3F0EA] text-[#0B3D2E] border border-[#BBD8CB]">
-            <UIcon name="i-solar-verified-check-bold-duotone" class="w-3.5 h-3.5 text-[#0B3D2E]" />
+          <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-brand-tint text-brand-primary border border-brand-border">
+            <UIcon name="i-solar-verified-check-bold-duotone" class="w-3.5 h-3.5 text-brand-primary" />
             <span>Terverifikasi Nerwilis</span>
           </span>
         </div>
@@ -181,7 +181,7 @@ async function handleCopyArticleLink() {
         <button
           type="button"
           aria-label="Tutup lembar ringkasan"
-          class="min-w-9 min-h-9 inline-flex items-center justify-center rounded-xl text-[#737B76] hover:text-[#141917] hover:bg-[#ECEAE2] transition-colors shrink-0 cursor-pointer"
+          class="min-w-9 min-h-9 inline-flex items-center justify-center rounded-xl text-ink-muted hover:text-ink-primary hover:bg-surface-subtle transition-colors shrink-0 cursor-pointer"
           @click="close"
         >
           <UIcon name="i-lucide-x" class="w-4 h-4" />
@@ -193,22 +193,22 @@ async function handleCopyArticleLink() {
       <div v-if="article" class="space-y-6 py-2">
         <!-- Eyebrow & Judul Artikel -->
         <div class="space-y-2">
-          <div class="inline-flex items-center gap-2 text-xs font-bold text-[#0B3D2E] font-mono">
+          <div class="inline-flex items-center gap-2 text-xs font-bold text-brand-primary font-mono">
             <span>TW {{ toRomanQuarter(article.quarter) }} {{ article.year }}</span>
-            <span class="text-[#141917]/20">&bull;</span>
-            <span class="font-sans font-semibold text-[#4A524E]">Konsolidasi PDRB Kabupaten Tana Tidung</span>
+            <span class="text-ink-primary/20">&bull;</span>
+            <span class="font-sans font-semibold text-ink-secondary">Konsolidasi PDRB Kabupaten Tana Tidung</span>
           </div>
-          <h2 class="text-xl sm:text-2xl font-extrabold text-[#141917] leading-snug tracking-tight font-display">
+          <h2 class="text-xl sm:text-2xl font-extrabold text-ink-primary leading-snug tracking-tight font-display">
             {{ article.title }}
           </h2>
         </div>
 
         <!-- Ringkasan Lengkap Editorial -->
-        <div class="bg-white rounded-2xl p-5 border border-[#141917]/[0.08] shadow-2xs space-y-2 border-l-4 border-l-[#0B3D2E]">
-          <span class="text-xs font-bold text-[#737B76] uppercase tracking-wider block font-mono">
+        <div class="bg-white rounded-2xl p-5 border border-border-hairline shadow-2xs space-y-2 border-l-4 border-l-[#0B3D2E]">
+          <span class="text-xs font-bold text-ink-muted uppercase tracking-wider block font-mono">
             Intisari &amp; Dampak Ekonomi
           </span>
-          <p class="text-sm text-[#141917] leading-relaxed">
+          <p class="text-sm text-ink-primary leading-relaxed">
             {{ article.summary || 'Ringkasan intelijen ekonomi untuk artikel ini belum dicatat.' }}
           </p>
         </div>
@@ -216,17 +216,17 @@ async function handleCopyArticleLink() {
         <!-- Grid Pemetaan Dua Sisi PDRB -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <!-- Sisi Lapangan Usaha -->
-          <div class="p-4.5 rounded-2xl border border-[#141917]/[0.08] bg-white shadow-2xs flex flex-col gap-2.5">
+          <div class="p-4.5 rounded-2xl border border-border-hairline bg-white shadow-2xs flex flex-col gap-2.5">
             <div class="flex items-center justify-between gap-2">
-              <span class="text-xs font-bold text-[#737B76] font-mono uppercase tracking-wider">
+              <span class="text-xs font-bold text-ink-muted font-mono uppercase tracking-wider">
                 1. Lapangan Usaha (KBLI)
               </span>
             </div>
-            <div class="font-bold text-sm text-[#141917] leading-snug">
+            <div class="font-bold text-sm text-ink-primary leading-snug">
               {{ getKbliLabel(article.kbliCategory, true) }}
             </div>
             <div class="flex items-center gap-2 mt-0.5 flex-wrap">
-              <span class="text-xs text-[#4A524E]">Arah Dampak:</span>
+              <span class="text-xs text-ink-secondary">Arah Dampak:</span>
               <UBadge
                 :color="kbliImpactBadge.color"
                 variant="subtle"
@@ -239,22 +239,22 @@ async function handleCopyArticleLink() {
             </div>
             <div
               v-if="kbliGroupMeta"
-              class="text-[11px] text-[#737B76] mt-1 pt-2 border-t border-[#141917]/[0.06] leading-relaxed"
+              class="text-[11px] text-ink-muted mt-1 pt-2 border-t border-[#141917]/[0.06] leading-relaxed"
             >
               Grup PDRB {{ kbliGroupMeta.groupCode }} - {{ kbliGroupMeta.shortName }}: {{ kbliGroupMeta.description }}
             </div>
           </div>
 
           <!-- Sisi Pengeluaran PDRB -->
-          <div class="p-4.5 rounded-2xl border border-[#141917]/[0.08] bg-white shadow-2xs flex flex-col gap-2.5">
-            <span class="text-xs font-bold text-[#737B76] font-mono uppercase tracking-wider">
+          <div class="p-4.5 rounded-2xl border border-border-hairline bg-white shadow-2xs flex flex-col gap-2.5">
+            <span class="text-xs font-bold text-ink-muted font-mono uppercase tracking-wider">
               2. Sisi Pengeluaran
             </span>
-            <div class="font-bold text-sm text-[#141917] leading-snug">
+            <div class="font-bold text-sm text-ink-primary leading-snug">
               {{ getExpenditureLabel(article.expenditureComponent, true) }}
             </div>
             <div class="flex items-center gap-2 mt-0.5 flex-wrap">
-              <span class="text-xs text-[#4A524E]">Arah Dampak:</span>
+              <span class="text-xs text-ink-secondary">Arah Dampak:</span>
               <UBadge
                 :color="expImpactBadge.color"
                 variant="subtle"
@@ -267,7 +267,7 @@ async function handleCopyArticleLink() {
             </div>
             <div
               v-if="expenditureMeta"
-              class="text-[11px] text-[#737B76] mt-1 pt-2 border-t border-[#141917]/[0.06] leading-relaxed"
+              class="text-[11px] text-ink-muted mt-1 pt-2 border-t border-[#141917]/[0.06] leading-relaxed"
             >
               {{ expenditureMeta.description }}
             </div>
@@ -277,23 +277,23 @@ async function handleCopyArticleLink() {
         <!-- Keterkaitan Sektoral Sekunder (Jika ada) -->
         <div
           v-if="article.secondaryKbliCategory || article.secondaryExpenditureComponent"
-          class="p-4.5 rounded-2xl bg-white border border-[#141917]/[0.08] space-y-3"
+          class="p-4.5 rounded-2xl bg-white border border-border-hairline space-y-3"
         >
           <div class="flex items-center gap-2">
-            <UIcon name="i-solar-link-round-bold-duotone" class="w-4 h-4 text-[#0B3D2E]" />
-            <span class="text-xs font-bold text-[#141917] font-display">
+            <UIcon name="i-solar-link-round-bold-duotone" class="w-4 h-4 text-brand-primary" />
+            <span class="text-xs font-bold text-ink-primary font-display">
               Keterkaitan Sektoral Sekunder (Inter-Industry Linkage)
             </span>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
             <div
               v-if="article.secondaryKbliCategory"
-              class="p-3 rounded-xl bg-[#F6F5F1] border border-[#141917]/[0.06] flex flex-col gap-1.5"
+              class="p-3 rounded-xl bg-canvas border border-[#141917]/[0.06] flex flex-col gap-1.5"
             >
-              <span class="text-[11px] font-semibold text-[#737B76]">Sektor Sekunder (KBLI)</span>
-              <span class="font-bold text-[#141917]">{{ getKbliLabel(article.secondaryKbliCategory, true) }}</span>
+              <span class="text-[11px] font-semibold text-ink-muted">Sektor Sekunder (KBLI)</span>
+              <span class="font-bold text-ink-primary">{{ getKbliLabel(article.secondaryKbliCategory, true) }}</span>
               <div v-if="article.secondaryKbliImpact" class="flex items-center gap-1.5 mt-0.5">
-                <span class="text-[11px] text-[#737B76]">Dampak:</span>
+                <span class="text-[11px] text-ink-muted">Dampak:</span>
                 <UBadge :color="secondaryKbliImpactBadge.color" variant="subtle" size="xs" :icon="secondaryKbliImpactBadge.icon" :title="secondaryKbliImpactBadge.label">
                   {{ secondaryKbliImpactBadge.shortLabel }}
                 </UBadge>
@@ -301,12 +301,12 @@ async function handleCopyArticleLink() {
             </div>
             <div
               v-if="article.secondaryExpenditureComponent"
-              class="p-3 rounded-xl bg-[#F6F5F1] border border-[#141917]/[0.06] flex flex-col gap-1.5"
+              class="p-3 rounded-xl bg-canvas border border-[#141917]/[0.06] flex flex-col gap-1.5"
             >
-              <span class="text-[11px] font-semibold text-[#737B76]">Pengeluaran Sekunder</span>
-              <span class="font-bold text-[#141917]">{{ getExpenditureLabel(article.secondaryExpenditureComponent, true) }}</span>
+              <span class="text-[11px] font-semibold text-ink-muted">Pengeluaran Sekunder</span>
+              <span class="font-bold text-ink-primary">{{ getExpenditureLabel(article.secondaryExpenditureComponent, true) }}</span>
               <div v-if="article.secondaryExpenditureImpact" class="flex items-center gap-1.5 mt-0.5">
-                <span class="text-[11px] text-[#737B76]">Dampak:</span>
+                <span class="text-[11px] text-ink-muted">Dampak:</span>
                 <UBadge :color="secondaryExpImpactBadge.color" variant="subtle" size="xs" :icon="secondaryExpImpactBadge.icon" :title="secondaryExpImpactBadge.label">
                   {{ secondaryExpImpactBadge.shortLabel }}
                 </UBadge>
@@ -318,83 +318,83 @@ async function handleCopyArticleLink() {
         <!-- Jembatan Konkordansi KBLI 4-Generasi (2009 -> 2025) -->
         <div
           v-if="kbliBridge"
-          class="p-4.5 rounded-2xl bg-[#E3F0EA]/40 border border-[#BBD8CB] space-y-3"
+          class="p-4.5 rounded-2xl bg-brand-tint/40 border border-brand-border space-y-3"
         >
           <div class="flex items-center justify-between gap-2">
             <div class="flex items-center gap-2">
-              <UIcon name="i-solar-route-bold-duotone" class="w-4 h-4 text-[#0B3D2E]" />
-              <span class="text-xs font-bold text-[#141917] font-display">
+              <UIcon name="i-solar-route-bold-duotone" class="w-4 h-4 text-brand-primary" />
+              <span class="text-xs font-bold text-ink-primary font-display">
                 Jembatan Konkordansi KBLI 4-Generasi (BPS RI)
               </span>
             </div>
-            <span class="text-[10px] bg-[#E3F0EA] text-[#0B3D2E] font-bold px-2 py-0.5 rounded-md font-mono">
+            <span class="text-[10px] bg-brand-tint text-brand-primary font-bold px-2 py-0.5 rounded-md font-mono">
               {{ kbliBridge.pdrbSector }}
             </span>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-            <div class="p-2.5 rounded-xl bg-white border border-[#BBD8CB] shadow-2xs">
-              <div class="text-[10px] font-bold text-[#0B3D2E] uppercase tracking-wider mb-1 font-mono">
+            <div class="p-2.5 rounded-xl bg-white border border-brand-border shadow-2xs">
+              <div class="text-[10px] font-bold text-brand-primary uppercase tracking-wider mb-1 font-mono">
                 KBLI 2025 (Terkini)
               </div>
-              <div class="font-bold text-[#141917]">
+              <div class="font-bold text-ink-primary">
                 Kategori {{ kbliBridge.code2025 }}
               </div>
-              <div class="text-[11px] text-[#4A524E] line-clamp-2" :title="kbliBridge.title2025">
+              <div class="text-[11px] text-ink-secondary line-clamp-2" :title="kbliBridge.title2025">
                 {{ kbliBridge.title2025 }}
               </div>
             </div>
 
-            <div class="p-2.5 rounded-xl bg-white/90 border border-[#141917]/10 shadow-2xs">
-              <div class="text-[10px] font-bold text-[#737B76] uppercase tracking-wider mb-1 font-mono">
+            <div class="p-2.5 rounded-xl bg-white/90 border border-border-hairline shadow-2xs">
+              <div class="text-[10px] font-bold text-ink-muted uppercase tracking-wider mb-1 font-mono">
                 KBLI 2020 (Transisi)
               </div>
-              <div class="font-bold text-[#4A524E]">
+              <div class="font-bold text-ink-secondary">
                 Kategori {{ kbliBridge.code2020 }}
               </div>
-              <div class="text-[11px] text-[#4A524E] line-clamp-2" :title="kbliBridge.title2020">
+              <div class="text-[11px] text-ink-secondary line-clamp-2" :title="kbliBridge.title2020">
                 {{ kbliBridge.title2020 }}
               </div>
             </div>
 
-            <div class="p-2.5 rounded-xl bg-white/80 border border-[#141917]/10">
-              <div class="text-[10px] font-bold text-[#737B76] uppercase tracking-wider mb-1 font-mono">
+            <div class="p-2.5 rounded-xl bg-white/80 border border-border-hairline">
+              <div class="text-[10px] font-bold text-ink-muted uppercase tracking-wider mb-1 font-mono">
                 KBLI 2015
               </div>
-              <div class="font-bold text-[#4A524E]">
+              <div class="font-bold text-ink-secondary">
                 Kategori {{ kbliBridge.code2015 }}
               </div>
-              <div class="text-[11px] text-[#4A524E] line-clamp-2" :title="kbliBridge.title2015">
+              <div class="text-[11px] text-ink-secondary line-clamp-2" :title="kbliBridge.title2015">
                 {{ kbliBridge.title2015 }}
               </div>
             </div>
 
-            <div class="p-2.5 rounded-xl bg-white/80 border border-[#141917]/10">
-              <div class="text-[10px] font-bold text-[#737B76] uppercase tracking-wider mb-1 font-mono">
+            <div class="p-2.5 rounded-xl bg-white/80 border border-border-hairline">
+              <div class="text-[10px] font-bold text-ink-muted uppercase tracking-wider mb-1 font-mono">
                 KBLI 2009 (Awal)
               </div>
-              <div class="font-bold text-[#4A524E]">
+              <div class="font-bold text-ink-secondary">
                 Kategori {{ kbliBridge.code2009 }}
               </div>
-              <div class="text-[11px] text-[#4A524E] line-clamp-2" :title="kbliBridge.title2009">
+              <div class="text-[11px] text-ink-secondary line-clamp-2" :title="kbliBridge.title2009">
                 {{ kbliBridge.title2009 }}
               </div>
             </div>
           </div>
 
-          <div class="text-[11px] text-[#4A524E] bg-white/70 p-2.5 rounded-xl border border-[#BBD8CB] leading-relaxed">
-            <span class="font-bold text-[#0B3D2E]">Catatan Perubahan Struktur BPS: </span>
+          <div class="text-[11px] text-ink-secondary bg-white/70 p-2.5 rounded-xl border border-brand-border leading-relaxed">
+            <span class="font-bold text-brand-primary">Catatan Perubahan Struktur BPS: </span>
             {{ kbliBridge.changeNotes }}
           </div>
         </div>
 
         <!-- Keterangan Validasi Nerwilis -->
-        <div class="p-4.5 rounded-2xl bg-white border border-[#141917]/[0.08] flex items-start gap-3.5">
-          <div class="w-9 h-9 rounded-xl bg-[#0B3D2E] text-white flex items-center justify-center shrink-0 mt-0.5 shadow-xs">
+        <div class="p-4.5 rounded-2xl bg-white border border-border-hairline flex items-start gap-3.5">
+          <div class="w-9 h-9 rounded-xl bg-brand-primary text-white flex items-center justify-center shrink-0 mt-0.5 shadow-xs">
             <UIcon name="i-solar-shield-check-bold-duotone" class="w-5 h-5 text-white" />
           </div>
-          <div class="flex-1 flex flex-col gap-1 text-xs text-[#4A524E]">
-            <span class="text-xs font-bold text-[#141917] font-display">
+          <div class="flex-1 flex flex-col gap-1 text-xs text-ink-secondary">
+            <span class="text-xs font-bold text-ink-primary font-display">
               Validasi Metodologi Nerwilis BPS Kab. Tana Tidung
             </span>
             <p class="leading-relaxed">
@@ -402,7 +402,7 @@ async function handleCopyArticleLink() {
               kerangka dua sisi PDRB (Lapangan Usaha &amp; Pengeluaran) sebagai bukti pendukung penyusunan
               angka PDRB Triwulan {{ toRomanQuarter(article.quarter) }} {{ article.year }}.
             </p>
-            <span class="text-[11px] font-medium text-[#0B3D2E] mt-0.5 font-mono tabular-nums">
+            <span class="text-[11px] font-medium text-brand-primary mt-0.5 font-mono tabular-nums">
               Referensi Arsip: #{{ article.id.slice(0, 8).toUpperCase() }} &bull; {{ formatDateTimeWita(article.publishedAt) }}
             </span>
           </div>
@@ -411,18 +411,18 @@ async function handleCopyArticleLink() {
     </template>
 
     <template #footer>
-      <div v-if="article" class="w-full flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 pt-2 border-t border-[#141917]/[0.08]">
+      <div v-if="article" class="w-full flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 pt-2 border-t border-border-hairline">
         <div class="flex items-center gap-2 flex-wrap">
           <button
             v-if="hasSafeUrl"
             type="button"
-            class="min-h-9 inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-xl border border-[#141917]/10 bg-white hover:border-[#0B3D2E] hover:text-[#0B3D2E] text-xs font-semibold text-[#141917] shadow-2xs transition-colors cursor-pointer"
+            class="min-h-9 inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-xl border border-border-hairline bg-white hover:border-brand-primary hover:text-brand-primary text-xs font-semibold text-ink-primary shadow-2xs transition-colors cursor-pointer"
             @click="handleCopyArticleLink"
           >
             <UIcon
               :name="copiedLink ? 'i-lucide-check' : 'i-lucide-link'"
               class="w-3.5 h-3.5"
-              :class="copiedLink ? 'text-[#0B3D2E]' : 'text-[#737B76]'"
+              :class="copiedLink ? 'text-brand-primary' : 'text-ink-muted'"
             />
             <span>{{ copiedLink ? 'Tautan Disalin!' : 'Salin Tautan' }}</span>
           </button>
@@ -432,10 +432,10 @@ async function handleCopyArticleLink() {
             :href="article.url"
             target="_blank"
             rel="noopener noreferrer"
-            class="min-h-9 inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-xl border border-[#141917]/10 bg-white hover:bg-[#F6F5F1] text-xs font-semibold text-[#141917] shadow-2xs transition-colors"
+            class="min-h-9 inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-xl border border-border-hairline bg-white hover:bg-canvas text-xs font-semibold text-ink-primary shadow-2xs transition-colors"
           >
             <span>Buka Sumber Asli</span>
-            <UIcon name="i-lucide-external-link" class="w-3.5 h-3.5 text-[#737B76]" />
+            <UIcon name="i-lucide-external-link" class="w-3.5 h-3.5 text-ink-muted" />
           </a>
         </div>
 

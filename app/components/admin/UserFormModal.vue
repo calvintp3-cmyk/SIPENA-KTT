@@ -228,7 +228,7 @@ async function handleSubmit() {
             :disabled="isEditingSelf"
             class="w-full"
           />
-          <p v-if="isEditingSelf" class="text-[11px] text-[#737B76] mt-1">
+          <p v-if="isEditingSelf" class="text-[11px] text-ink-muted mt-1">
             Peran Administrator Utama milik akun yang sedang aktif tidak dapat diturunkan.
           </p>
         </UFormField>
@@ -259,7 +259,7 @@ async function handleSubmit() {
               />
             </template>
           </UInput>
-          <p class="text-[11px] text-[#4A524E] mt-1 leading-relaxed">
+          <p class="text-[11px] text-ink-secondary mt-1 leading-relaxed">
             <template v-if="editingUser">
               Biarkan kosong jika tidak ingin mengubah pengaturan kata sandi saat ini.
             </template>
@@ -284,19 +284,19 @@ async function handleSubmit() {
           <USwitch id="user-clear-password-switch" v-model="formState.clearPassword" />
         </div>
 
-        <div class="flex items-center justify-between rounded-xl border border-[#BBD8CB] bg-[#E3F0EA]/40 px-3.5 py-2.5">
+        <div class="flex items-center justify-between rounded-xl border border-brand-border bg-brand-tint/40 px-3.5 py-2.5">
           <div>
-            <label for="user-active-switch" class="text-xs sm:text-sm font-semibold text-[#141917] cursor-pointer block">
+            <label for="user-active-switch" class="text-xs sm:text-sm font-semibold text-ink-primary cursor-pointer block">
               Status Akses Aktif (Whitelist)
             </label>
-            <div class="text-[11px] text-[#4A524E]">
+            <div class="text-[11px] text-ink-secondary">
               Jika dimatikan, akun otomatis ditolak saat mencoba login Google maupun sesi aktifnya dicabut.
             </div>
           </div>
           <USwitch id="user-active-switch" v-model="formState.isActive" :disabled="isEditingSelf" />
         </div>
 
-        <div class="flex justify-end gap-2 pt-3 border-t border-[#141917]/[0.08]">
+        <div class="flex justify-end gap-2 pt-3 border-t border-border-hairline">
           <UButton color="neutral" variant="ghost" @click="() => { modalOpen = false; }">
             Batal
           </UButton>

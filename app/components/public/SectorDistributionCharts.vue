@@ -220,23 +220,23 @@ function handleExpenditureChartClick(params: unknown) {
     class="grid grid-cols-1 lg:grid-cols-2 gap-5"
   >
     <!-- Grafik KBLI A-V -->
-    <div class="rounded-2xl overflow-hidden flex flex-col bg-white border border-[#141917]/[0.08] shadow-2xs">
-      <div class="px-5 py-3.5 border-b border-[#141917]/[0.08] flex items-center justify-between gap-2">
+    <div class="rounded-2xl overflow-hidden flex flex-col bg-white border border-border-hairline shadow-2xs">
+      <div class="px-5 py-3.5 border-b border-border-hairline flex items-center justify-between gap-2">
         <div>
-          <h3 class="text-sm font-bold text-[#141917] font-display">
+          <h3 class="text-sm font-bold text-ink-primary font-display">
             Sebaran Lapangan Usaha (KBLI)
           </h3>
-          <p class="text-[11px] text-[#737B76]">
+          <p class="text-[11px] text-ink-muted">
             Klik batang grafik untuk memfilter linimasa
           </p>
         </div>
         <button
           v-if="selectedKbli && selectedKbli !== 'ALL'"
           type="button"
-          class="min-h-8 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-[#E3F0EA] text-[#0B3D2E] border border-[#BBD8CB] hover:bg-[#D2E6DC] cursor-pointer font-mono"
+          class="min-h-8 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-brand-tint text-brand-primary border border-brand-border hover:bg-[#D2E6DC] cursor-pointer font-mono"
           @click="emit('update:kbli', 'ALL')"
         >
-          <UIcon name="i-lucide-x" class="w-3 h-3 text-[#0B3D2E]" />
+          <UIcon name="i-lucide-x" class="w-3 h-3 text-brand-primary" />
           <span>KBLI {{ selectedKbli }}</span>
         </button>
       </div>
@@ -262,8 +262,8 @@ function handleExpenditureChartClick(params: unknown) {
             class="min-h-7 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold border transition-colors font-mono tabular-nums cursor-pointer"
             :class="
               isKbliCodeActive(item.code)
-                ? 'bg-[#0B3D2E] text-white border-[#0B3D2E]'
-                : 'bg-white text-[#4A524E] border-[#141917]/10 hover:border-[#0B3D2E]/40'
+                ? 'bg-brand-primary text-white border-brand-primary'
+                : 'bg-white text-ink-secondary border-border-hairline hover:border-brand-primary/40'
             "
             @click="toggleKbliFilter(item.code)"
           >
@@ -280,23 +280,23 @@ function handleExpenditureChartClick(params: unknown) {
     </div>
 
     <!-- Grafik Komponen PDRB Pengeluaran -->
-    <div class="rounded-2xl overflow-hidden flex flex-col bg-white border border-[#141917]/[0.08] shadow-2xs">
-      <div class="px-5 py-3.5 border-b border-[#141917]/[0.08] flex items-center justify-between gap-2">
+    <div class="rounded-2xl overflow-hidden flex flex-col bg-white border border-border-hairline shadow-2xs">
+      <div class="px-5 py-3.5 border-b border-border-hairline flex items-center justify-between gap-2">
         <div>
-          <h3 class="text-sm font-bold text-[#141917] font-display">
+          <h3 class="text-sm font-bold text-ink-primary font-display">
             Sebaran Komponen Pengeluaran
           </h3>
-          <p class="text-[11px] text-[#737B76]">
+          <p class="text-[11px] text-ink-muted">
             Klik segmen donat untuk memfilter sisi permintaan
           </p>
         </div>
         <button
           v-if="selectedExpenditure && selectedExpenditure !== 'ALL'"
           type="button"
-          class="min-h-8 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-[#E3F0EA] text-[#0B3D2E] border border-[#BBD8CB] hover:bg-[#D2E6DC] cursor-pointer font-mono"
+          class="min-h-8 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-brand-tint text-brand-primary border border-brand-border hover:bg-[#D2E6DC] cursor-pointer font-mono"
           @click="emit('update:expenditure', 'ALL')"
         >
-          <UIcon name="i-lucide-x" class="w-3 h-3 text-[#0B3D2E]" />
+          <UIcon name="i-lucide-x" class="w-3 h-3 text-brand-primary" />
           <span>Reset</span>
         </button>
       </div>
@@ -324,8 +324,8 @@ function handleExpenditureChartClick(params: unknown) {
               class="w-full min-h-8 flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-xl text-xs border transition-colors text-left cursor-pointer"
               :class="
                 selectedExpenditure === item.code
-                  ? 'bg-[#E3F0EA] border-[#BBD8CB] text-[#0B3D2E] font-semibold'
-                  : 'bg-white border-[#141917]/10 hover:border-[#0B3D2E]/40 text-[#4A524E]'
+                  ? 'bg-brand-tint border-brand-border text-brand-primary font-semibold'
+                  : 'bg-white border-border-hairline hover:border-brand-primary/40 text-ink-secondary'
               "
               @click="toggleExpenditureFilter(item.code)"
             >
@@ -336,7 +336,7 @@ function handleExpenditureChartClick(params: unknown) {
                 />
                 <span class="truncate">{{ item.label }}</span>
               </span>
-              <span class="font-bold text-[#141917] tabular-nums shrink-0 font-mono">
+              <span class="font-bold text-ink-primary tabular-nums shrink-0 font-mono">
                 {{ item.count }} ({{ item.percentage }}%)
               </span>
             </button>

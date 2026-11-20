@@ -176,11 +176,11 @@ async function handleSubmit(event: FormSubmitEvent<LoginRequestInput>) {
 </script>
 
 <template>
-  <div class="min-h-screen bg-[#F6F5F1] text-[#141917] font-sans selection:bg-[#E3F0EA] selection:text-[#0B3D2E]">
+  <div class="min-h-screen bg-canvas text-ink-primary font-sans selection:bg-brand-tint selection:text-brand-primary">
     <div class="min-h-screen grid grid-cols-1 lg:grid-cols-12">
       <!-- Left 5 Columns: Deep Borneo Pine Editorial Manifesto Panel (Desktop) -->
       <aside
-        class="hidden lg:flex lg:col-span-5 bg-[#0B3D2E] text-white p-12 flex-col justify-between relative overflow-hidden"
+        class="hidden lg:flex lg:col-span-5 bg-brand-primary text-white p-12 flex-col justify-between relative overflow-hidden"
       >
         <!-- Background Architectural Dot Matrix Grid -->
         <div
@@ -247,26 +247,26 @@ async function handleSubmit(event: FormSubmitEvent<LoginRequestInput>) {
           <!-- Mobile Brand Lockup -->
           <div class="lg:hidden text-center space-y-2 mb-6">
             <NuxtLink to="/" class="inline-flex items-center gap-2">
-              <span class="font-display font-extrabold text-2xl text-[#141917]">
-                SIPENA <span class="text-[#0B3D2E]">KTT</span>
+              <span class="font-display font-extrabold text-2xl text-ink-primary">
+                SIPENA <span class="text-brand-primary">KTT</span>
               </span>
             </NuxtLink>
-            <div class="text-xs text-[#737B76]">
+            <div class="text-xs text-ink-muted">
               Workstation Nerwilis BPS Kab. Tana Tidung
             </div>
           </div>
 
           <!-- Auth Card -->
-          <div class="bg-white rounded-3xl border border-[#141917]/[0.08] shadow-[0_2px_10px_rgba(20,25,23,0.03),0_20px_44px_-16px_rgba(20,25,23,0.06)] p-7 sm:p-9 space-y-6">
+          <div class="bg-white rounded-3xl border border-border-hairline shadow-[0_2px_10px_rgba(20,25,23,0.03),0_20px_44px_-16px_rgba(20,25,23,0.06)] p-7 sm:p-9 space-y-6">
             <!-- Active Session State -->
             <div v-if="user" class="text-center space-y-4 py-3">
-              <div class="w-14 h-14 rounded-2xl bg-[#E3F0EA] border border-[#BBD8CB] text-[#0B3D2E] flex items-center justify-center mx-auto">
+              <div class="w-14 h-14 rounded-2xl bg-brand-tint border border-brand-border text-brand-primary flex items-center justify-center mx-auto">
                 <UIcon name="i-solar-check-circle-bold-duotone" class="w-7 h-7" />
               </div>
               <div class="space-y-1">
-                <h1 class="text-lg font-bold text-[#141917] font-display">Sesi Aktif Terdeteksi</h1>
-                <p class="text-xs text-[#4A524E]">
-                  Anda telah masuk sebagai <strong class="text-[#141917]">{{ user.name }}</strong> ({{ user.role }}).
+                <h1 class="text-lg font-bold text-ink-primary font-display">Sesi Aktif Terdeteksi</h1>
+                <p class="text-xs text-ink-secondary">
+                  Anda telah masuk sebagai <strong class="text-ink-primary">{{ user.name }}</strong> ({{ user.role }}).
                 </p>
               </div>
               <NuxtLink
@@ -281,10 +281,10 @@ async function handleSubmit(event: FormSubmitEvent<LoginRequestInput>) {
             <!-- Normal Login Flow -->
             <div v-else class="space-y-5">
               <div>
-                <h1 class="text-2xl font-extrabold text-[#141917] tracking-tight font-display">
+                <h1 class="text-2xl font-extrabold text-ink-primary tracking-tight font-display">
                   Masuk ke Workstation
                 </h1>
-                <p class="text-xs sm:text-[13px] text-[#4A524E] mt-1 leading-relaxed">
+                <p class="text-xs sm:text-[13px] text-ink-secondary mt-1 leading-relaxed">
                   Gunakan akun staf terdaftar BPS Kabupaten Tana Tidung untuk mengakses konsol kurasi PDRB.
                 </p>
               </div>
@@ -366,9 +366,9 @@ async function handleSubmit(event: FormSubmitEvent<LoginRequestInput>) {
               <!-- Divider -->
               <div class="relative flex items-center justify-center pt-2">
                 <div class="absolute inset-0 flex items-center">
-                  <div class="w-full border-t border-[#141917]/10" />
+                  <div class="w-full border-t border-border-hairline" />
                 </div>
-                <span class="relative px-3 bg-white text-[11px] font-medium text-[#737B76]">
+                <span class="relative px-3 bg-white text-[11px] font-medium text-ink-muted">
                   atau masuk menggunakan
                 </span>
               </div>
@@ -378,7 +378,7 @@ async function handleSubmit(event: FormSubmitEvent<LoginRequestInput>) {
                 <button
                   type="button"
                   :disabled="!googleLoginEnabled || isRedirectingGoogle"
-                  class="w-full h-11 px-4 rounded-xl bg-white hover:bg-[#F6F5F1] border border-[#141917]/15 text-[#141917] text-xs sm:text-[13px] font-semibold transition-colors flex items-center justify-center gap-2.5 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-2xs"
+                  class="w-full h-11 px-4 rounded-xl bg-white hover:bg-canvas border border-[#141917]/15 text-ink-primary text-xs sm:text-[13px] font-semibold transition-colors flex items-center justify-center gap-2.5 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-2xs"
                   @click="handleGoogleLogin"
                 >
                   <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" aria-hidden="true">
@@ -404,7 +404,7 @@ async function handleSubmit(event: FormSubmitEvent<LoginRequestInput>) {
 
                 <p
                   v-if="providersData && !googleLoginEnabled"
-                  class="text-[11px] text-[#B45309] bg-[#FEF7E6] border border-[#F3D89C] rounded-xl p-2.5 text-center"
+                  class="text-[11px] text-ochre-ink bg-ochre-surface border border-ochre-border rounded-xl p-2.5 text-center"
                 >
                   Google OAuth belum aktif di server. Gunakan email &amp; kata sandi di atas.
                 </p>
@@ -416,7 +416,7 @@ async function handleSubmit(event: FormSubmitEvent<LoginRequestInput>) {
           <div class="text-center">
             <NuxtLink
               to="/"
-              class="inline-flex items-center gap-1.5 text-xs font-semibold text-[#4A524E] hover:text-[#0B3D2E] transition-colors"
+              class="inline-flex items-center gap-1.5 text-xs font-semibold text-ink-secondary hover:text-brand-primary transition-colors"
             >
               <span>&larr; Kembali ke Observatorium Publik</span>
             </NuxtLink>

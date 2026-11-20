@@ -185,15 +185,15 @@ function getSlotSuccessRate(stat: ScraperProviderStatEntry): number {
     <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
       <div>
         <div
-          class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#E3F0EA] text-[#0B3D2E] border border-[#BBD8CB] text-xs font-semibold"
+          class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-brand-tint text-brand-primary border border-brand-border text-xs font-semibold"
         >
-          <UIcon name="i-solar-cpu-bolt-bold-duotone" class="w-3.5 h-3.5 text-[#0B3D2E]" />
+          <UIcon name="i-solar-cpu-bolt-bold-duotone" class="w-3.5 h-3.5 text-brand-primary" />
           <span>Observabilitas Crawler &amp; Pipeline Multi-LLM</span>
         </div>
-        <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-[#141917] mt-2 font-display">
+        <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-ink-primary mt-2 font-display">
           Monitor Crawler &amp; Rute Multi-LLM
         </h1>
-        <p class="text-xs sm:text-sm text-[#4A524E] mt-0.5">
+        <p class="text-xs sm:text-sm text-ink-secondary mt-0.5">
           Pemantauan eksekusi harian otomatis (04:00 WITA), feed GDELT opsional, pemulihan antrean AI gagal, serta
           efisiensi deduplikasi kuota 6 penyedia Multi-LLM (Gemini, Cerebras, Mistral, Groq, NVIDIA NIM &amp; OpenRouter).
         </p>
@@ -206,7 +206,7 @@ function getSlotSuccessRate(stat: ScraperProviderStatEntry): number {
           :class="
             isRunning
               ? 'bg-[#E8F4F1] text-[#0F766E] border-[#A7D7CF]'
-              : 'bg-[#E3F0EA] text-[#0B3D2E] border-[#BBD8CB]'
+              : 'bg-brand-tint text-brand-primary border-brand-border'
           "
         >
           <UIcon
@@ -238,10 +238,10 @@ function getSlotSuccessRate(stat: ScraperProviderStatEntry): number {
     <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
       <div class="obs-panel rounded-xl p-5 space-y-2">
         <div class="flex items-center justify-between gap-2">
-          <span class="text-xs font-semibold text-[#737B76]">
+          <span class="text-xs font-semibold text-ink-muted">
             Eksekusi Terakhir
           </span>
-          <div class="w-7 h-7 rounded-md bg-[#E3F0EA] text-[#0B3D2E] border border-[#BBD8CB] flex items-center justify-center shrink-0">
+          <div class="w-7 h-7 rounded-md bg-brand-tint text-brand-primary border border-brand-border flex items-center justify-center shrink-0">
             <UIcon name="i-solar-clock-circle-bold-duotone" class="w-4 h-4" />
           </div>
         </div>
@@ -255,32 +255,32 @@ function getSlotSuccessRate(stat: ScraperProviderStatEntry): number {
             >
               {{ latestStatusBadge.label }}
             </UBadge>
-            <span class="text-xs font-medium tabular-nums text-[#737B76] font-mono">
+            <span class="text-xs font-medium tabular-nums text-ink-muted font-mono">
               {{ formatDurationMs(latestRun.durationMs) }}
             </span>
           </div>
-          <div class="text-xs tabular-nums text-[#737B76] font-mono">
+          <div class="text-xs tabular-nums text-ink-muted font-mono">
             {{ formatDateTimeWita(latestRun.startedAt) }}
           </div>
         </template>
         <template v-else>
-          <div class="text-sm font-semibold text-[#737B76]">Belum pernah berjalan</div>
+          <div class="text-sm font-semibold text-ink-muted">Belum pernah berjalan</div>
         </template>
       </div>
 
       <div class="obs-panel rounded-xl p-5 space-y-2">
         <div class="flex items-center justify-between gap-2">
-          <span class="text-xs font-semibold text-[#737B76]">
+          <span class="text-xs font-semibold text-ink-muted">
             Token LLM (30 Hari)
           </span>
-          <div class="w-7 h-7 rounded-md bg-[#E3F0EA] text-[#0B3D2E] border border-[#BBD8CB] flex items-center justify-center shrink-0">
+          <div class="w-7 h-7 rounded-md bg-brand-tint text-brand-primary border border-brand-border flex items-center justify-center shrink-0">
             <UIcon name="i-solar-cpu-bolt-bold-duotone" class="w-4 h-4" />
           </div>
         </div>
-        <div class="text-3xl font-extrabold text-[#141917] tabular-nums font-mono">
+        <div class="text-3xl font-extrabold text-ink-primary tabular-nums font-mono">
           {{ formatNumberId(observability?.tokenStats30d.totalTokens) }}
         </div>
-        <div class="text-xs tabular-nums text-[#737B76] font-mono">
+        <div class="text-xs tabular-nums text-ink-muted font-mono">
           In: {{ formatNumberId(observability?.tokenStats30d.totalInputTokens) }} • Out:
           {{ formatNumberId(observability?.tokenStats30d.totalOutputTokens) }}
         </div>
@@ -288,10 +288,10 @@ function getSlotSuccessRate(stat: ScraperProviderStatEntry): number {
 
       <div class="obs-panel rounded-xl p-5 space-y-2">
         <div class="flex items-center justify-between gap-2">
-          <span class="text-xs font-semibold text-[#737B76]">
+          <span class="text-xs font-semibold text-ink-muted">
             Antrean LLM Gagal
           </span>
-          <div class="w-7 h-7 rounded-md bg-[#FEF6EE] text-[#B45309] border border-[#F7D3A6] flex items-center justify-center shrink-0">
+          <div class="w-7 h-7 rounded-md bg-[#FEF6EE] text-ochre-ink border border-[#F7D3A6] flex items-center justify-center shrink-0">
             <UIcon name="i-solar-refresh-circle-bold-duotone" class="w-4 h-4" />
           </div>
         </div>
@@ -300,12 +300,12 @@ function getSlotSuccessRate(stat: ScraperProviderStatEntry): number {
             class="text-3xl font-extrabold tabular-nums font-mono"
             :class="
               (observability?.pendingLlmFailedCount ?? 0) > 0
-                ? 'text-[#C8553D]'
-                : 'text-[#0B3D2E]'
+                ? 'text-terracotta-ink'
+                : 'text-brand-primary'
             "
           >
             {{ formatNumberId(observability?.pendingLlmFailedCount) }}
-            <span class="text-xs font-semibold text-[#737B76]">Artikel</span>
+            <span class="text-xs font-semibold text-ink-muted">Artikel</span>
           </span>
 
           <UButton
@@ -321,24 +321,24 @@ function getSlotSuccessRate(stat: ScraperProviderStatEntry): number {
             Retry
           </UButton>
         </div>
-        <div class="text-xs text-[#737B76] tabular-nums font-mono">
+        <div class="text-xs text-ink-muted tabular-nums font-mono">
           Total gagal keseluruhan: {{ formatNumberId(observability?.totalLlmFailedCount) }}
         </div>
       </div>
 
       <div class="obs-panel rounded-2xl p-5 space-y-2">
         <div class="flex items-center justify-between gap-2">
-          <span class="text-xs font-semibold text-[#737B76]">
+          <span class="text-xs font-semibold text-ink-muted">
             Efisiensi Deduplikasi (30h)
           </span>
-          <div class="w-8 h-8 rounded-xl bg-[#E3F0EA] text-[#0B3D2E] border border-[#BBD8CB] flex items-center justify-center shrink-0">
+          <div class="w-8 h-8 rounded-xl bg-brand-tint text-brand-primary border border-brand-border flex items-center justify-center shrink-0">
             <UIcon name="i-solar-filter-bold-duotone" class="w-4 h-4" />
           </div>
         </div>
-        <div class="text-3xl font-extrabold text-[#0B3D2E] tabular-nums font-mono">
+        <div class="text-3xl font-extrabold text-brand-primary tabular-nums font-mono">
           {{ observability?.tokenStats30d.deduplicationRatePercent ?? 0 }}%
         </div>
-        <div class="text-xs tabular-nums text-[#737B76] font-mono">
+        <div class="text-xs tabular-nums text-ink-muted font-mono">
           {{ formatNumberId(observability?.tokenStats30d.articlesDeduplicated) }} URL ditolak awal /
           {{ formatNumberId(observability?.tokenStats30d.articlesFetched) }} diambil
         </div>
@@ -354,15 +354,15 @@ function getSlotSuccessRate(stat: ScraperProviderStatEntry): number {
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div class="flex items-center gap-2.5">
           <div
-            class="w-8 h-8 rounded-xl bg-[#E3F0EA] text-[#0B3D2E] border border-[#BBD8CB] flex items-center justify-center shrink-0"
+            class="w-8 h-8 rounded-xl bg-brand-tint text-brand-primary border border-brand-border flex items-center justify-center shrink-0"
           >
             <UIcon name="i-solar-routing-2-bold-duotone" class="w-4 h-4" />
           </div>
           <div>
-            <h2 class="text-sm font-bold text-[#141917] font-display">
+            <h2 class="text-sm font-bold text-ink-primary font-display">
               Status &amp; Kapasitas Penyedia LLM
             </h2>
-            <p class="text-xs text-[#4A524E]">
+            <p class="text-xs text-ink-secondary">
               Urutan failover otomatis antar slot berdasarkan batas RPM, TPM, dan kuota harian.
             </p>
           </div>
@@ -372,8 +372,8 @@ function getSlotSuccessRate(stat: ScraperProviderStatEntry): number {
           class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border tabular-nums self-start sm:self-auto font-mono"
           :class="
             configuredProviderSlotsCount > 0
-              ? 'bg-[#E3F0EA] text-[#0B3D2E] border-[#BBD8CB]'
-              : 'bg-[#FEF6EE] text-[#B45309] border-[#F7D3A6]'
+              ? 'bg-brand-tint text-brand-primary border-brand-border'
+              : 'bg-[#FEF6EE] text-ochre-ink border-[#F7D3A6]'
           "
         >
           <UIcon
@@ -391,14 +391,14 @@ function getSlotSuccessRate(stat: ScraperProviderStatEntry): number {
           class="rounded-xl border p-4 space-y-3 transition-colors"
           :class="
             slot.configured
-              ? 'bg-white border-[#141917]/10'
-              : 'bg-[#F6F5F1] border-dashed border-[#141917]/15'
+              ? 'bg-white border-border-hairline'
+              : 'bg-canvas border-dashed border-[#141917]/15'
           "
         >
           <div class="flex items-center justify-between gap-2">
             <div class="flex items-center gap-1.5 min-w-0">
               <span
-                class="px-2 py-0.5 rounded-md bg-[#ECEAE2] border border-[#141917]/10 text-[11px] font-bold tabular-nums text-[#4A524E] shrink-0 font-mono"
+                class="px-2 py-0.5 rounded-md bg-surface-subtle border border-border-hairline text-[11px] font-bold tabular-nums text-ink-secondary shrink-0 font-mono"
               >
                 #{{ slot.priority }}
               </span>
@@ -421,8 +421,8 @@ function getSlotSuccessRate(stat: ScraperProviderStatEntry): number {
               class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold border shrink-0 tabular-nums font-mono"
               :class="
                 slot.configured
-                  ? 'bg-[#E3F0EA] text-[#0B3D2E] border-[#BBD8CB]'
-                  : 'bg-[#ECEAE2] text-[#737B76] border-[#141917]/10'
+                  ? 'bg-brand-tint text-brand-primary border-brand-border'
+                  : 'bg-surface-subtle text-ink-muted border-border-hairline'
               "
             >
               {{ slot.configured ? `Siap • ${slot.keyCount} Key` : 'Belum Diisi' }}
@@ -430,50 +430,50 @@ function getSlotSuccessRate(stat: ScraperProviderStatEntry): number {
           </div>
 
           <div class="space-y-1 text-xs">
-            <div class="font-semibold text-[#141917] truncate font-mono" :title="slot.model">
+            <div class="font-semibold text-ink-primary truncate font-mono" :title="slot.model">
               {{ slot.model }}
             </div>
-            <div class="text-[11px] text-[#737B76] tabular-nums font-mono">
+            <div class="text-[11px] text-ink-muted tabular-nums font-mono">
               Batas: {{ slot.rpmLimit }} RPM • {{ formatNumberId(slot.tpmLimit) }} TPM
             </div>
-            <div class="text-[11px] text-[#737B76]">
+            <div class="text-[11px] text-ink-muted">
               Kuota Harian: {{ slot.dailyQuotaNote }}
             </div>
           </div>
 
           <div
             v-if="getSlotStat30d(slot.slotId)"
-            class="pt-2.5 border-t border-[#141917]/10 grid grid-cols-4 gap-2 text-[11px] tabular-nums font-mono"
+            class="pt-2.5 border-t border-border-hairline grid grid-cols-4 gap-2 text-[11px] tabular-nums font-mono"
           >
             <div>
-              <div class="text-[#737B76]">Calls</div>
-              <div class="font-bold text-[#141917]">
+              <div class="text-ink-muted">Calls</div>
+              <div class="font-bold text-ink-primary">
                 {{ formatNumberId(getSlotStat30d(slot.slotId)!.calls) }}
               </div>
             </div>
             <div>
-              <div class="text-[#737B76]">Sukses</div>
-              <div class="font-bold text-[#0B3D2E]">
+              <div class="text-ink-muted">Sukses</div>
+              <div class="font-bold text-brand-primary">
                 {{ getSlotSuccessRate(getSlotStat30d(slot.slotId)!) }}%
               </div>
             </div>
             <div>
-              <div class="text-[#737B76]">HTTP 429</div>
+              <div class="text-ink-muted">HTTP 429</div>
               <div
                 class="font-bold"
-                :class="getSlotStat30d(slot.slotId)!.rateLimits > 0 ? 'text-[#B45309]' : 'text-[#737B76]'"
+                :class="getSlotStat30d(slot.slotId)!.rateLimits > 0 ? 'text-ochre-ink' : 'text-ink-muted'"
               >
                 {{ formatNumberId(getSlotStat30d(slot.slotId)!.rateLimits) }}
               </div>
             </div>
             <div>
-              <div class="text-[#737B76]">Token</div>
-              <div class="font-bold text-[#0B3D2E]">
+              <div class="text-ink-muted">Token</div>
+              <div class="font-bold text-brand-primary">
                 {{ formatNumberId(getSlotStat30d(slot.slotId)!.totalTokens) }}
               </div>
             </div>
           </div>
-          <div v-else class="pt-2.5 border-t border-[#141917]/10 text-[11px] text-[#737B76]">
+          <div v-else class="pt-2.5 border-t border-border-hairline text-[11px] text-ink-muted">
             Belum ada panggilan 30 hari terakhir
           </div>
         </div>
@@ -513,12 +513,12 @@ function getSlotSuccessRate(stat: ScraperProviderStatEntry): number {
           <button
             type="button"
             :disabled="isRunning || isTriggeringRetry || (observability?.totalLlmFailedCount ?? 0) === 0"
-            class="min-h-9 px-3.5 rounded-xl border border-[#F7D3A6] bg-[#FEF6EE] hover:bg-[#FDEEDC] text-xs font-semibold text-[#B45309] inline-flex items-center gap-1.5 transition-colors disabled:opacity-50 cursor-pointer"
+            class="min-h-9 px-3.5 rounded-xl border border-[#F7D3A6] bg-[#FEF6EE] hover:bg-[#FDEEDC] text-xs font-semibold text-ochre-ink inline-flex items-center gap-1.5 transition-colors disabled:opacity-50 cursor-pointer"
             @click="() => { void triggerRetryFailedLlm(); }"
           >
             <UIcon
               name="i-solar-refresh-circle-bold-duotone"
-              class="w-4 h-4 text-[#B45309]"
+              class="w-4 h-4 text-ochre-ink"
               :class="{ 'animate-spin': isTriggeringRetry }"
             />
             <span>Proses Ulang Artikel LLM Gagal</span>
@@ -539,16 +539,16 @@ function getSlotSuccessRate(stat: ScraperProviderStatEntry): number {
 
     <!-- Riwayat Log Eksekusi -->
     <div class="obs-panel rounded-2xl overflow-hidden">
-      <div class="px-5 py-4 border-b border-[#141917]/10 bg-[#F6F5F1] flex items-center justify-between gap-2">
+      <div class="px-5 py-4 border-b border-border-hairline bg-canvas flex items-center justify-between gap-2">
         <div class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-xl bg-[#E3F0EA] text-[#0B3D2E] border border-[#BBD8CB] flex items-center justify-center shrink-0">
+          <div class="w-8 h-8 rounded-xl bg-brand-tint text-brand-primary border border-brand-border flex items-center justify-center shrink-0">
             <UIcon name="i-solar-history-2-bold-duotone" class="w-4 h-4" />
           </div>
           <div>
-            <h2 class="text-sm font-bold text-[#141917] font-display">
+            <h2 class="text-sm font-bold text-ink-primary font-display">
               Riwayat Log Eksekusi Crawler
             </h2>
-            <p class="text-xs text-[#4A524E]">
+            <p class="text-xs text-ink-secondary">
               Catatan lengkap pipeline fetch, deduplikasi URL, pemetaan AI, dan ringkasan error per sesi.
             </p>
           </div>
@@ -557,12 +557,12 @@ function getSlotSuccessRate(stat: ScraperProviderStatEntry): number {
         <button
           type="button"
           :disabled="pending"
-          class="min-h-8 px-3 rounded-xl border border-[#141917]/10 bg-white hover:border-[#0B3D2E]/30 hover:bg-[#F6F5F1] text-xs font-semibold text-[#141917] inline-flex items-center gap-1.5 transition-colors disabled:opacity-50 cursor-pointer"
+          class="min-h-8 px-3 rounded-xl border border-border-hairline bg-white hover:border-brand-primary/30 hover:bg-canvas text-xs font-semibold text-ink-primary inline-flex items-center gap-1.5 transition-colors disabled:opacity-50 cursor-pointer"
           @click="() => { void refresh(); }"
         >
           <UIcon
             name="i-solar-restart-bold-duotone"
-            class="w-3.5 h-3.5 text-[#0B3D2E]"
+            class="w-3.5 h-3.5 text-brand-primary"
             :class="{ 'animate-spin': pending }"
           />
           <span>Segarkan</span>

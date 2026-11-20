@@ -15,21 +15,29 @@
   --color-surface-subtle: #ECEAE2;
   --color-surface-recessed: #F0EFE9;
   --color-border-hairline: rgba(20, 25, 23, 0.09);
+  --color-border-control: #757C78;
   --color-ink-obsidian: #141917;
   --color-ink-primary: #141917;
   --color-ink-secondary: #4A524E;
-  --color-ink-muted: #737B76;
+  --color-ink-muted: #5F6762;
   --color-brand-primary: #0B3D2E;
   --color-brand-hover: #072B20;
   --color-brand-tint: #E3F0EA;
   --color-brand-border: #BBD8CB;
   --color-brand-emerald: #0B3D2E;
   --color-brand-teal: #0F766E;
-  --color-brand-terracotta: #C8553D;
-  --color-terracotta-tint: #FBECE8;
-  --color-accent-copper: #C8553D;
-  --color-accent-copper-tint: #FBECE8;
-  --color-accent-ochre: #B45309;
+  --color-brand-teal-tint: #E6F4F2;
+  --color-terracotta: #C8553D;
+  --color-terracotta-ink: #9E331C;
+  --color-terracotta-surface: #FBECE8;
+  --color-terracotta-border: #F2C9BE;
+  --color-ochre: #B45309;
+  --color-ochre-ink: #92400E;
+  --color-ochre-surface: #FEF7E6;
+  --color-ochre-border: #F3D89C;
+  --color-focus-ring-inverse: #86EFAC;
+  --color-indigo: #4F46E5;
+  --color-indigo-tint: #EEF2FF;
 }
 
 @layer base {

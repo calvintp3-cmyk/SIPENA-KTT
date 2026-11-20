@@ -112,29 +112,29 @@ onBeforeUnmount(() => {
 
 <template>
   <div
-    class="min-h-screen bg-[#F6F5F1] text-[#141917] font-sans relative flex flex-col selection:bg-[#E3F0EA] selection:text-[#0B3D2E]"
+    class="min-h-screen bg-canvas text-ink-primary font-sans relative flex flex-col selection:bg-brand-tint selection:text-brand-primary"
   >
     <a
       href="#main-content"
-      class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:px-4 focus:py-2 focus:rounded-xl focus:bg-[#0B3D2E] focus:text-white focus:text-xs focus:font-semibold focus:shadow-lg"
+      class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:px-4 focus:py-2 focus:rounded-xl focus:bg-brand-primary focus:text-white focus:text-xs focus:font-semibold focus:shadow-lg"
     >
       Lewati ke konten utama
     </a>
 
     <!-- Full-Width Edge-to-Edge Sticky Masthead -->
     <header
-      class="sticky top-0 z-40 w-full bg-[#F6F5F1]/85 backdrop-blur-xl border-b border-[#141917]/[0.08] transition-[background-color,border-color]"
+      class="sticky top-0 z-40 w-full bg-canvas/85 backdrop-blur-xl border-b border-border-hairline transition-[background-color,border-color]"
       style="view-transition-name: sipena-public-header"
     >
       <div class="max-w-7xl mx-auto h-16 px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4">
         <!-- Brand Lockup -->
         <NuxtLink to="/" class="flex items-center gap-3 group shrink-0 rounded-lg py-1 focus-visible:outline-[#0B3D2E]">
           <div class="flex items-baseline gap-2">
-            <span class="font-display font-extrabold tracking-tight text-[#141917] text-lg sm:text-[19px] whitespace-nowrap">
-              SIPENA <span class="text-[#0B3D2E]">KTT</span>
+            <span class="font-display font-extrabold tracking-tight text-ink-primary text-lg sm:text-[19px] whitespace-nowrap">
+              SIPENA <span class="text-brand-primary">KTT</span>
             </span>
             <span class="hidden sm:inline-block w-px h-3.5 bg-[#141917]/15 self-center" />
-            <span class="hidden sm:inline-block text-[11px] font-semibold text-[#4A524E] tracking-wider uppercase whitespace-nowrap">
+            <span class="hidden sm:inline-block text-[11px] font-semibold text-ink-secondary tracking-wider uppercase whitespace-nowrap">
               BPS Kab. Tana Tidung
             </span>
           </div>
@@ -153,15 +153,15 @@ onBeforeUnmount(() => {
             class="relative px-3.5 py-1.5 rounded-lg text-[13px] transition-colors whitespace-nowrap"
             :class="
               item.active
-                ? 'text-[#0B3D2E] font-bold bg-[#E3F0EA]/70'
-                : 'text-[#4A524E] hover:text-[#141917] hover:bg-white/80 font-medium'
+                ? 'text-brand-primary font-bold bg-brand-tint/70'
+                : 'text-ink-secondary hover:text-ink-primary hover:bg-white/80 font-medium'
             "
             @click="(e: MouseEvent) => handleNavClick(item.to, e)"
           >
             <span>{{ item.label }}</span>
             <span
               v-if="item.active"
-              class="absolute bottom-0 left-3.5 right-3.5 h-[2px] bg-[#0B3D2E] rounded-full"
+              class="absolute bottom-0 left-3.5 right-3.5 h-[2px] bg-brand-primary rounded-full"
             />
           </NuxtLink>
         </nav>
@@ -171,7 +171,7 @@ onBeforeUnmount(() => {
           <div class="relative group">
             <UIcon
               name="i-solar-magnifer-line-duotone"
-              class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#737B76] group-focus-within:text-[#0B3D2E] pointer-events-none transition-colors"
+              class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted group-focus-within:text-brand-primary pointer-events-none transition-colors"
             />
             <label for="public-header-search" class="sr-only">Cari fenomena ekonomi</label>
             <input
@@ -180,14 +180,14 @@ onBeforeUnmount(() => {
               v-model="searchInput"
               type="search"
               placeholder="Cari sektor atau fenomena..."
-              class="w-full h-9 pl-9 pr-14 bg-white/90 hover:bg-white focus:bg-white text-xs text-[#141917] placeholder:text-[#737B76] rounded-xl border border-[#141917]/10 focus:border-[#0B3D2E] focus:ring-2 focus:ring-[#0B3D2E]/15 transition-[color,background-color,border-color,box-shadow]"
+              class="w-full h-9 pl-9 pr-14 bg-white/90 hover:bg-white focus:bg-white text-xs text-ink-primary placeholder:text-ink-muted rounded-xl border border-border-hairline focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/15 transition-[color,background-color,border-color,box-shadow]"
             >
             <div class="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
               <button
                 v-if="searchInput"
                 type="button"
                 aria-label="Hapus kata kunci pencarian"
-                class="min-w-8 min-h-8 inline-flex items-center justify-center text-[#4A524E] hover:text-[#141917] hover:bg-[#ECEAE2] rounded-lg cursor-pointer"
+                class="min-w-8 min-h-8 inline-flex items-center justify-center text-ink-secondary hover:text-ink-primary hover:bg-surface-subtle rounded-lg cursor-pointer"
                 @click="() => { searchInput = ''; }"
               >
                 <UIcon name="i-lucide-x" class="w-3.5 h-3.5" />
@@ -195,7 +195,7 @@ onBeforeUnmount(() => {
               <kbd
                 v-else
                 :title="shortcutTitle"
-                class="text-[10px] text-[#4A524E] bg-[#F6F5F1] border border-[#141917]/10 rounded px-1.5 py-0.5 font-mono font-medium leading-none pointer-events-none"
+                class="text-[10px] text-ink-secondary bg-canvas border border-border-hairline rounded px-1.5 py-0.5 font-mono font-medium leading-none pointer-events-none"
               >
                 {{ shortcutKey }}
               </kbd>
@@ -206,10 +206,10 @@ onBeforeUnmount(() => {
         <!-- Right Utility Cluster -->
         <div class="flex items-center gap-2.5 shrink-0">
           <div
-            class="items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#E3F0EA] border border-[#BBD8CB] text-[#0B3D2E] text-[11.5px] font-semibold tabular-nums whitespace-nowrap"
+            class="items-center gap-1.5 px-3 py-1.5 rounded-full bg-brand-tint border border-brand-border text-brand-primary text-[11.5px] font-semibold tabular-nums whitespace-nowrap"
             :class="isLinimasaRoute ? 'hidden sm:inline-flex' : 'hidden lg:inline-flex'"
           >
-            <span class="w-1.5 h-1.5 rounded-full bg-[#0B3D2E] animate-pulse" />
+            <span class="w-1.5 h-1.5 rounded-full bg-brand-primary animate-pulse" />
             <span>{{ shortHeaderPeriod }}</span>
           </div>
 
@@ -233,10 +233,10 @@ onBeforeUnmount(() => {
           <button
             type="button"
             aria-label="Buka menu navigasi publik"
-            class="md:hidden min-w-10 min-h-10 inline-flex items-center justify-center rounded-xl border border-[#141917]/10 bg-white text-[#141917] hover:bg-[#ECEAE2] cursor-pointer"
+            class="md:hidden min-w-10 min-h-10 inline-flex items-center justify-center rounded-xl border border-border-hairline bg-white text-ink-primary hover:bg-surface-subtle cursor-pointer"
             @click="() => { mobileMenuOpen = true; }"
           >
-            <UIcon name="i-solar-hamburger-menu-bold-duotone" class="w-5 h-5 text-[#0B3D2E]" />
+            <UIcon name="i-solar-hamburger-menu-bold-duotone" class="w-5 h-5 text-brand-primary" />
           </button>
         </div>
       </div>
@@ -248,7 +248,7 @@ onBeforeUnmount(() => {
       side="right"
       title="Navigasi Observatorium"
       description="Akses portal data fenomena ekonomi dan workstation BPS Tana Tidung"
-      :ui="{ content: 'max-w-xs bg-[#F6F5F1]' }"
+      :ui="{ content: 'max-w-xs bg-canvas' }"
     >
       <template #body>
         <nav aria-label="Menu Mobile Publik" class="space-y-2">
@@ -260,21 +260,21 @@ onBeforeUnmount(() => {
             class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition-colors"
             :class="
               item.active
-                ? 'bg-[#E3F0EA] text-[#0B3D2E] font-bold border border-[#BBD8CB]'
-                : 'text-[#4A524E] hover:bg-white font-medium'
+                ? 'bg-brand-tint text-brand-primary font-bold border border-brand-border'
+                : 'text-ink-secondary hover:bg-white font-medium'
             "
             @click="(e: MouseEvent) => handleNavClick(item.to, e)"
           >
             <UIcon
               :name="item.icon"
               class="w-5 h-5 shrink-0"
-              :class="item.active ? 'text-[#0B3D2E]' : 'text-[#737B76]'"
+              :class="item.active ? 'text-brand-primary' : 'text-ink-muted'"
             />
             <span>{{ item.label }}</span>
           </NuxtLink>
 
-          <div class="pt-4 mt-4 border-t border-[#141917]/10 space-y-3">
-            <div class="px-3 py-2 rounded-xl bg-[#E3F0EA] border border-[#BBD8CB] text-xs text-[#0B3D2E] font-medium flex items-center justify-between">
+          <div class="pt-4 mt-4 border-t border-border-hairline space-y-3">
+            <div class="px-3 py-2 rounded-xl bg-brand-tint border border-brand-border text-xs text-brand-primary font-medium flex items-center justify-between">
               <span>Periode Aktif</span>
               <span class="font-bold tabular-nums font-mono">{{ shortHeaderPeriod }}</span>
             </div>
@@ -308,40 +308,40 @@ onBeforeUnmount(() => {
     </main>
 
     <!-- Asymmetric 2-Band Observatory Colophon Footer -->
-    <footer class="relative z-10 w-full bg-[#F6F5F1] border-t border-[#141917]/[0.08] py-10 shrink-0">
+    <footer class="relative z-10 w-full bg-canvas border-t border-border-hairline py-10 shrink-0">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="grid grid-cols-1 md:grid-cols-12 gap-8 items-start pb-8 border-b border-[#141917]/[0.08]">
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-8 items-start pb-8 border-b border-border-hairline">
           <!-- Left Column: Editorial Manifesto Colophon -->
           <div class="md:col-span-7 space-y-2.5">
             <div class="flex items-center gap-2">
-              <span class="font-display font-extrabold tracking-tight text-[#141917] text-base">
-                SIPENA <span class="text-[#0B3D2E]">KTT</span>
+              <span class="font-display font-extrabold tracking-tight text-ink-primary text-base">
+                SIPENA <span class="text-brand-primary">KTT</span>
               </span>
-              <span class="text-[11px] font-semibold text-[#737B76] uppercase tracking-wider">
+              <span class="text-[11px] font-semibold text-ink-muted uppercase tracking-wider">
                 • Observatorium Fenomena Ekonomi
               </span>
             </div>
-            <p class="text-xs text-[#4A524E] leading-relaxed max-w-xl">
+            <p class="text-xs text-ink-secondary leading-relaxed max-w-xl">
               Platform intelijen dan rekam jejak dinamika 17 Lapangan Usaha KBLI serta 6 Komponen Pengeluaran PDRB Kabupaten Tana Tidung. Dikurasi oleh Tim Neraca Wilayah dan Analisis Statistik (Nerwilis) BPS Kabupaten Tana Tidung, Kalimantan Utara.
             </p>
-            <div class="text-[11px] text-[#737B76] font-mono">
+            <div class="text-[11px] text-ink-muted font-mono">
               Zona Waktu Operasional: WITA (UTC+8)
             </div>
           </div>
 
           <!-- Right Column: Institutional Navigation Links -->
-          <div class="md:col-span-5 flex flex-col sm:flex-row sm:items-center sm:justify-end gap-6 text-xs font-medium text-[#4A524E]">
+          <div class="md:col-span-5 flex flex-col sm:flex-row sm:items-center sm:justify-end gap-6 text-xs font-medium text-ink-secondary">
             <div class="flex flex-col space-y-2">
-              <span class="text-[11px] font-semibold uppercase tracking-wider text-[#737B76]">Eksplorasi</span>
-              <NuxtLink to="/" class="hover:text-[#0B3D2E] transition-colors">
+              <span class="text-[11px] font-semibold uppercase tracking-wider text-ink-muted">Eksplorasi</span>
+              <NuxtLink to="/" class="hover:text-brand-primary transition-colors">
                 Ikhtisar Denyut
               </NuxtLink>
-              <NuxtLink to="/linimasa" class="hover:text-[#0B3D2E] transition-colors">
+              <NuxtLink to="/linimasa" class="hover:text-brand-primary transition-colors">
                 Sinyal Fenomena
               </NuxtLink>
               <button
                 type="button"
-                class="hover:text-[#0B3D2E] transition-colors cursor-pointer text-left"
+                class="hover:text-brand-primary transition-colors cursor-pointer text-left"
                 @click="(e: MouseEvent) => handleNavClick('/#cara-kerja', e)"
               >
                 Metodologi BPS
@@ -349,10 +349,10 @@ onBeforeUnmount(() => {
             </div>
 
             <div class="flex flex-col space-y-2">
-              <span class="text-[11px] font-semibold uppercase tracking-wider text-[#737B76]">Aparatur</span>
+              <span class="text-[11px] font-semibold uppercase tracking-wider text-ink-muted">Aparatur</span>
               <NuxtLink
                 :to="user ? '/admin' : '/login'"
-                class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white border border-[#141917]/10 text-[#0B3D2E] hover:bg-[#E3F0EA] font-semibold transition-colors shadow-2xs"
+                class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white border border-border-hairline text-brand-primary hover:bg-brand-tint font-semibold transition-colors shadow-2xs"
               >
                 <span>{{ user ? 'Workstation Admin' : 'Masuk Workstation' }}</span>
                 <UIcon name="i-lucide-arrow-up-right" class="w-3.5 h-3.5" />
@@ -361,7 +361,7 @@ onBeforeUnmount(() => {
           </div>
         </div>
 
-        <div class="pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-[#737B76]">
+        <div class="pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-ink-muted">
           <div>
             &copy; {{ new Date().getFullYear() }} Badan Pusat Statistik Kabupaten Tana Tidung. Seluruh hak cipta dilindungi.
           </div>
