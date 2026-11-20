@@ -841,94 +841,143 @@ function printNarrativeSheet() {
   window.print();
 }
 
-function downloadFullQuarterBookDocx() {
-  if (!import.meta.client) return;
+const isExportingBook = ref(false);
 
-  const draftsMap = new Map<string, FullQuarterSectionDraft>();
+async function downloadFullQuarterBookDocx() {
+  if (!import.meta.client || isExportingBook.value) return;
+  isExportingBook.value = true;
 
-  // 1. Masukkan semua draf yang tersimpan di database PostgreSQL
-  for (const d of savedDrafts.value) {
-    const key = `${d.dimension}-${d.targetCode}`;
-    draftsMap.set(key, {
-      dimension: d.dimension,
-      code: d.targetCode,
-      title: d.targetLabel || d.title,
-      markdown: d.narrativeMarkdown,
-      citations: (d.citations ?? []).map((c: SynthesisCitationItem) => ({
-        index: c.index,
-        title: c.title,
-        sourcePortal: c.sourcePortal,
-        publishedAtText: formatDateId(c.publishedAt),
-        url: c.url,
-      })),
-      updatedAtText: d.updatedAt ? formatDateTimeWita(d.updatedAt) : undefined,
-    });
-  }
-
-  // 2. Jika ada draf aktif di editor saat ini, gunakan versi terbarunya
-  if (editableMarkdown.value.trim() && currentTargetLabel.value) {
-    const activeKey = `${dimension.value}-${targetCode.value}`;
-    draftsMap.set(activeKey, {
-      dimension: dimension.value,
-      code: targetCode.value,
-      title: currentTargetLabel.value,
-      markdown: editableMarkdown.value,
-      citations: (result.value?.citations ?? []).map((c: SynthesisCitationItem) => ({
-        index: c.index,
-        title: c.title,
-        sourcePortal: c.sourcePortal,
-        publishedAtText: formatDateId(c.publishedAt),
-        url: c.url,
-      })),
-      updatedAtText: 'Draf Aktif Studio',
-    });
-  }
-
-  const sections = Array.from(draftsMap.values());
-  if (sections.length === 0) {
-    toast.add({
-      title: 'Belum Ada Draf Fenomena',
-      description: 'Silakan susun atau simpan minimal 1 draf narasi sektor terlebih dahulu.',
-      color: 'warning',
-      icon: 'i-lucide-alert-circle',
-    });
-    return;
-  }
-
-  // Urutkan Lapangan Usaha A-Z, lalu Pengeluaran
-  sections.sort((a, b) => {
-    if (a.dimension !== b.dimension) {
-      return a.dimension === 'kbli' ? -1 : 1;
+  try {
+    // 1. Ambil draf untuk periode terpilih dari database (maksimal limit 50 sesuai skema)
+    let fetchedDrafts: SynthesisDraftItem[] = [];
+    try {
+      const res = await $fetch<SynthesisDraftsResponse>('/api/admin/synthesis/drafts', {
+        query: {
+          year: selectedYear.value,
+          quarter: selectedQuarter.value,
+          limit: 50,
+        },
+        credentials: 'include',
+      });
+      fetchedDrafts = res?.items ?? [];
+    } catch {
+      // Fallback ke draf lokal jika query gagal
+      fetchedDrafts = savedDrafts.value;
     }
-    return a.code.localeCompare(b.code);
-  });
 
-  const bytes = buildFullQuarterBrsDocxBytes({
-    year: selectedYear.value,
-    quarter: selectedQuarter.value,
-    periodLabel: periodLabel.value,
-    compiledAtText: formatDateTimeWita(new Date().toISOString()),
-    sections,
-  });
+    // Filter ketat sisi klien agar draf benar-benar sesuai periode yang dipilih
+    const periodDrafts = fetchedDrafts.filter(
+      (d) => Number(d.year) === Number(selectedYear.value) && Number(d.quarter) === Number(selectedQuarter.value),
+    );
 
-  const blob = new Blob([new Uint8Array(bytes)], {
-    type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `SIPENA-Buku-Fenomena-PDRB-${selectedYear.value}-TW${selectedQuarter.value}-KTT.docx`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+    // Deduplikasi versi terbaru per (dimension, targetCode) berdasarkan updatedAt
+    const latestPerKey = new Map<string, SynthesisDraftItem>();
+    for (const d of periodDrafts) {
+      const key = `${d.dimension}-${d.targetCode}`;
+      const existing = latestPerKey.get(key);
+      const curTime = new Date(d.updatedAt || d.createdAt || 0).getTime();
+      const exTime = existing ? new Date(existing.updatedAt || existing.createdAt || 0).getTime() : 0;
+      if (!existing || curTime >= exTime) {
+        latestPerKey.set(key, d);
+      }
+    }
 
-  toast.add({
-    title: 'Buku Fenomena Berhasil Diunduh',
-    description: `Buku kompilasi ${sections.length} sektor berhasil diekspor ke Word (.docx)`,
-    color: 'success',
-    icon: 'i-lucide-check-circle',
-  });
+    const draftsMap = new Map<string, FullQuarterSectionDraft>();
+    for (const [key, d] of latestPerKey.entries()) {
+      draftsMap.set(key, {
+        dimension: d.dimension,
+        code: d.targetCode,
+        title: d.targetLabel || d.title,
+        markdown: d.narrativeMarkdown,
+        citations: (d.citations ?? []).map((c: SynthesisCitationItem) => ({
+          index: c.index,
+          title: c.title,
+          sourcePortal: c.sourcePortal,
+          publishedAtText: formatDateId(c.publishedAt),
+          url: c.url,
+        })),
+        updatedAtText: d.updatedAt ? formatDateTimeWita(d.updatedAt) : undefined,
+      });
+    }
+
+    // 2. Jika ada draf aktif di editor saat ini untuk periode yang sama, gunakan versi terbarunya
+    if (editableMarkdown.value.trim() && currentTargetLabel.value) {
+      const activeKey = `${dimension.value}-${targetCode.value}`;
+      draftsMap.set(activeKey, {
+        dimension: dimension.value,
+        code: targetCode.value,
+        title: currentTargetLabel.value,
+        markdown: editableMarkdown.value,
+        citations: (result.value?.citations ?? []).map((c: SynthesisCitationItem) => ({
+          index: c.index,
+          title: c.title,
+          sourcePortal: c.sourcePortal,
+          publishedAtText: formatDateId(c.publishedAt),
+          url: c.url,
+        })),
+        updatedAtText: 'Draf Aktif Studio',
+      });
+    }
+
+    const sections = Array.from(draftsMap.values());
+    if (sections.length === 0) {
+      toast.add({
+        title: 'Belum Ada Draf Fenomena',
+        description: `Tidak ditemukan draf narasi untuk ${periodLabel.value}. Silakan susun minimal 1 draf terlebih dahulu.`,
+        color: 'warning',
+        icon: 'i-lucide-alert-circle',
+      });
+      return;
+    }
+
+    // Pemeriksaan kelengkapan: 23 bagian total (17 KBLI + 6 Pengeluaran)
+    const TOTAL_PDRB_SECTIONS = 23;
+    if (sections.length < TOTAL_PDRB_SECTIONS) {
+      toast.add({
+        title: 'Perhatian: Buku Belum Lengkap',
+        description: `Hanya ${sections.length} dari ${TOTAL_PDRB_SECTIONS} bagian yang memiliki draf untuk ${periodLabel.value}. Bagian yang belum tersusun akan dilewati.`,
+        color: 'warning',
+        icon: 'i-lucide-alert-triangle',
+      });
+    }
+
+    // Urutkan Lapangan Usaha A-Z, lalu Pengeluaran
+    sections.sort((a, b) => {
+      if (a.dimension !== b.dimension) {
+        return a.dimension === 'kbli' ? -1 : 1;
+      }
+      return a.code.localeCompare(b.code);
+    });
+
+    const bytes = buildFullQuarterBrsDocxBytes({
+      year: selectedYear.value,
+      quarter: selectedQuarter.value,
+      periodLabel: periodLabel.value,
+      compiledAtText: formatDateTimeWita(new Date().toISOString()),
+      sections,
+    });
+
+    const blob = new Blob([new Uint8Array(bytes)], {
+      type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `SIPENA-Buku-Fenomena-PDRB-${selectedYear.value}-TW${selectedQuarter.value}-KTT.docx`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    toast.add({
+      title: 'Buku Fenomena Berhasil Diunduh',
+      description: `Buku kompilasi ${sections.length} dari ${TOTAL_PDRB_SECTIONS} bagian berhasil diekspor ke Word (.docx)`,
+      color: 'success',
+      icon: 'i-lucide-check-circle',
+    });
+  } finally {
+    isExportingBook.value = false;
+  }
 }
 
 const manualModalOpen = ref(false);
@@ -961,17 +1010,22 @@ const manualModalOpen = ref(false);
             @click="() => { draftsDrawerOpen = true; }"
           >
             <UIcon name="i-solar-history-2-bold-duotone" class="w-4 h-4 text-[#0B3D2E]" />
-            <span class="tabular-nums font-mono">Riwayat Draf ({{ savedDrafts.length }})</span>
+            <span class="tabular-nums font-mono">Riwayat Draf (Lintas Periode: {{ savedDrafts.length }})</span>
           </button>
 
           <button
             type="button"
-            class="min-h-9 px-3.5 rounded-xl border border-[#BBD8CB] bg-[#E3F0EA] hover:bg-[#d0e7dc] text-xs font-semibold text-[#0B3D2E] inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+            :disabled="isExportingBook"
+            class="min-h-9 px-3.5 rounded-xl border border-[#BBD8CB] bg-[#E3F0EA] hover:bg-[#d0e7dc] text-xs font-semibold text-[#0B3D2E] inline-flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
             title="Kompilasi seluruh sektor KBLI & Pengeluaran triwulan ini ke satu dokumen Word (.docx) utuh"
-            @click="() => { downloadFullQuarterBookDocx(); }"
+            @click="() => { void downloadFullQuarterBookDocx(); }"
           >
-            <UIcon name="i-lucide-book-open" class="w-4 h-4 text-[#0B3D2E]" />
-            <span>Buku Triwulan (.docx)</span>
+            <UIcon
+              :name="isExportingBook ? 'i-lucide-loader-circle' : 'i-lucide-book-open'"
+              class="w-4 h-4 text-[#0B3D2E]"
+              :class="isExportingBook ? 'animate-spin' : ''"
+            />
+            <span>{{ isExportingBook ? 'Mengekspor Buku...' : 'Buku Triwulan (.docx)' }}</span>
           </button>
 
           <button
@@ -1538,7 +1592,7 @@ const manualModalOpen = ref(false);
     <USlideover
       v-model:open="draftsDrawerOpen"
       side="right"
-      title="Riwayat Draf Sintesis (Database Tim)"
+      title="Riwayat Draf Sintesis (Lintas Periode)"
       description="Draf narasi BRS tersimpan bersama di PostgreSQL dan dapat dibuka atau diperbarui oleh seluruh operator Nerwilis."
     >
       <template #body>

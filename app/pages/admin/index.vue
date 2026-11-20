@@ -452,7 +452,7 @@ const shortExpHeaders: Record<string, string> = {
                 Belum ada bukti empiris tercatat pada periode ini.
               </p>
               <p v-else class="text-[11px] text-[#4A524E] mt-1 line-clamp-1">
-                Dominan: {{ tile.dominantImpact || 'Netral' }}
+                Dominan: {{ tile.dominantImpact ? getKbliImpactBadge(tile.dominantImpact).shortLabel : 'Netral' }}
               </p>
             </div>
 

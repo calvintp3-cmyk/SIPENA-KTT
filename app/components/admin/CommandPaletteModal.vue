@@ -174,6 +174,7 @@ watch(modalOpen, (isOpen: boolean) => {
   if (isOpen) {
     query.value = '';
     matchedArticles.value = [];
+    selectedIndex.value = 0;
     nextTick(() => {
       searchInputEl.value?.focus();
     });
@@ -183,6 +184,49 @@ watch(modalOpen, (isOpen: boolean) => {
 onBeforeUnmount(() => {
   if (articleSearchTimer) clearTimeout(articleSearchTimer);
 });
+
+type PaletteEntry =
+  | { type: 'route'; item: PaletteRouteItem }
+  | { type: 'article'; item: AdminArticleItem }
+  | { type: 'all_articles'; query: string };
+
+const selectedIndex = ref(0);
+
+const flatEntries = computed<PaletteEntry[]>(() => {
+  const entries: PaletteEntry[] = [];
+  for (const r of filteredRoutes.value) {
+    entries.push({ type: 'route', item: r });
+  }
+  if (query.value.trim().length >= 2) {
+    for (const a of matchedArticles.value) {
+      entries.push({ type: 'article', item: a });
+    }
+    if (matchedArticles.value.length > 0) {
+      entries.push({ type: 'all_articles', query: query.value.trim() });
+    }
+  }
+  return entries;
+});
+
+watch([query, matchedArticles], () => {
+  selectedIndex.value = 0;
+});
+
+function handleKeydown(e: KeyboardEvent) {
+  const total = flatEntries.value.length;
+  if (!total) return;
+
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    selectedIndex.value = (selectedIndex.value + 1) % total;
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    selectedIndex.value = (selectedIndex.value - 1 + total) % total;
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    void executeSelected();
+  }
+}
 
 async function goToRoute(to: string) {
   modalOpen.value = false;
@@ -195,20 +239,20 @@ async function openArticleInReview(article: AdminArticleItem) {
     path: '/admin/review',
     query: {
       status: article.verificationStatus,
-      focus: article.id,
+      articleId: article.id,
     },
   });
 }
 
-async function handleSubmitEnter() {
-  const firstRoute = filteredRoutes.value[0];
-  if (firstRoute) {
-    await goToRoute(firstRoute.to);
-    return;
-  }
-  const firstArticle = matchedArticles.value[0];
-  if (firstArticle) {
-    await openArticleInReview(firstArticle);
+async function executeSelected() {
+  const target = flatEntries.value[selectedIndex.value];
+  if (!target) return;
+  if (target.type === 'route') {
+    await goToRoute(target.item.to);
+  } else if (target.type === 'article') {
+    await openArticleInReview(target.item);
+  } else if (target.type === 'all_articles') {
+    await goToRoute(`/admin/articles?q=${encodeURIComponent(target.query)}`);
   }
 }
 </script>
@@ -233,9 +277,14 @@ async function handleSubmitEnter() {
             ref="searchInputEl"
             v-model="query"
             type="search"
+            role="combobox"
+            aria-autocomplete="list"
+            aria-expanded="true"
+            aria-controls="command-palette-listbox"
+            :aria-activedescendant="flatEntries[selectedIndex] ? `palette-opt-${selectedIndex}` : undefined"
             placeholder="Lompat ke menu atau ketik minimal 2 huruf untuk cari artikel..."
             class="w-full bg-transparent text-sm text-[#141917] placeholder:text-[#737B76] focus:outline-none"
-            @keydown.enter.prevent="handleSubmitEnter"
+            @keydown="handleKeydown"
           >
           <button
             type="button"
@@ -247,18 +296,32 @@ async function handleSubmitEnter() {
         </div>
 
         <!-- Results Body -->
-        <div class="flex-1 overflow-y-auto saas-scroll p-3 space-y-4">
+        <div
+          id="command-palette-listbox"
+          role="listbox"
+          aria-label="Hasil pencarian perintah dan artikel"
+          class="flex-1 overflow-y-auto saas-scroll p-3 space-y-4"
+        >
           <!-- Routes Section -->
           <div v-if="filteredRoutes.length > 0" class="space-y-1">
             <div class="px-2 py-1 text-[11px] font-semibold tracking-wide text-[#737B76] uppercase font-mono">
               Menu Workstation
             </div>
             <button
-              v-for="item in filteredRoutes"
+              v-for="(item, idx) in filteredRoutes"
+              :id="`palette-opt-${idx}`"
               :key="item.to"
+              role="option"
+              :aria-selected="selectedIndex === idx"
               type="button"
-              class="w-full flex items-center justify-between gap-3 px-2.5 py-2 rounded-xl text-left hover:bg-[#E3F0EA]/50 border border-transparent hover:border-[#BBD8CB] transition-colors cursor-pointer"
+              class="w-full flex items-center justify-between gap-3 px-2.5 py-2 rounded-xl text-left border transition-colors cursor-pointer"
+              :class="
+                selectedIndex === idx
+                  ? 'border-[#BBD8CB] bg-[#E3F0EA]/60 ring-1 ring-[#0B3D2E]/20'
+                  : 'border-transparent hover:bg-[#E3F0EA]/50 hover:border-[#BBD8CB]'
+              "
               @click="goToRoute(item.to)"
+              @mouseenter="selectedIndex = idx"
             >
               <div class="flex items-center gap-2.5 min-w-0">
                 <div class="w-8 h-8 rounded-lg bg-[#E3F0EA] text-[#0B3D2E] border border-[#BBD8CB] flex items-center justify-center shrink-0">
@@ -300,11 +363,20 @@ async function handleSubmitEnter() {
             </div>
 
             <button
-              v-for="art in matchedArticles"
+              v-for="(art, artIdx) in matchedArticles"
+              :id="`palette-opt-${filteredRoutes.length + artIdx}`"
               :key="art.id"
+              role="option"
+              :aria-selected="selectedIndex === (filteredRoutes.length + artIdx)"
               type="button"
-              class="w-full flex items-start justify-between gap-3 px-2.5 py-2.5 rounded-xl text-left hover:bg-[#E3F0EA]/45 border border-transparent hover:border-[#BBD8CB] transition-colors cursor-pointer"
+              class="w-full flex items-start justify-between gap-3 px-2.5 py-2.5 rounded-xl text-left border transition-colors cursor-pointer"
+              :class="
+                selectedIndex === (filteredRoutes.length + artIdx)
+                  ? 'border-[#BBD8CB] bg-[#E3F0EA]/60 ring-1 ring-[#0B3D2E]/20'
+                  : 'border-transparent hover:bg-[#E3F0EA]/45 hover:border-[#BBD8CB]'
+              "
               @click="openArticleInReview(art)"
+              @mouseenter="selectedIndex = filteredRoutes.length + artIdx"
             >
               <div class="min-w-0 space-y-1">
                 <div class="text-xs font-semibold text-[#141917] line-clamp-1 font-display">
@@ -331,9 +403,18 @@ async function handleSubmitEnter() {
 
             <button
               v-if="matchedArticles.length > 0"
+              :id="`palette-opt-${filteredRoutes.length + matchedArticles.length}`"
+              role="option"
+              :aria-selected="selectedIndex === (filteredRoutes.length + matchedArticles.length)"
               type="button"
-              class="w-full mt-1 px-2.5 py-2 rounded-xl text-xs font-semibold text-[#0B3D2E] hover:bg-[#E3F0EA] flex items-center justify-between cursor-pointer font-display"
+              class="w-full mt-1 px-2.5 py-2 rounded-xl text-xs font-semibold text-[#0B3D2E] flex items-center justify-between cursor-pointer font-display transition-colors"
+              :class="
+                selectedIndex === (filteredRoutes.length + matchedArticles.length)
+                  ? 'bg-[#E3F0EA] ring-1 ring-[#0B3D2E]/20'
+                  : 'hover:bg-[#E3F0EA]'
+              "
               @click="goToRoute(`/admin/articles?q=${encodeURIComponent(query.trim())}`)"
+              @mouseenter="selectedIndex = filteredRoutes.length + matchedArticles.length"
             >
               <span>Buka semua hasil "{{ query.trim() }}" di Bank Data</span>
               <UIcon name="i-lucide-arrow-right" class="w-3.5 h-3.5" />

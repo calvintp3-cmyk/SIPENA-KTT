@@ -10,6 +10,7 @@ export interface ExportArticlesParams {
   pdrbGroup?: string;
   expenditure?: string;
   portal?: string;
+  subdistrict?: string;
   from?: string;
   to?: string;
   q?: string;
@@ -58,6 +59,7 @@ export function useExcelExport() {
         ['pdrbGroup', params.pdrbGroup],
         ['expenditure', params.expenditure],
         ['portal', params.portal],
+        ['subdistrict', params.subdistrict],
         ['from', params.from],
         ['to', params.to],
         ['q', params.q],

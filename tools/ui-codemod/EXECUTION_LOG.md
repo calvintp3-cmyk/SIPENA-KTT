@@ -34,4 +34,22 @@ Dokumen ini mencatat seluruh proses eksekusi otonom per sesi: branch, commit has
   - Vitest: 22 files, 166 tests PASSED (100%).
   - Forbidden Path Gate: 0 perubahan pada `server/**`, `prisma/**`, `shared/schemas/**`.
 
+---
+
+## Sesi 1C: Admin Hotfixes (PR-A5 s.d. PR-A9)
+- **Branch:** `fix/ui-1c-admin-hotfixes`
+- **ID Temuan:** `UX-007`, `UX-008`, `UX-014`, `UX-015`, `UX-016`
+- **Status:** COMPLETED
+- **Ringkasan Perubahan:**
+  1. `PR-A5 (UX-007)` (`app/pages/admin/synthesis.vue`): `downloadFullQuarterBookDocx` mengirim query `{ year, quarter, limit: 50 }` ke `/api/admin/synthesis/drafts`, menyaring ketat periode aktif di klien, mendeduplikasi versi draf terbaru per `(dimension, targetCode)` berdasarkan `updatedAt`, mengecek kelengkapan 23 bagian PDRB (17 KBLI + 6 Pengeluaran) dengan peringatan sebelum ekspor, dan memberi label "Riwayat Draf (Lintas Periode)" pada tombol & slideover.
+  2. `PR-A6 (UX-008)` (`app/components/admin/CommandPaletteModal.vue`): Mengubah parameter navigasi artikel ke `query: { status, articleId }` sesuai deep link `review.vue`, mengimplementasikan navigasi keyboard `ArrowUp`/`ArrowDown`/`Enter`, dan melengkapi ARIA accessibility (`role="combobox"`, `role="listbox"`, `role="option"`, `aria-activedescendant`).
+  3. `PR-A7 (UX-014)` (`app/pages/admin/index.vue`): Mengganti teks mentah enum `tile.dominantImpact` dengan `getKbliImpactBadge(tile.dominantImpact).shortLabel`.
+  4. `PR-A8 (UX-015)` (`app/pages/admin/trends.vue`): Memperbaiki filter event handler `@update:model-value` agar mengizinkan opsi urut `'share'` (Pangsa Sektoral Tertinggi) dan `'nbi'` (Net Balance Index Tertinggi).
+  5. `PR-A9 (UX-016)` (`app/pages/admin/articles.vue` & `app/composables/useExcelExport.ts`): Menambahkan filter `subdistrict` pada URL query sync, watcher reset page, active chips, dan parameter ekspor Excel/CSV; memperbaiki tab "Semua Berita" agar menghitung total dari `summaryCounts` (`pendingCount + verifiedCount + ignoredCount`).
+  6. `tests/admin-hotfixes.test.ts`: 7 test cases lulus (100%).
+- **Gate:**
+  - Vitest: 23 files, 173 tests PASSED (100%).
+  - Forbidden Path Gate: 0 perubahan pada `server/**`, `prisma/**`, `shared/schemas/**`.
+
+
 

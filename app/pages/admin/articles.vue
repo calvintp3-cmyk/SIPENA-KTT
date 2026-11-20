@@ -100,6 +100,9 @@ function applyRouteQuery(queryObj: Record<string, unknown>) {
   const qPortal = readSingleQuery(queryObj.portal);
   filters.portal = qPortal || 'ALL';
 
+  const qSubdistrict = readSingleQuery(queryObj.subdistrict);
+  filters.subdistrict = qSubdistrict || 'ALL';
+
   const qStatus = readSingleQuery(queryObj.status);
   filters.status = qStatus && qStatus in VerificationStatusEnum ? qStatus : 'ALL';
 
@@ -172,6 +175,7 @@ watch(
     filters.kbli,
     filters.expenditure,
     filters.portal,
+    filters.subdistrict,
     filters.status,
     filters.llmStatus,
     filters.isEconomic,
@@ -368,12 +372,19 @@ const hasActiveFilters = computed(
     filters.kbli !== 'ALL' ||
     filters.expenditure !== 'ALL' ||
     filters.portal !== 'ALL' ||
+    filters.subdistrict !== 'ALL' ||
     filters.status !== 'ALL' ||
     filters.llmStatus !== 'ALL' ||
     filters.isEconomic !== 'ALL' ||
     Boolean(filters.from) ||
     Boolean(filters.to),
 );
+
+const allArticlesCount = computed(() => {
+  const c = archiveData.value?.summaryCounts;
+  if (!c) return archiveData.value?.pagination.total ?? 0;
+  return c.pendingCount + c.verifiedCount + c.ignoredCount;
+});
 
 function resetFilters() {
   filters.q = '';
@@ -407,6 +418,7 @@ function buildExportParams(format: 'xlsx' | 'csv') {
       filters.kbli === 'ALL' && filters.pdrbGroup !== 'ALL' ? filters.pdrbGroup : undefined,
     expenditure: filters.expenditure === 'ALL' ? undefined : filters.expenditure,
     portal: filters.portal === 'ALL' ? undefined : filters.portal,
+    subdistrict: filters.subdistrict === 'ALL' ? undefined : filters.subdistrict,
     status: filters.status === 'ALL' ? undefined : filters.status,
     llmStatus: filters.llmStatus === 'ALL' ? undefined : filters.llmStatus,
     isEconomic: 'true',
@@ -702,7 +714,7 @@ const columns: TableColumn<AdminArticleItem>[] = [
           >
             <span>Semua Berita</span>
             <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-[#ECEAE2] text-[#4A524E] tabular-nums font-bold font-mono">
-              {{ archiveData?.pagination.total ?? 0 }}
+              {{ allArticlesCount }}
             </span>
           </button>
 
@@ -1108,6 +1120,16 @@ const columns: TableColumn<AdminArticleItem>[] = [
           @click="() => { filters.portal = 'ALL'; }"
         >
           <span>Portal: {{ filters.portal }}</span>
+          <UIcon name="i-lucide-x" class="w-3.5 h-3.5" />
+        </button>
+
+        <button
+          v-if="filters.subdistrict !== 'ALL'"
+          type="button"
+          class="min-h-8 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E3F0EA] text-[#0B3D2E] border border-[#BBD8CB] font-medium hover:bg-[#D5E8DF] cursor-pointer"
+          @click="() => { filters.subdistrict = 'ALL'; }"
+        >
+          <span>Kecamatan: {{ filters.subdistrict }}</span>
           <UIcon name="i-lucide-x" class="w-3.5 h-3.5" />
         </button>
 

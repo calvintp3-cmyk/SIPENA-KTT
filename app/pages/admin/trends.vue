@@ -686,7 +686,7 @@ function handleExportXlsx() {
               size="sm"
               aria-label="Urutkan tabel perbandingan"
               class="w-full"
-              @update:model-value="(val: unknown) => { if (val === 'delta' || val === 'current' || val === 'code') sortKey = val; }"
+              @update:model-value="(val: unknown) => { if (val === 'delta' || val === 'current' || val === 'code' || val === 'share' || val === 'nbi') sortKey = val; }"
             />
           </div>
         </div>
