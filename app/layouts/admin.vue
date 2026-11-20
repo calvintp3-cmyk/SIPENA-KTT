@@ -237,7 +237,7 @@ onBeforeUnmount(() => {
 
 <template>
   <div
-    class="min-h-screen bg-[#F6F5F1] text-[#141917] font-sans selection:bg-[#E3F0EA] selection:text-[#0B3D2E]"
+    class="min-h-screen lg:h-screen lg:max-h-screen lg:overflow-hidden bg-[#F6F5F1] text-[#141917] font-sans selection:bg-[#E3F0EA] selection:text-[#0B3D2E] flex flex-col lg:flex-row p-0 lg:p-4 xl:p-5 2xl:p-6 lg:gap-4 xl:gap-5 print:h-auto print:overflow-visible print:p-0"
   >
     <a
       href="#main-content"
@@ -248,8 +248,8 @@ onBeforeUnmount(() => {
 
     <!-- Architectural Limestone Rail Sidebar (Desktop) -->
     <aside
-      class="no-print hidden lg:fixed lg:top-3.5 lg:bottom-3.5 lg:left-3.5 lg:z-30 lg:flex lg:flex-col lg:h-[calc(100vh-1.75rem)] bg-[#F0EFE9]/95 backdrop-blur-md border border-[#141917]/[0.08] lg:rounded-2xl shadow-sm transition-[width] duration-200 ease-out"
-      :class="isSidebarCollapsed ? 'lg:w-20' : 'lg:w-64'"
+      class="no-print hidden lg:flex lg:flex-col shrink-0 h-full bg-[#F0EFE9]/95 backdrop-blur-md border border-[#141917]/[0.08] rounded-2xl shadow-xs transition-[width] duration-200 ease-out relative"
+      :class="isSidebarCollapsed ? 'w-20' : 'w-64'"
     >
       <!-- Edge Collapse Toggle Button -->
       <button
@@ -359,7 +359,7 @@ onBeforeUnmount(() => {
       </nav>
 
       <!-- Sidebar Footer Profile & Portal Link -->
-      <div class="p-3 border-t border-[#141917]/[0.08] space-y-2.5 bg-[#ECEAE2]">
+      <div class="p-3 border-t border-[#141917]/[0.08] space-y-2.5 bg-[#ECEAE2] rounded-b-2xl shrink-0">
         <UTooltip
           text="Lihat Portal Publik"
           :disabled="!isSidebarCollapsed"
@@ -553,20 +553,18 @@ onBeforeUnmount(() => {
       </template>
     </USlideover>
 
-    <!-- Main Workspace Wrapper -->
+    <!-- Main Floating Workspace Canvas -->
     <div
-      class="min-h-screen flex flex-col transition-[padding] duration-200 ease-out lg:py-3.5 lg:pr-3.5"
-      :class="isSidebarCollapsed ? 'lg:pl-[6.75rem]' : 'lg:pl-[17.75rem]'"
+      class="flex-1 min-w-0 min-h-screen lg:min-h-0 lg:h-full flex flex-col bg-white lg:border lg:border-border-hairline lg:rounded-2xl lg:shadow-xs lg:overflow-hidden print:border-none print:shadow-none print:rounded-none print:h-auto print:overflow-visible transition-all duration-200 ease-out"
     >
-      <div class="flex-1 flex flex-col bg-white lg:border lg:border-border-hairline lg:rounded-2xl lg:shadow-xs overflow-x-clip min-h-[calc(100vh-1.75rem)]">
-        <!-- Full-Width Docked Top Header -->
-        <header
-          class="no-print sticky top-0 z-30 w-full bg-white/95 backdrop-blur-sm border-b border-border-hairline lg:rounded-t-2xl"
-          style="view-transition-name: sipena-admin-header"
+      <!-- Docked Top Header (Pinned inside Content Card) -->
+      <header
+        class="no-print shrink-0 z-20 w-full bg-white/95 backdrop-blur-sm border-b border-border-hairline"
+        style="view-transition-name: sipena-admin-header"
+      >
+        <div
+          class="h-14 px-4 sm:px-6 lg:px-6 flex items-center justify-between gap-3"
         >
-          <div
-            class="max-w-[1360px] mx-auto h-14 px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-3"
-          >
             <!-- Left: Hamburger + Breadcrumb -->
             <div class="flex items-center gap-2.5 min-w-0">
               <button
@@ -724,10 +722,16 @@ onBeforeUnmount(() => {
           </div>
         </header>
 
-        <main id="main-content" tabindex="-1" class="flex-1 w-full max-w-[1360px] mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-6">
+      <!-- Scrollable Main Content Area (Only inside this container scrolls) -->
+      <main
+        id="main-content"
+        tabindex="-1"
+        class="flex-1 min-h-0 w-full overflow-y-auto saas-scroll print:overflow-visible print:h-auto focus:outline-none"
+      >
+        <div class="max-w-[1360px] mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-6">
           <slot />
-        </main>
-      </div>
+        </div>
+      </main>
     </div>
 
     <!-- Command Palette Modal -->
