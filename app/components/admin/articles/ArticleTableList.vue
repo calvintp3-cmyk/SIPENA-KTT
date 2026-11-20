@@ -104,14 +104,14 @@ const {
             <div v-if="row.original.subdistrict || row.original.curatorNotes" class="flex flex-wrap items-center gap-1 pt-0.5">
               <span
                 v-if="row.original.subdistrict"
-                class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-semibold bg-brand-tint text-brand-primary border border-brand-border"
+                class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[11px] font-semibold bg-brand-tint text-brand-primary border border-brand-border"
               >
                 <UIcon name="i-lucide-map-pin" class="w-2.5 h-2.5" />
                 <span>Kec. {{ row.original.subdistrict }}</span>
               </span>
               <span
                 v-if="row.original.curatorNotes"
-                class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-medium bg-[#FEF6EE] text-ochre-ink border border-[#F7D3A6] truncate max-w-[200px]"
+                class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-medium bg-[#FEF6EE] text-ochre-ink border border-[#F7D3A6] truncate max-w-[200px]"
                 :title="`Catatan Kurator: ${row.original.curatorNotes}`"
               >
                 <UIcon name="i-lucide-message-square" class="w-2.5 h-2.5 text-ochre-ink shrink-0" />
@@ -149,7 +149,7 @@ const {
               class="pt-0.5 border-t border-border-hairline flex items-center gap-1 flex-wrap"
             >
               <span
-                class="inline-flex items-center px-1 py-0.2 rounded text-[9px] font-medium border"
+                class="inline-flex items-center px-1 py-0.2 rounded text-[11px] font-medium border"
                 :class="getKbliClusterTheme(row.original.secondaryKbliCategory).pillClass"
               >
                 {{ getKbliShortCodeName(row.original.secondaryKbliCategory) }}
@@ -159,7 +159,7 @@ const {
                 :color="getKbliImpactBadge(row.original.secondaryKbliImpact).color"
                 variant="subtle"
                 size="xs"
-                class="text-[9px] py-0 px-1"
+                class="text-[11px] py-0 px-1"
               >
                 {{ getKbliImpactBadge(row.original.secondaryKbliImpact).shortLabel }}
               </UBadge>
@@ -196,7 +196,7 @@ const {
               v-if="row.original.secondaryExpenditureComponent"
               class="pt-0.5 border-t border-border-hairline flex items-center gap-1 flex-wrap"
             >
-              <span class="text-[9px] font-medium text-ink-secondary truncate max-w-[80px]">
+              <span class="text-[11px] font-medium text-ink-secondary truncate max-w-[80px]">
                 {{ getExpenditureLabel(row.original.secondaryExpenditureComponent, false) }}
               </span>
               <UBadge
@@ -204,7 +204,7 @@ const {
                 :color="getExpenditureImpactBadge(row.original.secondaryExpenditureImpact).color"
                 variant="subtle"
                 size="xs"
-                class="text-[9px] py-0 px-1"
+                class="text-[11px] py-0 px-1"
               >
                 {{ getExpenditureImpactBadge(row.original.secondaryExpenditureImpact).shortLabel }}
               </UBadge>

@@ -240,7 +240,7 @@ function setThisMonthRange() {
             </span>
             <span
               v-if="dateFrom || dateTo"
-              class="px-1.5 py-0.2 rounded-full bg-brand-primary text-white text-[9px] font-bold font-mono"
+              class="px-1.5 py-0.2 rounded-full bg-brand-primary text-white text-[10px] font-bold font-mono"
             >
               Aktif
             </span>
@@ -374,7 +374,7 @@ function setThisMonthRange() {
               <div class="font-bold text-[11px] leading-tight">
                 {{ chip.label }}
               </div>
-              <div class="text-[9px] text-ink-muted leading-tight">
+              <div class="text-[10px] text-ink-muted leading-tight">
                 {{ chip.subLabel }}
               </div>
             </div>
@@ -391,7 +391,7 @@ function setThisMonthRange() {
             </span>
             <span
               v-if="pdrbGroups.length > 0"
-              class="px-1.5 py-0.2 rounded-full bg-brand-primary text-white text-[9px] font-bold tabular-nums font-mono"
+              class="px-1.5 py-0.2 rounded-full bg-brand-primary text-white text-[10px] font-bold tabular-nums font-mono"
             >
               {{ pdrbGroups.length }}
             </span>
@@ -457,7 +457,7 @@ function setThisMonthRange() {
                 class="w-3.5 h-3.5 rounded border-[#141917]/20 text-brand-primary focus:ring-brand-primary cursor-pointer pointer-events-none shrink-0"
               >
               <span
-                class="min-w-6 px-1 h-4.5 rounded text-[9px] font-bold flex items-center justify-center shrink-0 font-mono"
+                class="min-w-6 px-1 h-4.5 rounded text-[10px] font-bold flex items-center justify-center shrink-0 font-mono"
                 :class="
                   pdrbGroups.includes(sector.groupCode)
                     ? 'bg-brand-primary text-white'
@@ -496,7 +496,7 @@ function setThisMonthRange() {
             </span>
             <span
               v-if="expenditures.length > 0"
-              class="px-1.5 py-0.2 rounded-full bg-brand-primary text-white text-[9px] font-bold font-mono tabular-nums"
+              class="px-1.5 py-0.2 rounded-full bg-brand-primary text-white text-[10px] font-bold font-mono tabular-nums"
             >
               {{ expenditures.length }}
             </span>

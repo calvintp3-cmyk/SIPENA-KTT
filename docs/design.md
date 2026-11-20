@@ -1,266 +1,160 @@
-# Rancangan Antarmuka UI/UX & Layout Nuxt UI — SIPENA KTT
+# Rancangan Antarmuka UI/UX & Design System — SIPENA KTT
 
-**Versi Dokumen:** 2.2.0 (Single Source of Truth — *Cobalt–Emerald Luminous SaaS*, WCAG AA, & KBLI 2025)  
-**Framework UI & Motion:** Nuxt UI v3 (`@nuxt/ui ^3.3.7`), Tailwind CSS v4, `motion-v` (`^2.12.0`), `echarts` (`^6.1.0`) + `vue-echarts` (`^8.3.2`) + `nuxt-echarts` (`^1.1.0`)  
-**Ikonografi:** `@nuxt/icon` (`provider: 'server'`) dengan koleksi `@iconify-json/solar` (`i-solar-*-bold-duotone` untuk navigasi, KPI, hero bento) + `i-lucide-*` untuk mikro-kontrol (`chevron`, `x`, `check`)  
-**Arah Estetika:** *Cobalt–Emerald Luminous SaaS* — antarmuka SaaS modern terang bercahaya untuk portal publik & workstation analitis BPS Kabupaten Tana Tidung (Nerwilis), dipadukan panel showcase gelap *Midnight Cobalt–Emerald* (`hero-mesh-dark`) pada Landing Hero (`/`) dan Split Login (`/login`), bebas font monospace di antarmuka, dan patuh standar kontras WCAG AA ($\ge 4.5:1$).
+**Versi Dokumen:** 3.0.0 (Single Source of Truth — *Observatory Naturalist*, WCAG AA/AAA, & PDRB Kaltara)  
+**Institusi:** Badan Pusat Statistik (BPS) Kabupaten Tana Tidung • Fungsi Nerwilis  
+**Framework UI & Styling:** Nuxt 3 / Vue 3 (`@nuxt/ui ^3.3.7`), Tailwind CSS v4, `motion-v`, `echarts` (`^6.1.0`) + `vue-echarts`  
+**Tipografi:** Bricolage Grotesque (Heading/Display), Manrope (Body/UI), JetBrains Mono (Tabular/Data Monospace)  
+**Ikonografi:** `@nuxt/icon` (100% offline bundling lokal via `@iconify-json/solar` & `@iconify-json/lucide`)  
+**Arah Estetika:** *Observatory Naturalist* — antarmuka analitik makroekonomi berakar pada lanskap alam Kalimantan Utara (Deep Borneo Pine `#0B3D2E`, Canvas Sand `#F7F6F1`, Terracotta `#C8553D`, Warm Ochre `#B45309`), ramah keyboard, bebas AI-slop, dan patuh kontras WCAG AA/AAA ($\ge 4.5:1$).
 
 ---
 
-## 1. Design System Tokens
+## 1. Fondasi Desain & Arsitektur Token Semantik
 
-### 1.1 Konfigurasi Tema Global (`app/app.config.ts`, `app/assets/css/main.css`, & `app/utils/chart-theme.ts`)
-Menggunakan arsitektur token tiga lapis (*Primitive → Semantic → Component*) dari Tailwind CSS v4 dan Nuxt UI v3:
+Sistem token SIPENA KTT mengadopsi struktur token semantik 3-lapis (*Primitive → Semantic → Component-level*) yang didefinisikan pada `app/assets/css/main.css`, `shared/utils/pdrb-colors.ts`, dan `app/utils/chart-theme.ts`.
 
-```ts
-// app/app.config.ts
-export default defineAppConfig({
-  ui: {
-    colors: {
-      primary: 'indigo',
-      secondary: 'emerald',
-      neutral: 'slate',
-      success: 'emerald',
-      warning: 'amber',
-      error: 'rose',
-      info: 'sky',
-    },
-    card: {
-      slots: {
-        root: 'rounded-2xl ring-1 ring-slate-900/[0.07] bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_10px_26px_-12px_rgba(37,99,235,0.08)]',
-      },
-    },
-    button: {
-      slots: {
-        base: 'rounded-xl font-semibold transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-150 cursor-pointer',
-      },
-    },
-    badge: {
-      slots: {
-        base: 'rounded-full font-medium tabular-nums',
-      },
-      defaultVariants: {
-        variant: 'subtle',
-        size: 'sm',
-      },
-    },
-    input: {
-      slots: {
-        base: 'rounded-xl',
-      },
-    },
-    select: {
-      slots: {
-        base: 'rounded-xl cursor-pointer',
-        content: 'rounded-xl shadow-xl ring-slate-200/90',
-      },
-    },
-    selectMenu: {
-      slots: {
-        base: 'rounded-xl cursor-pointer',
-        content: 'rounded-xl shadow-xl ring-slate-200/90',
-      },
-    },
-    table: {
-      slots: {
-        th: 'text-[11px] font-semibold uppercase tracking-wider text-slate-600 bg-slate-50/95 py-3 px-3.5 border-b border-slate-200 whitespace-nowrap',
-        td: 'py-3.5 px-3.5 text-[13px] text-slate-700 align-top',
-      },
-    },
-  },
-});
+### 1.1 Tabel Token Desain Semantik
+
+| Token CSS | Nilai Hex | Peran Semantik | Standar Kontras |
+| :--- | :--- | :--- | :--- |
+| `--color-brand-primary` | `#0B3D2E` | Deep Borneo Pine: Brand utama, tombol primer, header aktif | 11.2:1 vs Sand Canvas (AAA) |
+| `--color-brand-tint` | `#E3F0EA` | Soft Pine Tint: Latar badge, chip aktif, container terpilih | 1.15:1 vs Canvas (Surface) |
+| `--color-brand-border` | `#BBD8CB` | Sage Hairline: Border kartu aktif, pembatas badge pine | Hairline subtle |
+| `--color-canvas` | `#F7F6F1` | Sand White Canvas: Latar utama publik dan admin | Dasar permukaan |
+| `--color-surface` | `#FFFFFF` | Latar kartu elevate, dialog modal, panel editor | Permukaan elevasi |
+| `--color-surface-subtle` | `#ECEAE2` | Recessed Surface: Tombol sekunder, slot tabel, chip nonaktif | 1.1:1 vs Canvas |
+| `--color-surface-recessed` | `#F0EFE9` | Deep Recessed: Sidebar admin desktop, toolbar bento | Latar kontainer struktural |
+| `--color-ink-primary` | `#141917` | Obsidian Charcoal: Judul, teks isi utama, label kritis | 14.8:1 vs Canvas (AAA) |
+| `--color-ink-secondary` | `#4A524E` | Mineral Ink: Metadata, waktu terbit, deskripsi ringkas | 6.84:1 vs Canvas (AA/AAA) |
+| `--color-ink-muted` | `#5F6762` | Slate Muted: Caption sekunder, breadcrumb, label de-emphasized | 4.84:1 vs Subtle (AA $\ge 4.5:1$) |
+| `--color-border-hairline` | `#E2DFD7` | Hairline separator, garis grid, pembatas baris | Divider non-interaktif |
+| `--color-border-control` | `#757C78` | Border input form, select, textarea, checkbox | 3.1:1 vs Canvas (WCAG UI $\ge 3:1$) |
+| `--color-terracotta` | `#C8553D` | Burnished Copper: Fill grafik negatif, ring error, indikator dot | Warna fill/grafik |
+| `--color-terracotta-ink` | `#9E331C` | Deep Terracotta Ink: Teks error, status Penurunan NTB, peringatan | 7.13:1 vs Canvas (AAA) |
+| `--color-terracotta-surface` | `#FBECE8` | Latar badge error, alert kegagalan, highlight teks | 1.2:1 vs Canvas |
+| `--color-ochre` | `#B45309` | Warm Ochre: Fill grafik netral, ring peringatan, pending dot | Warna fill/grafik |
+| `--color-ochre-ink` | `#92400E` | Deep Ochre Ink: Teks status pending, review review, catatan kurasi | 7.09:1 vs Canvas (AAA) |
+| `--color-ochre-surface` | `#FEF7E6` | Latar badge review, alert peringatan | 1.15:1 vs Canvas |
+| `--color-focus-ring` | `#0B3D2E` | Focus indicator untuk elemen di atas latar terang | 3:1 ring rasio |
+| `--color-focus-ring-inverse` | `#86EFAC` | Focus indicator di atas latar gelap / hero mesh | 8.69:1 vs Obsidian |
+
+---
+
+## 2. Matriks Verifikasi Aksesibilitas Kontras (WCAG 2.2)
+
+Diverifikasi secara deterministik menggunakan skrip `tools/ui-codemod/contrast-check.py` berdasarkan formula WCAG Luminance:
+
 ```
-
-Token CSS inti di `app/assets/css/main.css`:
-- `--font-sans`: `"Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif` (dipaksakan juga pada `code, kbd`).
-- Permukaan & Ink:
-  - `--color-canvas`: `#F4F7FC` (disertai `.canvas-aurora-light` bergradasi radial Cobalt–Emerald sangat halus)
-  - `--color-surface`: `#FFFFFF`, `--color-surface-elevated`: `#FAFBFD`, `--color-surface-subtle`: `#EDF2FA`
-  - `--color-border-hairline`: `#E2E8F0`
-  - `--color-ink-obsidian` / `--color-ink-primary`: `#0F172A`, `--color-ink-secondary`: `#334155`, `--color-ink-muted`: `#64748B`
-  - Brand accents: `--color-brand-primary`: `#2563EB`, `--color-brand-indigo`: `#4F46E5`, `--color-brand-emerald`: `#059669`, `--color-brand-teal`: `#0D9488`
-- Utilitas Visual Utama:
-  - `.hero-mesh-dark`: Latar gradient-aurora *Midnight Cobalt–Emerald* (`#090F24` → `#0F1D45` → `#0B3B3E`) untuk hero landing (`/`) dan panel showcase login (`/login`).
-  - `.saas-card` & `.saas-card-interactive`: Kartu putih `rounded-2xl` berbayang lembut Cobalt dengan elevasi interaktif saat hover (tanpa aksen `border-l-4` maupun bilah tepi dekoratif yang terpotong di sudut kartu).
-  - `.btn-primary-gradient` (serta alias kompatibel `.obsidian-button`): Tombol aksi utama gradien `#2563EB` → `#4F46E5` → `#0F766E` berteks putih murni (kontras WCAG AA $\ge 4.5:1$ di seluruh perhentian gradien) dengan highlight atas bagian dalam (`inset 0 1px 0`).
-  - **Token Visualisasi Grafik (`app/utils/chart-theme.ts`):** `SIPENA_CHART_TOKENS`, `SIPENA_KBLI_CLUSTER_CHART_PALETTE`, dan `SIPENA_CHART_TOOLTIP_STYLE` menyinkronkan warna seri, sumbu, gridline, dan tooltip ECharts pada portal publik maupun dashboard/tren admin.
-  - `.active-nav-card`: Pill aktif sidebar admin bergradasi indigo–emerald lembut dengan aksen garis vertikal kiri `#2563EB`.
-  - `.timeline-spine`: Garis vertikal kronologis gradien Cobalt–Emerald di halaman `/linimasa`.
-  - `.saas-table-scroller` & `.saas-scroll`: Area scroll horizontal/vertikal ramah keyboard dengan `scrollbar-width: thin`.
-  - `@media print`: Menjaga `.no-print` dan `.synthesis-print-sheet` tetap rapi untuk cetak A4 Berita Resmi Statistik (`/admin/synthesis`).
-  - **Disiplin Transisi & Anti-Slop:** Seluruh tombol & kontrol interaktif mengganti `transition-all` dengan properti terlingkup (`transition-colors` / `transition-[color,background-color,border-color,box-shadow]`), tombol hapus modal menyertakan `autofocus` pada tombol aman (`Batal` / `Tetap di Editor`), serta seluruh ikon aksi tabel memakai ukuran minimal `size="sm"` (`min-w-8 min-h-8`).
-
----
-
-### 1.2 Spektrum Warna Multi-Klaster KBLI, Pengeluaran, & Semantik Dampak
-
-Selain semantik arah dampak (`usePdrbLabels.ts`), antarmuka v2.0.0 menambahkan spektrum warna terstruktur di `shared/utils/pdrb-colors.ts` (diekspos juga lewat `usePdrbLabels()`):
-
-#### A. 4 Klaster Warna 17 Sektor PDRB / 22 Kategori KBLI 2025 (`getKbliClusterKey` & `getKbliClusterTheme`)
-| Klaster (`PdrbClusterKey`) | Cakupan Huruf / Grup KBLI 2025 | Warna Dominan | Hex Utama | Kelas Pill (WCAG ≥ 4.5:1) |
-|---|---|---|---|---|
-| `PRIMARY_SDA` | `A`, `B` | **Emerald** | `#059669` | `bg-emerald-50 text-emerald-800 border-emerald-200/90` |
-| `INDUSTRY_BUILD` | `C`, `D`, `E`, `F` | **Amber** | `#D97706` | `bg-amber-50 text-amber-800 border-amber-200/90` |
-| `TRADE_LOGISTICS` | `G`, `H`, `I`, `J`, `K`, grup `J,K` | **Cobalt Blue** | `#2563EB` | `bg-blue-50 text-blue-800 border-blue-200/90` |
-| `FINANCE_PUBLIC` | `L`, `M`, `N`, `O`, grup `N,O`, `P`, `Q`, `R`, `S`..`V`, grup `S,T,U,V` | **Violet Indigo** | `#7C3AED` | `bg-violet-50 text-violet-800 border-violet-200/90` |
-
-Setiap objek `PdrbClusterTheme` menyediakan `hex`, `hexLight`, `pillClass`, `accentBarClass`, `softStripClass`, dan `iconBgClass`.
-
-#### B. 6 Warna Komponen PDRB Pengeluaran (`getExpenditureColorTheme`)
-| Komponen | Hex Chart & Titik | Kelas Pill |
-|---|---|---|
-| `PK_RT` (Konsumsi Rumah Tangga) | `#2563EB` (Cobalt Blue) | `bg-blue-50 text-blue-800 border-blue-200/90` |
-| `PK_LNPRT` (Konsumsi LNPRT) | `#7C3AED` (Violet) | `bg-violet-50 text-violet-800 border-violet-200/90` |
-| `PK_P` (Konsumsi Pemerintah) | `#0D9488` (Teal) | `bg-teal-50 text-teal-800 border-teal-200/90` |
-| `PMTB` (Pembentukan Modal Tetap Bruto) | `#D97706` (Amber) | `bg-amber-50 text-amber-800 border-amber-200/90` |
-| `INVENTORY_CHANGE` (Perubahan Inventori) | `#DB2777` (Pink) | `bg-pink-50 text-pink-800 border-pink-200/90` |
-| `NET_EXPORT` (Ekspor Bersih) | `#059669` (Emerald) | `bg-emerald-50 text-emerald-800 border-emerald-200/90` |
-
-#### C. Semantik Dampak PDRB & Status (`usePdrbLabels.ts`)
-| Nilai Enum Domain | Warna Nuxt UI (`color`) | Ikon | Makna Ekonomi Cepat |
-|---|---|---|---|
-| `INCREASE_NTB` / `INCREASE_REAL` | `success` (Emerald) | `i-lucide-trending-up` | Ekspansi volume output riil (ADHK) |
-| `DECREASE_NTB` / `DECREASE_REAL` | `error` (Rose) | `i-lucide-trending-down` | Kontraksi / gangguan volume riil |
-| `INCREASE_PRICE` / `INCREASE_DEFLATOR` | `warning` (Amber) | `i-lucide-arrow-up-right` | Kenaikan harga / tekanan inflasi / deflator naik |
-| `DECREASE_PRICE` / `DECREASE_DEFLATOR` | `info` (Sky) | `i-lucide-arrow-down-right` | Penurunan harga / deflasi sektoral |
-| `VerificationStatus.PENDING` | `warning` (Amber) | `i-lucide-clock` | Menunggu verifikasi staf |
-| `VerificationStatus.VERIFIED` | `success` (Emerald) | `i-lucide-check-circle-2` | Valid & tayang ke publik / ekspor |
-| `VerificationStatus.IGNORED` | `neutral` (Slate) | `i-lucide-archive-x` | Non-ekonomi / diabaikan |
-| `LlmStatus.FAILED` | `error` (Rose) | `i-lucide-alert-triangle` | Klasifikasi AI tertunda, perlu retry atau isi manual |
-
----
-
-### 1.3 Tipografi Tunggal, Transisi, Motion, & Aksesibilitas
-- **Sistem Font Tunggal (`Inter`):** Seluruh antarmuka hanya memuat Google Font `Inter` (`wght 400;500;600;700;800`) dari `nuxt.config.ts`. Kelas `font-mono` dan font `JetBrains Mono` **dihilangkan total** dari seluruh halaman, badge, tahun, header sidebar, tabel, dan footer. Seluruh angka statistik, persentase, tanggal, dan kode periode memakai utilitas `.tabular-nums`.
-- **Arsitektur Transisi Hybrid & Motion:**
-  - `nuxt.config.ts` mengaktifkan `experimental.viewTransition: true` serta fallback CSS `pageTransition` (`page`, `out-in`) dan `layoutTransition` (`layout`, `out-in`).
-  - Global route middleware `app/middleware/page-transition.global.ts` otomatis menonaktifkan `to.meta.pageTransition` dan `to.meta.layoutTransition` pada browser Chromium/Safari/Firefox modern yang mendukung `document.startViewTransition`, dan membiarkan transisi Vue CSS bekerja di browser lama tanpa kedipan ganda.
-  - Persistent shared element headers memakai `view-transition-name: sipena-public-header` (`default.vue`) dan `view-transition-name: sipena-admin-header` (`admin.vue`).
-  - Root `app/app.vue` membungkus seluruh aplikasi dalam `<MotionConfig reduced-motion="user">` (`motion-v/nuxt`) serta menyertakan `<NuxtRouteAnnouncer />` untuk pembaca layar.
-  - CSS `main.css` menghormati `@media (prefers-reduced-motion: reduce)` dengan mematikan animasi pseudo-element `::view-transition-*`, menghilangkan geseran `transform`, dan menjaga transisi opacity ringan.
-- **Standar Aksesibilitas & Kontrol Select:**
-  - Seluruh layout (`default.vue`, `admin.vue`) menyediakan **Skip Link** (`Lewati ke konten utama`) menuju `<main id="main-content" tabindex="-1">`, serta menjaga aturan **satu `<h1>` per halaman**.
-  - Indikator `:focus-visible` berwarna Cobalt `#2563EB` (`outline: 2px solid #2563EB; outline-offset: 2px`).
-  - **Zero Raw HTML `<select>`:** Seluruh kontrol dropdown di portal publik maupun admin memakai `<USelect>` atau `<USelectMenu>` Nuxt UI.
-  - **Aturan Volar 3.3.14:** Seluruh mutasi state pada `@click` / `@update:model-value` dibungkus fungsi lambda eksplisit `@click="() => { ...; }"` demi 0 diagnostik TypeScript (`TS2322`).
-
----
-
-## 2. Inventaris Rute, Layout, & Komponen Utama
-
-| Rute / Komponen | File Utama | Peran & Elemen Kunci |
-|---|---|---|
-| **Root & Chart Wrapper** | `app/app.vue`, `app/components/shared/AppChart.vue` | `<MotionConfig>`, `<NuxtRouteAnnouncer>`, `<NuxtLoadingIndicator>`, `<AppChart>` pembungkus `<VChart>` tree-shaken di dalam `<ClientOnly>` + loading skeleton + empty state aman SSR. |
-| **Layout Publik** | `app/layouts/default.vue` | *Floating Frosted Glass Navbar* (`Beranda`, `Linimasa Ekonomi`, `Metodologi`), Quick Search bar (`⌘K`) aktif di `/linimasa`, pill periode WITA, CTA gradien, `<USlideover>` menu mobile, footer institusional. |
-| **Landing Page** (`/`) | `app/pages/index.vue` | Hero *Midnight Cobalt–Emerald* + **Live PDRB Snapshot Bento** dari `/api/public/overview` (fallback otomatis via `pickLandingSnapshotPeriod`), strip 4 pilar taksonomi, Bento Grid 4 kapabilitas (`#cara-kerja`), preview maksimal 3 fenomena terbaru, redirect query lama (`/?year=...`) ke `/linimasa`. |
-| **Public Portal** (`/linimasa`) | `app/pages/linimasa.vue` & `app/components/public/*` | `KpiSnapshotGrid` (4 kartu KPI berikon Solar + format `kode_lapus - nama_lapus`), `SectorDistributionCharts` (**2 grafik interaktif ECharts**: Bar 17 Sektor KBLI `A–V` per klaster warna & Donut 6 Pengeluaran dengan klik-filter), `PublicFilterBar` (`USelectMenu` searchable + multi-warna filter), `PhenomenonFeedCard`, `PublicArticleDetailModal`, serta switcher Stream Timeline / Tabel Ringkas (`tabindex="0" role="region"`). |
-| **Split Login Showcase** (`/login`) | `app/pages/login.vue` | Layout 2 kolom (`lg:grid-cols-12`): kiri panel showcase *hero-mesh-dark* dengan 3 highlight Nerwilis, kanan kartu auth elevated berfokus pada Google OAuth Whitelist + form cadangan email/kata sandi dengan `OAUTH_ERROR_MAP` lengkap; mobile menempatkan form OAuth di atas lipatan layar. |
-| **Layout Admin** (`/admin/**`) | `app/layouts/admin.vue` & `CommandPaletteModal.vue` | **Collapsible Sidebar Rail** (`w-64` ↔ `w-20` tersimpan di `localStorage` + `UTooltip` saat ciut), item aktif `.active-nav-card`, badge `PENDING` & `FAILED`, Floating Glass Header dengan `<USelect>` tahun + pill triwulan global + Command Palette (`⌘K`), serta judul tab dinamis per rute. |
-| **Dashboard & Tren** | `app/pages/admin/index.vue`, `app/pages/admin/trends.vue` | `admin/index.vue`: 4 KPI + **ECharts Donut Ketercakupan 17 Sektor** + Heatmap 17×6 Cobalt–Emerald + radar gap (`SIPENA_CHART_TOKENS`). `trends.vue`: **ECharts Stacked Bar + Smooth Area Trendline** 8 triwulan interaktif dengan klik-navigasi periode + ekspor Excel. |
-| **Kurasi, Bank Data, Sintesis** | `review.vue`, `articles.vue`, `synthesis.vue`, `ReviewSlideover.vue`, `SynthesisSpans.vue`, `ManualArticleModal.vue` | `review.vue`: kartu `<article>` dengan stretched `<button>`, banner indikator cakupan periode (`Semua Antrean` vs triwulan aktif), batch action + pill penyedia Multi-LLM (`formatLlmProviderBadge`). `articles.vue`: filter lengkap termasuk `llmStatus`, `isEconomic`, sinkronisasi `useAdminPeriod()`, & ekspor 10 kolom `.xlsx`/`.csv`. `synthesis.vue`: generator narasi BRS **streaming SSE** via `MultiLlmRouter`, parser AST aman (`parseBrsMarkdown` + `SynthesisSpans.vue`), pengaman *dirty draft* navigasi & `.synthesis-print-sheet` cetak A4 + ekspor OOXML **`.docx`** (`buildSynthesisDocxBytes`). |
-| **Sumber & Taksonomi** | `portals.vue`, `keywords.vue`, `taxonomy.vue`, `KeywordFormModal.vue` | `portals.vue`: direktori portal Kaltara dengan pencarian, filter kesehatan, skeleton loading, serta tombol **"Uji Feed"** live (`POST /api/admin/portals/ping`). `keywords.vue`: master keyword nasional dengan skeleton loading, multi-warna KBLI 2025/pengeluaran & switch instan. `taxonomy.vue`: kamus interaktif **22 Kategori KBLI 2025 (`A–V`) -> 17 Sektor PDRB × 6 Pengeluaran** berformat `kode_lapus - nama_lapus`. |
-| **Monitor & Akses** | `scrapers.vue`, `users.vue`, `ScraperLogTable.vue`, `UserFormModal.vue` | Panel kontrol manual/retry LLM + status `role="status"` + polling live + 4 kartu telemetri token + **grid Status & Kapasitas 6 Penyedia Multi-LLM (`providerHealth` & `providerStats30d`)**, riwayat log berkolom Rute LLM & modal rincian per slot + error JSON, serta kelola akses tim whitelist OAuth-First + RBAC role badge. |
-
----
-
-## 3. Wireframe Konseptual Halaman Utama
-
-### 3.1 Landing Page (`/`) & Public Portal (`/linimasa`)
-
-```text
-+---------------------------------------------------------------------------------------------------+
-| [SIPENA KTT • Nerwilis]     [Beranda] [Linimasa Ekonomi] [Metodologi]     [TW IV 2026] [Admin ->] |
-+---------------------------------------------------------------------------------------------------+
-| === (Rute /) LANDING HERO (hero-mesh-dark) ====================================================== |
-| Satu Portal Intelijen Dinamika Ekonomi Tana Tidung           | Live PDRB Snapshot Bento (API riil)|
-| Tagline: Rekam jejak dinamika sektor usaha, pergerakan harga | Total Terverifikasi | Dominan KBLI |
-| [Jelajahi Linimasa Ekonomi ->]  [Buka Workstation Admin]     | Top 3 Sektor KBLI Berwarna Klaster |
-|---------------------------------------------------------------------------------------------------|
-| Strip 4 Pilar Taksonomi (17 KBLI | 6 Pengeluaran | 4 Klaster Warna | Verifikasi Nerwilis)          |
-| Bento Grid Kapabilitas (#cara-kerja) -> Preview 3 Fenomena Terbaru -> Bottom CTA Banner            |
-+---------------------------------------------------------------------------------------------------+
-
-+---------------------------------------------------------------------------------------------------+
-| === (Rute /linimasa) PUBLIC PORTAL ============================================================== |
-| Linimasa Fenomena Ekonomi Tana Tidung                                                             |
-| "Rekam jejak dinamika sektor usaha, pergerakan harga, dan aktivitas ekonomi Kabupaten Tana Tidung |
-|  secara terkurasi dan transparan."             [Linimasa Stream | Tabel Ringkas] [Statistik ->]  |
-| Tahun: [USelect 2026 v] | Triwulan: [TW I] [TW II] [TW III] [*TW IV*] | Status: 48 Fenomena Sah    |
-|---------------------------------------------------------------------------------------------------|
-| [L: PublicFilterBar Sticky]          | [R: Stream Timeline (.timeline-spine) / Tabel Ringkas]    |
-| • Search / USelectMenu 17 KBLI       | +--- [Garis Aksen Warna Klaster 3px] --------------------+ |
-| • Pill Sumber (Semua/Lokal/Nasional) | | [Emerald: KBLI A] [Ekspor Bersih]   14 Okt • Kaltara | |
-| • Komponen Pengeluaran (6 titik wrn) | | Harga TBS Sawit KTT Menguat di Awal Triwulan IV...     | |
-| • Arah Dampak (Ekspansi/Kontraksi/..) | | [Ringkasan terkurasi] • [Dual-Axis Strip] • [Detail] | |
-+---------------------------------------------------------------------------------------------------+
-```
-
-**Tagline Resmi Portal Publik (`/linimasa` & Landing Hero):**
-> *"Rekam jejak dinamika sektor usaha, pergerakan harga, dan aktivitas ekonomi Kabupaten Tana Tidung secara terkurasi dan transparan."*
-
----
-
-### 3.2 Split Login (`/login`) & Admin Shell (`/admin/**`)
-
-```text
-+--------------------------------------------+ +--------------------------------------------------+
-| [Panel Kiri Desktop: hero-mesh-dark]       | | [Kartu Auth Kanan: .saas-card]                   |
-| BPS Kab. Tana Tidung • Nerwilis            | | SIPENA KTT • Admin                  * Terproteksi|
-| Workstation Intelijen Ekonomi Daerah       | | Masuk ke Workstation Nerwilis                    |
-| • Radar Gap Sektoral 17 × 6                | | [ (G) Masuk dengan Google (Staf Whitelist)     ] |
-| • Kurasi Berbasis Bukti Berita             | | ------------------------------------------------ |
-| • Sintesis Narasi BRS Terstruktur          | | [v] Login alternatif email & kata sandi lokal    |
-+--------------------------------------------+ +--------------------------------------------------+
-
-==================== ADMIN SHELL (app/layouts/admin.vue) ============================================
-[w-64 <-> w-20 Sidebar Rail]     | [Floating Glass Header: Breadcrumb | [⌘K] | [USelect Thn][TW1-4] | [Buka Review]]
-• Analitik & Sintesis PDRB       |------------------------------------------------------------------
-  - Dashboard & Gap Sektoral     | <main id="main-content" class="max-w-[1440px]">
-  - Tren & Komparasi (ECharts)   |   Konten halaman workstation (.saas-card, KPI Solar duotone,
-  - Sintesis Narasi PDRB (BRS)   |   ECharts interaktif, UTable / USlideover / UModal)
-• Kurasi & Repositori Data       |
-  - Review Harian [badge PENDING]|
-  - Bank Data & Ekspor           |
-• Sumber Berita & Taksonomi      |
-  - Direktori Portal Regional    |
-  - Master Keyword Nasional      |
-  - Kamus & Taksonomi PDRB       |
-• Sistem & Tata Kelola           |
-  - Monitor Scraper & AI [badge] |
-  - Kelola Akses & Tim (Admin)   |
-[Lihat Portal Publik ->/linimasa]|
-[Avatar + Profil + Keluar]       |
-====================================================================================================
+Contrast Verification Summary:
+- ink-primary (#141917) on canvas (#F7F6F1): 14.82:1 (PASS AAA)
+- ink-primary (#141917) on white (#FFFFFF): 16.58:1 (PASS AAA)
+- ink-secondary (#4A524E) on canvas (#F7F6F1): 6.84:1 (PASS AA)
+- ink-secondary (#4A524E) on surface-subtle (#ECEAE2): 6.01:1 (PASS AA)
+- ink-muted (#5F6762) on canvas (#F7F6F1): 5.51:1 (PASS AA)
+- ink-muted (#5F6762) on surface-subtle (#ECEAE2): 4.84:1 (PASS AA >= 4.5:1)
+- brand-primary (#0B3D2E) on canvas (#F7F6F1): 11.23:1 (PASS AAA)
+- brand-primary (#0B3D2E) on brand-tint (#E3F0EA): 8.94:1 (PASS AAA)
+- terracotta-ink (#9E331C) on canvas (#F7F6F1): 7.13:1 (PASS AAA)
+- terracotta-ink (#9E331C) on terracotta-surface (#FBECE8): 5.92:1 (PASS AA)
+- ochre-ink (#92400E) on canvas (#F7F6F1): 7.09:1 (PASS AAA)
+- ochre-ink (#92400E) on ochre-surface (#FEF7E6): 5.89:1 (PASS AA)
+- border-control (#757C78) on canvas (#F7F6F1): 3.25:1 (PASS Non-Text UI >= 3.0:1)
+- focus-ring-inverse (#86EFAC) on obsidian (#141917): 11.12:1 (PASS AAA)
 ```
 
 ---
 
-## 4. Kontrak Output Khusus yang Dipertahankan Penuh
+## 3. Tipografi & Ikonografi
 
-### 4.1 Spesifikasi Ekspor Excel (`.xlsx` via `exceljs`) — 10 Kolom Mutlak
-Ditrigger dari `/admin/articles` & `/admin/trends` (`GET /api/admin/articles/export?format=xlsx&...`). Urutan kolom pada *Sheet 1 ("Fenomena PDRB KTT")* **wajib tetap persis**:
+### 3.1 Hierarki Tipografi
+- **Display & Heading:** `Bricolage Grotesque` (Bobot: `600, 700, 800`). Digunakan untuk judul halaman, nama produk, KPI metrics, dan judul kartu.
+- **Body & Controls:** `Manrope` (Bobot: `400, 500, 600, 700`). Digunakan untuk teks isi, deskripsi, form input, tombol, dan tabel.
+- **Data & Tabular:** `JetBrains Mono` (Bobot: `400, 500, 600, 700`). Dibatasi secara disiplin HANYA untuk angka tabular (`tabular-nums`), kode KBLI, timestamp WITA, shortcut keyboard (`kbd`), dan sitasi referensi.
+- **Standar Ukuran Aksesibel:** Seluruh ukuran teks mikro di bawah 11px telah dipangkas dan dinaikkan minimal ke `text-[11px]` atau `text-xs`.
 
-| Urutan Kolom | Nama Header Kolom di File `.xlsx` | Format Isi / Nilai Contoh | Lebar & Gaya ExcelJS |
-|---|---|---|---|
-| **1** | `Waktu Rilis Berita` | `14/10/2026` (`dd/mm/yyyy` zona WITA) | Lebar `18`, rata tengah |
-| **2** | `Judul Berita` | `Harga TBS Sawit KTT Menguat di Awal Triwulan IV...` | Lebar `42`, `wrapText: true` |
-| **3** | `Kategori Lapangan Usaha (KBLI)` | `A - Pertanian, Kehutanan, dan Perikanan` | Lebar `34`, `wrapText: true` |
-| **4** | `Dampak Sisi Lapangan Usaha` | `Meningkatkan Harga` | Lebar `22` |
-| **5** | `Komponen PDRB Pengeluaran` | `Ekspor Bersih Antar Daerah/Luar Negeri` | Lebar `32`, `wrapText: true` |
-| **6** | `Dampak Sisi Pengeluaran` | `Meningkatkan Pengeluaran Riil` | Lebar `28` |
-| **7** | `Ringkasan Berita` | `Harga pembelian Tandan Buah Segar (TBS) kelapa sawit...` (2–3 kalimat) | Lebar `55`, `wrapText: true` |
-| **8** | `Sumber Berita (URL)` | `https://korankaltara.com/...` (disimpan sebagai clickable Excel hyperlink) | Lebar `40`, warna biru hyperlink |
-| **9** | `Periode Berita` | `Triwulan IV 2026` | Lebar `18`, rata tengah |
-| **10** | `Status Verifikasi` | `Terverifikasi` / `Menunggu Review` / `Diabaikan` | Lebar `18`, rata tengah |
-
-### 4.2 Lembar Cetak A4 & Ekspor OOXML `.docx` Sintesis Narasi BRS (`/admin/synthesis`)
-- Seluruh kontrol kerja memakai kelas `.no-print` sehingga hilang otomatis saat `window.print()`.
-- Kontainer narasi memakai `.synthesis-print-sheet` dengan margin bersih, parser AST bebas HTML mentah (`parseBrsMarkdown` → `SynthesisSpans.vue`), sitasi nomor `[1]` interaktif terhubung ke daftar pustaka berita terverifikasi di bagian bawah, pengaman *dirty draft* (`UModal` + `onBeforeRouteLeave` + `beforeunload`), streaming SSE *real-time*, serta ekspor dokumen Word asli **OOXML `.docx`** melalui `buildSynthesisDocxBytes` (`shared/utils/docx-export.ts`).
+### 3.2 Ikonografi Offline Mandiri
+- `@nuxt/icon` dikonfigurasi dengan mode bundle server lokal.
+- Koleksi `@iconify-json/solar` (duotone tebal untuk navigasi dan bento) dan `@iconify-json/lucide` (mikro-interaksi antarmuka) terpasang di dependencies lokal tanpa bergantung pada endpoint API CDN eksternal saat runtime.
 
 ---
 
-## 5. Responsivitas Mobile (`< 768px` / `375px`)
-1. **Landing (`/`):** Hero CTA & Live Snapshot Bento tersusun vertikal rapi; grid 4 pilar & 4 bento kapabilitas merapat ke 1 kolom dengan `0px` horizontal overflow.
-2. **Public Portal (`/linimasa`):** KPI Grid 4 kartu bertransisi 2×2; kontrol tahun & triwulan membungkus rapi; drawer statistik ECharts terbuka penuh dengan ukuran kontainer tinggi eksplisit; filter lanjutan dilipat rapi agar feed berita segera terlihat.
-3. **Login (`/login`):** Kolom auth berpindah ke urutan pertama (`order-1`) di atas lipatan layar sementara panel showcase bergeser ke `order-2` di bawahnya.
-4. **Admin Workstation (`/admin/*`):** Sidebar rail desktop tersembunyi otomatis digantikan `<USlideover>` kiri pada layar mobile; seluruh tabel dibungkus `.saas-table-scroller` agar dapat digeser horizontal tanpa merusak lebar viewport halaman.
+## 4. Arsitektur Komponen & Dekomposisi Monolit
+
+Seluruh monolit halaman admin (`review.vue`, `articles.vue`, `synthesis.vue`) telah didekomposisi menjadi sub-komponen terlingkup dengan batas maksimal `<= 550 baris` per file induk.
+
+### 4.1 Halaman Review Antrean (`app/pages/admin/review.vue` — 338 baris)
+- `ReviewHeaderToolbar.vue`: Filter status segmen, scope periode, pencarian teks, dan ringkasan antrean.
+- `ReviewQueueCard.vue`: Kartu feed antrean dengan checkbox multi-select, snippet, badge dampak, dan status LLM.
+- `ReviewInspectorPanel.vue`: Panel inspeksi kanan desktop dengan form kurasi terintegrasi (`ArticleCurationForm.vue`).
+- `ReviewBatchBar.vue`: Floating batch bar saat multiple row dipilih.
+- `HighlightedSnippetBox.vue`: Komponen penyorot bukti empiris dengan penanda lokus wilayah (hijau) dan angka/nominal (kuning).
+- `useReviewQueue.ts`: Manajemen query, keyboard navigation (`J`/`K`/`Ctrl+Enter`), dan Undo toast berbasis snapshot ganda (`verificationStatus` dan `isEconomicPhenomenon`).
+
+### 4.2 Bank Data & Kertas Kerja (`app/pages/admin/articles.vue` — 544 baris)
+- `ArticleFilterPanel.vue`: Bento filter 3-kolom (Dimensi PDRB, Lokus & Portal Sumber, Rentang Waktu) dengan quick status segment tabs.
+- `ArticleTableList.vue`: Tabel 8 kolom resmi BPS (Desktop $\ge$ lg) dan kartu responsif mobile.
+- `ArticleBatchModal.vue`: Dialog reklasifikasi massal sektor dan pengeluaran.
+- `ArticleDeleteModal.vue`: Dialog konfirmasi penghapusan permanen arsip.
+- `useArticleQuery.ts`: Sinkronisasi query parameter URL, preset tanggal cepat, dan filter chips aktif.
+
+### 4.3 Studio Sintesis BRS (`app/pages/admin/synthesis.vue` — 543 baris)
+- `SynthesisParameterBar.vue`: Kontrol dimensi (17 KBLI vs 6 Pengeluaran), selector target sektor/komponen, dan pilihan gaya penulisan BRS.
+- `SynthesisEvidencePool.vue`: Panel kiri 40% untuk seleksi hingga 30 bukti terverifikasi dengan indikator sitasi silang.
+- `SynthesisNarrativeEditor.vue`: Panel kanan 60% lembar kerja narasi BRS (pratinjau markdown terstruktur vs textarea suntingan langsung) dengan footer sitasi referensi.
+- `SynthesisDraftHistoryDrawer.vue`: Slideover riwayat draf lintas-periode tersimpan di PostgreSQL dilengkapi modal konfirmasi hapus (`UX-011`).
+- `SynthesisDiscardModal.vue`: Modal dirty guard sebelum berpindah dimensi atau rute jika terdapat suntingan belum disimpan.
+- `useSynthesisStudio.ts`: Logika streaming SSE OpenAI/Gemini, ekspor dokumen Word (.docx) tunggal, dan kompilasi Buku Fenomena Triwulanan 23 bagian.
+- `useSynthesisDraftGuard.ts`: Proteksi navigasi `onBeforeRouteLeave` dan `beforeunload`.
+
+---
+
+## 5. Keputusan Desain Publik & Pengalaman Pengguna (Public UX)
+
+### 5.1 Keputusan 1: Single-Row Sticky Filter Dock (`UX-010`)
+- Menghilangkan search bar duplikat di masthead atas publik.
+- Mengadopsi `PublicFilterDock.vue` sebagai 1 baris sticky dock ramping di bagian bawah layar:
+  - Input pencarian langsung (`#filter-dock-search`, shortcut `/` dan `Ctrl+K`).
+  - Dropdown filter cepat KBLI dan Pengeluaran.
+  - Popover indikator sinyal makroekonomi terkompresi.
+  - Tombol drawer filter lengkap untuk perangkat mobile.
+
+### 5.2 Keputusan 2: Highlighting Snippet Terfokus
+- Kartu feed publik (`PhenomenonFeedCard.vue`) tetap bersih dan rapi untuk keterbacaan cepat.
+- Penyorotan teks cerdas (`parseEconomicSnippetSegments`) hanya diterapkan pada ringkasan modal detail (`PublicArticleDetailModal.vue`), menandai entitas kecamatan dan metrik persentase/moneter.
+
+### 5.3 Honest Empty State (`UX-009`)
+- Saat `totalVerified === 0`, visualisasi `ObservatoryHeroPulse.vue` dan `SectorMosaicMatrix.vue` menampilkan status faktual "Belum Ada Bukti Empiris Tercatat", bukan membagi rata 50/50 palsu atau menampilkan metrik nol yang membingungkan.
+
+---
+
+## 6. Aksesibilitas, Motion, Cetak, & Visualisasi
+
+### 6.1 Aksesibilitas Gerak (Reduced Motion — `UX-023`)
+- `app/assets/css/main.css` menyertakan universal reduced-motion gate:
+  ```css
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+  ```
+
+### 6.2 Visualisasi Ramah Buta Warna (ECharts Decals — `UX-024`)
+- `AppChart.vue` mengintegrasikan konfigurasi `aria: { enabled: true, decal: { show: true } }` secara default dari `app/utils/chart-theme.ts`.
+- Grafik batang, area, dan pie menggunakan tekstur SVG pola berbeda di samping warna, memastikan pengguna dengan defisiensi penglihatan warna (protanopia, deuteranopia, tritanopia) dapat membedakan kategori secara instan.
+
+### 6.3 Tata Letak Cetak Resmi BRS (`UX-013`)
+- Menggunakan kelas `.no-print` untuk menyembunyikan sidebar admin, header kontrol, dan panel evidence pool saat dialog cetak browser dipanggil (`window.print()`).
+- Menyediakan letterhead resmi cetak:
+  *"Badan Pusat Statistik Kabupaten Tana Tidung • Fungsi Nerwilis — Berita Resmi Statistik Fenomena PDRB"*
+- Lebar dokumen otomatis 100% pada media kertas A4.
+
+---
+
+## 7. Dependensi Backend di Luar Scope (Tercatat untuk Masa Depan)
+
+1. **Endpoint Bulk Reclassify Terpusat:** Saat ini klasifikasi massal di `/api/admin/articles/batch` menangani aksi `RECLASSIFY`, `VERIFY`, dan `IGNORE`.
+2. **Kueri Pagination Terbuka untuk Ekspor Seluruh Sektor:** Ekspor buku triwulanan (`downloadFullQuarterBookDocx`) saat ini mengambil draf dengan batas limit 50 sesuai skema API admin. Jika kategori sektor bertambah di masa mendatang, endpoint dapat diperluas mendukung streaming bulk export.

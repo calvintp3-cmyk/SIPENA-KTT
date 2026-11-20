@@ -45,3 +45,11 @@ export const SIPENA_CHART_TOOLTIP_STYLE = {
   },
 } as const;
 
+export const SIPENA_CHART_ARIA_CONFIG = {
+  enabled: true,
+  decal: {
+    show: true,
+  },
+} as const;
+
+

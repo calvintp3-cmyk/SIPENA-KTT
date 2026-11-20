@@ -1,5 +1,7 @@
 <!-- app/components/shared/AppChart.vue -->
 <script setup lang="ts">
+import { SIPENA_CHART_ARIA_CONFIG } from '~/utils/chart-theme';
+
 const props = withDefaults(
   defineProps<{
     option: ECOption | null;
@@ -8,6 +10,7 @@ const props = withDefaults(
     empty?: boolean;
     emptyTitle?: string;
     emptyDescription?: string;
+    enableAriaDecal?: boolean;
   }>(),
   {
     heightClass: 'h-64',
@@ -15,12 +18,29 @@ const props = withDefaults(
     empty: false,
     emptyTitle: 'Belum ada data grafik',
     emptyDescription: 'Data visualisasi akan tampil otomatis setelah tersedia pada periode ini.',
+    enableAriaDecal: true,
   },
 );
 
 const emit = defineEmits<{
   chartClick: [params: unknown];
 }>();
+
+const accessibleOption = computed<ECOption | null>(() => {
+  if (!props.option) return null;
+  if (!props.enableAriaDecal) return props.option;
+  const rawAria =
+    typeof props.option === 'object' && props.option && 'aria' in props.option
+      ? (props.option as Record<string, unknown>).aria
+      : {};
+  return {
+    ...props.option,
+    aria: {
+      ...SIPENA_CHART_ARIA_CONFIG,
+      ...(typeof rawAria === 'object' && rawAria ? rawAria : {}),
+    },
+  } as ECOption;
+});
 
 function handleChartClick(params: unknown) {
   emit('chartClick', params);
@@ -45,7 +65,7 @@ function handleChartClick(params: unknown) {
     </div>
 
     <div
-      v-else-if="empty || !option"
+      v-else-if="empty || !accessibleOption"
       class="w-full h-full rounded-xl bg-canvas border border-dashed border-border-control flex flex-col items-center justify-center text-center px-6"
     >
       <div class="w-10 h-10 rounded-xl bg-surface-subtle text-ink-muted flex items-center justify-center mb-2.5">
@@ -57,7 +77,7 @@ function handleChartClick(params: unknown) {
 
     <ClientOnly v-else>
       <VChart
-        :option="option"
+        :option="accessibleOption"
         autoresize
         class="w-full h-full"
         @click="handleChartClick"

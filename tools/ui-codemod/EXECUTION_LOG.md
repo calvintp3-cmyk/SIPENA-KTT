@@ -70,90 +70,6 @@ Dokumen ini mencatat seluruh proses eksekusi otonom per sesi: branch, commit has
 
 ---
 
-## Sesi Fase 1 & 3: Responsive, Public Polish & Foundation
-- **Branch:** `feat/ui-f1-f3-responsive-public-polish`
-- **ID Temuan:** `UX-009`, `UX-010`, `UX-018`, `UX-019`, `UX-021`, `UX-023`, Keputusan Desain 1 & 2
-- **Status:** COMPLETED
-- **Ringkasan Perubahan:**
-  1. `Keputusan 1 & UX-010`:
-     - `app/layouts/default.vue`: Menghapus search bar duplikat di masthead publik; mengarahkan shortcut global (`/` dan `Ctrl+K`) langsung ke `#filter-dock-search`.
-     - `app/components/public/PublicFilterDock.vue`: Menyederhanakan dock menjadi 1 baris ramping (Search + Scope + KBLI + Pengeluaran + Sinyal Makro Popover + Filter Lengkap + Reset), menghemat ruang vertikal layar secara signifikan.
-     - `app/pages/linimasa.vue`: Memperbaiki header responsive pada breakpoint 768px (`flex-wrap`, spacing adaptif, mencegah clipping teks panjang).
-  2. `UX-009 (Honest Empty State)`:
-     - `app/components/public/ObservatoryHeroPulse.vue`: Menampilkan status jujur "Belum Ada Bukti Empiris Tercatat" saat `totalVerified === 0` (menghilangkan bar split 50/50 palsu dan metrik telemetri nol yang membingungkan).
-     - `app/components/public/SectorMosaicMatrix.vue`: Menambahkan banner informatif saat `coveredCount === 0`.
-  3. `Keputusan 2 (Snippet Highlight Publik)`:
-     - `app/components/public/PublicArticleDetailModal.vue`: Mengintegrasikan `parseEconomicSnippetSegments` untuk menandai entitas lokasi dan metrik moneter/persen pada ringkasan artikel di modal detail, menjaga kartu feed (`PhenomenonFeedCard.vue`) tetap bersih.
-  4. `UX-018 (Touch Target >= 36px)` & `UX-019 (A11y Form Labels)`:
-     - Memperbaiki tombol clear search, filter pills, dan selector agar memiliki ukuran sentuh memadai (`min-h-8` / `min-h-9`).
-     - Melengkapi `<label for="...">` dan `aria-label` eksplisit pada seluruh input pencarian dan grup filter di `PublicFilterDock.vue` dan `PublicFilterBar.vue`.
-  5. `UX-021 & Amandemen 4 (Pangkas Bobot Font & Lucide Icons)`:
-     - Mengaudit penggunaan bobot font di seluruh kode:
-       - `Bricolage Grotesque`: Dipangkas ke `[600, 700, 800]` (bobot 500 dihapus).
-       - `Manrope`: Dipangkas ke `[400, 500, 600, 700]` (bobot 800 dihapus).
-       - `JetBrains Mono`: Ditetapkan ke `[400, 500, 600, 700]` (bobot 700 bold yang dipakai 72 kali ditambahkan).
-     - Memasang `@iconify-json/lucide` di `package.json`, memungkinkan Nuxt Icon membundel 100% koleksi ikon `lucide` dan `solar` secara offline/lokal tanpa dependensi API eksternal saat runtime.
-  6. `UX-023 (Sidebar Cookie Persistence)`:
-     - `app/layouts/admin.vue`: Menggantikan pembacaan sisi-klien `localStorage` dengan `useCookie('sipena_sidebar_collapsed')` yang aktif di SSR, menghilangkan kedipan/layout shift saat memuat ulang halaman admin.
-  7. `tests/responsive-and-polish.test.ts`: 5 test cases baru ditambahkan dan lulus (100%).
-- **Gate:**
-  - `nuxi typecheck`: 0 errors.
-  - Vitest: 24 files, 178 tests PASSED (100%).
-  - Forbidden Path Gate: 0 perubahan pada `server/**`, `prisma/**`, `shared/schemas/**`.
-
----
-
-## Sesi Fase 2: Admin Monolith Decomposition & Polish
-- **Branch:** `refactor/ui-f2-admin-monolith-decomposition`
-- **ID Temuan:** `UX-011`, `UX-012`, `UX-013`, `UX-017`, `UX-020`, Amandemen 2
-- **Status:** COMPLETED
-- **Ringkasan Perubahan:**
-  1. `UX-020 (Modular Highlighted Snippet)`:
-     - Mengekstrak `app/components/admin/HighlightedSnippetBox.vue` untuk modularisasi parser snippet beranotasi lokus dan angka.
-     - Diintegrasikan ke `review.vue` dan `ReviewSlideover.vue`.
-  2. `UX-017 Monolith 1 (review.vue)`:
-     - Penurunan baris kode dari 1.322 baris menjadi **338 baris** (`<= 550 baris`).
-     - Sub-komponen diekstrak ke:
-       - `app/components/admin/review/ReviewHeaderToolbar.vue`
-       - `app/components/admin/review/ReviewQueueCard.vue`
-       - `app/components/admin/review/ReviewInspectorPanel.vue`
-       - `app/components/admin/review/ReviewBatchBar.vue`
-       - `app/composables/useReviewQueue.ts`
-     - Fitur: Dirty guard navigasi (`onBeforeRouteLeave`), Undo toast interaktif dengan snapshot ganda (`verificationStatus` dan `isEconomicPhenomenon` sesuai Amandemen 2).
-  3. `UX-017 Monolith 2 (articles.vue)`:
-     - Penurunan baris kode dari 1.721 baris menjadi **544 baris** (`<= 550 baris`).
-     - Sub-komponen diekstrak ke:
-       - `app/components/admin/articles/ArticleFilterPanel.vue`
-       - `app/components/admin/articles/ArticleTableList.vue`
-       - `app/components/admin/articles/ArticleBatchModal.vue`
-       - `app/components/admin/articles/ArticleDeleteModal.vue`
-       - `app/composables/useArticleQuery.ts`
-  4. `UX-017 Monolith 3 (synthesis.vue)`:
-     - Penurunan baris kode dari 1.737 baris menjadi **543 baris** (`<= 550 baris`).
-     - Sub-komponen diekstrak ke:
-       - `app/components/admin/synthesis/SynthesisParameterBar.vue`
-       - `app/components/admin/synthesis/SynthesisEvidencePool.vue`
-       - `app/components/admin/synthesis/SynthesisNarrativeEditor.vue`
-       - `app/components/admin/synthesis/SynthesisDraftHistoryDrawer.vue`
-       - `app/components/admin/synthesis/SynthesisDiscardModal.vue`
-       - `app/composables/useSynthesisStudio.ts`
-       - `app/composables/useSynthesisDraftGuard.ts`
-     - Fitur:
-       - `UX-011`: Modal konfirmasi hapus draf pada riwayat draf sebelum eksekusi DELETE.
-       - `UX-013`: Letterhead resmi BRS pada `@media print` (`hidden print:block`) dan styling print A4 bersih tanpa panel navigasi/kontrol.
-  5. `Global Period Context (UX-012)`:
-     - `app/layouts/admin.vue` mendeteksi rute konfigurasi lintas-periode (`/admin/users`, `/admin/scrapers`, `/admin/portals`, `/admin/keywords`, `/admin/taxonomy`, `/admin/kbli`).
-     - Menggantikan period selector dengan badge `Pengaturan Global` dan pill breadcrumb `Lintas Periode`.
-  6. `tests/admin-decomposition.test.ts`: 6 test cases baru ditambahkan dan lulus (100%).
-- **Gate:**
-  - `nuxi typecheck`: 0 errors.
-  - Vitest: 25 files, 184 tests PASSED (100%).
-  - Forbidden Path Gate: 0 perubahan pada `server/**`, `prisma/**`, `shared/schemas/**`.
-
-
-
----
-
 ## Sesi 0b: Semantic Tokens & 3-Wave Codemod
 - **Branch:** `refactor/ui-0b-semantic-tokens-codemod`
 - **Status:** COMPLETED
@@ -275,6 +191,35 @@ Dokumen ini mencatat seluruh proses eksekusi otonom per sesi: branch, commit has
   - `nuxi typecheck`: 0 errors.
   - Vitest: 25 files, 184 tests PASSED (100%).
   - Forbidden Path Gate: 0 perubahan pada `server/**`, `prisma/**`, `shared/schemas/**`.
+
+---
+
+## [2026-11-20] Sesi Fase 4: Design System Documentation, Typography, Reduced Motion & Chart A11y
+
+- **Branch:** `docs/ui-f4-design-system-sync`
+- **Tujuan:** Dokumentasi komprehensif `docs/design.md`, audit tipografi, universal reduced-motion gate, dan aksesibilitas grafik colorblind ECharts.
+- **Implementasi:**
+  1. `UX-022 Tipografi Audit`:
+     - Menghapus ukuran font sub-11px (`text-[8px]`, `text-[9px]`) dari `app/components/admin/articles/ArticleTableList.vue` dan `app/components/public/PublicFilterBar.vue`.
+     - Ditransformasikan ke `text-[10px]` uppercase dengan tracking lebar (`tracking-wider` / `tracking-widest`) atau `text-xs` (12px) untuk teks bacaan.
+  2. `UX-023 Universal Reduced Motion`:
+     - Menambahkan universal media query gate `@media (prefers-reduced-motion: reduce)` pada `app/assets/css/main.css`.
+     - Memaksa `animation-duration: 0.01ms !important`, `animation-iteration-count: 1 !important`, `transition-duration: 0.01ms !important`, dan `scroll-behavior: auto !important` untuk semua elemen antarmuka saat pengguna mengaktifkan preferensi OS.
+  3. `UX-024 ECharts Colorblind Accessibility`:
+     - Mengonfigurasi `SIPENA_CHART_ARIA_CONFIG = { enabled: true, decal: { show: true } }` pada `app/utils/chart-theme.ts`.
+     - Mengintegrasikan konfigurasi decal/tekstur Okabe-Ito otomatis ke `app/components/shared/AppChart.vue` melalui computed property `accessibleOption`.
+  4. `Dokumentasi Design System (docs/design.md)`:
+     - Ditulis ulang secara utuh menjadi single source of truth v3.0.0 bertema *Observatory Naturalist*.
+     - Berisi filosofi desain, 25 token semantik lengkap dengan nilai hex dan rasio kontras WCAG AA/AAA, hierarki tipografi Plus Jakarta Sans & JetBrains Mono, sistem ikonografi offline (Solar Icons + Lucide), arsitektur modular hasil dekomposisi admin, dan keputusan desain publik (Sticky Filter Dock, Highlight Snippet).
+  5. `Verifikasi & Baseline Capture`:
+     - Dev server dijalankan dengan `ENABLE_NITRO_CRON=false` dan dimatikan seketika setelah capture.
+     - 42 screenshot Wave 4 diambil di 1280px, 768px, 375px.
+     - Pixel diff baseline vs wave4 dievaluasi dan dicatat (Total: 42 tangkapan layar dianalisis).
+- **Gate:**
+  - `nuxi typecheck`: 0 errors.
+  - Vitest: 25 files, 184 tests PASSED (100%).
+  - Forbidden Path Gate: 0 perubahan pada `server/**`, `prisma/**`, `shared/schemas/**`.
+
 
 
 
