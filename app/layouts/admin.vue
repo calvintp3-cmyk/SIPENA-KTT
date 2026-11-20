@@ -248,7 +248,7 @@ onBeforeUnmount(() => {
 
     <!-- Architectural Limestone Rail Sidebar (Desktop) -->
     <aside
-      class="no-print hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-30 lg:flex lg:flex-col bg-[#F0EFE9]/90 border-r border-[#141917]/[0.08] transition-[width] duration-200 ease-out"
+      class="no-print hidden lg:fixed lg:top-3.5 lg:bottom-3.5 lg:left-3.5 lg:z-30 lg:flex lg:flex-col lg:h-[calc(100vh-1.75rem)] bg-[#F0EFE9]/95 backdrop-blur-md border border-[#141917]/[0.08] lg:rounded-2xl shadow-sm transition-[width] duration-200 ease-out"
       :class="isSidebarCollapsed ? 'lg:w-20' : 'lg:w-64'"
     >
       <!-- Edge Collapse Toggle Button -->
@@ -555,17 +555,17 @@ onBeforeUnmount(() => {
 
     <!-- Main Workspace Wrapper -->
     <div
-      class="min-h-screen flex flex-col transition-[padding] duration-200 ease-out lg:py-3 lg:pr-3"
-      :class="isSidebarCollapsed ? 'lg:pl-20' : 'lg:pl-64'"
+      class="min-h-screen flex flex-col transition-[padding] duration-200 ease-out lg:py-3.5 lg:pr-3.5"
+      :class="isSidebarCollapsed ? 'lg:pl-[6.75rem]' : 'lg:pl-[17.75rem]'"
     >
-      <div class="flex-1 flex flex-col bg-white lg:border lg:border-[#141917]/[0.08] lg:rounded-2xl lg:shadow-2xs overflow-x-clip">
+      <div class="flex-1 flex flex-col bg-white lg:border lg:border-border-hairline lg:rounded-2xl lg:shadow-xs overflow-x-clip min-h-[calc(100vh-1.75rem)]">
         <!-- Full-Width Docked Top Header -->
         <header
-          class="no-print sticky top-0 z-30 w-full bg-white/95 backdrop-blur-sm border-b border-[#141917]/[0.08] lg:rounded-t-2xl"
+          class="no-print sticky top-0 z-30 w-full bg-white/95 backdrop-blur-sm border-b border-border-hairline lg:rounded-t-2xl"
           style="view-transition-name: sipena-admin-header"
         >
           <div
-            class="max-w-[1440px] mx-auto h-14 px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-3"
+            class="max-w-[1360px] mx-auto h-14 px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-3"
           >
             <!-- Left: Hamburger + Breadcrumb -->
             <div class="flex items-center gap-2.5 min-w-0">
@@ -724,7 +724,7 @@ onBeforeUnmount(() => {
           </div>
         </header>
 
-        <main id="main-content" tabindex="-1" class="flex-1 w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-6">
+        <main id="main-content" tabindex="-1" class="flex-1 w-full max-w-[1360px] mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-6">
           <slot />
         </main>
       </div>

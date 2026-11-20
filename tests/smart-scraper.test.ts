@@ -526,9 +526,9 @@ describe('Smart Scraper Filters, Dedup, Google News Decoder & Geo-Gate', () => {
     expect(extendedCandidates.some(c => c.title.includes('Berita Lama Januari'))).toBe(false);
   });
 
-  it('memvalidasi 12 portal regional aktif dengan URL indeks, selektor, dan host resmi', () => {
+  it('memvalidasi 11 portal regional aktif dengan URL indeks, selektor, dan host resmi', () => {
     const activePortals = REGIONAL_PORTALS.filter((p) => p.isActive !== false);
-    expect(activePortals).toHaveLength(12);
+    expect(activePortals).toHaveLength(11);
 
     const activeIds = activePortals.map((p) => p.id);
     expect(activeIds).toEqual(
@@ -537,9 +537,8 @@ describe('Smart Scraper Filters, Dedup, Google News Decoder & Geo-Gate', () => {
         'koran-kaltara',
         'benuanta',
         'radar-tarakan',
-        'pemkab-tana-tidung',
-        'pemprov-kaltara',
         'antara-kaltara',
+        'focus-borneo',
         'niaga-asia',
         'headlinews',
         'metrokaltara',

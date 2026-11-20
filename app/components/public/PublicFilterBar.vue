@@ -283,25 +283,25 @@ function setThisMonthRange() {
         <div class="grid grid-cols-2 gap-1.5">
           <div class="space-y-1">
             <label for="filter-date-from" class="text-[10px] font-medium text-ink-muted block">Dari Tanggal</label>
-            <UInput
+            <AppDatePicker
               id="filter-date-from"
               :model-value="dateFrom"
-              type="date"
+              :max="dateTo"
               size="xs"
-              leading-icon="i-solar-calendar-linear"
-              class="w-full font-mono text-[11px]"
+              placeholder="Dari tgl"
+              aria-label="Pilih tanggal mulai"
               @update:model-value="(val: string) => emit('update:dateFrom', val)"
             />
           </div>
           <div class="space-y-1">
             <label for="filter-date-to" class="text-[10px] font-medium text-ink-muted block">Sampai Tanggal</label>
-            <UInput
+            <AppDatePicker
               id="filter-date-to"
               :model-value="dateTo"
-              type="date"
+              :min="dateFrom"
               size="xs"
-              leading-icon="i-solar-calendar-linear"
-              class="w-full font-mono text-[11px]"
+              placeholder="Sampai tgl"
+              aria-label="Pilih tanggal akhir"
               @update:model-value="(val: string) => emit('update:dateTo', val)"
             />
           </div>

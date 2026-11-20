@@ -339,7 +339,7 @@ async function handleSubmit(event: FormSubmitEvent<CreateManualArticleInput>) {
 
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <UFormField label="Tanggal Rilis (WITA)" name="publishedAt" required>
-            <UInput v-model="formState.publishedAt" type="date" class="w-full" />
+            <AppDatePicker v-model="formState.publishedAt" placeholder="Pilih tanggal rilis" size="sm" class="w-full" />
           </UFormField>
 
           <UFormField label="Triwulan" name="quarter">

@@ -530,10 +530,23 @@ describe('Scraper Extractor & Portal/RSS Parsers', () => {
     // Pastikan portal yang domainnya mati ditandai isActive: false
     const disbun = REGIONAL_PORTALS.find((p) => p.id === 'disbun-kaltara');
     expect(disbun?.isActive).toBe(false);
-    const focus = REGIONAL_PORTALS.find((p) => p.id === 'focus-borneo');
-    expect(focus?.isActive).toBe(false);
+    const pemkab = REGIONAL_PORTALS.find((p) => p.id === 'pemkab-tana-tidung');
+    expect(pemkab?.isActive).toBe(false);
+    const pemprov = REGIONAL_PORTALS.find((p) => p.id === 'pemprov-kaltara');
+    expect(pemprov?.isActive).toBe(false);
     const prokaltara = REGIONAL_PORTALS.find((p) => p.id === 'pro-kaltara');
     expect(prokaltara?.isActive).toBe(false);
+
+    // Pastikan portal regional yang aktif memiliki URL indeks yang valid
+    const focus = REGIONAL_PORTALS.find((p) => p.id === 'focus-borneo');
+    expect(focus?.isActive !== false).toBe(true);
+    expect(focus?.indexUrl).toContain('fokusborneo.com');
+    const niaga = REGIONAL_PORTALS.find((p) => p.id === 'niaga-asia');
+    expect(niaga?.isActive !== false).toBe(true);
+    expect(niaga?.indexUrl).toBe('https://www.niaga.asia/topik/kaltara/');
+    const headlinews = REGIONAL_PORTALS.find((p) => p.id === 'headlinews');
+    expect(headlinews?.isActive !== false).toBe(true);
+    expect(headlinews?.indexUrl).toBe('https://headlinews.id/tana-tidung/');
   });
 });
 

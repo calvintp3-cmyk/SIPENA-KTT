@@ -347,17 +347,19 @@ const isEconomicItems: SelectOptionItem<string>[] = [
                 Rentang Tanggal Terbit
               </span>
               <div class="grid grid-cols-2 gap-1.5">
-                <input
+                <AppDatePicker
                   v-model="filters.from"
-                  type="date"
+                  :max="filters.to"
+                  placeholder="Mulai"
                   aria-label="Tanggal mulai"
-                  class="w-full h-8 px-2 text-xs rounded-lg border border-border-control bg-white text-ink-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
+                  size="xs"
                 />
-                <input
+                <AppDatePicker
                   v-model="filters.to"
-                  type="date"
+                  :min="filters.from"
+                  placeholder="Akhir"
                   aria-label="Tanggal akhir"
-                  class="w-full h-8 px-2 text-xs rounded-lg border border-border-control bg-white text-ink-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
+                  size="xs"
                 />
               </div>
             </div>
