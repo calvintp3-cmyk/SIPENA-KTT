@@ -57,7 +57,7 @@ const statusSegmentItems = computed<SegmentItem<string>[]>(() =>
           :model-value="periodScope"
           :items="scopeItems"
           variant="brand"
-          size="xs"
+          size="sm"
           aria-label="Cakupan periode review"
           @update:model-value="emit('update:periodScope', $event)"
         />
@@ -89,7 +89,7 @@ const statusSegmentItems = computed<SegmentItem<string>[]>(() =>
         :model-value="activeStatus"
         :items="statusSegmentItems"
         variant="surface"
-        size="xs"
+        size="sm"
         aria-label="Status kurasi"
         @update:model-value="emit('update:activeStatus', $event)"
       />

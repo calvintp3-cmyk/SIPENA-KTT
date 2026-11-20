@@ -146,7 +146,7 @@ onBeforeUnmount(() => {
     ref="containerRef"
     role="group"
     :aria-label="ariaLabel"
-    class="relative inline-flex items-center p-1 rounded-xl bg-surface-subtle border border-border-hairline select-none font-mono"
+    class="relative inline-flex items-center p-1 rounded-xl bg-surface-subtle border border-border-hairline select-none font-sans"
     :class="[
       block ? 'w-full flex' : 'inline-flex',
       compact ? 'gap-0.5' : 'gap-1',
@@ -155,7 +155,7 @@ onBeforeUnmount(() => {
     <!-- Sliding Pill Indicator -->
     <div
       aria-hidden="true"
-      class="absolute pointer-events-none transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] rounded-lg"
+      class="absolute top-0 left-0 pointer-events-none transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] rounded-lg"
       :class="[
         variant === 'brand'
           ? 'bg-brand-primary shadow-xs'
@@ -177,10 +177,10 @@ onBeforeUnmount(() => {
       type="button"
       :aria-pressed="modelValue === item.value"
       tabindex="0"
-      class="relative z-10 inline-flex items-center justify-center gap-1.5 transition-colors duration-150 rounded-lg cursor-pointer font-semibold outline-none focus-visible:ring-2 focus-visible:ring-brand-primary active:scale-[0.98]"
+      class="relative z-10 inline-flex items-center justify-center gap-2 transition-colors duration-150 rounded-lg cursor-pointer font-semibold outline-none focus-visible:ring-2 focus-visible:ring-brand-primary active:scale-[0.98]"
       :class="[
         block ? 'flex-1' : '',
-        size === 'xs' ? 'min-h-7 px-2 text-[11px]' : size === 'sm' ? 'min-h-8 px-2.5 py-1 text-xs' : 'min-h-9 px-3.5 py-1.5 text-xs sm:text-[13px]',
+        size === 'xs' ? 'min-h-7 px-2.5 py-0.5 text-[11px]' : size === 'sm' ? 'min-h-8 px-3 py-1 text-xs' : 'min-h-9 px-4 py-1.5 text-xs sm:text-[13px]',
         modelValue === item.value
           ? variant === 'brand'
             ? 'text-white font-bold'
@@ -212,7 +212,7 @@ onBeforeUnmount(() => {
       <span class="truncate">{{ item.label }}</span>
       <span
         v-if="item.badge !== undefined"
-        class="px-1.5 py-0.2 rounded-full text-[10px] font-bold tabular-nums border shrink-0 transition-colors"
+        class="px-2 py-0.5 rounded-full text-[10.5px] font-bold font-mono tabular-nums border shrink-0 transition-colors"
         :class="[
           item.badgeToneClass || (
             modelValue === item.value && variant === 'brand'

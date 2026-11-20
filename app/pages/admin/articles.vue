@@ -1,6 +1,9 @@
 <!-- app/pages/admin/articles.vue -->
 <script setup lang="ts">
 import type { DropdownMenuItem } from '@nuxt/ui';
+import ArticleBatchModal from '~/components/admin/articles/ArticleBatchModal.vue';
+import ArticleFilterPanel from '~/components/admin/articles/ArticleFilterPanel.vue';
+import ArticleTableList from '~/components/admin/articles/ArticleTableList.vue';
 import {
   useArticleQuery,
   type ArticleFiltersState,
