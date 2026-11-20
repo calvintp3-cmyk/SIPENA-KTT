@@ -51,5 +51,23 @@ Dokumen ini mencatat seluruh proses eksekusi otonom per sesi: branch, commit has
   - Vitest: 23 files, 173 tests PASSED (100%).
   - Forbidden Path Gate: 0 perubahan pada `server/**`, `prisma/**`, `shared/schemas/**`.
 
+---
+
+## Sesi 0a: Typecheck & Baseline Screenshots
+- **Branch:** `chore/ui-0a-typecheck-and-baselines`
+- **Status:** COMPLETED
+- **Ringkasan Perubahan:**
+  1. `nuxt.config.ts`: Memperbarui `typescript.tsConfig.exclude` dengan `'../scripts/**'` agar CLI scripts tidak mencemari pemeriksaan template frontend.
+  2. `npx nuxi typecheck`: Berjalan sukses dengan 0 error (exit code 0).
+  3. `tools/ui-codemod/capture-baseline.mjs`: Script otomatisasi Playwright (`--mode=mock`) yang mengintersepsi seluruh route API analitik/admin/auth/session dan mengambil 42 screenshot baseline (14 rute x 3 breakpoint: 1280x800, 768x1024, 375x812) via browser engine Chromium/Edge headless.
+  4. `tools/ui-codemod/compare-screenshots.mjs`: Tool pembanding pixel difference berbasis canvas di browser headless dengan ambang batas `threshold: 0.05` yang menghasilkan laporan JSON dan console table.
+  5. Seluruh 42 tangkapan layar baseline tersimpan di `tools/ui-codemod/screenshots/baseline/`.
+- **Gate:**
+  - `nuxi typecheck`: 0 errors (Exit code 0).
+  - Vitest: 23 files, 173 tests PASSED (100%).
+  - Forbidden Path Gate: 0 perubahan pada `server/**`, `prisma/**`, `shared/schemas/**`.
+  - Dev Server: Dimatikan setelah selesai capture (port 3000 bebas).
+
+
 
 

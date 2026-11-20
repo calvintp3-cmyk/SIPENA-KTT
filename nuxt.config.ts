@@ -108,7 +108,7 @@ export default defineNuxtConfig({
   typescript: {
     strict: true,
     tsConfig: {
-      exclude: ['../000 - SKILLS_cleaned', '../.agents'],
+      exclude: ['../000 - SKILLS_cleaned', '../.agents', '../scripts/**'],
     },
   },
 
