@@ -272,6 +272,8 @@ const yearSelectOptions = computed<SelectOptionItem<number>[]>(() =>
   })),
 );
 
+const yearDropdownOpen = ref(false);
+
 const quarterButtons: Array<{ value: PdrbQuarter; label: string; range: string }> = [
   { value: 1, label: 'TW I', range: 'Jan–Mar' },
   { value: 2, label: 'TW II', range: 'Apr–Jun' },
@@ -553,20 +555,44 @@ function openDetailModal(article: PublicArticleItem) {
       <!-- Integrated Period Switcher Capsule -->
       <div class="flex flex-wrap items-center justify-between gap-4">
         <div class="inline-flex items-center p-1 rounded-2xl bg-surface-subtle border border-border-hairline divide-x divide-[#141917]/10">
-          <!-- Year Selector -->
-          <div class="pr-2 pl-1 py-0.5">
-            <USelect
-              id="linimasa-year-select"
-              :model-value="selectedYear"
-              :items="yearSelectOptions"
-              value-key="value"
-              label-key="label"
-              leading-icon="i-solar-calendar-bold-duotone"
-              size="xs"
-              aria-label="Tahun PDRB"
-              class="w-24 font-bold font-mono text-ink-primary"
-              @update:model-value="(val: unknown) => handlePeriodChange(Number(val), selectedQuarter)"
-            />
+          <!-- Year Selector (Seamless Capsule Button) -->
+          <div class="pr-2 pl-1">
+            <UPopover v-model:open="yearDropdownOpen">
+              <button
+                id="linimasa-year-select"
+                type="button"
+                aria-label="Pilih Tahun PDRB"
+                class="inline-flex items-center gap-1.5 h-7.5 px-2.5 rounded-xl text-xs font-bold text-ink-primary hover:bg-white active:scale-[0.98] transition-all cursor-pointer select-none tactile-press"
+                :class="yearDropdownOpen ? 'bg-white shadow-2xs text-brand-primary' : ''"
+              >
+                <UIcon name="i-solar-calendar-bold-duotone" class="w-3.5 h-3.5 text-brand-primary" />
+                <span class="font-sans font-bold tracking-tight">{{ selectedYear }}</span>
+                <UIcon
+                  name="i-lucide-chevron-down"
+                  class="w-3 h-3 text-ink-muted transition-transform duration-200"
+                  :class="yearDropdownOpen ? 'rotate-180 text-brand-primary' : ''"
+                />
+              </button>
+
+              <template #content>
+                <div class="p-1 w-32 bg-white rounded-xl shadow-xl border border-border-hairline space-y-0.5">
+                  <div class="px-2 py-1 text-[10px] font-bold text-ink-muted uppercase tracking-wider font-mono">
+                    Tahun PDRB
+                  </div>
+                  <button
+                    v-for="y in availableYears"
+                    :key="y"
+                    type="button"
+                    class="w-full h-8 px-2.5 rounded-lg text-xs font-semibold flex items-center justify-between transition-colors cursor-pointer"
+                    :class="y === selectedYear ? 'bg-brand-tint text-brand-primary font-bold' : 'hover:bg-surface-subtle text-ink-primary'"
+                    @click="handlePeriodChange(y, selectedQuarter); yearDropdownOpen = false;"
+                  >
+                    <span>{{ y }}</span>
+                    <UIcon v-if="y === selectedYear" name="i-lucide-check" class="w-3.5 h-3.5 text-brand-primary" />
+                  </button>
+                </div>
+              </template>
+            </UPopover>
           </div>
 
           <!-- Quarter Switcher (Sliding Brand Pill) -->
@@ -862,35 +888,89 @@ function openDetailModal(article: PublicArticleItem) {
       </div>
     </div>
 
-    <!-- Mobile Drawer for Deep Filters -->
-    <USlideover
+    <!-- Centered Modal for Deep Filters -->
+    <UModal
       v-model:open="mobileFiltersOpen"
-      side="left"
-      title="Filter Lanjutan"
-      description="Saring rentang tanggal, sektor KBLI, dan pengeluaran PDRB"
-      :ui="{ content: 'max-w-sm bg-canvas' }"
+      title="Filter Lengkap Fenomena PDRB"
+      description="Saring rentang tanggal kalender, 17 sektor lapangan usaha KBLI, dan 6 komponen pengeluaran PDRB"
+      :ui="{
+        content: 'sm:max-w-4xl p-0 overflow-hidden rounded-2xl bg-canvas border border-border-hairline shadow-2xl',
+        header: 'px-5 py-4 border-b border-border-hairline bg-white flex items-center justify-between',
+        body: 'p-0 overflow-y-auto max-h-[75vh]',
+        footer: 'px-5 py-3.5 border-t border-border-hairline bg-white flex items-center justify-between'
+      }"
     >
-      <template #body>
-        <PublicFilterBar
-          in-drawer
-          :overview="overview ?? null"
-          :source-type="selectedSourceType"
-          :pdrb-groups="selectedPdrbGroups"
-          :expenditures="selectedExpenditures"
-          :impact-macro="selectedImpactMacro"
-          :date-from="selectedDateFrom"
-          :date-to="selectedDateTo"
-          :active-filter-count="activeFilterCount"
-          @update:source-type="(v) => { selectedSourceType = v; page = 1; }"
-          @update:pdrb-groups="(v) => { selectedPdrbGroups = v; page = 1; }"
-          @update:expenditures="(v) => { selectedExpenditures = v; page = 1; }"
-          @update:impact-macro="(v) => { selectedImpactMacro = v; page = 1; }"
-          @update:date-from="(v) => { selectedDateFrom = v; page = 1; }"
-          @update:date-to="(v) => { selectedDateTo = v; page = 1; }"
-          @reset="resetAllFilters"
-        />
+      <template #header="{ close }">
+        <div class="flex items-center justify-between w-full">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-xl bg-brand-tint border border-brand-border flex items-center justify-center text-brand-primary">
+              <UIcon name="i-solar-tuning-square-2-bold-duotone" class="w-4.5 h-4.5" />
+            </div>
+            <div>
+              <h3 class="text-sm font-extrabold text-ink-primary font-display">Filter Lengkap Fenomena</h3>
+              <p class="text-[11px] text-ink-muted">Saring rentang waktu kalender, 17 sektor KBLI, dan 6 komponen pengeluaran</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            aria-label="Tutup dialog filter"
+            class="w-8 h-8 rounded-xl text-ink-muted hover:text-ink-primary hover:bg-surface-subtle flex items-center justify-center transition-colors cursor-pointer"
+            @click="close"
+          >
+            <UIcon name="i-lucide-x" class="w-4 h-4" />
+          </button>
+        </div>
       </template>
-    </USlideover>
+
+      <template #body>
+        <div class="p-5">
+          <PublicFilterBar
+            in-modal
+            :overview="overview ?? null"
+            :source-type="selectedSourceType"
+            :pdrb-groups="selectedPdrbGroups"
+            :expenditures="selectedExpenditures"
+            :impact-macro="selectedImpactMacro"
+            :date-from="selectedDateFrom"
+            :date-to="selectedDateTo"
+            :active-filter-count="activeFilterCount"
+            @update:source-type="(v) => { selectedSourceType = v; page = 1; }"
+            @update:pdrb-groups="(v) => { selectedPdrbGroups = v; page = 1; }"
+            @update:expenditures="(v) => { selectedExpenditures = v; page = 1; }"
+            @update:impact-macro="(v) => { selectedImpactMacro = v; page = 1; }"
+            @update:date-from="(v) => { selectedDateFrom = v; page = 1; }"
+            @update:date-to="(v) => { selectedDateTo = v; page = 1; }"
+            @reset="resetAllFilters"
+          />
+        </div>
+      </template>
+
+      <template #footer="{ close }">
+        <div class="w-full flex items-center justify-between gap-3">
+          <button
+            v-if="activeFilterCount > 0"
+            type="button"
+            class="text-xs font-semibold text-terracotta-ink hover:underline cursor-pointer flex items-center gap-1.5"
+            @click="resetAllFilters"
+          >
+            <UIcon name="i-lucide-rotate-ccw" class="w-3.5 h-3.5" />
+            <span>Reset Semua Filter ({{ activeFilterCount }})</span>
+          </button>
+          <div v-else class="text-xs text-ink-muted">
+            Tidak ada filter aktif
+          </div>
+
+          <button
+            type="button"
+            class="h-9 px-5 rounded-xl bg-brand-primary hover:bg-brand-primary/95 text-white text-xs font-bold shadow-xs flex items-center gap-2 cursor-pointer tactile-press"
+            @click="close"
+          >
+            <UIcon name="i-lucide-check" class="w-4 h-4" />
+            <span>Terapkan Filter</span>
+          </button>
+        </div>
+      </template>
+    </UModal>
 
     <!-- Reading Sheet Modal Mount -->
     <PublicArticleDetailModal

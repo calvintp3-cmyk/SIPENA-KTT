@@ -21,6 +21,7 @@ const props = withDefaults(
     dateTo?: string;
     activeFilterCount: number;
     inDrawer?: boolean;
+    inModal?: boolean;
   }>(),
   {
     pdrbGroups: () => [],
@@ -28,6 +29,7 @@ const props = withDefaults(
     dateFrom: '',
     dateTo: '',
     inDrawer: false,
+    inModal: false,
   },
 );
 
@@ -166,10 +168,376 @@ function setThisMonthRange() {
   emit('update:dateFrom', fromStr);
   emit('update:dateTo', toStr);
 }
+
+function getExpenditureCleanName(code: string): string {
+  switch (code) {
+    case 'PK_RT': return 'PK-RT (Konsumsi Rumah Tangga)';
+    case 'PK_LNPRT': return 'PK-LNPRT (Konsumsi LNPRT)';
+    case 'PK_P': return 'PK-P (Konsumsi Pemerintah)';
+    case 'PMTB': return 'PMTB (Investasi Fisik)';
+    case 'INVENTORY_CHANGE': return 'Perubahan Inventori';
+    case 'NET_EXPORT': return 'Ekspor Neto Antar Daerah';
+    default: return code;
+  }
+}
 </script>
 
 <template>
+  <!-- Modal Mode: Spacious 3-Column Grid -->
+  <div v-if="inModal" class="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs text-ink-primary">
+    <!-- Kolom 1: Kata Kunci, Rentang Tanggal, Cakupan Sumber, Arah Dinamika -->
+    <div class="space-y-4">
+      <div class="space-y-1.5">
+        <label for="modal-filter-search" class="block text-[11px] font-bold text-ink-primary font-display">
+          Cari Kata Kunci
+        </label>
+        <UInput
+          id="modal-filter-search"
+          v-model="searchInput"
+          type="search"
+          size="xs"
+          leading-icon="i-solar-magnifer-line-duotone"
+          placeholder="Cari komoditas, proyek, lokasi..."
+          class="w-full"
+        />
+      </div>
+
+      <!-- Rentang Tanggal -->
+      <div class="space-y-2 pt-3 border-t border-border-hairline">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-1.5">
+            <span class="block text-[11px] font-bold text-ink-primary font-display">
+              Rentang Tanggal
+            </span>
+            <span
+              v-if="dateFrom || dateTo"
+              class="px-1.5 py-0.2 rounded-full bg-brand-primary text-white text-[10px] font-bold font-mono"
+            >
+              Aktif
+            </span>
+          </div>
+          <button
+            v-if="dateFrom || dateTo"
+            type="button"
+            class="text-[10px] font-semibold text-brand-primary hover:underline cursor-pointer font-display"
+            @click="emit('update:dateFrom', ''); emit('update:dateTo', '');"
+          >
+            Reset
+          </button>
+        </div>
+
+        <!-- Quick Preset Chips -->
+        <div class="grid grid-cols-3 gap-1 text-[10px] font-mono">
+          <button
+            type="button"
+            class="px-1.5 py-1 rounded-md bg-surface-subtle hover:bg-brand-tint hover:text-brand-primary text-ink-secondary border border-border-hairline transition-colors cursor-pointer text-center font-medium"
+            @click="setQuickDateRange(7)"
+          >
+            7 Hari
+          </button>
+          <button
+            type="button"
+            class="px-1.5 py-1 rounded-md bg-surface-subtle hover:bg-brand-tint hover:text-brand-primary text-ink-secondary border border-border-hairline transition-colors cursor-pointer text-center font-medium"
+            @click="setQuickDateRange(30)"
+          >
+            30 Hari
+          </button>
+          <button
+            type="button"
+            class="px-1.5 py-1 rounded-md bg-surface-subtle hover:bg-brand-tint hover:text-brand-primary text-ink-secondary border border-border-hairline transition-colors cursor-pointer text-center font-medium"
+            @click="setThisMonthRange"
+          >
+            Bulan Ini
+          </button>
+        </div>
+
+        <div class="grid grid-cols-2 gap-1.5">
+          <div class="space-y-1">
+            <label for="modal-date-from" class="text-[10px] font-medium text-ink-muted block">Dari Tanggal</label>
+            <AppDatePicker
+              id="modal-date-from"
+              :model-value="dateFrom"
+              :max="dateTo"
+              size="xs"
+              placeholder="Dari tgl"
+              aria-label="Pilih tanggal mulai"
+              @update:model-value="(val: string) => emit('update:dateFrom', val)"
+            />
+          </div>
+          <div class="space-y-1">
+            <label for="modal-date-to" class="text-[10px] font-medium text-ink-muted block">Sampai Tanggal</label>
+            <AppDatePicker
+              id="modal-date-to"
+              :model-value="dateTo"
+              :min="dateFrom"
+              size="xs"
+              placeholder="Sampai tgl"
+              aria-label="Pilih tanggal akhir"
+              @update:model-value="(val: string) => emit('update:dateTo', val)"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Cakupan Sumber -->
+      <div class="space-y-1.5 pt-3 border-t border-border-hairline">
+        <span class="block text-[11px] font-bold text-ink-primary">
+          Cakupan Sumber
+        </span>
+        <AppSegmentedControl
+          :model-value="sourceType"
+          :items="sourceButtons"
+          aria-label="Filter Sumber Berita"
+          variant="brand"
+          size="xs"
+          block
+          @update:model-value="(val: any) => emit('update:sourceType', val as string)"
+        />
+      </div>
+
+      <!-- Arah Dinamika Ekonomi -->
+      <div class="space-y-1.5 pt-3 border-t border-border-hairline">
+        <div class="flex items-center justify-between">
+          <span class="block text-[11px] font-bold text-ink-primary">
+            Arah Dinamika
+          </span>
+          <button
+            v-if="impactMacro !== 'ALL'"
+            type="button"
+            class="text-[10px] font-semibold text-brand-primary hover:underline cursor-pointer"
+            @click="emit('update:impactMacro', 'ALL')"
+          >
+            Hapus
+          </button>
+        </div>
+
+        <div class="grid grid-cols-2 gap-1.5">
+          <button
+            v-for="chip in bentoImpactItems"
+            :key="chip.value"
+            type="button"
+            :aria-pressed="impactMacro === chip.value"
+            class="p-2 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between min-h-[58px]"
+            :class="
+              impactMacro === chip.value
+                ? chip.activeClass
+                : 'bg-white border-border-hairline hover:border-brand-primary/40 hover:bg-canvas text-ink-primary'
+            "
+            @click="emit('update:impactMacro', impactMacro === chip.value ? 'ALL' : chip.value)"
+          >
+            <div class="flex items-center justify-between gap-1">
+              <span class="w-1.5 h-1.5 rounded-full shrink-0" :class="chip.dotClass" />
+              <UIcon :name="chip.icon" class="w-3.5 h-3.5 text-ink-muted" />
+            </div>
+            <div>
+              <div class="font-bold text-[11px] leading-tight">
+                {{ chip.label }}
+              </div>
+              <div class="text-[10px] text-ink-muted leading-tight">
+                {{ chip.subLabel }}
+              </div>
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Kolom 2: Sektor Lapangan Usaha KBLI (17 Sektor) -->
+    <div class="space-y-2 md:border-l md:border-border-hairline md:pl-5">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-1.5">
+          <span class="block text-[11px] font-bold text-ink-primary">
+            Lapangan Usaha (17 Sektor)
+          </span>
+          <span
+            v-if="pdrbGroups.length > 0"
+            class="px-1.5 py-0.2 rounded-full bg-brand-primary text-white text-[10px] font-bold tabular-nums font-mono"
+          >
+            {{ pdrbGroups.length }}
+          </span>
+        </div>
+        <button
+          v-if="pdrbGroups.length > 0"
+          type="button"
+          class="text-[10px] font-semibold text-brand-primary hover:underline cursor-pointer"
+          @click="clearPdrbGroups"
+        >
+          Reset
+        </button>
+      </div>
+
+      <!-- Mini Search Sektor -->
+      <div class="relative">
+        <label for="modal-sector-search" class="sr-only">Saring sektor A-U</label>
+        <UIcon
+          name="i-solar-magnifer-line-duotone"
+          class="w-3.5 h-3.5 absolute left-2 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none"
+        />
+        <input
+          id="modal-sector-search"
+          v-model="sectorSearchQuery"
+          type="search"
+          placeholder="Saring sektor A-U..."
+          class="w-full h-8 pl-7 pr-6 bg-white text-xs text-ink-primary placeholder:text-ink-muted rounded-lg border border-border-hairline focus:border-brand-primary focus:outline-none"
+        >
+        <button
+          v-if="sectorSearchQuery"
+          type="button"
+          aria-label="Hapus kata kunci sektor"
+          class="min-w-6 min-h-6 inline-flex items-center justify-center absolute right-1 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink-primary rounded"
+          @click="sectorSearchQuery = ''"
+        >
+          <UIcon name="i-lucide-x" class="w-3 h-3" />
+        </button>
+      </div>
+
+      <!-- Checklist List Container -->
+      <div
+        role="group"
+        aria-label="Daftar Checklist Lapangan Usaha"
+        class="max-h-[380px] overflow-y-auto saas-scroll space-y-1 pr-1 border border-border-hairline rounded-xl p-1 bg-white"
+      >
+        <button
+          v-for="sector in filteredSectors"
+          :key="sector.groupCode"
+          type="button"
+          class="w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-left transition-colors cursor-pointer group"
+          :class="
+            pdrbGroups.includes(sector.groupCode)
+              ? 'bg-brand-tint font-semibold text-brand-primary shadow-2xs border border-brand-border'
+              : 'hover:bg-canvas text-ink-secondary font-normal'
+          "
+          @click="togglePdrbGroup(sector.groupCode)"
+        >
+          <div class="flex items-center gap-2 min-w-0 flex-1 pr-1.5">
+            <input
+              type="checkbox"
+              tabindex="-1"
+              :checked="pdrbGroups.includes(sector.groupCode)"
+              class="w-3.5 h-3.5 rounded border-[#141917]/20 text-brand-primary focus:ring-brand-primary cursor-pointer pointer-events-none shrink-0"
+            >
+            <span
+              class="min-w-6 px-1 h-4.5 rounded text-[10px] font-bold flex items-center justify-center shrink-0 font-mono"
+              :class="
+                pdrbGroups.includes(sector.groupCode)
+                  ? 'bg-brand-primary text-white'
+                  : 'bg-surface-subtle text-ink-secondary'
+              "
+            >
+              {{ sector.groupCode }}
+            </span>
+            <span class="text-[11px] truncate leading-tight block">
+              {{ sector.shortName }}
+            </span>
+          </div>
+          <span
+            class="text-[10px] tabular-nums font-semibold shrink-0 font-mono"
+            :class="
+              sector.count > 0
+                ? pdrbGroups.includes(sector.groupCode)
+                  ? 'text-brand-primary font-bold'
+                  : 'text-ink-primary font-bold'
+                : 'text-ink-muted/50'
+            "
+          >
+            {{ sector.count }}
+          </span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Kolom 3: Komponen Pengeluaran PDRB & Catatan -->
+    <div class="space-y-3 md:border-l md:border-border-hairline md:pl-5 flex flex-col justify-between">
+      <div class="space-y-2">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-1.5">
+            <span class="block text-[11px] font-bold text-ink-primary font-display">
+              Kelompok Pengeluaran (6 Komponen)
+            </span>
+            <span
+              v-if="expenditures.length > 0"
+              class="px-1.5 py-0.2 rounded-full bg-brand-primary text-white text-[10px] font-bold font-mono tabular-nums"
+            >
+              {{ expenditures.length }}
+            </span>
+          </div>
+          <button
+            v-if="expenditures.length > 0"
+            type="button"
+            class="text-[10px] font-semibold text-brand-primary hover:underline cursor-pointer font-display"
+            @click="clearExpenditures"
+          >
+            Reset
+          </button>
+        </div>
+
+        <div
+          role="group"
+          aria-label="Filter Kelompok Pengeluaran"
+          class="space-y-1 border border-border-hairline rounded-xl p-1 bg-white"
+        >
+          <button
+            v-for="item in PDRB_6_EXPENDITURE_LIST"
+            :key="item.code"
+            type="button"
+            class="w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-left transition-colors cursor-pointer group"
+            :class="
+              expenditures.includes(item.code)
+                ? 'bg-brand-tint font-semibold text-brand-primary shadow-2xs border border-brand-border'
+                : 'hover:bg-canvas text-ink-secondary font-normal'
+            "
+            :title="item.official"
+            @click="toggleExpenditure(item.code)"
+          >
+            <div class="flex items-center gap-2 min-w-0 flex-1 pr-1.5">
+              <input
+                type="checkbox"
+                tabindex="-1"
+                :checked="expenditures.includes(item.code)"
+                class="w-3.5 h-3.5 rounded border-[#141917]/20 text-brand-primary focus:ring-brand-primary cursor-pointer pointer-events-none shrink-0"
+              >
+              <span
+                class="w-2 h-2 rounded-full shrink-0 shadow-xs"
+                :class="getExpenditureColorTheme(item.code).dotClass"
+                :style="{ backgroundColor: getExpenditureColorTheme(item.code).hex }"
+              />
+              <span class="text-[11px] truncate leading-tight block">
+                {{ getExpenditureCleanName(item.code) }}
+              </span>
+            </div>
+
+            <span
+              class="text-[10px] tabular-nums font-semibold shrink-0 font-mono"
+              :class="
+                (expenditureCountMap.get(item.code) ?? 0) > 0
+                  ? expenditures.includes(item.code)
+                    ? 'text-brand-primary font-bold'
+                    : 'text-ink-primary font-bold'
+                  : 'text-ink-muted/50'
+              "
+            >
+              {{ expenditureCountMap.get(item.code) ?? 0 }}
+            </span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Info Card Metodologi BPS -->
+      <div class="p-3.5 rounded-xl bg-white border border-border-hairline space-y-1.5 shadow-2xs">
+        <div class="flex items-center gap-1.5 text-brand-primary font-bold text-[11px]">
+          <UIcon name="i-solar-info-circle-bold-duotone" class="w-3.5 h-3.5 shrink-0" />
+          <span>Kerangka Konsolidasi PDRB</span>
+        </div>
+        <p class="text-[10.5px] text-ink-muted leading-relaxed">
+          Penyaringan fenomena menyelaraskan bukti empiris lapangan dengan tabel penyediaan dan penggunaan (Supply &amp; Use Table) BPS Kabupaten Tana Tidung.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Standard Sidebar / Drawer Fallback -->
   <aside
+    v-else
     aria-label="Filter Portal Fenomena Ekonomi"
     class="flex flex-col text-ink-primary"
     :class="
@@ -530,7 +898,7 @@ function setThisMonthRange() {
                 :style="{ backgroundColor: getExpenditureColorTheme(item.code).hex }"
               />
               <span class="text-[11px] truncate leading-tight block">
-                {{ item.short }}
+                {{ getExpenditureCleanName(item.code) }}
               </span>
             </div>
 

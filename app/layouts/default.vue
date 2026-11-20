@@ -59,20 +59,20 @@ function handleGlobalKeydown(e: KeyboardEvent) {
   const isInputActive = targetTag === 'input' || targetTag === 'textarea' || (e.target as HTMLElement)?.isContentEditable;
 
   // Shortcut Ctrl+K / Cmd+K (aktif di semua rute publik)
-  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+  if ((e.metaKey || e.ctrlKey) && (e.key.toLowerCase() === 'k' || e.code === 'KeyK')) {
     e.preventDefault();
-    if (!isLinimasaRoute.value) {
-      void router.push('/linimasa').then(() => {
-        nextTick(() => {
-          const dockSearch = document.getElementById('filter-dock-search') as HTMLInputElement | null;
-          dockSearch?.focus();
-          dockSearch?.select();
-        });
-      });
+    const dockSearch = document.getElementById('filter-dock-search') as HTMLInputElement | null;
+    if (dockSearch) {
+      dockSearch.focus();
+      dockSearch.select();
     } else {
-      const dockSearch = document.getElementById('filter-dock-search') as HTMLInputElement | null;
-      dockSearch?.focus();
-      dockSearch?.select();
+      void router.push('/linimasa').then(() => {
+        setTimeout(() => {
+          const el = document.getElementById('filter-dock-search') as HTMLInputElement | null;
+          el?.focus();
+          el?.select();
+        }, 120);
+      });
     }
     return;
   }
@@ -80,18 +80,18 @@ function handleGlobalKeydown(e: KeyboardEvent) {
   // Shortcut tombol '/' saat tidak sedang mengetik di input
   if (e.key === '/' && !isInputActive && !e.metaKey && !e.ctrlKey && !e.altKey) {
     e.preventDefault();
-    if (!isLinimasaRoute.value) {
-      void router.push('/linimasa').then(() => {
-        nextTick(() => {
-          const dockSearch = document.getElementById('filter-dock-search') as HTMLInputElement | null;
-          dockSearch?.focus();
-          dockSearch?.select();
-        });
-      });
+    const dockSearch = document.getElementById('filter-dock-search') as HTMLInputElement | null;
+    if (dockSearch) {
+      dockSearch.focus();
+      dockSearch.select();
     } else {
-      const dockSearch = document.getElementById('filter-dock-search') as HTMLInputElement | null;
-      dockSearch?.focus();
-      dockSearch?.select();
+      void router.push('/linimasa').then(() => {
+        setTimeout(() => {
+          const el = document.getElementById('filter-dock-search') as HTMLInputElement | null;
+          el?.focus();
+          el?.select();
+        }, 120);
+      });
     }
   }
 }

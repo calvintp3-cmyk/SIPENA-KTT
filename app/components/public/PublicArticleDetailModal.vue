@@ -142,19 +142,23 @@ async function handleCopyArticleLink() {
 </script>
 
 <template>
-  <USlideover
+  <UModal
     v-model:open="slideoverOpen"
-    side="right"
     :title="article?.title || 'Lembar Ringkasan Fenomena'"
     :description="
       article
         ? `${article.sourcePortal} • ${formatDateTimeWita(article.publishedAt)}`
         : 'Pemetaan dua sisi PDRB BPS Kabupaten Tana Tidung'
     "
-    :ui="{ content: 'sm:max-w-2xl bg-canvas' }"
+    :ui="{
+      content: 'sm:max-w-4xl p-0 overflow-hidden rounded-2xl bg-canvas border border-border-hairline shadow-2xl',
+      header: 'px-6 py-4 border-b border-border-hairline bg-white flex items-center justify-between',
+      body: 'px-6 py-5 overflow-y-auto max-h-[75vh]',
+      footer: 'px-6 py-3.5 border-t border-border-hairline bg-white'
+    }"
   >
     <template #header="{ close }">
-      <div v-if="article" class="w-full flex items-center justify-between gap-3 pb-2 border-b border-border-hairline">
+      <div v-if="article" class="w-full flex items-center justify-between gap-3">
         <div class="flex flex-wrap items-center gap-2 min-w-0">
           <span class="inline-flex items-center gap-1 text-xs font-semibold text-ink-primary bg-surface-subtle px-2.5 py-0.5 rounded-full border border-border-hairline truncate max-w-[200px]">
             {{ article.sourcePortal }}
@@ -429,7 +433,7 @@ async function handleCopyArticleLink() {
     </template>
 
     <template #footer>
-      <div v-if="article" class="w-full flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 pt-2 border-t border-border-hairline">
+      <div v-if="article" class="w-full flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
         <div class="flex items-center gap-2 flex-wrap">
           <button
             v-if="hasSafeUrl"
@@ -467,5 +471,5 @@ async function handleCopyArticleLink() {
         </button>
       </div>
     </template>
-  </USlideover>
+  </UModal>
 </template>

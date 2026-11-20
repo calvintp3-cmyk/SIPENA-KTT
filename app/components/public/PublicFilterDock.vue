@@ -43,6 +43,53 @@ const emit = defineEmits<{
 const { searchInput } = usePublicPortalState();
 const { shortcutKey, shortcutTitle } = usePlatformShortcut();
 
+function focusSearch() {
+  const el = document.getElementById('filter-dock-search') as HTMLInputElement | null;
+  if (el) {
+    el.focus();
+    el.select();
+  }
+}
+
+function handleDockKeydown(e: KeyboardEvent) {
+  if ((e.metaKey || e.ctrlKey) && (e.key.toLowerCase() === 'k' || e.code === 'KeyK')) {
+    e.preventDefault();
+    focusSearch();
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', handleDockKeydown);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', handleDockKeydown);
+});
+
+function getExpenditureBadge(code: string): string {
+  switch (code) {
+    case 'PK_RT': return 'PK-RT';
+    case 'PK_LNPRT': return 'PK-LNPRT';
+    case 'PK_P': return 'PK-P';
+    case 'PMTB': return 'PMTB';
+    case 'INVENTORY_CHANGE': return 'Inventori';
+    case 'NET_EXPORT': return 'Net Ekspor';
+    default: return code;
+  }
+}
+
+function getExpenditureLabelText(code: string): string {
+  switch (code) {
+    case 'PK_RT': return 'Konsumsi Rumah Tangga';
+    case 'PK_LNPRT': return 'Konsumsi LNPRT';
+    case 'PK_P': return 'Konsumsi Pemerintah';
+    case 'PMTB': return 'Investasi Fisik (PMTB)';
+    case 'INVENTORY_CHANGE': return 'Perubahan Inventori';
+    case 'NET_EXPORT': return 'Ekspor Neto Antar Daerah';
+    default: return code;
+  }
+}
+
 const kbliPopoverOpen = ref(false);
 const expenditurePopoverOpen = ref(false);
 const signalPopoverOpen = ref(false);
@@ -161,13 +208,16 @@ const macroSignals = [
             >
               <UIcon name="i-lucide-x" class="w-3.5 h-3.5" />
             </button>
-            <kbd
+            <button
               v-else
+              type="button"
               :title="shortcutTitle"
-              class="text-[10px] text-ink-muted bg-canvas border border-border-hairline rounded px-1.5 py-0.5 font-mono leading-none pointer-events-none"
+              aria-label="Fokus pencarian (Ctrl+K)"
+              class="text-[10px] text-ink-muted hover:text-brand-primary bg-canvas hover:bg-surface-subtle border border-border-hairline hover:border-brand-border rounded px-1.5 py-0.5 font-mono leading-none transition-colors cursor-pointer"
+              @click="focusSearch"
             >
               {{ shortcutKey }}
-            </kbd>
+            </button>
           </div>
         </div>
 
@@ -266,9 +316,9 @@ const macroSignals = [
           </button>
 
           <template #content>
-            <div class="p-3 w-72 space-y-2 bg-white rounded-2xl shadow-xl border border-border-hairline">
+            <div class="p-3 w-80 space-y-2 bg-white rounded-2xl shadow-xl border border-border-hairline">
               <div class="flex items-center justify-between pb-2 border-b border-[#141917]/[0.06]">
-                <span class="text-xs font-bold text-ink-primary">Komponen Pengeluaran</span>
+                <span class="text-xs font-bold text-ink-primary">Komponen Pengeluaran PDRB</span>
                 <button
                   v-if="expenditures.length > 0"
                   type="button"
@@ -284,14 +334,21 @@ const macroSignals = [
                   v-for="item in PDRB_6_EXPENDITURE_LIST"
                   :key="item.code"
                   type="button"
-                  class="w-full px-2 py-1.5 rounded-lg text-left text-xs flex items-center justify-between gap-2 transition-colors cursor-pointer"
+                  class="w-full px-2.5 py-1.5 rounded-xl text-left text-xs flex items-center justify-between gap-2.5 transition-colors cursor-pointer"
                   :class="expenditures.includes(item.code) ? 'bg-brand-tint text-brand-primary font-bold' : 'hover:bg-canvas text-ink-primary'"
                   @click="toggleExpenditure(item.code)"
                 >
-                  <span class="truncate">
-                    <strong class="font-mono mr-1.5">{{ item.code }}</strong>
-                    {{ item.short }}
-                  </span>
+                  <div class="flex items-center gap-2 min-w-0">
+                    <span
+                      class="inline-flex items-center justify-center px-1.5 py-0.5 rounded text-[10px] font-mono font-bold tracking-tight shrink-0"
+                      :class="expenditures.includes(item.code) ? 'bg-brand-primary text-white' : 'bg-surface-subtle text-ink-secondary border border-border-hairline'"
+                    >
+                      {{ getExpenditureBadge(item.code) }}
+                    </span>
+                    <span class="truncate text-xs" :class="expenditures.includes(item.code) ? 'text-brand-primary font-bold' : 'text-ink-primary font-medium'">
+                      {{ getExpenditureLabelText(item.code) }}
+                    </span>
+                  </div>
                   <UIcon
                     v-if="expenditures.includes(item.code)"
                     name="i-lucide-check"
