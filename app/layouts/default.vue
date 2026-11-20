@@ -3,10 +3,8 @@
 const route = useRoute();
 const router = useRouter();
 const { user } = useAdminSession();
-const { searchInput, shortHeaderPeriod } = usePublicPortalState();
-const { shortcutKey, shortcutTitle } = usePlatformShortcut();
+const { shortHeaderPeriod } = usePublicPortalState();
 
-const headerSearchEl = ref<HTMLInputElement | null>(null);
 const mobileMenuOpen = ref(false);
 
 const isLandingRoute = computed(() => route.path === '/');
@@ -66,13 +64,15 @@ function handleGlobalKeydown(e: KeyboardEvent) {
     if (!isLinimasaRoute.value) {
       void router.push('/linimasa').then(() => {
         nextTick(() => {
-          headerSearchEl.value?.focus();
-          headerSearchEl.value?.select();
+          const dockSearch = document.getElementById('filter-dock-search') as HTMLInputElement | null;
+          dockSearch?.focus();
+          dockSearch?.select();
         });
       });
     } else {
-      headerSearchEl.value?.focus();
-      headerSearchEl.value?.select();
+      const dockSearch = document.getElementById('filter-dock-search') as HTMLInputElement | null;
+      dockSearch?.focus();
+      dockSearch?.select();
     }
     return;
   }
@@ -83,13 +83,15 @@ function handleGlobalKeydown(e: KeyboardEvent) {
     if (!isLinimasaRoute.value) {
       void router.push('/linimasa').then(() => {
         nextTick(() => {
-          headerSearchEl.value?.focus();
-          headerSearchEl.value?.select();
+          const dockSearch = document.getElementById('filter-dock-search') as HTMLInputElement | null;
+          dockSearch?.focus();
+          dockSearch?.select();
         });
       });
     } else {
-      headerSearchEl.value?.focus();
-      headerSearchEl.value?.select();
+      const dockSearch = document.getElementById('filter-dock-search') as HTMLInputElement | null;
+      dockSearch?.focus();
+      dockSearch?.select();
     }
   }
 }
@@ -165,43 +167,6 @@ onBeforeUnmount(() => {
             />
           </NuxtLink>
         </nav>
-
-        <!-- Quick Search Bar on /linimasa (Desktop Large) -->
-        <div v-if="isLinimasaRoute" class="flex-1 max-w-xs hidden lg:block">
-          <div class="relative group">
-            <UIcon
-              name="i-solar-magnifer-line-duotone"
-              class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted group-focus-within:text-brand-primary pointer-events-none transition-colors"
-            />
-            <label for="public-header-search" class="sr-only">Cari fenomena ekonomi</label>
-            <input
-              id="public-header-search"
-              ref="headerSearchEl"
-              v-model="searchInput"
-              type="search"
-              placeholder="Cari sektor atau fenomena..."
-              class="w-full h-9 pl-9 pr-14 bg-white/90 hover:bg-white focus:bg-white text-xs text-ink-primary placeholder:text-ink-muted rounded-xl border border-border-hairline focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/15 transition-[color,background-color,border-color,box-shadow]"
-            >
-            <div class="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
-              <button
-                v-if="searchInput"
-                type="button"
-                aria-label="Hapus kata kunci pencarian"
-                class="min-w-8 min-h-8 inline-flex items-center justify-center text-ink-secondary hover:text-ink-primary hover:bg-surface-subtle rounded-lg cursor-pointer"
-                @click="() => { searchInput = ''; }"
-              >
-                <UIcon name="i-lucide-x" class="w-3.5 h-3.5" />
-              </button>
-              <kbd
-                v-else
-                :title="shortcutTitle"
-                class="text-[10px] text-ink-secondary bg-canvas border border-border-hairline rounded px-1.5 py-0.5 font-mono font-medium leading-none pointer-events-none"
-              >
-                {{ shortcutKey }}
-              </kbd>
-            </div>
-          </div>
-        </div>
 
         <!-- Right Utility Cluster -->
         <div class="flex items-center gap-2.5 shrink-0">

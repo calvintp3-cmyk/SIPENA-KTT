@@ -70,6 +70,40 @@ Dokumen ini mencatat seluruh proses eksekusi otonom per sesi: branch, commit has
 
 ---
 
+## Sesi Fase 1 & 3: Responsive, Public Polish & Foundation
+- **Branch:** `feat/ui-f1-f3-responsive-public-polish`
+- **ID Temuan:** `UX-009`, `UX-010`, `UX-018`, `UX-019`, `UX-021`, `UX-023`, Keputusan Desain 1 & 2
+- **Status:** COMPLETED
+- **Ringkasan Perubahan:**
+  1. `Keputusan 1 & UX-010`:
+     - `app/layouts/default.vue`: Menghapus search bar duplikat di masthead publik; mengarahkan shortcut global (`/` dan `Ctrl+K`) langsung ke `#filter-dock-search`.
+     - `app/components/public/PublicFilterDock.vue`: Menyederhanakan dock menjadi 1 baris ramping (Search + Scope + KBLI + Pengeluaran + Sinyal Makro Popover + Filter Lengkap + Reset), menghemat ruang vertikal layar secara signifikan.
+     - `app/pages/linimasa.vue`: Memperbaiki header responsive pada breakpoint 768px (`flex-wrap`, spacing adaptif, mencegah clipping teks panjang).
+  2. `UX-009 (Honest Empty State)`:
+     - `app/components/public/ObservatoryHeroPulse.vue`: Menampilkan status jujur "Belum Ada Bukti Empiris Tercatat" saat `totalVerified === 0` (menghilangkan bar split 50/50 palsu dan metrik telemetri nol yang membingungkan).
+     - `app/components/public/SectorMosaicMatrix.vue`: Menambahkan banner informatif saat `coveredCount === 0`.
+  3. `Keputusan 2 (Snippet Highlight Publik)`:
+     - `app/components/public/PublicArticleDetailModal.vue`: Mengintegrasikan `parseEconomicSnippetSegments` untuk menandai entitas lokasi dan metrik moneter/persen pada ringkasan artikel di modal detail, menjaga kartu feed (`PhenomenonFeedCard.vue`) tetap bersih.
+  4. `UX-018 (Touch Target >= 36px)` & `UX-019 (A11y Form Labels)`:
+     - Memperbaiki tombol clear search, filter pills, dan selector agar memiliki ukuran sentuh memadai (`min-h-8` / `min-h-9`).
+     - Melengkapi `<label for="...">` dan `aria-label` eksplisit pada seluruh input pencarian dan grup filter di `PublicFilterDock.vue` dan `PublicFilterBar.vue`.
+  5. `UX-021 & Amandemen 4 (Pangkas Bobot Font & Lucide Icons)`:
+     - Mengaudit penggunaan bobot font di seluruh kode:
+       - `Bricolage Grotesque`: Dipangkas ke `[600, 700, 800]` (bobot 500 dihapus).
+       - `Manrope`: Dipangkas ke `[400, 500, 600, 700]` (bobot 800 dihapus).
+       - `JetBrains Mono`: Ditetapkan ke `[400, 500, 600, 700]` (bobot 700 bold yang dipakai 72 kali ditambahkan).
+     - Memasang `@iconify-json/lucide` di `package.json`, memungkinkan Nuxt Icon membundel 100% koleksi ikon `lucide` dan `solar` secara offline/lokal tanpa dependensi API eksternal saat runtime.
+  6. `UX-023 (Sidebar Cookie Persistence)`:
+     - `app/layouts/admin.vue`: Menggantikan pembacaan sisi-klien `localStorage` dengan `useCookie('sipena_sidebar_collapsed')` yang aktif di SSR, menghilangkan kedipan/layout shift saat memuat ulang halaman admin.
+  7. `tests/responsive-and-polish.test.ts`: 5 test cases baru ditambahkan dan lulus (100%).
+- **Gate:**
+  - `nuxi typecheck`: 0 errors.
+  - Vitest: 24 files, 178 tests PASSED (100%).
+  - Forbidden Path Gate: 0 perubahan pada `server/**`, `prisma/**`, `shared/schemas/**`.
+
+
+---
+
 ## Sesi 0b: Semantic Tokens & 3-Wave Codemod
 - **Branch:** `refactor/ui-0b-semantic-tokens-codemod`
 - **Status:** COMPLETED
@@ -109,6 +143,40 @@ Dokumen ini mencatat seluruh proses eksekusi otonom per sesi: branch, commit has
   - Vitest: 23 files, 173 tests PASSED (100%).
   - Forbidden Path Gate: 0 perubahan pada `server/**`, `prisma/**`, `shared/schemas/**`.
   - Dev Server: Dimatikan setelah selesai capture (port 3000 bebas).
+
+---
+
+## Sesi Fase 1 & 3: Responsive, Public Polish & Foundation
+- **Branch:** `feat/ui-f1-f3-responsive-public-polish`
+- **ID Temuan:** `UX-009`, `UX-010`, `UX-018`, `UX-019`, `UX-021`, `UX-023`, Keputusan Desain 1 & 2
+- **Status:** COMPLETED
+- **Ringkasan Perubahan:**
+  1. `Keputusan 1 & UX-010`:
+     - `app/layouts/default.vue`: Menghapus search bar duplikat di masthead publik; mengarahkan shortcut global (`/` dan `Ctrl+K`) langsung ke `#filter-dock-search`.
+     - `app/components/public/PublicFilterDock.vue`: Menyederhanakan dock menjadi 1 baris ramping (Search + Scope + KBLI + Pengeluaran + Sinyal Makro Popover + Filter Lengkap + Reset), menghemat ruang vertikal layar secara signifikan.
+     - `app/pages/linimasa.vue`: Memperbaiki header responsive pada breakpoint 768px (`flex-wrap`, spacing adaptif, mencegah clipping teks panjang).
+  2. `UX-009 (Honest Empty State)`:
+     - `app/components/public/ObservatoryHeroPulse.vue`: Menampilkan status jujur "Belum Ada Bukti Empiris Tercatat" saat `totalVerified === 0` (menghilangkan bar split 50/50 palsu dan metrik telemetri nol yang membingungkan).
+     - `app/components/public/SectorMosaicMatrix.vue`: Menambahkan banner informatif saat `coveredCount === 0`.
+  3. `Keputusan 2 (Snippet Highlight Publik)`:
+     - `app/components/public/PublicArticleDetailModal.vue`: Mengintegrasikan `parseEconomicSnippetSegments` untuk menandai entitas lokasi dan metrik moneter/persen pada ringkasan artikel di modal detail, menjaga kartu feed (`PhenomenonFeedCard.vue`) tetap bersih.
+  4. `UX-018 (Touch Target >= 36px)` & `UX-019 (A11y Form Labels)`:
+     - Memperbaiki tombol clear search, filter pills, dan selector agar memiliki ukuran sentuh memadai (`min-h-8` / `min-h-9`).
+     - Melengkapi `<label for="...">` dan `aria-label` eksplisit pada seluruh input pencarian dan grup filter di `PublicFilterDock.vue` dan `PublicFilterBar.vue`.
+  5. `UX-021 & Amandemen 4 (Pangkas Bobot Font & Lucide Icons)`:
+     - Mengaudit penggunaan bobot font di seluruh kode:
+       - `Bricolage Grotesque`: Dipangkas ke `[600, 700, 800]` (bobot 500 dihapus).
+       - `Manrope`: Dipangkas ke `[400, 500, 600, 700]` (bobot 800 dihapus).
+       - `JetBrains Mono`: Ditetapkan ke `[400, 500, 600, 700]` (bobot 700 bold yang dipakai 72 kali ditambahkan).
+     - Memasang `@iconify-json/lucide` di `package.json`, memungkinkan Nuxt Icon membundel 100% koleksi ikon `lucide` dan `solar` secara offline/lokal tanpa dependensi API eksternal saat runtime.
+  6. `UX-023 (Sidebar Cookie Persistence)`:
+     - `app/layouts/admin.vue`: Menggantikan pembacaan sisi-klien `localStorage` dengan `useCookie('sipena_sidebar_collapsed')` yang aktif di SSR, menghilangkan kedipan/layout shift saat memuat ulang halaman admin.
+  7. `tests/responsive-and-polish.test.ts`: 5 test cases baru ditambahkan dan lulus (100%).
+- **Gate:**
+  - `nuxi typecheck`: 0 errors.
+  - Vitest: 24 files, 178 tests PASSED (100%).
+  - Forbidden Path Gate: 0 perubahan pada `server/**`, `prisma/**`, `shared/schemas/**`.
+
 
 
 

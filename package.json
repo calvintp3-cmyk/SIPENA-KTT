@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "@google/genai": "^3.1.0",
+    "@iconify-json/lucide": "^1.2.157",
     "@iconify-json/solar": "^1.2.14",
     "@nuxt/icon": "^1.15.0",
     "@nuxt/ui": "^3.3.7",

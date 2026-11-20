@@ -501,11 +501,11 @@ function openDetailModal(article: PublicArticleItem) {
       <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-6 pb-6 border-b border-border-hairline">
         <!-- Left: Editorial Title & Status Indicator -->
         <div class="space-y-2 max-w-3xl">
-          <div class="flex items-center gap-2">
+          <div class="flex flex-wrap items-center gap-2">
             <span class="text-[11px] font-mono font-bold uppercase tracking-wider text-terracotta-ink">
               KABUPATEN TANA TIDUNG &bull; CATATAN FENOMENA PDRB
             </span>
-            <span class="text-ink-primary/20">&bull;</span>
+            <span class="hidden sm:inline text-ink-primary/20">&bull;</span>
             <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-brand-tint border border-brand-border text-xs font-mono font-bold text-brand-primary tabular-nums">
               <span class="w-1.5 h-1.5 rounded-full bg-brand-primary" />
               <span>{{ formatNumberId(overview?.kpi.totalVerified ?? 0) }} Bukti Terverifikasi</span>

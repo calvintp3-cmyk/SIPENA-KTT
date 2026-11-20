@@ -16,18 +16,22 @@ const {
 const mobileNavOpen = ref(false);
 const commandPaletteOpen = ref(false);
 const isLoggingOut = ref(false);
-const isSidebarCollapsed = useState<boolean>('sipena:admin-sidebar-collapsed', () => false);
+const sidebarCookie = useCookie<boolean>('sipena_sidebar_collapsed', {
+  default: () => false,
+  sameSite: 'lax',
+});
+const isSidebarCollapsed = useState<boolean>(
+  'sipena:admin-sidebar-collapsed',
+  () => sidebarCookie.value ?? false,
+);
 const { shortcutKey, shortcutTitle } = usePlatformShortcut();
+
+watch(isSidebarCollapsed, (val: boolean) => {
+  sidebarCookie.value = val;
+});
 
 function toggleSidebarCollapsed() {
   isSidebarCollapsed.value = !isSidebarCollapsed.value;
-  if (import.meta.client) {
-    try {
-      window.localStorage.setItem('sipena:sidebar-collapsed', isSidebarCollapsed.value ? '1' : '0');
-    } catch {
-      // Abaikan kegagalan storage pada private mode
-    }
-  }
 }
 
 interface NavItem {
@@ -182,15 +186,8 @@ async function handleLogout() {
 let queuePollTimer: ReturnType<typeof setInterval> | null = null;
 
 onMounted(() => {
-  if (import.meta.client) {
-    try {
-      const savedCollapsed = window.localStorage.getItem('sipena:sidebar-collapsed');
-      if (savedCollapsed !== null) {
-        isSidebarCollapsed.value = savedCollapsed === '1';
-      }
-    } catch {
-      // Abaikan kegagalan localStorage
-    }
+  if (sidebarCookie.value !== undefined) {
+    isSidebarCollapsed.value = Boolean(sidebarCookie.value);
   }
 
   void refreshQueueCounters();

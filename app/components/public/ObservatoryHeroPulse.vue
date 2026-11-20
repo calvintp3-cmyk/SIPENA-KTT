@@ -79,76 +79,101 @@ const deltaBadge = computed(() => {
       </div>
     </div>
 
-    <!-- Core Telemetry Metric -->
-    <div class="relative z-10 py-5 space-y-2">
-      <div class="text-[12px] text-emerald-100/80 font-medium tracking-tight">
-        Total Fenomena Ekonomi Tervalidasi
+    <!-- Empty State when totalVerified === 0 -->
+    <div v-if="totalVerified === 0" class="relative z-10 py-8 px-2 text-center space-y-3">
+      <div class="w-12 h-12 mx-auto rounded-2xl bg-white/10 flex items-center justify-center text-emerald-200">
+        <UIcon name="i-solar-box-minimalistic-line-duotone" class="w-6 h-6" />
       </div>
-      <div class="flex items-baseline gap-3">
-        <span class="font-display font-extrabold text-4xl sm:text-5xl tracking-tight text-white tabular-nums">
-          {{ formatNumberId(totalVerified) }}
-        </span>
-        <span
-          v-if="deltaBadge"
-          class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-md text-xs font-mono font-bold"
-          :class="deltaBadge.isPositive ? 'bg-emerald-400/20 text-emerald-200' : 'bg-terracotta/30 text-[#F9A89B]'"
+      <div class="space-y-1">
+        <h4 class="text-sm font-semibold text-white">Belum Ada Bukti Empiris Tercatat</h4>
+        <p class="text-xs text-emerald-100/75 leading-relaxed max-w-xs mx-auto">
+          Belum ada fenomena ekonomi yang tervalidasi untuk periode {{ periodLabel }}.
+        </p>
+      </div>
+      <div class="pt-2">
+        <NuxtLink
+          to="/linimasa"
+          class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-xs text-white font-medium transition-colors"
         >
-          <span>{{ deltaBadge.isPositive ? '↑' : '↓' }}</span>
-          <span>{{ deltaBadge.text }}</span>
-        </span>
-      </div>
-      <div class="text-[11.5px] text-emerald-100/70">
-        Mencakup <strong class="text-white font-semibold">{{ coveredSectorsCount }}</strong> dari 17 Lapangan Usaha KBLI
+          <span>Jelajahi Arsip Periode Lain</span>
+          <UIcon name="i-lucide-arrow-right" class="w-3.5 h-3.5" />
+        </NuxtLink>
       </div>
     </div>
 
-    <!-- Real Momentum Balance Bar -->
-    <div class="relative z-10 py-4 border-y border-white/10 space-y-2.5">
-      <div class="flex items-center justify-between text-[11px] font-mono">
-        <span class="text-emerald-200 flex items-center gap-1.5">
-          <span class="w-1.5 h-1.5 rounded-full bg-[#34D399]" />
-          Ekspansi Riil ({{ expansionPct }}%)
-        </span>
-        <span class="text-[#F9A89B] flex items-center gap-1.5">
-          Tekanan / Kontraksi ({{ pressurePct }}%)
-          <span class="w-1.5 h-1.5 rounded-full bg-terracotta" />
-        </span>
+    <!-- Active Telemetry when totalVerified > 0 -->
+    <template v-else>
+      <!-- Core Telemetry Metric -->
+      <div class="relative z-10 py-5 space-y-2">
+        <div class="text-[12px] text-emerald-100/80 font-medium tracking-tight">
+          Total Fenomena Ekonomi Tervalidasi
+        </div>
+        <div class="flex items-baseline gap-3">
+          <span class="font-display font-extrabold text-4xl sm:text-5xl tracking-tight text-white tabular-nums">
+            {{ formatNumberId(totalVerified) }}
+          </span>
+          <span
+            v-if="deltaBadge"
+            class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-md text-xs font-mono font-bold"
+            :class="deltaBadge.isPositive ? 'bg-emerald-400/20 text-emerald-200' : 'bg-terracotta/30 text-[#F9A89B]'"
+          >
+            <span>{{ deltaBadge.isPositive ? '↑' : '↓' }}</span>
+            <span>{{ deltaBadge.text }}</span>
+          </span>
+        </div>
+        <div class="text-[11.5px] text-emerald-100/70">
+          Mencakup <strong class="text-white font-semibold">{{ coveredSectorsCount }}</strong> dari 17 Lapangan Usaha KBLI
+        </div>
       </div>
 
-      <!-- Split Bar -->
-      <div class="w-full h-2 rounded-full bg-white/10 overflow-hidden flex">
-        <div
-          class="h-full bg-[#34D399] transition-all duration-500"
-          :style="{ width: `${expansionPct}%` }"
-        />
-        <div
-          class="h-full bg-terracotta transition-all duration-500"
-          :style="{ width: `${pressurePct}%` }"
-        />
+      <!-- Real Momentum Balance Bar -->
+      <div class="relative z-10 py-4 border-y border-white/10 space-y-2.5">
+        <div class="flex items-center justify-between text-[11px] font-mono">
+          <span class="text-emerald-200 flex items-center gap-1.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-[#34D399]" />
+            Ekspansi Riil ({{ expansionPct }}%)
+          </span>
+          <span class="text-[#F9A89B] flex items-center gap-1.5">
+            Tekanan / Kontraksi ({{ pressurePct }}%)
+            <span class="w-1.5 h-1.5 rounded-full bg-terracotta" />
+          </span>
+        </div>
+
+        <!-- Split Bar -->
+        <div class="w-full h-2 rounded-full bg-white/10 overflow-hidden flex">
+          <div
+            class="h-full bg-[#34D399] transition-all duration-500"
+            :style="{ width: `${expansionPct}%` }"
+          />
+          <div
+            class="h-full bg-terracotta transition-all duration-500"
+            :style="{ width: `${pressurePct}%` }"
+          />
+        </div>
+
+        <div class="flex items-center justify-between text-[10.5px] text-emerald-100/60 font-mono">
+          <span>{{ expansionCount }} bukti kenaikan</span>
+          <span>{{ pressureCount }} bukti kontraksi/inflasi</span>
+        </div>
       </div>
 
-      <div class="flex items-center justify-between text-[10.5px] text-emerald-100/60 font-mono">
-        <span>{{ expansionCount }} bukti kenaikan</span>
-        <span>{{ pressureCount }} bukti kontraksi/inflasi</span>
-      </div>
-    </div>
+      <!-- Dual Transmission Anchors -->
+      <div class="relative z-10 pt-4 space-y-3">
+        <div class="flex items-start justify-between gap-4 text-xs">
+          <span class="text-emerald-200/80 font-medium">Sektor Utama:</span>
+          <span class="text-right font-medium text-white truncate max-w-[200px]" :title="dominantKbli?.name || '-'">
+            {{ dominantKbli ? `${dominantKbli.code} • ${dominantKbli.name}` : 'Menunggu kurasi' }}
+          </span>
+        </div>
 
-    <!-- Dual Transmission Anchors -->
-    <div class="relative z-10 pt-4 space-y-3">
-      <div class="flex items-start justify-between gap-4 text-xs">
-        <span class="text-emerald-200/80 font-medium">Sektor Utama:</span>
-        <span class="text-right font-medium text-white truncate max-w-[200px]" :title="dominantKbli?.name || '-'">
-          {{ dominantKbli ? `${dominantKbli.code} • ${dominantKbli.name}` : 'Menunggu kurasi' }}
-        </span>
+        <div class="flex items-start justify-between gap-4 text-xs">
+          <span class="text-emerald-200/80 font-medium">Pengeluaran Utama:</span>
+          <span class="text-right font-medium text-white truncate max-w-[200px]">
+            {{ dominantExpenditure ? `${dominantExpenditure.code} • ${dominantExpenditure.label}` : 'Menunggu kurasi' }}
+          </span>
+        </div>
       </div>
-
-      <div class="flex items-start justify-between gap-4 text-xs">
-        <span class="text-emerald-200/80 font-medium">Pengeluaran Utama:</span>
-        <span class="text-right font-medium text-white truncate max-w-[200px]">
-          {{ dominantExpenditure ? `${dominantExpenditure.code} • ${dominantExpenditure.label}` : 'Menunggu kurasi' }}
-        </span>
-      </div>
-    </div>
+    </template>
 
     <!-- Bottom Quick Action -->
     <div class="relative z-10 pt-5 mt-2 border-t border-white/10">

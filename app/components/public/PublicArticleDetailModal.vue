@@ -6,6 +6,7 @@ import {
 } from '#shared/enums/pdrb';
 import { getKbliFourGenerations } from '#shared/utils/kbli-concordance';
 import { formatDateTimeWita, toRomanQuarter } from '#shared/utils/period';
+import { parseEconomicSnippetSegments } from '~/utils/snippetHighlight';
 import type { PublicArticleItem } from '~/types/sipena';
 
 const props = defineProps<{
@@ -85,6 +86,10 @@ const secondaryKbliImpactBadge = computed(() =>
 );
 const secondaryExpImpactBadge = computed(() =>
   getExpenditureImpactBadge(props.article?.secondaryExpenditureImpact),
+);
+
+const highlightedSummarySegments = computed(() =>
+  parseEconomicSnippetSegments(props.article?.summary || ''),
 );
 
 async function handleCopyCitation() {
@@ -208,8 +213,21 @@ async function handleCopyArticleLink() {
           <span class="text-xs font-bold text-ink-muted uppercase tracking-wider block font-mono">
             Intisari &amp; Dampak Ekonomi
           </span>
-          <p class="text-sm text-ink-primary leading-relaxed">
-            {{ article.summary || 'Ringkasan intelijen ekonomi untuk artikel ini belum dicatat.' }}
+          <p v-if="highlightedSummarySegments.length > 0" class="text-sm text-ink-primary leading-relaxed whitespace-pre-line">
+            <template v-for="(seg, idx) in highlightedSummarySegments" :key="idx">
+              <mark
+                v-if="seg.kind === 'location'"
+                class="bg-brand-tint text-brand-primary px-1 rounded font-semibold"
+              >{{ seg.text }}</mark>
+              <mark
+                v-else-if="seg.kind === 'metric'"
+                class="bg-ochre-surface text-ochre-ink px-1 rounded font-mono font-semibold"
+              >{{ seg.text }}</mark>
+              <template v-else>{{ seg.text }}</template>
+            </template>
+          </p>
+          <p v-else class="text-sm text-ink-muted italic leading-relaxed">
+            Ringkasan intelijen ekonomi untuk artikel ini belum dicatat.
           </p>
         </div>
 

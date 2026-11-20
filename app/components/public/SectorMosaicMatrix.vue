@@ -126,6 +126,14 @@ const nationalPct = computed(() => 100 - localPct.value);
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
       <!-- Left (8 Cols): 17-Sector Mosaic Grid -->
       <div class="lg:col-span-8">
+        <div
+          v-if="coveredCount === 0"
+          class="mb-4 p-3.5 rounded-xl bg-surface-subtle border border-border-hairline flex items-center gap-3 text-xs text-ink-secondary"
+        >
+          <UIcon name="i-solar-info-circle-line-duotone" class="w-4 h-4 text-ink-muted shrink-0" />
+          <span>Belum ada bukti empiris tercatat untuk periode {{ periodLabel }}. Seluruh 17 sektor berstatus senyap menunggu kurasi.</span>
+        </div>
+
         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
           <NuxtLink
             v-for="s in filteredSectors"

@@ -45,7 +45,10 @@ const { shortcutKey, shortcutTitle } = usePlatformShortcut();
 
 const kbliPopoverOpen = ref(false);
 const expenditurePopoverOpen = ref(false);
+const signalPopoverOpen = ref(false);
 const sectorSearch = ref('');
+
+const currentSignal = computed(() => macroSignals.find((s) => s.value === props.impactMacro) || macroSignals[0]);
 
 const sectorOptions = computed<Pdrb17DistributionItem[]>(() => {
   if (props.overview?.pdrb17Distribution?.length) {
@@ -123,18 +126,20 @@ const macroSignals = [
 
 <template>
   <div
-    class="sticky top-16 z-30 w-full bg-canvas/92 backdrop-blur-xl border-y border-border-hairline py-3 transition-[background-color,border-color]"
+    class="sticky top-16 z-30 w-full bg-canvas/92 backdrop-blur-xl border-y border-border-hairline py-2.5 transition-[background-color,border-color]"
   >
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-2.5">
-      <!-- Row 1: Search + Scope + Quick Popovers + Drawer Trigger -->
-      <div class="flex flex-wrap items-center gap-2.5">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <!-- 1-Row Slim Dock: Search + Scope + KBLI + Pengeluaran + Sinyal + Filter Lengkap + Reset -->
+      <div class="flex flex-wrap lg:flex-nowrap items-center gap-2">
         <!-- Search Input -->
-        <div class="relative flex-1 min-w-[200px] sm:min-w-[260px]">
+        <div class="relative flex-1 min-w-[200px] sm:min-w-[240px]">
+          <label for="filter-dock-search" class="sr-only">Cari sektor, komoditas, atau kata kunci</label>
           <UIcon
             name="i-solar-magnifer-line-duotone"
             class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none"
           />
           <input
+            id="filter-dock-search"
             v-model="searchInput"
             type="search"
             placeholder="Cari sektor, komoditas, atau kata kunci..."
@@ -144,7 +149,8 @@ const macroSignals = [
             <button
               v-if="searchInput"
               type="button"
-              class="w-6 h-6 inline-flex items-center justify-center text-ink-muted hover:text-ink-primary rounded cursor-pointer"
+              aria-label="Hapus kata kunci pencarian"
+              class="min-w-8 min-h-8 inline-flex items-center justify-center text-ink-muted hover:text-ink-primary rounded-lg cursor-pointer"
               @click="searchInput = ''"
             >
               <UIcon name="i-lucide-x" class="w-3.5 h-3.5" />
@@ -160,10 +166,14 @@ const macroSignals = [
         </div>
 
         <!-- Scope Segmented Control -->
-        <div class="hidden sm:inline-flex items-center p-0.5 rounded-xl bg-surface-subtle text-xs font-semibold shrink-0">
+        <div
+          role="group"
+          aria-label="Filter cakupan berita"
+          class="hidden sm:inline-flex items-center p-0.5 rounded-xl bg-surface-subtle text-xs font-semibold shrink-0"
+        >
           <button
             type="button"
-            class="px-2.5 py-1.5 rounded-lg transition-all cursor-pointer"
+            class="px-2.5 py-1.5 rounded-lg transition-all cursor-pointer min-h-8"
             :class="sourceType === 'ALL' ? 'bg-white text-ink-primary shadow-2xs font-bold' : 'text-ink-secondary hover:text-ink-primary'"
             @click="emit('update:sourceType', 'ALL')"
           >
@@ -171,7 +181,7 @@ const macroSignals = [
           </button>
           <button
             type="button"
-            class="px-2.5 py-1.5 rounded-lg transition-all cursor-pointer"
+            class="px-2.5 py-1.5 rounded-lg transition-all cursor-pointer min-h-8"
             :class="sourceType === ArticleSourceTypeEnum.REGIONAL ? 'bg-white text-brand-primary shadow-2xs font-bold' : 'text-ink-secondary hover:text-brand-primary'"
             @click="emit('update:sourceType', ArticleSourceTypeEnum.REGIONAL)"
           >
@@ -179,7 +189,7 @@ const macroSignals = [
           </button>
           <button
             type="button"
-            class="px-2.5 py-1.5 rounded-lg transition-all cursor-pointer"
+            class="px-2.5 py-1.5 rounded-lg transition-all cursor-pointer min-h-8"
             :class="sourceType === ArticleSourceTypeEnum.NATIONAL ? 'bg-white text-brand-primary shadow-2xs font-bold' : 'text-ink-secondary hover:text-brand-primary'"
             @click="emit('update:sourceType', ArticleSourceTypeEnum.NATIONAL)"
           >
@@ -191,7 +201,8 @@ const macroSignals = [
         <UPopover v-model:open="kbliPopoverOpen">
           <button
             type="button"
-            class="h-9.5 px-3 rounded-xl border text-xs font-semibold inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+            aria-label="Filter sektor KBLI"
+            class="h-9.5 px-3 rounded-xl border text-xs font-semibold inline-flex items-center gap-1.5 transition-colors cursor-pointer shrink-0"
             :class="pdrbGroups.length > 0 ? 'bg-brand-tint border-brand-border text-brand-primary font-bold' : 'bg-white border-border-hairline text-ink-secondary hover:bg-surface-subtle'"
           >
             <span>KBLI</span>
@@ -222,6 +233,7 @@ const macroSignals = [
               <input
                 v-model="sectorSearch"
                 type="search"
+                aria-label="Cari sektor KBLI"
                 placeholder="Cari kode atau nama sektor..."
                 class="w-full h-8 px-2.5 bg-canvas text-xs rounded-lg border border-border-hairline focus:border-brand-primary"
               >
@@ -252,7 +264,8 @@ const macroSignals = [
         <UPopover v-model:open="expenditurePopoverOpen">
           <button
             type="button"
-            class="h-9.5 px-3 rounded-xl border text-xs font-semibold inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+            aria-label="Filter komponen pengeluaran"
+            class="h-9.5 px-3 rounded-xl border text-xs font-semibold inline-flex items-center gap-1.5 transition-colors cursor-pointer shrink-0"
             :class="expenditures.length > 0 ? 'bg-brand-tint border-brand-border text-brand-primary font-bold' : 'bg-white border-border-hairline text-ink-secondary hover:bg-surface-subtle'"
           >
             <span>Pengeluaran</span>
@@ -304,14 +317,52 @@ const macroSignals = [
           </template>
         </UPopover>
 
+        <!-- Popover Trigger: Arah Sinyal Makro -->
+        <UPopover v-model:open="signalPopoverOpen">
+          <button
+            type="button"
+            aria-label="Filter arah sinyal ekonomi makro"
+            class="h-9.5 px-3 rounded-xl border text-xs font-semibold inline-flex items-center gap-1.5 transition-colors cursor-pointer shrink-0"
+            :class="impactMacro !== 'all' ? 'bg-brand-tint border-brand-border text-brand-primary font-bold' : 'bg-white border-border-hairline text-ink-secondary hover:bg-surface-subtle'"
+          >
+            <UIcon :name="currentSignal.icon" class="w-3.5 h-3.5" />
+            <span>{{ currentSignal.label }}</span>
+            <UIcon name="i-lucide-chevron-down" class="w-3.5 h-3.5 text-ink-muted" />
+          </button>
+
+          <template #content>
+            <div class="p-2 w-56 space-y-1 bg-white rounded-2xl shadow-xl border border-border-hairline">
+              <button
+                v-for="sig in macroSignals"
+                :key="sig.value"
+                type="button"
+                class="w-full px-2.5 py-2 rounded-lg text-left text-xs flex items-center justify-between gap-2 transition-colors cursor-pointer"
+                :class="impactMacro === sig.value ? 'bg-brand-tint text-brand-primary font-bold' : 'hover:bg-canvas text-ink-primary'"
+                @click="() => { emit('update:impactMacro', sig.value); signalPopoverOpen = false; }"
+              >
+                <div class="flex items-center gap-2">
+                  <UIcon :name="sig.icon" class="w-3.5 h-3.5 shrink-0" />
+                  <span>{{ sig.label }}</span>
+                </div>
+                <UIcon
+                  v-if="impactMacro === sig.value"
+                  name="i-lucide-check"
+                  class="w-3.5 h-3.5 text-brand-primary shrink-0"
+                />
+              </button>
+            </div>
+          </template>
+        </UPopover>
+
         <!-- Deep Filter Slideover Trigger -->
         <button
           type="button"
-          class="h-9.5 px-3 rounded-xl border border-border-hairline bg-white text-xs font-semibold text-ink-primary hover:bg-surface-subtle inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+          aria-label="Buka filter lanjutan"
+          class="h-9.5 px-3 rounded-xl border border-border-hairline bg-white text-xs font-semibold text-ink-primary hover:bg-surface-subtle inline-flex items-center gap-1.5 transition-colors cursor-pointer shrink-0"
           @click="emit('openDrawer')"
         >
           <UIcon name="i-solar-tuning-2-line-duotone" class="w-4 h-4 text-ink-muted" />
-          <span>Filter Lengkap</span>
+          <span class="hidden sm:inline">Filter Lengkap</span>
           <span
             v-if="activeFilterCount > 0"
             class="px-1.5 py-0.2 rounded-full bg-brand-primary text-white text-[10px] font-mono font-bold"
@@ -324,41 +375,12 @@ const macroSignals = [
         <button
           v-if="activeFilterCount > 0"
           type="button"
-          class="h-9.5 px-2.5 rounded-xl text-xs font-semibold text-terracotta-ink hover:bg-terracotta-surface transition-colors cursor-pointer inline-flex items-center gap-1"
+          aria-label="Reset semua filter"
+          class="h-9.5 px-2.5 rounded-xl text-xs font-semibold text-terracotta-ink hover:bg-terracotta-surface transition-colors cursor-pointer inline-flex items-center gap-1 shrink-0"
           @click="emit('reset')"
         >
           <UIcon name="i-lucide-rotate-ccw" class="w-3.5 h-3.5" />
-          <span>Reset Filter</span>
-        </button>
-      </div>
-
-      <!-- Row 2: Signal Direction Quick Pills (Macroeconomic Pressure / Expansion) -->
-      <div class="flex items-center gap-1.5 overflow-x-auto pb-0.5 no-scrollbar text-xs">
-        <span class="text-[11px] font-mono font-semibold text-ink-muted uppercase tracking-wider mr-1 shrink-0">
-          Arah Sinyal:
-        </span>
-        <button
-          v-for="sig in macroSignals"
-          :key="sig.value"
-          type="button"
-          class="px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors cursor-pointer shrink-0 inline-flex items-center gap-1.5"
-          :class="[
-            impactMacro === sig.value
-              ? sig.value === 'EXPANSION'
-                ? 'bg-brand-tint text-brand-primary border border-brand-border font-bold'
-                : sig.value === 'PRICE_UP'
-                  ? 'bg-ochre-surface text-ochre-ink border border-ochre-border font-bold'
-                  : sig.value === 'CONTRACTION'
-                    ? 'bg-terracotta-surface text-terracotta-ink border border-[#F8D2C9] font-bold'
-                    : sig.value === 'PRICE_DOWN'
-                      ? 'bg-[#E6F4F2] text-[#0F766E] border border-[#B2DFDB] font-bold'
-                      : 'bg-brand-primary text-white font-bold'
-              : 'bg-white border border-border-hairline text-ink-secondary hover:bg-surface-subtle',
-          ]"
-          @click="emit('update:impactMacro', sig.value)"
-        >
-          <UIcon v-if="sig.icon" :name="sig.icon" class="w-3.5 h-3.5 shrink-0" />
-          <span>{{ sig.label }}</span>
+          <span>Reset</span>
         </button>
       </div>
     </div>

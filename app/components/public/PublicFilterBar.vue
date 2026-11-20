@@ -408,23 +408,26 @@ function setThisMonthRange() {
 
         <!-- Mini Search Sektor -->
         <div class="relative">
+          <label for="drawer-sector-search" class="sr-only">Saring sektor A-U</label>
           <UIcon
             name="i-solar-magnifer-line-duotone"
-            class="w-3 h-3 absolute left-2 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none"
+            class="w-3.5 h-3.5 absolute left-2 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none"
           />
           <input
+            id="drawer-sector-search"
             v-model="sectorSearchQuery"
             type="search"
             placeholder="Saring sektor A-U..."
-            class="w-full h-6.5 pl-6 pr-5 bg-canvas text-[11px] text-ink-primary placeholder:text-ink-muted rounded-md border border-border-hairline focus:bg-white focus:border-brand-primary focus:outline-none"
+            class="w-full h-8 pl-7 pr-6 bg-canvas text-xs text-ink-primary placeholder:text-ink-muted rounded-lg border border-border-hairline focus:bg-white focus:border-brand-primary focus:outline-none"
           >
           <button
             v-if="sectorSearchQuery"
             type="button"
-            class="absolute right-1 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink-primary"
+            aria-label="Hapus kata kunci sektor"
+            class="min-w-6 min-h-6 inline-flex items-center justify-center absolute right-1 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink-primary rounded"
             @click="sectorSearchQuery = ''"
           >
-            <UIcon name="i-lucide-x" class="w-2.5 h-2.5" />
+            <UIcon name="i-lucide-x" class="w-3 h-3" />
           </button>
         </div>
 
