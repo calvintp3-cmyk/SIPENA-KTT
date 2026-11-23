@@ -178,7 +178,7 @@ export const KTT_SUBDISTRICTS = [
 ] as const;
 
 export const subdistrictOptions = [
-  { label: 'Tidak Ditentukan / Makro KTT', value: '' },
+  { label: 'Tidak Ditentukan / Makro KTT', value: 'NONE' },
   { label: 'Kec. Sesayap', value: 'Sesayap' },
   { label: 'Kec. Sesayap Hilir', value: 'Sesayap Hilir' },
   { label: 'Kec. Tana Lia', value: 'Tana Lia' },

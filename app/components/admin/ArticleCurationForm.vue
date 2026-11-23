@@ -104,11 +104,11 @@ const expModel = computed<string | undefined>({
 
 const secondaryKbliModel = computed<string | undefined>({
   get: () =>
-    props.modelValue.secondaryKbliCategory === ''
-      ? undefined
+    !props.modelValue.secondaryKbliCategory || props.modelValue.secondaryKbliCategory === 'NONE'
+      ? 'NONE'
       : props.modelValue.secondaryKbliCategory,
   set: (v: string | undefined) => {
-    const nextVal = (v as KbliCategoryEnum | undefined) ?? '';
+    const nextVal = (!v || v === 'NONE') ? '' : (v as KbliCategoryEnum);
     emit('update:modelValue', {
       ...props.modelValue,
       secondaryKbliCategory: nextVal,
@@ -119,11 +119,11 @@ const secondaryKbliModel = computed<string | undefined>({
 
 const secondaryExpModel = computed<string | undefined>({
   get: () =>
-    props.modelValue.secondaryExpenditureComponent === ''
-      ? undefined
+    !props.modelValue.secondaryExpenditureComponent || props.modelValue.secondaryExpenditureComponent === 'NONE'
+      ? 'NONE'
       : props.modelValue.secondaryExpenditureComponent,
   set: (v: string | undefined) => {
-    const nextVal = (v as ExpenditureComponentEnum | undefined) ?? '';
+    const nextVal = (!v || v === 'NONE') ? '' : (v as ExpenditureComponentEnum);
     emit('update:modelValue', {
       ...props.modelValue,
       secondaryExpenditureComponent: nextVal,
@@ -133,24 +133,54 @@ const secondaryExpModel = computed<string | undefined>({
 });
 
 const secondaryKbliOptions = computed(() => [
-  { label: '— Tidak ada KBLI sekunder —', value: '' },
+  { label: '— Tidak ada KBLI sekunder —', value: 'NONE' },
   ...kbliOptions.filter((opt) => opt.value !== props.modelValue.kbliCategory),
 ]);
 
 const secondaryExpOptions = computed(() => [
-  { label: '— Tidak ada pengeluaran sekunder —', value: '' },
+  { label: '— Tidak ada pengeluaran sekunder —', value: 'NONE' },
   ...expenditureOptions.filter((opt) => opt.value !== props.modelValue.expenditureComponent),
 ]);
 
+const secondaryKbliImpactModel = computed<string | undefined>({
+  get: () =>
+    !props.modelValue.secondaryKbliImpact || props.modelValue.secondaryKbliImpact === 'NONE'
+      ? 'NONE'
+      : props.modelValue.secondaryKbliImpact,
+  set: (v: string | undefined) => {
+    updateField('secondaryKbliImpact', (!v || v === 'NONE') ? '' : (v as KbliImpactEnum));
+  },
+});
+
+const secondaryExpImpactModel = computed<string | undefined>({
+  get: () =>
+    !props.modelValue.secondaryExpenditureImpact || props.modelValue.secondaryExpenditureImpact === 'NONE'
+      ? 'NONE'
+      : props.modelValue.secondaryExpenditureImpact,
+  set: (v: string | undefined) => {
+    updateField('secondaryExpenditureImpact', (!v || v === 'NONE') ? '' : (v as ExpenditureImpactEnum));
+  },
+});
+
 const secondaryKbliImpactOptions = computed(() => [
-  { label: '— Pilih dampak sekunder —', value: '' },
+  { label: '— Tanpa dampak sekunder —', value: 'NONE' },
   ...kbliImpactOptions,
 ]);
 
 const secondaryExpImpactOptions = computed(() => [
-  { label: '— Pilih dampak sekunder —', value: '' },
+  { label: '— Tanpa dampak sekunder —', value: 'NONE' },
   ...expenditureImpactOptions,
 ]);
+
+const subdistrictModel = computed<string | undefined>({
+  get: () =>
+    !props.modelValue.subdistrict || props.modelValue.subdistrict === 'NONE'
+      ? 'NONE'
+      : props.modelValue.subdistrict,
+  set: (v: string | undefined) => {
+    updateField('subdistrict', (!v || v === 'NONE') ? '' : v);
+  },
+});
 
 const snippetWordCount = computed(() => {
   const text = props.article?.snippetText?.trim() || '';
@@ -458,13 +488,11 @@ const hasHttpUrl = computed(() => isSafeHttpUrl(props.article?.url));
           </label>
           <USelect
             id="curation-sec-kbli-impact-select"
-            :model-value="modelValue.secondaryKbliImpact || undefined"
+            v-model="secondaryKbliImpactModel"
             :items="secondaryKbliImpactOptions"
             value-key="value"
             label-key="label"
-            placeholder="Pilih dampak sekunder..."
             class="w-full"
-            @update:model-value="updateField('secondaryKbliImpact', ($event as KbliImpactEnum) ?? '')"
           />
         </div>
 
@@ -478,7 +506,6 @@ const hasHttpUrl = computed(() => isSafeHttpUrl(props.article?.url));
             :items="secondaryExpOptions"
             value-key="value"
             label-key="label"
-            placeholder="Pilih pengeluaran sekunder..."
             class="w-full"
           />
         </div>
@@ -489,13 +516,11 @@ const hasHttpUrl = computed(() => isSafeHttpUrl(props.article?.url));
           </label>
           <USelect
             id="curation-sec-exp-impact-select"
-            :model-value="modelValue.secondaryExpenditureImpact || undefined"
+            v-model="secondaryExpImpactModel"
             :items="secondaryExpImpactOptions"
             value-key="value"
             label-key="label"
-            placeholder="Pilih dampak pengeluaran..."
             class="w-full"
-            @update:model-value="updateField('secondaryExpenditureImpact', ($event as ExpenditureImpactEnum) ?? '')"
           />
         </div>
       </div>
@@ -509,13 +534,11 @@ const hasHttpUrl = computed(() => isSafeHttpUrl(props.article?.url));
         </label>
         <USelect
           id="curation-subdistrict-select"
-          :model-value="modelValue.subdistrict"
+          v-model="subdistrictModel"
           :items="subdistrictOptions"
           value-key="value"
           label-key="label"
-          placeholder="Pilih kecamatan..."
           class="w-full"
-          @update:model-value="updateField('subdistrict', String($event ?? ''))"
         />
       </div>
 
