@@ -2,7 +2,7 @@
 <script setup lang="ts">
 import { VerificationStatusEnum } from '#shared/enums/pdrb';
 import type { AdminArticleItem } from '~/types/sipena';
-import type { CurationFormData } from '~/components/admin/ArticleCurationForm.vue';
+import ArticleCurationForm, { type CurationFormData } from '~/components/admin/ArticleCurationForm.vue';
 
 const props = defineProps<{
   article: AdminArticleItem | null;

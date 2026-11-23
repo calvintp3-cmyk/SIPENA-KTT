@@ -7,6 +7,8 @@ import ReviewHeaderToolbar from '~/components/admin/review/ReviewHeaderToolbar.v
 import ReviewQueueCard from '~/components/admin/review/ReviewQueueCard.vue';
 import ReviewInspectorPanel from '~/components/admin/review/ReviewInspectorPanel.vue';
 import ReviewBatchBar from '~/components/admin/review/ReviewBatchBar.vue';
+import HighlightedSnippetBox from '~/components/admin/HighlightedSnippetBox.vue';
+import AdminReviewSlideover from '~/components/admin/ReviewSlideover.vue';
 
 definePageMeta({
   layout: 'admin',

@@ -171,8 +171,8 @@ const hasHttpUrl = computed(() => isSafeHttpUrl(props.article?.url));
 
 <template>
   <div v-if="article" class="space-y-4">
-    <!-- Header Context Strip -->
-    <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-border-hairline">
+    <!-- Header Context Strip (hanya untuk drawer slideover mobile) -->
+    <div v-if="mode === 'slideover'" class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-border-hairline">
       <div class="flex flex-wrap items-center gap-1.5">
         <UBadge
           :color="getLlmStatusBadge(article.llmStatus).color"
@@ -303,7 +303,7 @@ const hasHttpUrl = computed(() => isSafeHttpUrl(props.article?.url));
       </div>
       <UFormField
         :error="
-          highlightIncomplete && modelValue.summary.trim().length < 10
+          highlightIncomplete && (modelValue?.summary?.trim()?.length ?? 0) < 10
             ? 'Wajib diisi minimal 10 karakter sebelum verifikasi'
             : undefined
         "

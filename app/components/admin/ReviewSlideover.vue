@@ -9,7 +9,8 @@ import {
 } from '#shared/enums/pdrb';
 import { formatDateTimeWita, getCurrentQuarterYearWita, type PdrbQuarter } from '#shared/utils/period';
 import type { AdminArticleItem } from '~/types/sipena';
-import type { CurationFormData } from '~/components/admin/ArticleCurationForm.vue';
+import ArticleCurationForm, { type CurationFormData } from '~/components/admin/ArticleCurationForm.vue';
+import HighlightedSnippetBox from '~/components/admin/HighlightedSnippetBox.vue';
 
 const fullSnippetModalOpen = ref(false);
 
