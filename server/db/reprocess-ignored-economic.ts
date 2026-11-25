@@ -32,7 +32,6 @@ async function main() {
       id: articles.id,
       title: articles.title,
       snippetText: articles.snippetText,
-      content: articles.content,
       url: articles.url,
       sourceType: articles.sourceType,
       sourcePortal: articles.sourcePortal,
@@ -95,15 +94,13 @@ async function main() {
       continue;
     }
 
-    // 3. Proses ekstraksi teks jika snippetText / content masih terlalu pendek
-    let textForClassification = (c.content && c.content.trim().length >= 100)
-      ? c.content.trim()
-      : (c.snippetText && c.snippetText.trim().length >= 100)
-        ? c.snippetText.trim()
-        : '';
+    // 3. Proses ekstraksi teks jika snippetText masih terlalu pendek
+    let textForClassification = (c.snippetText && c.snippetText.trim().length >= 100)
+      ? c.snippetText.trim()
+      : '';
 
-    let updatedContent: string | null = null;
     let updatedSnippet: string | null = null;
+    let updatedWordCount: number | null = null;
 
     if (textForClassification.length < 150 && c.url.startsWith('http')) {
       console.info(`  Cuplikan singkat (${textForClassification.length} chars). Mengambil HTML dari ${c.url}...`);
@@ -113,9 +110,9 @@ async function main() {
           const extracted = extractArticleContent(fetched.body, c.publishedAt, fetched.finalUrl || c.url);
           if (extracted && extracted.body && extracted.body.trim().length >= 100) {
             textForClassification = extracted.body.trim();
-            updatedContent = textForClassification;
-            updatedSnippet = extracted.snippet || textForClassification.slice(0, 500);
-            console.info(`  Ekstraksi berhasil: ${textForClassification.length} karakter diperoleh.`);
+            updatedSnippet = extracted.snippet || textForClassification.slice(0, 1500);
+            updatedWordCount = extracted.wordCount;
+            console.info(`  Ekstraksi berhasil: ${textForClassification.length} karakter (${extracted.wordCount} kata) diperoleh.`);
           }
         }
       } catch (extErr: unknown) {
@@ -189,8 +186,8 @@ async function main() {
             llmStatus: mapped.llmStatus,
             llmError: null,
             verificationStatus: VerificationStatusEnum.PENDING,
-            ...(updatedContent ? { content: updatedContent } : {}),
             ...(updatedSnippet ? { snippetText: updatedSnippet } : {}),
+            ...(updatedWordCount ? { wordCount: updatedWordCount } : {}),
           })
           .where(eq(articles.id, c.id));
 
@@ -217,7 +214,7 @@ async function main() {
       failedCount++;
     }
 
-    // Beri jeda kecil agar mematuhi rate limit jika ada banyak artikel
+    // Beri jeda kecil agar mematuhi rate limit
     await new Promise((resolve) => setTimeout(resolve, 600));
   }
 
