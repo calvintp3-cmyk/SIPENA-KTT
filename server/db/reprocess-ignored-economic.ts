@@ -1,18 +1,15 @@
 // server/db/reprocess-ignored-economic.ts
 import 'dotenv/config';
-import { eq, inArray, desc } from 'drizzle-orm';
+import { eq, desc } from 'drizzle-orm';
 import { db, pool } from './index';
 import { articles } from './schema';
-import { evaluateGeographicRelevance } from '../services/scraper/geo-filter';
-import { extractArticle } from '../services/scraper/extractor';
+import { evaluateGeographicRelevance, detectKttSubdistrict } from '../services/scraper/geo-filter';
+import { extractArticleContent } from '../services/scraper/extractor';
+import { safeFetchText } from '../utils/ssrf';
 import { MultiLlmRouter } from '../services/llm/router';
-import {
-  VerificationStatusEnum,
-  LlmStatusEnum,
-  type KbliCategoryEnum,
-  type ExpenditureComponentEnum,
-  type PdrbImpactEnum,
-} from '../../shared/enums/pdrb';
+import { mapClassificationToPersistence } from '../services/llm/classifier';
+import { formatDateTimeWita, getQuarterFromDateWita } from '../../shared/utils/period';
+import { VerificationStatusEnum } from '../../shared/enums/pdrb';
 
 async function main() {
   const args = process.argv.slice(2);
@@ -25,6 +22,9 @@ async function main() {
   console.info(`Mode: ${applyMode ? 'APPLY (Tulis langsung ke Database)' : 'DRY-RUN (Hanya analisa)'}`);
   console.info(`Batas pemrosesan kandidat: ${limit}`);
   console.info(`================================================================\n`);
+
+  const router = new MultiLlmRouter({ task: 'classify' });
+  console.info(`Slot LLM terkonfigurasi: ${router.configuredSlotCount}`);
 
   // 1. Ambil artikel yang statusnya IGNORED
   const ignoredArticles = await db
@@ -39,6 +39,7 @@ async function main() {
       llmModel: articles.llmModel,
       llmStatus: articles.llmStatus,
       llmError: articles.llmError,
+      subdistrict: articles.subdistrict,
       isEconomicPhenomenon: articles.isEconomicPhenomenon,
       publishedAt: articles.publishedAt,
       createdAt: articles.createdAt,
@@ -50,7 +51,6 @@ async function main() {
   console.info(`[1/3] Menemukan total ${ignoredArticles.length} artikel berstatus IGNORED.`);
 
   // 2. Filter kandidat yang sebenarnya relevan menurut evaluasi geo-filter yang telah diperbarui
-  //    atau artikel yang memiliki konten ekonomi tetapi disaring pra-LLM
   const candidates: typeof ignoredArticles = [];
 
   for (const item of ignoredArticles) {
@@ -78,101 +78,158 @@ async function main() {
     return;
   }
 
+  let recoveredCount = 0;
+  let stillIgnoredCount = 0;
+  let failedCount = 0;
+
   for (let i = 0; i < candidates.length; i++) {
     const c = candidates[i];
+    console.info(`----------------------------------------------------------------`);
     console.info(`[Kandidat ${i + 1}/${candidates.length}] ID: ${c.id}`);
     console.info(`  Judul  : ${c.title}`);
     console.info(`  Portal : ${c.sourcePortal} (${c.sourceType})`);
-    console.info(`  Alasan Sebelumnya: ${c.llmError || c.llmModel}`);
+    console.info(`  Model Sebelumnya: ${c.llmModel} | Alasan: ${c.llmError || '-'}`);
 
     if (!applyMode) {
       console.info(`  [DRY-RUN] Melewati ekstraksi & pemanggilan LLM.`);
       continue;
     }
 
-    // 3. Proses ekstraksi teks lengkap & eksekusi LLM Engine jika applyMode aktif
-    let fullContent = (c.content || '').trim();
-    if (fullContent.length < 200 && c.url.startsWith('http')) {
-      console.info(`  Ekstraksi teks lengkap dari URL: ${c.url}...`);
+    // 3. Proses ekstraksi teks jika snippetText / content masih terlalu pendek
+    let textForClassification = (c.content && c.content.trim().length >= 100)
+      ? c.content.trim()
+      : (c.snippetText && c.snippetText.trim().length >= 100)
+        ? c.snippetText.trim()
+        : '';
+
+    let updatedContent: string | null = null;
+    let updatedSnippet: string | null = null;
+
+    if (textForClassification.length < 150 && c.url.startsWith('http')) {
+      console.info(`  Cuplikan singkat (${textForClassification.length} chars). Mengambil HTML dari ${c.url}...`);
       try {
-        const extracted = await extractArticle(c.url);
-        if (extracted && extracted.content && extracted.content.trim().length >= 100) {
-          fullContent = extracted.content.trim();
-          console.info(`  Ekstraksi berhasil: ${fullContent.length} karakter diperoleh.`);
+        const fetched = await safeFetchText(c.url, { timeoutMs: 12_000 });
+        if (fetched && fetched.body) {
+          const extracted = extractArticleContent(fetched.body, c.publishedAt, fetched.finalUrl || c.url);
+          if (extracted && extracted.body && extracted.body.trim().length >= 100) {
+            textForClassification = extracted.body.trim();
+            updatedContent = textForClassification;
+            updatedSnippet = extracted.snippet || textForClassification.slice(0, 500);
+            console.info(`  Ekstraksi berhasil: ${textForClassification.length} karakter diperoleh.`);
+          }
         }
       } catch (extErr: unknown) {
         const msg = extErr instanceof Error ? extErr.message : String(extErr);
-        console.warn(`  Ekstraksi gagal (${msg}), menggunakan teks yang ada.`);
+        console.warn(`  Ekstraksi HTTP gagal (${msg}), menggunakan teks yang tersedia.`);
       }
     }
 
-    const textForClassification = fullContent.length >= 100 ? fullContent : (c.snippetText || c.title);
+    if (!textForClassification) {
+      textForClassification = c.title;
+    }
 
     console.info(`  Menjalankan klasifikasi LLM Engine...`);
+    const defaultPeriod = getQuarterFromDateWita(c.publishedAt);
+
     try {
-      const llmResult = await MultiLlmRouter.getInstance().classifyArticle({
-        id: c.id,
+      const aiResult = await router.classifyArticle({
         title: c.title,
-        content: textForClassification,
-        sourceUrl: c.url,
-        publishedAt: c.publishedAt || c.createdAt,
+        sourcePortal: c.sourcePortal,
+        sourceType: c.sourceType,
+        publishedAtWita: formatDateTimeWita(c.publishedAt),
+        defaultQuarter: defaultPeriod.quarter,
+        defaultYear: defaultPeriod.year,
+        snippetText: textForClassification,
       });
 
-      console.info(`  Hasil LLM via ${llmResult.modelUsed}:`);
-      console.info(`    Fenomena Ekonomi: ${llmResult.isEconomicPhenomenon ? 'YA' : 'TIDAK'}`);
-      console.info(`    Confidence: ${(llmResult.confidence * 100).toFixed(0)}%`);
+      if (!aiResult.ok) {
+        console.error(`  Gagal LLM (${aiResult.errorCode}): ${aiResult.errorMessage}`);
+        failedCount++;
+        continue;
+      }
 
-      if (llmResult.isEconomicPhenomenon) {
-        console.info(`    Ringkasan: ${llmResult.summary}`);
-        console.info(`    KBLI     : ${llmResult.kbliCategory} (${llmResult.kbliImpact})`);
-        console.info(`    Pengeluaran: ${llmResult.expenditureComponent} (${llmResult.expenditureImpact})`);
+      const mapped = mapClassificationToPersistence(
+        aiResult.classification,
+        aiResult.modelUsed,
+        textForClassification,
+      );
+
+      console.info(`  Hasil LLM via ${aiResult.modelUsed} (${aiResult.providerUsed}, ${aiResult.responseTimeMs}ms):`);
+      console.info(`    Fenomena Ekonomi : ${mapped.isEconomicPhenomenon ? 'YA' : 'TIDAK'}`);
+      console.info(`    Confidence       : ${mapped.llmConfidence}`);
+
+      if (mapped.isEconomicPhenomenon) {
+        console.info(`    Ringkasan        : ${mapped.summary}`);
+        console.info(`    KBLI             : ${mapped.kbliCategory} (${mapped.kbliImpact})`);
+        console.info(`    Pengeluaran      : ${mapped.expenditureComponent} (${mapped.expenditureImpact})`);
         console.info(`    STATUS -> DIPINDAHKAN KE 'PENDING' (Perlu Review)`);
 
+        const detectedSubdistrict = c.subdistrict || detectKttSubdistrict(c.title, textForClassification);
+
         await db
           .update(articles)
           .set({
+            geographicScope: mapped.geographicScope,
+            subdistrict: detectedSubdistrict,
             isEconomicPhenomenon: true,
-            summary: llmResult.summary,
-            kbliCategory: llmResult.kbliCategory as KbliCategoryEnum,
-            kbliImpact: llmResult.kbliImpact as PdrbImpactEnum,
-            expenditureComponent: llmResult.expenditureComponent as ExpenditureComponentEnum,
-            expenditureImpact: llmResult.expenditureImpact as PdrbImpactEnum,
-            secondaryKbli: (llmResult.secondaryKbli as KbliCategoryEnum) || null,
-            secondaryKbliImpact: (llmResult.secondaryKbliImpact as PdrbImpactEnum) || null,
-            secondaryExpenditure: (llmResult.secondaryExpenditure as ExpenditureComponentEnum) || null,
-            secondaryExpenditureImpact: (llmResult.secondaryExpenditureImpact as PdrbImpactEnum) || null,
-            kttSubdistrict: llmResult.kttSubdistrict || null,
-            confidence: String(llmResult.confidence),
-            llmModel: llmResult.modelUsed,
-            llmStatus: LlmStatusEnum.SUCCESS,
+            summary: mapped.summary,
+            kbliCategory: mapped.kbliCategory,
+            kbliImpact: mapped.kbliImpact,
+            expenditureComponent: mapped.expenditureComponent,
+            expenditureImpact: mapped.expenditureImpact,
+            secondaryKbliCategory: mapped.secondaryKbliCategory,
+            secondaryKbliImpact: mapped.secondaryKbliImpact,
+            secondaryExpenditureComponent: mapped.secondaryExpenditureComponent,
+            secondaryExpenditureImpact: mapped.secondaryExpenditureImpact,
+            quarter: mapped.quarter,
+            year: mapped.year,
+            confidence: String(mapped.llmConfidence),
+            llmConfidence: mapped.llmConfidence,
+            llmModel: mapped.llmModel,
+            llmStatus: mapped.llmStatus,
             llmError: null,
-            content: fullContent.length > (c.content?.length || 0) ? fullContent : c.content,
-            snippetText: fullContent.length > (c.snippetText?.length || 0) ? fullContent.slice(0, 500) : c.snippetText,
             verificationStatus: VerificationStatusEnum.PENDING,
+            ...(updatedContent ? { content: updatedContent } : {}),
+            ...(updatedSnippet ? { snippetText: updatedSnippet } : {}),
           })
           .where(eq(articles.id, c.id));
+
+        recoveredCount++;
       } else {
-        console.info(`    Alasan Non-Ekonomi: ${llmResult.explanation || 'Bukan fenomena ekonomi'}`);
+        console.info(`    Evaluasi Non-Ekonomi: ${mapped.llmError || 'Bukan fenomena ekonomi'}`);
         await db
           .update(articles)
           .set({
+            geographicScope: mapped.geographicScope,
             isEconomicPhenomenon: false,
-            llmModel: llmResult.modelUsed,
-            llmStatus: LlmStatusEnum.SUCCESS,
-            llmError: llmResult.explanation || 'Evaluasi AI: Bukan fenomena ekonomi terkait Tana Tidung / Kaltara.',
+            llmModel: mapped.llmModel,
+            llmStatus: mapped.llmStatus,
+            llmError: mapped.llmError || 'Evaluasi AI: Bukan fenomena ekonomi terkait Tana Tidung / Kaltara.',
             verificationStatus: VerificationStatusEnum.IGNORED,
           })
           .where(eq(articles.id, c.id));
+
+        stillIgnoredCount++;
       }
     } catch (llmErr: unknown) {
       const errMessage = llmErr instanceof Error ? llmErr.message : String(llmErr);
-      console.error(`  Gagal klasifikasi LLM: ${errMessage}`);
+      console.error(`  Exception saat memproses LLM: ${errMessage}`);
+      failedCount++;
     }
 
-    console.info('');
+    // Beri jeda kecil agar mematuhi rate limit jika ada banyak artikel
+    await new Promise((resolve) => setTimeout(resolve, 600));
   }
 
+  console.info(`\n================================================================`);
   console.info(`[3/3] Selesai memproses pemulihan berita.`);
+  if (applyMode) {
+    console.info(`Hasil:`);
+    console.info(`  - Berhasil dipulihkan ke 'Perlu Review' (PENDING) : ${recoveredCount}`);
+    console.info(`  - Dikonfirmasi AI sebagai Non-Ekonomi (IGNORED)   : ${stillIgnoredCount}`);
+    console.info(`  - Gagal pemrosesan                                : ${failedCount}`);
+  }
+  console.info(`================================================================`);
 }
 
 main()
