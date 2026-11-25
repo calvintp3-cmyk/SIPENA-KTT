@@ -839,6 +839,64 @@ export function enrichClassificationLinkages(
   }
 
   // =========================================================================
+  // GUARDRAIL 9 (INTER-INDUSTRY LINKAGE CONCORDANCE / INPUT-OUTPUT BPS):
+  // Matriks keterkaitan antarsektor berdasarkan tabel Input-Output PDRB BPS
+  // =========================================================================
+  // 1. Keterkaitan Agro-Industri (Sawit A <-> CPO C)
+  if (
+    priKbli === KbliCategoryEnum.A &&
+    !secKbli &&
+    /\b(?:pks|pabrik kelapa sawit|cpo|crude palm oil|pabrik pengolahan|olahan kelapa sawit)\b/i.test(text)
+  ) {
+    secKbli = KbliCategoryEnum.C;
+    secKbliImpact = priKbliImpact;
+  } else if (
+    priKbli === KbliCategoryEnum.C &&
+    !secKbli &&
+    /\b(?:kebun sawit|perkebunan sawit|tbs|tandan buah segar|petani sawit|pekebun sawit)\b/i.test(text)
+  ) {
+    secKbli = KbliCategoryEnum.A;
+    secKbliImpact = priKbliImpact;
+  }
+
+  // 2. Keterkaitan Logistik-Perdagangan (Transportasi H <-> Perdagangan Sembako G)
+  if (
+    priKbli === KbliCategoryEnum.H &&
+    !secKbli &&
+    /\b(?:sembako|bahan pangan|pasokan pasar|distribusi barang|truk logistik|bahan pokok)\b/i.test(text)
+  ) {
+    secKbli = KbliCategoryEnum.G;
+    secKbliImpact =
+      priKbliImpact === KbliImpactEnum.INCREASE_NTB
+        ? KbliImpactEnum.INCREASE_NTB
+        : priKbliImpact === KbliImpactEnum.DECREASE_NTB
+          ? KbliImpactEnum.DECREASE_NTB
+          : priKbliImpact;
+  } else if (
+    priKbli === KbliCategoryEnum.G &&
+    !secKbli &&
+    /\b(?:jalan rusak|jalan poros|longsor|ambles|truk logistik|angkutan barang|feri|pelabuhan)\b/i.test(text)
+  ) {
+    secKbli = KbliCategoryEnum.H;
+    secKbliImpact =
+      priKbliImpact === KbliImpactEnum.INCREASE_NTB
+        ? KbliImpactEnum.INCREASE_NTB
+        : priKbliImpact === KbliImpactEnum.DECREASE_NTB
+          ? KbliImpactEnum.DECREASE_NTB
+          : priKbliImpact;
+  }
+
+  // 3. Keterkaitan Fiskal-Konstruksi (Konstruksi F <-> Administrasi Pemerintahan P)
+  if (
+    priKbli === KbliCategoryEnum.F &&
+    !secKbli &&
+    /\b(?:apbd|dak|pemkab|pemerintah kabupaten|bupati|dinas pu|dinas perhubungan|puspem)\b/i.test(text)
+  ) {
+    secKbli = KbliCategoryEnum.P;
+    secKbliImpact = priKbliImpact;
+  }
+
+  // =========================================================================
   // LINKAGE ENRICHMENT STANDAR (Bansos Beras Cadangan Pangan, Proyek APBD, Bibit)
   // =========================================================================
   // 1. Kasus Bansos / Cadangan Pangan Pemkab: jika primer P dan belanja PK_P, kaitkan sekunder ke R dan PK_RT
@@ -881,7 +939,7 @@ export function enrichClassificationLinkages(
     }
   }
 
-  // Hindari duplikasi sekunder persis sama dengan primer
+  // Symmetrical check: hindari duplikasi sekunder persis sama dengan primer
   if (secKbli === priKbli) {
     secKbli = null;
     secKbliImpact = null;
