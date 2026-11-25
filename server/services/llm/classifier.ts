@@ -15,6 +15,10 @@ import {
   type LlmClassificationOutput,
 } from '../../../shared/schemas/llm-output.schema';
 import { formatDateId } from '../../../shared/utils/period';
+import {
+  resolvePhenomenonQuarterAndYear,
+  type TemporalResolverInput,
+} from './temporal-resolver';
 
 export const COMPRESS_MAX_WORDS_FOR_LLM = 3_500;
 export const COMPRESS_MAX_CHARS_FOR_LLM = 24_000;
@@ -827,12 +831,35 @@ export function enrichClassificationLinkages(
   };
 }
 
+export interface MapClassificationContext {
+  publishedAtWita?: string;
+  title?: string;
+}
+
 export function mapClassificationToPersistence(
   rawClassification: LlmClassificationOutput,
   llmModel: string,
   snippetText?: string | null,
+  context?: MapClassificationContext,
 ) {
   const classification = enrichClassificationLinkages(rawClassification, snippetText);
+
+  // Resolusi disambiguasi temporal untuk triwulan dan tahun
+  let finalQuarter = classification.quarter;
+  let finalYear = classification.year;
+
+  if (classification.quarter >= 1 && classification.quarter <= 4 && classification.year) {
+    const temporalResolution = resolvePhenomenonQuarterAndYear({
+      publishedAtWita:
+        context?.publishedAtWita ?? `${classification.year}-01-01T00:00:00+08:00`,
+      title: context?.title ?? '',
+      snippetText: [snippetText, classification.summary].filter(Boolean).join(' '),
+      defaultQuarter: classification.quarter as 1 | 2 | 3 | 4,
+      defaultYear: classification.year,
+    });
+    finalQuarter = temporalResolution.quarter;
+    finalYear = temporalResolution.year;
+  }
 
   if (
     !classification.is_economic_phenomenon ||
@@ -850,8 +877,8 @@ export function mapClassificationToPersistence(
       secondaryKbliImpact: null,
       secondaryExpenditureComponent: null,
       secondaryExpenditureImpact: null,
-      quarter: classification.quarter,
-      year: classification.year,
+      quarter: finalQuarter,
+      year: finalYear,
       llmModel,
       llmStatus: LlmStatusEnum.SUCCESS,
       llmError:
@@ -888,8 +915,8 @@ export function mapClassificationToPersistence(
     secondaryKbliImpact,
     secondaryExpenditureComponent,
     secondaryExpenditureImpact,
-    quarter: classification.quarter,
-    year: classification.year,
+    quarter: finalQuarter,
+    year: finalYear,
     llmModel,
     llmStatus: LlmStatusEnum.SUCCESS,
     llmError: null,
