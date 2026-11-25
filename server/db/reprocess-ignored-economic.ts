@@ -1,6 +1,6 @@
 // server/db/reprocess-ignored-economic.ts
 import 'dotenv/config';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, sql } from 'drizzle-orm';
 import { db, pool } from './index';
 import { articles } from './schema';
 import { evaluateGeographicRelevance, detectKttSubdistrict } from '../services/scraper/geo-filter';
@@ -14,19 +14,34 @@ import { VerificationStatusEnum } from '../../shared/enums/pdrb';
 async function main() {
   const args = process.argv.slice(2);
   const applyMode = args.includes('--apply');
+  const onlyPreFilter = args.includes('--only-prefilter');
   const limitArg = args.find((a) => a.startsWith('--limit='));
-  const limit = limitArg ? parseInt(limitArg.split('=')[1], 10) : 100;
+  const limit = limitArg ? parseInt(limitArg.split('=')[1], 10) : 500;
 
   console.info(`================================================================`);
   console.info(`[reprocess-ignored] SIPENA KTT - Pemulihan Berita Ekonomi Diabaikan`);
   console.info(`Mode: ${applyMode ? 'APPLY (Tulis langsung ke Database)' : 'DRY-RUN (Hanya analisa)'}`);
+  console.info(`Filter: ${onlyPreFilter ? 'Khusus geo-filter / title-geo-filter' : 'Semua kandidat lolos geo-filter'}`);
   console.info(`Batas pemrosesan kandidat: ${limit}`);
   console.info(`================================================================\n`);
 
   const router = new MultiLlmRouter({ task: 'classify' });
   console.info(`Slot LLM terkonfigurasi: ${router.configuredSlotCount}`);
 
-  // 1. Ambil artikel yang statusnya IGNORED
+  // 1. Ambil breakdown llmModel dari artikel yang statusnya IGNORED
+  const modelBreakdown = await db
+    .select({
+      llmModel: articles.llmModel,
+      count: sql<number>`count(*)::int`,
+    })
+    .from(articles)
+    .where(eq(articles.verificationStatus, VerificationStatusEnum.IGNORED))
+    .groupBy(articles.llmModel);
+
+  console.info('\nBreakdown artikel IGNORED berdasarkan llmModel:');
+  console.table(modelBreakdown);
+
+  // 2. Ambil artikel yang statusnya IGNORED
   const ignoredArticles = await db
     .select({
       id: articles.id,
@@ -47,12 +62,24 @@ async function main() {
     .where(eq(articles.verificationStatus, VerificationStatusEnum.IGNORED))
     .orderBy(desc(articles.publishedAt));
 
-  console.info(`[1/3] Menemukan total ${ignoredArticles.length} artikel berstatus IGNORED.`);
+  console.info(`\nMenemukan total ${ignoredArticles.length} artikel berstatus IGNORED.`);
 
-  // 2. Filter kandidat yang sebenarnya relevan menurut evaluasi geo-filter yang telah diperbarui
+  // 3. Filter kandidat:
+  // - Prioritas utama: yang llmModel = 'geo-filter' atau 'title-geo-filter' atau llmStatus = 'FAILED'
+  // - Dan jika dievaluasi dengan geo-filter baru, hasilnya ALLOW_FOR_LLM_REVIEW
   const candidates: typeof ignoredArticles = [];
 
   for (const item of ignoredArticles) {
+    const isPreFiltered =
+      item.llmModel === 'geo-filter' ||
+      item.llmModel === 'title-geo-filter' ||
+      item.llmModel === 'system-insufficient-content' ||
+      item.llmStatus === 'FAILED';
+
+    if (onlyPreFilter && !isPreFiltered) {
+      continue;
+    }
+
     const geo = evaluateGeographicRelevance({
       title: item.title,
       snippetText: item.snippetText || '',
@@ -60,16 +87,23 @@ async function main() {
       sourceType: item.sourceType,
     });
 
-    // Jika geo-filter terbaru memutuskan ALLOW_FOR_LLM_REVIEW,
-    // berarti artikel ini layak dievaluasi oleh LLM Engine!
+    // Jika geo-filter terbaru memutuskan ALLOW_FOR_LLM_REVIEW
     if (geo.decision === 'ALLOW_FOR_LLM_REVIEW') {
+      // Prioritaskan yang belum pernah diproses LLM (pre-filtered)
       candidates.push(item);
       if (candidates.length >= limit) break;
     }
   }
 
+  // Urutkan kandidat agar yang disaring pra-LLM (geo-filter) diproses duluan
+  candidates.sort((a, b) => {
+    const aPre = a.llmModel === 'geo-filter' || a.llmModel === 'title-geo-filter' ? 0 : 1;
+    const bPre = b.llmModel === 'geo-filter' || b.llmModel === 'title-geo-filter' ? 0 : 1;
+    return aPre - bPre;
+  });
+
   console.info(
-    `[2/3] Teridentifikasi ${candidates.length} artikel kandidat ekonomi yang perlu diuji ulang dengan LLM Engine.\n`,
+    `Teridentifikasi ${candidates.length} artikel kandidat ekonomi yang perlu diproses/diuji ulang dengan LLM Engine.\n`,
   );
 
   if (candidates.length === 0) {
@@ -94,7 +128,7 @@ async function main() {
       continue;
     }
 
-    // 3. Proses ekstraksi teks jika snippetText masih terlalu pendek
+    // Ekstraksi teks jika cuplikan singkat
     let textForClassification = (c.snippetText && c.snippetText.trim().length >= 100)
       ? c.snippetText.trim()
       : '';
@@ -102,7 +136,7 @@ async function main() {
     let updatedSnippet: string | null = null;
     let updatedWordCount: number | null = null;
 
-    if (textForClassification.length < 150 && c.url.startsWith('http')) {
+    if (textForClassification.length < 200 && c.url.startsWith('http')) {
       console.info(`  Cuplikan singkat (${textForClassification.length} chars). Mengambil HTML dari ${c.url}...`);
       try {
         const fetched = await safeFetchText(c.url, { timeoutMs: 12_000 });
@@ -112,7 +146,7 @@ async function main() {
             textForClassification = extracted.body.trim();
             updatedSnippet = extracted.snippet || textForClassification.slice(0, 1500);
             updatedWordCount = extracted.wordCount;
-            console.info(`  Ekstraksi berhasil: ${textForClassification.length} karakter (${extracted.wordCount} kata) diperoleh.`);
+            console.info(`  Ekstraksi berhasil: ${textForClassification.length} karakter (${extracted.wordCount} kata).`);
           }
         }
       } catch (extErr: unknown) {
@@ -214,14 +248,14 @@ async function main() {
       failedCount++;
     }
 
-    // Beri jeda kecil agar mematuhi rate limit
-    await new Promise((resolve) => setTimeout(resolve, 600));
+    // Jeda 500ms antar panggilan
+    await new Promise((resolve) => setTimeout(resolve, 500));
   }
 
   console.info(`\n================================================================`);
-  console.info(`[3/3] Selesai memproses pemulihan berita.`);
+  console.info(`Selesai memproses.`);
   if (applyMode) {
-    console.info(`Hasil:`);
+    console.info(`Hasil Pemulihan:`);
     console.info(`  - Berhasil dipulihkan ke 'Perlu Review' (PENDING) : ${recoveredCount}`);
     console.info(`  - Dikonfirmasi AI sebagai Non-Ekonomi (IGNORED)   : ${stillIgnoredCount}`);
     console.info(`  - Gagal pemrosesan                                : ${failedCount}`);
