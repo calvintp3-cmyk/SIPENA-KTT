@@ -965,6 +965,62 @@ export function enrichClassificationLinkages(
 export interface MapClassificationContext {
   publishedAtWita?: string;
   title?: string;
+  sourcePortal?: string;
+  sourceType?: ArticleSourceTypeEnum;
+  articleInput?: ArticleClassificationInput;
+}
+
+/**
+ * Mengkalibrasi tingkat keyakinan (confidence) LLM menggunakan bukti empiris teks berita:
+ * 1. Kepastian Spasial (+0.20 KTT_LOCAL, +0.12 KALTARA_PROVINCIAL, +0.08 NATIONAL_MACRO_IMPACT)
+ * 2. Kepadatan Data Kuantitatif (+0.15 untuk angka nominal, ton, %, dsb)
+ * 3. Spesifisitas Taksonomi (+0.10 jika KBLI dan Komponen Pengeluaran terpetakan)
+ * 4. Penalti (-0.15) untuk wacana/rencana tanpa data kuantitatif konkret
+ * Pembobotan: 35% model raw confidence + 65% bukti empiris teks
+ */
+export function calibrateClassificationConfidence(
+  rawConfidence: number,
+  classification: LlmClassificationOutput,
+  article: ArticleClassificationInput,
+): number {
+  if (!classification.is_economic_phenomenon) {
+    return Math.round(Math.max(0.6, Math.min(0.99, rawConfidence)) * 100) / 100;
+  }
+
+  const combinedText = `${article.title} ${article.snippetText} ${classification.summary}`.toLowerCase();
+  let empiricalScore = 0.5;
+
+  // 1. Kepastian Spasial (+0.20 untuk KTT_LOCAL, +0.12 untuk KALTARA_PROVINCIAL, +0.08 untuk NATIONAL_MACRO_IMPACT)
+  if (classification.geographic_scope === 'KTT_LOCAL') {
+    empiricalScore += 0.20;
+  } else if (classification.geographic_scope === 'KALTARA_PROVINCIAL') {
+    empiricalScore += 0.12;
+  } else if (classification.geographic_scope === 'NATIONAL_MACRO_IMPACT') {
+    empiricalScore += 0.08;
+  }
+
+  // 2. Kepadatan Data Kuantitatif (+0.15 untuk keberadaan angka, Rp, ton, %, dsb)
+  const hasQuantitativeData = /\b(?:\d+|rp|rupiah|persen|%|miliar|juta|triliun|ton|kg|hektare)\b/i.test(combinedText);
+  if (hasQuantitativeData) {
+    empiricalScore += 0.15;
+  }
+
+  // 3. Ketepatan Taksonomi KBLI & Pengeluaran (+0.10 saat KBLI dan komponen pengeluaran terpetakan)
+  if (classification.kbli_category && classification.expenditure_component) {
+    empiricalScore += 0.10;
+  }
+
+  // 4. Penalti jika wacana tanpa kepastian angka konkret (-0.15)
+  const isVagueDiscourse =
+    /\b(?:direncanakan|wacana|masih dibahas|akan dikaji|potensi)\b/i.test(combinedText) &&
+    !hasQuantitativeData;
+  if (isVagueDiscourse) {
+    empiricalScore -= 0.15;
+  }
+
+  // Pembobotan: 35% keyakinan model + 65% bukti empiris teks
+  const calibrated = rawConfidence * 0.35 + empiricalScore * 0.65;
+  return Math.round(Math.max(0.55, Math.min(0.98, calibrated)) * 100) / 100;
 }
 
 export function mapClassificationToPersistence(
@@ -992,6 +1048,25 @@ export function mapClassificationToPersistence(
     finalYear = temporalResolution.year;
   }
 
+  // Kalibrasi empiris tingkat keyakinan (confidence) LLM
+  const articleForCalibration: ArticleClassificationInput = context?.articleInput ?? {
+    title: context?.title ?? '',
+    sourcePortal: context?.sourcePortal ?? '',
+    sourceType: context?.sourceType ?? ArticleSourceTypeEnum.REGIONAL,
+    publishedAtWita:
+      context?.publishedAtWita ?? `${classification.year}-01-01T00:00:00+08:00`,
+    defaultQuarter: (classification.quarter >= 1 && classification.quarter <= 4
+      ? classification.quarter
+      : 1) as 1 | 2 | 3 | 4,
+    defaultYear: classification.year || new Date().getFullYear(),
+    snippetText: snippetText ?? '',
+  };
+  const calibratedConfidence = calibrateClassificationConfidence(
+    classification.confidence,
+    classification,
+    articleForCalibration,
+  );
+
   if (
     !classification.is_economic_phenomenon ||
     classification.geographic_scope === 'OTHER_REGION_IRRELEVANT'
@@ -1017,7 +1092,7 @@ export function mapClassificationToPersistence(
         (classification.geographic_scope === 'OTHER_REGION_IRRELEVANT'
           ? 'Berita cakupan wilayah lain tanpa relevansi langsung ke Kab. Tana Tidung.'
           : null),
-      llmConfidence: classification.confidence,
+      llmConfidence: calibratedConfidence,
       verificationStatus: VerificationStatusEnum.IGNORED,
     };
   }
@@ -1051,7 +1126,7 @@ export function mapClassificationToPersistence(
     llmModel,
     llmStatus: LlmStatusEnum.SUCCESS,
     llmError: null,
-    llmConfidence: classification.confidence,
+    llmConfidence: calibratedConfidence,
     verificationStatus: VerificationStatusEnum.PENDING,
   };
 }
