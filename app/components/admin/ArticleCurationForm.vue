@@ -112,7 +112,7 @@ const expModel = computed<string | undefined>({
 
 const secondaryKbliModel = computed<string | undefined>({
   get: () =>
-    !props.modelValue.secondaryKbliCategory || props.modelValue.secondaryKbliCategory === 'NONE'
+    !props.modelValue.secondaryKbliCategory
       ? 'NONE'
       : props.modelValue.secondaryKbliCategory,
   set: (v: string | undefined) => {
@@ -127,7 +127,7 @@ const secondaryKbliModel = computed<string | undefined>({
 
 const secondaryExpModel = computed<string | undefined>({
   get: () =>
-    !props.modelValue.secondaryExpenditureComponent || props.modelValue.secondaryExpenditureComponent === 'NONE'
+    !props.modelValue.secondaryExpenditureComponent
       ? 'NONE'
       : props.modelValue.secondaryExpenditureComponent,
   set: (v: string | undefined) => {
@@ -152,7 +152,7 @@ const secondaryExpOptions = computed(() => [
 
 const secondaryKbliImpactModel = computed<string | undefined>({
   get: () =>
-    !props.modelValue.secondaryKbliImpact || props.modelValue.secondaryKbliImpact === 'NONE'
+    !props.modelValue.secondaryKbliImpact
       ? 'NONE'
       : props.modelValue.secondaryKbliImpact,
   set: (v: string | undefined) => {
@@ -162,7 +162,7 @@ const secondaryKbliImpactModel = computed<string | undefined>({
 
 const secondaryExpImpactModel = computed<string | undefined>({
   get: () =>
-    !props.modelValue.secondaryExpenditureImpact || props.modelValue.secondaryExpenditureImpact === 'NONE'
+    !props.modelValue.secondaryExpenditureImpact
       ? 'NONE'
       : props.modelValue.secondaryExpenditureImpact,
   set: (v: string | undefined) => {

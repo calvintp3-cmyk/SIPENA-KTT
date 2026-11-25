@@ -28,7 +28,7 @@ async function main() {
   console.log(`============================================================\n`);
 
   for (let i = 0; i < pending.length; i++) {
-    const p = pending[i];
+    const p = pending[i]!;
     console.log(`[${i + 1}] ID: ${p.id}`);
     console.log(`    Judul      : ${p.title}`);
     console.log(`    Model/AI   : ${p.llmModel} (${p.llmStatus})`);

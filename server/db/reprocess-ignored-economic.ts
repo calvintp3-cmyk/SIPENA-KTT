@@ -16,9 +16,9 @@ async function main() {
   const applyMode = args.includes('--apply');
   const onlyPreFilter = args.includes('--only-prefilter');
   const idArg = args.find((a) => a.startsWith('--id='));
-  const targetId = idArg ? idArg.split('=')[1].trim() : null;
+  const targetId = idArg ? idArg.split('=')[1]?.trim() : null;
   const limitArg = args.find((a) => a.startsWith('--limit='));
-  const limit = limitArg ? parseInt(limitArg.split('=')[1], 10) : 500;
+  const limit = limitArg ? parseInt(limitArg.split('=')[1] ?? '500', 10) : 500;
 
   console.info(`================================================================`);
   console.info(`[reprocess-ignored] SIPENA KTT - Pemulihan Berita Ekonomi Diabaikan`);
@@ -66,9 +66,7 @@ async function main() {
 
   console.info(`\nMenemukan total ${ignoredArticles.length} artikel berstatus IGNORED.`);
 
-  // 3. Filter kandidat:
-  // - Prioritas utama: yang llmModel = 'geo-filter' atau 'title-geo-filter' atau llmStatus = 'FAILED'
-  // - Dan jika dievaluasi dengan geo-filter baru, hasilnya ALLOW_FOR_LLM_REVIEW
+  // 3. Filter kandidat
   const candidates: typeof ignoredArticles = [];
 
   if (targetId) {
@@ -145,7 +143,7 @@ async function main() {
   let failedCount = 0;
 
   for (let i = 0; i < candidates.length; i++) {
-    const c = candidates[i];
+    const c = candidates[i]!;
     console.info(`----------------------------------------------------------------`);
     console.info(`[Kandidat ${i + 1}/${candidates.length}] ID: ${c.id}`);
     console.info(`  Judul  : ${c.title}`);
@@ -171,9 +169,9 @@ async function main() {
         const fetched = await safeFetchText(c.url, { timeoutMs: 12_000 });
         if (fetched && fetched.body) {
           const extracted = extractArticleContent(fetched.body, c.publishedAt, fetched.finalUrl || c.url);
-          if (extracted && extracted.body && extracted.body.trim().length >= 100) {
-            textForClassification = extracted.body.trim();
-            updatedSnippet = extracted.snippet || textForClassification.slice(0, 1500);
+          if (extracted && extracted.snippetText && extracted.snippetText.trim().length >= 100) {
+            textForClassification = extracted.snippetText.trim();
+            updatedSnippet = textForClassification.slice(0, 1500);
             updatedWordCount = extracted.wordCount;
             console.info(`  Ekstraksi berhasil: ${textForClassification.length} karakter (${extracted.wordCount} kata).`);
           }
@@ -243,7 +241,6 @@ async function main() {
             secondaryExpenditureImpact: mapped.secondaryExpenditureImpact,
             quarter: mapped.quarter,
             year: mapped.year,
-            confidence: String(mapped.llmConfidence),
             llmConfidence: mapped.llmConfidence,
             llmModel: mapped.llmModel,
             llmStatus: mapped.llmStatus,
