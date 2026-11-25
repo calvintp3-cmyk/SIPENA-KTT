@@ -63,6 +63,7 @@ const form = reactive<CurationFormData>({
 });
 
 const submittingAction = ref<'VERIFIED' | 'IGNORED' | 'DRAFT' | null>(null);
+const reclassifyingLlm = ref(false);
 const validationAlert = ref<string | null>(null);
 const initialSummarySnapshot = ref<string>('');
 
@@ -104,6 +105,56 @@ const canRestoreInitialSummary = computed(
 function restoreInitialSummary() {
   if (!initialSummarySnapshot.value) return;
   form.summary = initialSummarySnapshot.value;
+}
+
+async function reclassifySlideoverArticle() {
+  if (!props.article || reclassifyingLlm.value || submittingAction.value) return;
+  reclassifyingLlm.value = true;
+  validationAlert.value = null;
+
+  try {
+    const res = await $fetch<{
+      item: AdminArticleItem;
+      modelUsed: string;
+    }>(`/api/admin/articles/${props.article.id}/reclassify`, {
+      method: 'POST',
+      credentials: 'include',
+    });
+
+    const nextArticle = res.item;
+    initialSummarySnapshot.value = nextArticle.summary ?? '';
+    form.title = nextArticle.title;
+    form.summary = nextArticle.summary ?? '';
+    form.kbliCategory = nextArticle.kbliCategory ?? '';
+    form.kbliImpact = nextArticle.kbliImpact ?? '';
+    form.expenditureComponent = nextArticle.expenditureComponent ?? '';
+    form.expenditureImpact = nextArticle.expenditureImpact ?? '';
+    form.secondaryKbliCategory = nextArticle.secondaryKbliCategory ?? '';
+    form.secondaryKbliImpact = nextArticle.secondaryKbliImpact ?? '';
+    form.secondaryExpenditureComponent = nextArticle.secondaryExpenditureComponent ?? '';
+    form.secondaryExpenditureImpact = nextArticle.secondaryExpenditureImpact ?? '';
+    form.subdistrict = nextArticle.subdistrict ?? '';
+    form.quarter = nextArticle.quarter as PdrbQuarter;
+    form.year = nextArticle.year;
+    form.isEconomicPhenomenon = nextArticle.isEconomicPhenomenon ?? true;
+
+    toast.add({
+      title: nextArticle.isEconomicPhenomenon
+        ? 'Klasifikasi AI Berhasil'
+        : 'Evaluasi AI Selesai (Non-Ekonomi)',
+      description: nextArticle.isEconomicPhenomenon
+        ? `Dipetakan ke KBLI ${nextArticle.kbliCategory} & ${nextArticle.expenditureComponent} via ${res.modelUsed}.`
+        : nextArticle.llmError || 'Artikel dinilai bukan fenomena ekonomi KTT.',
+      color: nextArticle.isEconomicPhenomenon ? 'success' : 'warning',
+      icon: 'i-lucide-sparkles',
+    });
+  } catch (err: unknown) {
+    const fetchErr = err as { data?: { message?: string } };
+    validationAlert.value =
+      fetchErr.data?.message || 'Gagal menjalankan klasifikasi ulang AI pada artikel ini.';
+  } finally {
+    reclassifyingLlm.value = false;
+  }
 }
 
 const missingForVerify = computed(() => {
@@ -211,6 +262,7 @@ async function submitUpdate(action: 'VERIFIED' | 'IGNORED' | 'DRAFT') {
           v-model="form"
           mode="slideover"
           :submitting-action="submittingAction"
+          :reclassifying-llm="reclassifyingLlm"
           :validation-alert="validationAlert"
           :highlight-incomplete="highlightIncomplete"
           :show-auto-next-toggle="showAutoNextToggle"
@@ -218,6 +270,7 @@ async function submitUpdate(action: 'VERIFIED' | 'IGNORED' | 'DRAFT') {
           :can-restore-ai-summary="canRestoreInitialSummary"
           @update:auto-advance-next="emit('update:autoAdvanceNext', $event)"
           @restore-ai-summary="restoreInitialSummary"
+          @reclassify-llm="reclassifySlideoverArticle"
           @submit="submitUpdate"
           @open-full-snippet="fullSnippetModalOpen = true"
         />

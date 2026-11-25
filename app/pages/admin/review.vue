@@ -42,11 +42,13 @@ const {
   autoAdvanceNext,
   highlightIncomplete,
   inspectorSubmitting,
+  reclassifyingLlm,
   inspectorAlert,
   inspectorForm,
   canRestoreAiSummary,
   isInspectorDirty,
   restoreAiSummary,
+  reclassifyInspectedArticle,
   selectArticleForInspection,
   openMobileSlideover,
   submitInspectorAction,
@@ -276,6 +278,7 @@ onBeforeUnmount(() => {
         v-model="inspectorForm"
         :article="inspectedArticle"
         :inspector-submitting="inspectorSubmitting"
+        :reclassifying-llm="reclassifyingLlm"
         :inspector-alert="inspectorAlert"
         :highlight-incomplete="highlightIncomplete"
         :active-status="activeStatus"
@@ -283,6 +286,7 @@ onBeforeUnmount(() => {
         :can-restore-ai-summary="canRestoreAiSummary"
         @update:auto-advance-next="autoAdvanceNext = $event"
         @restore-ai-summary="restoreAiSummary"
+        @reclassify-llm="reclassifyInspectedArticle"
         @submit="submitInspectorAction"
         @open-full-snippet="fullSnippetModalOpen = true"
       />

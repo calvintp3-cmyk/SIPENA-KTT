@@ -35,6 +35,7 @@ const props = withDefaults(
     article: AdminArticleItem | null;
     modelValue: CurationFormData;
     submittingAction?: 'VERIFIED' | 'IGNORED' | 'DRAFT' | null;
+    reclassifyingLlm?: boolean;
     validationAlert?: string | null;
     highlightIncomplete?: boolean;
     showAutoNextToggle?: boolean;
@@ -44,6 +45,7 @@ const props = withDefaults(
   }>(),
   {
     submittingAction: null,
+    reclassifyingLlm: false,
     validationAlert: null,
     highlightIncomplete: false,
     showAutoNextToggle: false,
@@ -57,6 +59,7 @@ const emit = defineEmits<{
   'update:modelValue': [val: CurationFormData];
   'update:autoAdvanceNext': [val: boolean];
   restoreAiSummary: [];
+  reclassifyLlm: [];
   submit: [action: 'VERIFIED' | 'IGNORED' | 'DRAFT'];
   openFullSnippet: [];
 }>();
@@ -69,9 +72,14 @@ const {
   quarterOptions,
   subdistrictOptions,
   getLlmStatusBadge,
+  formatLlmProviderBadge,
   getSourceTypeLabel,
   isSafeHttpUrl,
 } = usePdrbLabels();
+
+const isDeterministicFilter = computed(() =>
+  props.article ? formatLlmProviderBadge(props.article.llmModel).provider === 'filter' : false,
+);
 
 const autoNextModel = computed({
   get: () => props.autoAdvanceNext,
@@ -251,7 +259,7 @@ const hasHttpUrl = computed(() => isSafeHttpUrl(props.article?.url));
       <USwitch id="curation-auto-next" v-model="autoNextModel" size="sm" />
     </div>
 
-    <!-- Peringatan Error LLM atau Validasi -->
+    <!-- Peringatan Error LLM, Alasan Penolakan Geo-Filter/Non-Ekonomi, atau Validasi -->
     <UAlert
       v-if="article.llmStatus === LlmStatusEnum.FAILED"
       color="warning"
@@ -260,9 +268,53 @@ const hasHttpUrl = computed(() => isSafeHttpUrl(props.article?.url));
       title="Klasifikasi AI tertunda/gagal"
       :description="
         article.llmError ||
-        'Silakan lengkapi ringkasan dan pemetaan PDRB secara manual dari cuplikan berita di bawah.'
+        'Silakan jalankan klasifikasi ulang AI atau lengkapi ringkasan dan pemetaan PDRB secara manual.'
       "
-    />
+    >
+      <template #actions>
+        <UButton
+          size="xs"
+          color="warning"
+          variant="solid"
+          icon="i-lucide-sparkles"
+          :loading="reclassifyingLlm"
+          :disabled="Boolean(submittingAction) || reclassifyingLlm"
+          @click="emit('reclassifyLlm')"
+        >
+          Analisis Ulang AI
+        </UButton>
+      </template>
+    </UAlert>
+
+    <UAlert
+      v-else-if="isDeterministicFilter || (article.isEconomicPhenomenon === false && article.llmError)"
+      color="neutral"
+      variant="subtle"
+      :icon="isDeterministicFilter ? 'i-lucide-shield-ban' : 'i-lucide-info'"
+      :title="
+        isDeterministicFilter
+          ? 'Artikel Disaring Pra-LLM (Belum Dianalisis AI)'
+          : 'Alasan Non-Ekonomi / Diabaikan'
+      "
+      :description="
+        article.llmError ||
+        'Artikel ini ditandai non-ekonomi atau berada di luar cakupan wilayah Kab. Tana Tidung sehingga ringkasan dan pemetaan PDRB dikosongkan.'
+      "
+    >
+      <template #actions>
+        <UButton
+          size="xs"
+          color="primary"
+          variant="soft"
+          icon="i-lucide-sparkles"
+          :loading="reclassifyingLlm"
+          :disabled="Boolean(submittingAction) || reclassifyingLlm"
+          @click="emit('reclassifyLlm')"
+        >
+          {{ isDeterministicFilter ? 'Analisis dengan AI Sekarang' : 'Analisis Ulang AI' }}
+        </UButton>
+      </template>
+    </UAlert>
 
     <UAlert
       v-if="validationAlert"
@@ -321,15 +373,30 @@ const hasHttpUrl = computed(() => isSafeHttpUrl(props.article?.url));
         <label for="curation-summary-textarea" class="text-xs font-semibold text-ink-primary">
           Ringkasan Berita (2–3 Kalimat untuk Publik &amp; Excel) <span class="text-terracotta-ink">*</span>
         </label>
-        <button
-          v-if="canRestoreAiSummary"
-          type="button"
-          class="inline-flex items-center gap-1 min-h-8 px-1.5 rounded-lg text-xs font-semibold text-brand-primary hover:text-[#072B20] hover:bg-brand-tint cursor-pointer"
-          @click="emit('restoreAiSummary')"
-        >
-          <UIcon name="i-lucide-rotate-ccw" class="w-3 h-3" />
-          <span>Kembalikan Teks AI</span>
-        </button>
+        <div class="flex items-center gap-1.5">
+          <button
+            v-if="canRestoreAiSummary"
+            type="button"
+            class="inline-flex items-center gap-1 min-h-7 px-2 rounded-lg text-xs font-semibold text-brand-primary hover:text-[#072B20] hover:bg-brand-tint cursor-pointer"
+            @click="emit('restoreAiSummary')"
+          >
+            <UIcon name="i-lucide-rotate-ccw" class="w-3 h-3" />
+            <span>Kembalikan Teks AI</span>
+          </button>
+          <button
+            type="button"
+            :disabled="Boolean(submittingAction) || reclassifyingLlm"
+            class="inline-flex items-center gap-1 min-h-7 px-2 rounded-lg text-xs font-semibold text-brand-primary bg-brand-tint/60 hover:bg-brand-tint border border-brand-border/70 transition-colors cursor-pointer disabled:opacity-50"
+            @click="emit('reclassifyLlm')"
+          >
+            <UIcon
+              :name="reclassifyingLlm ? 'i-lucide-loader-circle' : 'i-lucide-sparkles'"
+              class="w-3 h-3"
+              :class="reclassifyingLlm ? 'animate-spin' : ''"
+            />
+            <span>{{ reclassifyingLlm ? 'Menganalisis AI...' : 'Isi Otomatis via AI' }}</span>
+          </button>
+        </div>
       </div>
       <UFormField
         :error="

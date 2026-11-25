@@ -22,11 +22,16 @@ const emit = defineEmits<{
 
 const {
   getLlmStatusBadge,
+  formatLlmProviderBadge,
   getKbliClusterTheme,
   getKbliShortCodeName,
   getExpenditureColorTheme,
   getExpenditureLabel,
 } = usePdrbLabels();
+
+const isDeterministicFilter = computed(
+  () => formatLlmProviderBadge(props.article.llmModel).provider === 'filter',
+);
 </script>
 
 <template>
@@ -72,6 +77,15 @@ const {
               AI Gagal
             </UBadge>
             <UBadge
+              v-else-if="isDeterministicFilter"
+              color="warning"
+              variant="subtle"
+              size="xs"
+              icon="i-lucide-shield-ban"
+            >
+              {{ formatLlmProviderBadge(article.llmModel).shortLabel }}
+            </UBadge>
+            <UBadge
               v-else-if="article.llmConfidence !== null"
               color="neutral"
               variant="subtle"
@@ -103,6 +117,12 @@ const {
         </h2>
         <p class="text-xs text-ink-secondary line-clamp-2 leading-relaxed text-pretty">
           {{ article.summary || article.snippetText }}
+        </p>
+        <p
+          v-if="article.isEconomicPhenomenon === false && article.llmError"
+          class="text-[11px] text-ochre-ink bg-[#FEF3C7]/60 border border-ochre/20 rounded-md px-2 py-1 line-clamp-1 font-medium"
+        >
+          Alasan: {{ article.llmError }}
         </p>
 
         <!-- Dual-Axis Preview Chips + Quick Actions -->

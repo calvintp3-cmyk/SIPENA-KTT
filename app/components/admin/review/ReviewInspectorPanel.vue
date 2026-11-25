@@ -7,6 +7,7 @@ import ArticleCurationForm, { type CurationFormData } from '~/components/admin/A
 const props = defineProps<{
   article: AdminArticleItem | null;
   inspectorSubmitting: 'VERIFIED' | 'IGNORED' | 'DRAFT' | null;
+  reclassifyingLlm?: boolean;
   inspectorAlert: string | null;
   highlightIncomplete: boolean;
   activeStatus: string;
@@ -19,6 +20,7 @@ const emit = defineEmits<{
   'update:modelValue': [val: CurationFormData];
   'update:autoAdvanceNext': [val: boolean];
   restoreAiSummary: [];
+  reclassifyLlm: [];
   submit: [action: 'VERIFIED' | 'IGNORED' | 'DRAFT'];
   openFullSnippet: [];
 }>();
@@ -30,6 +32,10 @@ const {
   getSourceTypeLabel,
   isSafeHttpUrl,
 } = usePdrbLabels();
+
+const isDeterministicFilter = computed(() =>
+  props.article ? formatLlmProviderBadge(props.article.llmModel).provider === 'filter' : false,
+);
 
 const formData = computed({
   get: () => props.modelValue,
@@ -68,6 +74,16 @@ const formData = computed({
             {{ getVerificationStatusBadge(article.verificationStatus).label }}
           </UBadge>
           <UBadge
+            v-if="isDeterministicFilter"
+            color="warning"
+            variant="subtle"
+            size="xs"
+            icon="i-lucide-shield-ban"
+          >
+            Disaring Pra-LLM
+          </UBadge>
+          <UBadge
+            v-else
             :color="getLlmStatusBadge(article.llmStatus).color"
             variant="subtle"
             size="xs"
@@ -76,7 +92,7 @@ const formData = computed({
             {{ getLlmStatusBadge(article.llmStatus).label }}
           </UBadge>
           <UBadge
-            v-if="article.llmConfidence !== null"
+            v-if="!isDeterministicFilter && article.llmConfidence !== null"
             color="neutral"
             variant="outline"
             size="xs"
@@ -115,6 +131,7 @@ const formData = computed({
           v-model="formData"
           mode="inspector"
           :submitting-action="inspectorSubmitting"
+          :reclassifying-llm="reclassifyingLlm"
           :validation-alert="inspectorAlert"
           :highlight-incomplete="highlightIncomplete"
           :show-auto-next-toggle="activeStatus === VerificationStatusEnum.PENDING"
@@ -122,6 +139,7 @@ const formData = computed({
           :can-restore-ai-summary="canRestoreAiSummary"
           @update:auto-advance-next="emit('update:autoAdvanceNext', $event)"
           @restore-ai-summary="emit('restoreAiSummary')"
+          @reclassify-llm="emit('reclassifyLlm')"
           @submit="emit('submit', $event)"
           @open-full-snippet="emit('openFullSnippet')"
         />

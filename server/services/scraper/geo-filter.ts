@@ -77,11 +77,11 @@ export const KTT_LOGISTICS_CORRIDOR_RE =
 
 // Kebijakan/data makro tingkat Provinsi Kaltara yang bertransmisi ke seluruh kab/kota termasuk KTT
 const KALTARA_PROVINCIAL_MACRO_RE =
-  /\b(?:pemprov\s+kaltara|gubernur\s+kaltara|disbun\s+kaltara|disdikbud\s+kaltara|bps\s+kaltara|bi\s+kaltara|apbd\s+kaltara|se-kaltara|kalimantan\s+utara|kaltara)\b/i;
+  /\b(?:pemprov\s+kaltara|gubernur\s+kaltara|disbun\s+kaltara|disdikbud\s+kaltara|disperindagkop\s+kaltara|dishub\s+kaltara|bps\s+kaltara|bi\s+kaltara|dprd\s+kaltara|polda\s+kaltara|apbd\s+kaltara|se-kaltara|kalimantan\s+utara|kaltara)\b/i;
 
 // Indikator/kebijakan makro acuan nasional yang memengaruhi unit ekonomi di KTT
 const NATIONAL_MACRO_ANCHOR_RE =
-  /\b(?:kementerian\s+esdm|kementerian\s+keuangan|kemenkeu|kementan|kemendag|kemenhub|kemenperin|bank\s+indonesia|bi\s+rate|apbn|hba\s+batubara|harga\s+batubara\s+acuan|dana\s+bagi\s+hasil|transfer\s+ke\s+daerah|dana\s+alokasi|bbm\s+subsidi|ekspor\s+cpo|subsidi\s+pupuk|harga\s+acuan)\b/i;
+  /\b(?:kementerian\s+esdm|kementerian\s+keuangan|kemenkeu|kementan|kemendag|kemenhub|kemenperin|bank\s+indonesia|bi\s+rate|apbn|hba\s+batubara|harga\s+batubara(?:\s+acuan)?|dana\s+bagi\s+hasil|transfer\s+ke\s+daerah|dana\s+alokasi|bbm\s+subsidi|ekspor\s+cpo|subsidi\s+pupuk|harga\s+acuan|harga\s+emas(?:\s+antam)?|emas\s+antam|logam\s+mulia|inflasi|deflasi|ihk|nilai\s+tukar\s+petani|kurs\s+rupiah|suku\s+bunga|tarif\s+dasar\s+listrik|elpiji\s+3\s*kg|lpg\s+3\s*kg|beras\s+sphp|cadangan\s+beras|bulog)\b/i;
 
 // Entitas lokal eksklusif kabupaten/kota tetangga di Kaltara atau Kaltim
 const NEIGHBOR_LOCAL_REGENCY_RE =
@@ -180,14 +180,16 @@ export function evaluateGeographicRelevance(input: {
     };
   }
 
-  // Artikel dari crawler REGIONAL yang ternyata tidak memuat jangkar KTT maupun kebijakan Kaltara
+  // Artikel dari crawler REGIONAL yang ternyata tidak memuat jangkar KTT, kebijakan Kaltara, maupun indikator makro nasional
   if (
     input.sourceType === ArticleSourceTypeEnum.REGIONAL &&
-    !KALTARA_PROVINCIAL_MACRO_RE.test(combinedText)
+    !KALTARA_PROVINCIAL_MACRO_RE.test(combinedText) &&
+    !NATIONAL_MACRO_ANCHOR_RE.test(combinedText)
   ) {
     return {
       decision: 'DROP_OTHER_REGENCY_LOCAL',
-      reason: 'Kandidat portal regional tidak memuat penyebutan Kab. Tana Tidung maupun kebijakan tingkat Provinsi Kaltara.',
+      reason:
+        'Kandidat portal regional tidak memuat penyebutan Kab. Tana Tidung, kebijakan tingkat Provinsi Kaltara, maupun indikator makro ekonomi nasional.',
     };
   }
 

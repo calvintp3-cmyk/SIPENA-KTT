@@ -262,13 +262,27 @@ export function usePdrbLabels() {
       };
     }
 
-    if (lower === 'geo-filter' || lower === 'title-geo-filter') {
+    if (
+      lower === 'geo-filter' ||
+      lower === 'title-geo-filter' ||
+      lower === 'system-insufficient-content'
+    ) {
       return {
-        label: lower === 'title-geo-filter' ? 'Filter Judul Noise' : 'Filter Geografis KTT',
-        shortLabel: lower === 'title-geo-filter' ? 'Noise Filter' : 'Geo Filter',
+        label:
+          lower === 'title-geo-filter'
+            ? 'Filter Judul Noise'
+            : lower === 'system-insufficient-content'
+              ? 'Filter Teks Kurang'
+              : 'Filter Geografis KTT',
+        shortLabel:
+          lower === 'title-geo-filter'
+            ? 'Noise Filter'
+            : lower === 'system-insufficient-content'
+              ? 'Teks Singkat'
+              : 'Geo Filter',
         provider: 'filter',
-        pillClass: 'bg-[#F2F0EB] text-[#575B58] border-[#DDD9D0]',
-        dotClass: 'bg-[#6B6F6C]',
+        pillClass: 'bg-[#FEF3C7] text-[#92400E] border-[#FDE68A]',
+        dotClass: 'bg-[#D97706]',
         icon: 'i-lucide-shield-ban',
       };
     }

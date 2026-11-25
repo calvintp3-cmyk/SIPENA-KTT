@@ -220,6 +220,22 @@ describe('Smart Scraper Filters, Dedup, Google News Decoder & Geo-Gate', () => {
 
     expect(
       evaluateGeographicRelevance({
+        title: 'Harga Emas Antam Turun Rp8.000, Berikut Rincian Terbaru 25 November',
+        snippetText: 'Harga emas batangan Antam yang dipasarkan melalui Logam Mulia kembali melemah pada perdagangan hari ini.',
+        sourceType: ArticleSourceTypeEnum.REGIONAL,
+      }).decision,
+    ).toBe('ALLOW_FOR_LLM_REVIEW');
+
+    expect(
+      evaluateGeographicRelevance({
+        title: 'Jangan Lupa Payung! BMKG Ramal Hujan Guyur Jakarta Mulai Sore-Malam Hari',
+        snippetText: 'BMKG memperkirakan hujan akan membasahi seluruh wilayah DKI Jakarta pada Rabu sore.',
+        sourceType: ArticleSourceTypeEnum.REGIONAL,
+      }).decision,
+    ).toBe('DROP_OTHER_REGENCY_LOCAL');
+
+    expect(
+      evaluateGeographicRelevance({
         title: 'PLN Pastikan Tarif Listrik Nonsubsidi Bulan Ini Tetap Tidak Berubah',
         sourceType: ArticleSourceTypeEnum.NATIONAL,
       }).decision,

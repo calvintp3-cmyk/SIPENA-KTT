@@ -364,10 +364,10 @@ export const REGIONAL_PORTALS: ReadonlyArray<RegionalPortalConfig> = [
     id: 'rri-kaltara',
     label: 'RRI Tarakan (Kaltara)',
     sourcePortal: 'rri.co.id',
-    indexUrl: 'https://rri.co.id/daerah/tarakan',
+    indexUrl: 'https://rri.co.id/daerah/tana-tidung',
     additionalIndexUrls: [
-      'https://rri.co.id/daerah/tana-tidung',
       'https://rri.co.id/search?q=tana+tidung',
+      'https://rri.co.id/daerah/tarakan',
     ],
     allowedHosts: ['rri.co.id', 'www.rri.co.id'],
     paginationPattern: 'QUERY_PAGE',
@@ -378,8 +378,8 @@ export const REGIONAL_PORTALS: ReadonlyArray<RegionalPortalConfig> = [
       '.news-item',
       '.card',
       '.post',
-      'a[href*="/berita/"]',
       'a[href*="/daerah/"]',
+      'a[href*="/kalimantan-utara/"]',
     ],
   },
   {
@@ -444,7 +444,7 @@ const NON_ARTICLE_SLUG_RE =
   /(?:kode-etik|pedoman-media|tentang-kami|hubungi-kami|redaksi|disclaimer|privacy-policy|syarat-ketentuan)/i;
 
 const OTHER_REGENCY_URL_SEGMENTS_RE =
-  /\/(?:nunukan|tarakan|bulungan|malinau|krayan|sebatik|berau|samarinda|balikpapan|kaltim)\//i;
+  /\/(?:nunukan|tarakan|bulungan|malinau|krayan|sebatik|berau|samarinda|balikpapan|kaltim|jakarta|bandung|surabaya|medan|semarang|makassar|yogyakarta|palembang|denpasar|aceh|riau|jambi|sumut|sumbar|sumsel|lampung|banten|jabar|jateng|jatim|bali|ntb|ntt|kalbar|kalteng|kalsel|sulut|sulteng|sulsel|sultra|maluku|papua)\//i;
 
 const SIDEBAR_WIDGET_CONTAINER_SELECTORS = [
   'nav',

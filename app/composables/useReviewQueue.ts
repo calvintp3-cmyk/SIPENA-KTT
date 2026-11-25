@@ -136,6 +136,7 @@ export function useReviewQueue() {
   const autoAdvanceNext = ref(true);
   const highlightIncomplete = ref(false);
   const inspectorSubmitting = ref<'VERIFIED' | 'IGNORED' | 'DRAFT' | null>(null);
+  const reclassifyingLlm = ref(false);
   const inspectorAlert = ref<string | null>(null);
 
   const defaultWita = getCurrentQuarterYearWita();
@@ -306,6 +307,53 @@ export function useReviewQueue() {
   function restoreAiSummary() {
     if (initialSummarySnapshot.value) {
       inspectorForm.summary = initialSummarySnapshot.value;
+    }
+  }
+
+  async function reclassifyInspectedArticle() {
+    if (!inspectedArticle.value || reclassifyingLlm.value || inspectorSubmitting.value) return;
+    reclassifyingLlm.value = true;
+    inspectorAlert.value = null;
+    const targetId = inspectedArticle.value.id;
+
+    try {
+      const res = await $fetch<{
+        item: AdminArticleItem;
+        modelUsed: string;
+        providerUsed: string;
+      }>(`/api/admin/articles/${targetId}/reclassify`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+
+      inspectedArticle.value = res.item;
+      syncInspectorForm(res.item);
+      highlightIncomplete.value = false;
+
+      toast.add({
+        title: res.item.isEconomicPhenomenon
+          ? 'Klasifikasi AI Berhasil (Fenomena Ekonomi)'
+          : 'Evaluasi AI Selesai (Non-Ekonomi / Wilayah Lain)',
+        description: res.item.isEconomicPhenomenon
+          ? `Dipetakan ke KBLI ${res.item.kbliCategory} & ${res.item.expenditureComponent} via ${res.modelUsed}.`
+          : res.item.llmError || 'Artikel dinilai bukan fenomena ekonomi KTT.',
+        color: res.item.isEconomicPhenomenon ? 'success' : 'warning',
+        icon: 'i-lucide-sparkles',
+      });
+
+      await refresh();
+    } catch (err: unknown) {
+      const fetchErr = err as { data?: { message?: string } };
+      const msg =
+        fetchErr.data?.message || 'Gagal menjalankan klasifikasi ulang AI pada artikel ini.';
+      inspectorAlert.value = msg;
+      toast.add({
+        title: 'Klasifikasi AI Gagal',
+        description: msg,
+        color: 'error',
+      });
+    } finally {
+      reclassifyingLlm.value = false;
     }
   }
 
@@ -712,11 +760,13 @@ export function useReviewQueue() {
     autoAdvanceNext,
     highlightIncomplete,
     inspectorSubmitting,
+    reclassifyingLlm,
     inspectorAlert,
     inspectorForm,
     canRestoreAiSummary,
     isInspectorDirty,
     restoreAiSummary,
+    reclassifyInspectedArticle,
     selectArticleForInspection,
     openMobileSlideover,
     submitInspectorAction,
