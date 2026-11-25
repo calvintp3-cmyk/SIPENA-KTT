@@ -214,6 +214,79 @@ export const KTT_SUBDISTRICT_NAMES = [
 
 export type KttSubdistrictName = (typeof KTT_SUBDISTRICT_NAMES)[number];
 
+// ============================================================================
+// SPATIAL GAZETTEER DICTIONARY: 32 DESA & LANDMARK RESMI KABUPATEN TANA TIDUNG
+// ============================================================================
+
+export const KTT_GAZETTEER_MAP: Record<string, KttSubdistrictName> = {
+  // 1. Kec. Sesayap (Ibukota & Pusat Kegiatan)
+  'tideng pale': 'Sesayap',
+  'tideng pale timur': 'Sesayap',
+  'sedulun': 'Sesayap',
+  'limbu sedulun': 'Sesayap',
+  'sebawang': 'Sesayap',
+  'sebidai': 'Sesayap',
+  'gunawan': 'Sesayap',
+  'pelabuhan sebawang': 'Sesayap',
+  'dermaga tideng pale': 'Sesayap',
+  'pasar imbayud taka': 'Sesayap',
+  'puspem ktt': 'Sesayap',
+  'pusat pemerintahan ktt': 'Sesayap',
+  'rsud akhmad berahim': 'Sesayap',
+  'akhmad berahim': 'Sesayap',
+  'sungai sesayap': 'Sesayap',
+
+  // 2. Kec. Sesayap Hilir (Sentra Tambak, Sawit, & Pesisir)
+  'sesayap hilir': 'Sesayap Hilir',
+  'sesayap selor': 'Sesayap Hilir',
+  'bebatu': 'Sesayap Hilir',
+  'pelabuhan bebatu': 'Sesayap Hilir',
+  'menjelutung': 'Sesayap Hilir',
+  'sepala dalung': 'Sesayap Hilir',
+  'sengkong': 'Sesayap Hilir',
+  'seludau': 'Sesayap Hilir',
+  'badan bikis': 'Sesayap Hilir',
+  'bandan bikis': 'Sesayap Hilir',
+
+  // 3. Kec. Tana Lia (Pulau Mandul & Pesisir Timur)
+  'tana lia': 'Tana Lia',
+  'tanah merah': 'Tana Lia',
+  'tanah merah barat': 'Tana Lia',
+  'tengku dacing': 'Tana Lia',
+  'sambungan': 'Tana Lia',
+  'sambungan selatan': 'Tana Lia',
+
+  // 4. Kec. Betayau (Sentra Padi Sawah & Perkebunan)
+  'betayau': 'Betayau',
+  'buong baru': 'Betayau',
+  'bebakung': 'Betayau',
+  'kujau': 'Betayau',
+  'maning': 'Betayau',
+  'mendupo': 'Betayau',
+  'periuk': 'Betayau',
+
+  // 5. Kec. Muruk Rian (Sentra Buah, Perkebunan, & Wisata Alam)
+  'muruk rian': 'Muruk Rian',
+  'belayan ari': 'Muruk Rian',
+  'kapuak': 'Muruk Rian',
+  'rian': 'Muruk Rian',
+  'desa rian': 'Muruk Rian',
+  'rian rayo': 'Muruk Rian',
+  'sapari': 'Muruk Rian',
+  'seputuk': 'Muruk Rian',
+  'air terjun gunung rian': 'Muruk Rian',
+  'gunung rian': 'Muruk Rian',
+};
+
+const GAZETTEER_REGEX_ENTRIES = Object.entries(KTT_GAZETTEER_MAP).map(([place, subdistrict]) => {
+  const escaped = place.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return {
+    place,
+    subdistrict,
+    regex: new RegExp(`\\b${escaped.replace(/\s+/g, '\\s+')}\\b`, 'i'),
+  };
+});
+
 const SESAYAP_HILIR_RE =
   /\b(?:sesayap\s+hilir|sesayap\s+selor|bebatu|pelabuhan\s+bebatu|menjelutung|seludau|sengkong|sepala\s+dalung|ba[n]?dan\s+bikis)\b/i;
 
@@ -249,8 +322,11 @@ function countRegexMatches(text: string, regex: RegExp): number {
 
 /**
  * Mendeteksi kecamatan spesifik (lokus) di Kabupaten Tana Tidung dari teks judul dan cuplikan berita
- * menggunakan Weighted Frequency Scoring: Judul diberi bobot 5x lebih tinggi dibanding naskah isi (1x)
- * untuk menghindari kesalahan deteksi akibat penyebutan selintas lokasi transit/pelabuhan.
+ * menggunakan Spatial Gazetteer dan Weighted Frequency Scoring:
+ * - Entri spesifik di KTT_GAZETTEER_MAP (desa dan landmark mikro) diberi bobot prioritas tinggi:
+ *   Judul (10x) vs Cuplikan (2x).
+ * - Regex kecamatan makro dievaluasi sebagai pelengkap:
+ *   Judul (5x) vs Cuplikan (1x).
  * Mengembalikan salah satu dari 5 nama kecamatan resmi, atau null jika berita berskala umum/makro.
  */
 export function detectKttSubdistrict(
@@ -261,17 +337,37 @@ export function detectKttSubdistrict(
   const cleanSnippet = (snippetText || '').trim();
   if (!cleanTitle && !cleanSnippet) return null;
 
-  let bestSubdistrict: KttSubdistrictName | null = null;
-  let highestScore = 0;
+  const scores: Record<KttSubdistrictName, number> = {
+    'Sesayap': 0,
+    'Sesayap Hilir': 0,
+    'Tana Lia': 0,
+    'Betayau': 0,
+    'Muruk Rian': 0,
+  };
 
+  // 1. Prioritas Utama: Pencocokan Spatial Gazetteer (Micro-Toponymy)
+  for (const entry of GAZETTEER_REGEX_ENTRIES) {
+    const titleMatches = countRegexMatches(cleanTitle, entry.regex);
+    const snippetMatches = countRegexMatches(cleanSnippet, entry.regex);
+    if (titleMatches > 0 || snippetMatches > 0) {
+      scores[entry.subdistrict] += titleMatches * 10 + snippetMatches * 2;
+    }
+  }
+
+  // 2. Evaluasi Konfigurasi Regex Kecamatan Makro
   for (const cfg of SUBDISTRICT_CONFIGS) {
     const titleMatches = countRegexMatches(cleanTitle, cfg.regex);
     const snippetMatches = countRegexMatches(cleanSnippet, cfg.regex);
-    const score = titleMatches * 5 + snippetMatches;
+    scores[cfg.name] += titleMatches * 5 + snippetMatches;
+  }
 
-    if (score > highestScore) {
-      highestScore = score;
-      bestSubdistrict = cfg.name;
+  let bestSubdistrict: KttSubdistrictName | null = null;
+  let highestScore = 0;
+
+  for (const name of KTT_SUBDISTRICT_NAMES) {
+    if (scores[name] > highestScore) {
+      highestScore = scores[name];
+      bestSubdistrict = name;
     }
   }
 
