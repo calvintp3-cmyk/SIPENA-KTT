@@ -970,3 +970,97 @@ export function extractArticleContent(
   };
 }
 
+export interface SalientExtractorOptions {
+  maxWords?: number;
+  maxChars?: number;
+}
+
+/**
+ * Ekstraktor paragraf adaptif berbasis bobot kepadatan data ekonomi (PDRB BPS) dan toponimi KTT.
+ * Memprioritaskan paragraf berkepadatan angka, nominal Rp, ton, panen, APBD, KBLI, dan toponimi KTT,
+ * memberikan boost pada lead paragraph, serta memotong/menalti filler jurnalistik basa-basi.
+ * Hasil akhir disusun kembali sesuai kronologi urutan asli paragraf artikel.
+ */
+export function extractSalientEconomicParagraphs(
+  paragraphs: string[],
+  options?: SalientExtractorOptions,
+): string {
+  const maxWords = options?.maxWords ?? 600;
+  const maxChars = options?.maxChars ?? 4000;
+
+  const ECONOMIC_DATA_RE =
+    /(?:\b(?:\d+|rp|rupiah|persen|miliar|juta|triliun|ton|kg|hektare|sak|liter|pdrb|inflasi|ihk|ntb|panen|ekspor|impor|anggaran|apbd|dak|tpp|gaji|sawit|batubara|tbs|cpo|pasar|sembako|beras|cabai|solar|bbm|elpiji|kbli|komoditas|bupati|pemkab|disbun|disperindagkop|puspem|ktt|tana tidung|tideng pale|sesayap|betayau|tana lia|muruk rian|kaltara)\b|%)/i;
+
+  interface ScoredParagraph {
+    text: string;
+    index: number;
+    score: number;
+    words: number;
+    chars: number;
+  }
+
+  const scored: ScoredParagraph[] = [];
+
+  for (let i = 0; i < paragraphs.length; i++) {
+    const p = paragraphs[i]?.trim();
+    if (!p || p.length < 25) continue;
+
+    let score = 0;
+    if (i === 0) score += 3; // Boost lead paragraph
+
+    const matches = p.match(new RegExp(ECONOMIC_DATA_RE.source, 'gi'));
+    if (matches) {
+      score += matches.length * 2;
+    }
+
+    // Penalti untuk paragraf basa-basi / penutup wartawan
+    if (
+      /\b(?:warung kopi|enggan disebutkan|ujar salah|baca juga|simak video|pantauan di lapangan|berita terkait|halaman selanjutnya|klik di sini)\b/i.test(
+        p,
+      )
+    ) {
+      score -= 5;
+    }
+
+    const wordCount = p.split(/\s+/).filter(Boolean).length;
+    scored.push({
+      text: p,
+      index: i,
+      score,
+      words: wordCount,
+      chars: p.length,
+    });
+  }
+
+  if (scored.length === 0) {
+    return paragraphs
+      .map((p) => p.trim())
+      .filter(Boolean)
+      .join('\n\n');
+  }
+
+  // Ambil paragraf berdasarkan ranking skor tertinggi
+  const prioritized = [...scored].sort((a, b) => b.score - a.score);
+  const selectedIndices = new Set<number>();
+  let currentWords = 0;
+  let currentChars = 0;
+
+  for (const item of prioritized) {
+    if (currentWords + item.words > maxWords || currentChars + item.chars > maxChars) {
+      if (selectedIndices.size === 0) selectedIndices.add(item.index);
+      break;
+    }
+    selectedIndices.add(item.index);
+    currentWords += item.words;
+    currentChars += item.chars + 2;
+  }
+
+  // Susun kembali sesuai alur kronologis asli artikel
+  return scored
+    .filter((item) => selectedIndices.has(item.index))
+    .sort((a, b) => a.index - b.index)
+    .map((item) => item.text)
+    .join('\n\n');
+}
+
+

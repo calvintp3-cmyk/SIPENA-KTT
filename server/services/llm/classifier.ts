@@ -19,6 +19,7 @@ import {
   resolvePhenomenonQuarterAndYear,
   type TemporalResolverInput,
 } from './temporal-resolver';
+import { extractSalientEconomicParagraphs } from '../scraper/extractor';
 
 export const COMPRESS_MAX_WORDS_FOR_LLM = 3_500;
 export const COMPRESS_MAX_CHARS_FOR_LLM = 24_000;
@@ -215,6 +216,31 @@ export function compressArticleTextForLlm(
   maxWords: number = COMPRESS_MAX_WORDS_FOR_LLM,
   maxChars: number = COMPRESS_MAX_CHARS_FOR_LLM,
 ): string {
+  if (!rawText) return '';
+
+  // Jika input teks memiliki multi-paragraf (\n\n), gunakan adaptive salient economic paragraph extractor
+  // agar paragraf yang paling padat data ekonomi KTT dipertahankan dalam anggaran kata/karakter
+  if (rawText.includes('\n\n')) {
+    const rawParagraphs = rawText
+      .split(/\n{2,}/)
+      .map((p) => p.trim())
+      .filter((p) => p.length > 0);
+
+    if (rawParagraphs.length > 1) {
+      const salientText = extractSalientEconomicParagraphs(rawParagraphs, {
+        maxWords,
+        maxChars,
+      });
+      const salientWords = salientText.split(/\s+/).filter(Boolean).length;
+      if (salientWords > 0 && salientWords <= maxWords && salientText.length <= maxChars) {
+        return salientText;
+      }
+      if (salientText) {
+        rawText = salientText;
+      }
+    }
+  }
+
   const cleaned = rawText.replace(/\u00a0/g, ' ').replace(/\s+/g, ' ').trim();
   if (!cleaned) return '';
 
