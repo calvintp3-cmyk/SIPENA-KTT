@@ -46,12 +46,12 @@ export function resolvePhenomenonQuarterAndYear(
   let parsedYear: number | null = null;
 
   const match1 = RETRO_TW_YEAR_RE.exec(text);
-  if (match1) {
+  if (match1 && match1[1] && match1[2]) {
     parsedQuarter = parseQuarterString(match1[1]);
     parsedYear = parseInt(match1[2], 10);
   } else {
     const match2 = RETRO_YEAR_TW_RE.exec(text);
-    if (match2) {
+    if (match2 && match2[1] && match2[2]) {
       parsedYear = parseInt(match2[1], 10);
       parsedQuarter = parseQuarterString(match2[2]);
     }

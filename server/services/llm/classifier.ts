@@ -687,7 +687,54 @@ export function enrichClassificationLinkages(
   }
 
   // =========================================================================
-  // GUARDRAIL 8: Konstruksi Fisik (KBLI F) Membentuk Modal Tetap Bruto (PMTB)
+  // GUARDRAIL 8: Decision Matrix BPS (Price Shock vs Real Volume Shock)
+  // Guncangan harga murni tanpa perubahan volume produksi fisik harus masuk
+  // ke INCREASE_PRICE/DECREASE_PRICE di Lapangan Usaha dan DEFLATOR di Pengeluaran
+  // =========================================================================
+  const isPurePriceShock =
+    /\b(?:harga\s+(?:(?:komoditas|acuan|batangan)\s+)?(?:emas|antam|cabai|beras|sembako|bahan\s+pokok|tbs|sawit|bawang|minyak|daging|telur|bbm|pertalite|solar|lpg|elpiji)|tarif\s+(?:listrik|speedboat|feri|ongkos)|ihk|inflasi|deflasi)\b/i.test(
+      text,
+    ) &&
+    !/\b(?:pembangunan\s+fisik|panen\s+raya|gagal\s+panen|banjir\s+rendam|penambahan\s+armada|buka\s+rute|lelang\s+tender|kontrak\s+kerja)\b/i.test(
+      text,
+    );
+
+  if (isPurePriceShock) {
+    const isPriceDrop = /\b(?:turun|penurunan|anjlok|melorot|melemah|merosot|diskon|murah)\b/i.test(text);
+    const isPriceHike = /\b(?:naik|kenaikan|melonjak|melesat|menguat|mahal|meroket|lonjakan)\b/i.test(text);
+
+    if (
+      isPriceDrop &&
+      (!isPriceHike ||
+        classification.kbli_impact === KbliImpactEnum.DECREASE_NTB ||
+        classification.kbli_impact === KbliImpactEnum.DECREASE_PRICE)
+    ) {
+      priKbliImpact = KbliImpactEnum.DECREASE_PRICE;
+      if (priExp === ExpenditureComponentEnum.PK_RT || priExp === ExpenditureComponentEnum.NET_EXPORT) {
+        priExpImpact = ExpenditureImpactEnum.DECREASE_DEFLATOR;
+      }
+      if (secExp === ExpenditureComponentEnum.PK_RT || secExp === ExpenditureComponentEnum.NET_EXPORT) {
+        secExpImpact = ExpenditureImpactEnum.DECREASE_DEFLATOR;
+      }
+      if (secKbliImpact === KbliImpactEnum.DECREASE_NTB) {
+        secKbliImpact = KbliImpactEnum.DECREASE_PRICE;
+      }
+    } else if (isPriceHike) {
+      priKbliImpact = KbliImpactEnum.INCREASE_PRICE;
+      if (priExp === ExpenditureComponentEnum.PK_RT || priExp === ExpenditureComponentEnum.NET_EXPORT) {
+        priExpImpact = ExpenditureImpactEnum.INCREASE_DEFLATOR;
+      }
+      if (secExp === ExpenditureComponentEnum.PK_RT || secExp === ExpenditureComponentEnum.NET_EXPORT) {
+        secExpImpact = ExpenditureImpactEnum.INCREASE_DEFLATOR;
+      }
+      if (secKbliImpact === KbliImpactEnum.INCREASE_NTB) {
+        secKbliImpact = KbliImpactEnum.INCREASE_PRICE;
+      }
+    }
+  }
+
+  // =========================================================================
+  // GUARDRAIL 8B: Konstruksi Fisik (KBLI F) Membentuk Modal Tetap Bruto (PMTB)
   // Menurut SNA 2008, konstruksi menghasilkan aset tetap (PMTB), bukan belanja
   // konsumsi akhir pemerintah (PK_P). PK_P hanya menjadi komponen sekunder APBD.
   // =========================================================================
