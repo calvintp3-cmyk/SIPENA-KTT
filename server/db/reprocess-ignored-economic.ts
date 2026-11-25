@@ -15,6 +15,8 @@ async function main() {
   const args = process.argv.slice(2);
   const applyMode = args.includes('--apply');
   const onlyPreFilter = args.includes('--only-prefilter');
+  const idArg = args.find((a) => a.startsWith('--id='));
+  const targetId = idArg ? idArg.split('=')[1].trim() : null;
   const limitArg = args.find((a) => a.startsWith('--limit='));
   const limit = limitArg ? parseInt(limitArg.split('=')[1], 10) : 500;
 
@@ -69,38 +71,65 @@ async function main() {
   // - Dan jika dievaluasi dengan geo-filter baru, hasilnya ALLOW_FOR_LLM_REVIEW
   const candidates: typeof ignoredArticles = [];
 
-  for (const item of ignoredArticles) {
-    const isPreFiltered =
-      item.llmModel === 'geo-filter' ||
-      item.llmModel === 'title-geo-filter' ||
-      item.llmModel === 'system-insufficient-content' ||
-      item.llmStatus === 'FAILED';
+  if (targetId) {
+    const [single] = await db
+      .select({
+        id: articles.id,
+        title: articles.title,
+        snippetText: articles.snippetText,
+        url: articles.url,
+        sourceType: articles.sourceType,
+        sourcePortal: articles.sourcePortal,
+        llmModel: articles.llmModel,
+        llmStatus: articles.llmStatus,
+        llmError: articles.llmError,
+        subdistrict: articles.subdistrict,
+        isEconomicPhenomenon: articles.isEconomicPhenomenon,
+        publishedAt: articles.publishedAt,
+        createdAt: articles.createdAt,
+      })
+      .from(articles)
+      .where(eq(articles.id, targetId));
 
-    if (onlyPreFilter && !isPreFiltered) {
-      continue;
+    if (single) {
+      candidates.push(single);
+    } else {
+      console.error(`Artikel dengan ID ${targetId} tidak ditemukan.`);
+      return;
+    }
+  } else {
+    for (const item of ignoredArticles) {
+      const isPreFiltered =
+        item.llmModel === 'geo-filter' ||
+        item.llmModel === 'title-geo-filter' ||
+        item.llmModel === 'system-insufficient-content' ||
+        item.llmStatus === 'FAILED';
+
+      if (onlyPreFilter && !isPreFiltered) {
+        continue;
+      }
+
+      const geo = evaluateGeographicRelevance({
+        title: item.title,
+        snippetText: item.snippetText || '',
+        url: item.url,
+        sourceType: item.sourceType,
+      });
+
+      // Jika geo-filter terbaru memutuskan ALLOW_FOR_LLM_REVIEW
+      if (geo.decision === 'ALLOW_FOR_LLM_REVIEW') {
+        candidates.push(item);
+        if (candidates.length >= limit) break;
+      }
     }
 
-    const geo = evaluateGeographicRelevance({
-      title: item.title,
-      snippetText: item.snippetText || '',
-      url: item.url,
-      sourceType: item.sourceType,
+    // Urutkan kandidat agar yang disaring pra-LLM (geo-filter) diproses duluan
+    candidates.sort((a, b) => {
+      const aPre = a.llmModel === 'geo-filter' || a.llmModel === 'title-geo-filter' ? 0 : 1;
+      const bPre = b.llmModel === 'geo-filter' || b.llmModel === 'title-geo-filter' ? 0 : 1;
+      return aPre - bPre;
     });
-
-    // Jika geo-filter terbaru memutuskan ALLOW_FOR_LLM_REVIEW
-    if (geo.decision === 'ALLOW_FOR_LLM_REVIEW') {
-      // Prioritaskan yang belum pernah diproses LLM (pre-filtered)
-      candidates.push(item);
-      if (candidates.length >= limit) break;
-    }
   }
-
-  // Urutkan kandidat agar yang disaring pra-LLM (geo-filter) diproses duluan
-  candidates.sort((a, b) => {
-    const aPre = a.llmModel === 'geo-filter' || a.llmModel === 'title-geo-filter' ? 0 : 1;
-    const bPre = b.llmModel === 'geo-filter' || b.llmModel === 'title-geo-filter' ? 0 : 1;
-    return aPre - bPre;
-  });
 
   console.info(
     `Teridentifikasi ${candidates.length} artikel kandidat ekonomi yang perlu diproses/diuji ulang dengan LLM Engine.\n`,
