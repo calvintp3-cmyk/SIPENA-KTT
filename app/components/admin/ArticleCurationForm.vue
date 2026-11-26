@@ -87,10 +87,9 @@ const autoNextModel = computed({
 });
 
 function updateField<K extends keyof CurationFormData>(key: K, value: CurationFormData[K]) {
-  emit('update:modelValue', {
-    ...props.modelValue,
-    [key]: value,
-  });
+  const next: CurationFormData = { ...props.modelValue };
+  next[key] = value;
+  emit('update:modelValue', next);
 }
 
 const kbliModel = computed<string | undefined>({
@@ -107,6 +106,33 @@ const expModel = computed<string | undefined>({
       : props.modelValue.expenditureComponent,
   set: (v: string | undefined) => {
     updateField('expenditureComponent', (v as ExpenditureComponentEnum | undefined) ?? '');
+  },
+});
+
+const kbliImpactModel = computed<string | undefined>({
+  get: () =>
+    !props.modelValue.kbliImpact
+      ? undefined
+      : props.modelValue.kbliImpact,
+  set: (v: string | undefined) => {
+    updateField('kbliImpact', (v as KbliImpactEnum | undefined) ?? '');
+  },
+});
+
+const expImpactModel = computed<string | undefined>({
+  get: () =>
+    !props.modelValue.expenditureImpact
+      ? undefined
+      : props.modelValue.expenditureImpact,
+  set: (v: string | undefined) => {
+    updateField('expenditureImpact', (v as ExpenditureImpactEnum | undefined) ?? '');
+  },
+});
+
+const quarterModel = computed<number | undefined>({
+  get: () => props.modelValue.quarter,
+  set: (v: number | undefined) => {
+    if (v) updateField('quarter', Number(v) as PdrbQuarter);
   },
 });
 
@@ -458,13 +484,12 @@ const hasHttpUrl = computed(() => isSafeHttpUrl(props.article?.url));
           </label>
           <USelect
             id="curation-kbli-impact-select"
-            :model-value="modelValue.kbliImpact || undefined"
+            v-model="kbliImpactModel"
             :items="kbliImpactOptions"
             value-key="value"
             label-key="label"
             placeholder="Pilih arah dampak KBLI..."
             class="w-full"
-            @update:model-value="updateField('kbliImpact', ($event as KbliImpactEnum) ?? '')"
           />
           <p
             v-if="highlightIncomplete && !modelValue.kbliImpact"
@@ -508,13 +533,12 @@ const hasHttpUrl = computed(() => isSafeHttpUrl(props.article?.url));
           </label>
           <USelect
             id="curation-exp-impact-select"
-            :model-value="modelValue.expenditureImpact || undefined"
+            v-model="expImpactModel"
             :items="expenditureImpactOptions"
             value-key="value"
             label-key="label"
             placeholder="Pilih arah dampak pengeluaran..."
             class="w-full"
-            @update:model-value="updateField('expenditureImpact', ($event as ExpenditureImpactEnum) ?? '')"
           />
           <p
             v-if="highlightIncomplete && !modelValue.expenditureImpact"
@@ -631,12 +655,11 @@ const hasHttpUrl = computed(() => isSafeHttpUrl(props.article?.url));
         </label>
         <USelect
           id="curation-quarter-select"
-          :model-value="modelValue.quarter"
+          v-model="quarterModel"
           :items="quarterOptions"
           value-key="value"
           label-key="label"
           class="w-full font-mono"
-          @update:model-value="updateField('quarter', Number($event) as PdrbQuarter)"
         />
       </div>
 

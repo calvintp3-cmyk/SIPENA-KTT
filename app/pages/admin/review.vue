@@ -215,7 +215,7 @@ onBeforeUnmount(() => {
               color="primary"
               variant="soft"
               icon="i-solar-check-circle-bold-duotone"
-              @click="activeStatus = VerificationStatusEnum.VERIFIED"
+              @click="() => { activeStatus = VerificationStatusEnum.VERIFIED; }"
             >
               Lihat {{ reviewData?.summaryCounts.verifiedCount }} Terverifikasi
             </UButton>
@@ -224,7 +224,7 @@ onBeforeUnmount(() => {
               size="xs"
               color="neutral"
               variant="outline"
-              @click="periodScope = 'all'"
+              @click="() => { periodScope = 'all'; }"
             >
               Tampilkan Semua Periode
             </UButton>
@@ -233,7 +233,7 @@ onBeforeUnmount(() => {
               size="xs"
               color="neutral"
               variant="outline"
-              @click="searchInput = ''"
+              @click="() => { searchInput = ''; }"
             >
               Bersihkan Pencarian
             </UButton>
