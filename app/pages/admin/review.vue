@@ -275,7 +275,7 @@ onBeforeUnmount(() => {
 
       <!-- RIGHT 5: DESKTOP INSPECTOR -->
       <ReviewInspectorPanel
-        v-model="inspectorForm"
+        :model-value="inspectorForm"
         :article="inspectedArticle"
         :inspector-submitting="inspectorSubmitting"
         :reclassifying-llm="reclassifyingLlm"
@@ -284,6 +284,7 @@ onBeforeUnmount(() => {
         :active-status="activeStatus"
         :auto-advance-next="autoAdvanceNext"
         :can-restore-ai-summary="canRestoreAiSummary"
+        @update:model-value="Object.assign(inspectorForm, $event)"
         @update:auto-advance-next="autoAdvanceNext = $event"
         @restore-ai-summary="restoreAiSummary"
         @reclassify-llm="reclassifyInspectedArticle"

@@ -259,7 +259,7 @@ async function submitUpdate(action: 'VERIFIED' | 'IGNORED' | 'DRAFT') {
       <div v-if="article" class="p-6 space-y-6">
         <ArticleCurationForm
           :article="article"
-          v-model="form"
+          :model-value="form"
           mode="slideover"
           :submitting-action="submittingAction"
           :reclassifying-llm="reclassifyingLlm"
@@ -268,6 +268,7 @@ async function submitUpdate(action: 'VERIFIED' | 'IGNORED' | 'DRAFT') {
           :show-auto-next-toggle="showAutoNextToggle"
           :auto-advance-next="autoAdvanceNext"
           :can-restore-ai-summary="canRestoreInitialSummary"
+          @update:model-value="Object.assign(form, $event)"
           @update:auto-advance-next="emit('update:autoAdvanceNext', $event)"
           @restore-ai-summary="restoreInitialSummary"
           @reclassify-llm="reclassifySlideoverArticle"
