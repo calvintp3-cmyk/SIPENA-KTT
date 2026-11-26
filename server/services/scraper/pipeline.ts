@@ -834,8 +834,13 @@ async function executeLockedScrapePipeline(
                     }
                     break;
                   } else {
+                    const nextText = fullExtracted.snippetText.trim();
+                    const prevText = extracted.snippetText.trim();
+                    if (!nextText || nextText === prevText || prevText.includes(nextText)) {
+                      break;
+                    }
                     // Jika halaman numerik berantai (mis. /page/2/), sambungkan teks seluruh halaman secara lengkap
-                    const combinedSnippet = `${extracted.snippetText}\n\n${fullExtracted.snippetText}`.trim();
+                    const combinedSnippet = `${prevText}\n\n${nextText}`.trim();
                     extracted = {
                       ...extracted,
                       snippetText: combinedSnippet,
@@ -1219,6 +1224,13 @@ async function executeLockedScrapePipeline(
               aiResult.classification,
               aiResult.modelUsed,
               item.snippetText,
+              {
+                publishedAtWita,
+                title: item.title,
+                sourcePortal: item.sourcePortal,
+                sourceType: item.candidate.sourceType,
+                articleInput: classificationInput,
+              },
             );
             persistenceFields = { ...mapped };
             if (mapped.isEconomicPhenomenon) {

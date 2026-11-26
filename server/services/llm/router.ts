@@ -1080,24 +1080,8 @@ export class MultiLlmRouter {
       lastSlotId = slot.slotId;
       lastProvider = slot.provider;
 
-      // Sesuaikan anggaran kata prompt berdasarkan profil limit TPM slot (Groq 8B = 6k TPM, Groq 70B = 12k TPM)
-      const slotMaxWords =
-        slot.provider === 'groq'
-          ? slot.model.includes('8b')
-            ? 750
-            : 1400
-          : undefined;
-      const slotMaxChars =
-        slot.provider === 'groq'
-          ? slot.model.includes('8b')
-            ? 5200
-            : 9800
-          : undefined;
-
-      const slotBasePrompt =
-        slotMaxWords !== undefined
-          ? buildClassificationPrompt(article, slotMaxWords, slotMaxChars)
-          : basePrompt;
+      // Kirim naskah berita utuh tanpa pemotongan kata agar seluruh konteks fakta terbaca LLM
+      const slotBasePrompt = basePrompt;
 
       const isThinkingModel =
         (slot.provider === 'gemini' && !slot.model.includes('lite')) ||

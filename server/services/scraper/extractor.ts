@@ -1,5 +1,6 @@
 // server/services/scraper/extractor.ts
-import { load, type CheerioAPI } from 'cheerio';
+import { load, type Cheerio, type CheerioAPI } from 'cheerio';
+import { matchPortalExtractionProfile } from './portal-profiles';
 
 export const EXTRACTOR_MIN_WORDS = 300;
 export const EXTRACTOR_MAX_WORDS = 25_000;
@@ -133,18 +134,25 @@ const NOISE_ELEMENT_SELECTORS = [
   '.telegram-channel',
   '.whatsapp-channel',
   '.wa-channel',
+  '[data-ad-slot]',
+  '[id^="home-ad-"]',
+  '.ui-r-mb.group',
   '[id*="google_ads"]',
   '[id*="div-gpt-ad"]',
 ].join(', ');
 
-const CONTENT_CONTAINER_SELECTORS = [
+const SPECIFIC_CONTENT_CONTAINER_SELECTORS = [
+  '.detail__body-text',
+  '.read__content',
   '.news-content',
   'article .entry-content',
+  '.entry-content .content-inner',
+  '.content-inner',
   '.entry-content',
   '.post-content',
-  '.read__content',
+  '.konten .artikel .ui-r-my',
+  '.konten .artikel',
   '.konten',
-  '.artikel-lead',
   '.artikel-isi',
   '.jeg_post_content',
   '.td-post-content',
@@ -152,11 +160,14 @@ const CONTENT_CONTAINER_SELECTORS = [
   '.detail-content',
   '.news-detail',
   '.read__article',
+  '.side-article.txt-article',
   '.side-article',
   '.txt-article',
-  '.detail__body-text',
   '.article-content',
   '[itemprop="articleBody"]',
+];
+
+const GENERIC_CONTENT_CONTAINER_SELECTORS = [
   'article',
   'main',
 ];
@@ -173,6 +184,7 @@ const NOISE_PARAGRAPH_PATTERNS: RegExp[] = [
   /^(penulis|editor|reporter|pewarta|penyunting|redaktur|foto|dok|dokumen|ilustrasi|grafis|sumber|copyright)\s*[:/]/i,
   /^\(?(?:foto|dok|dokumen|ilustrasi|grafis|sumber)\s*[:/]/i,
   /^halaman\s+(?:selanjutnya|\d+)\s*$/i,
+  /^halaman$/i,
   /^loading\.\.\.$/i,
   /^follow\s+berita\s+/i,
   /^dapatkan\s+informasi\s+/i,
@@ -184,7 +196,7 @@ const NOISE_PARAGRAPH_PATTERNS: RegExp[] = [
   /^baca\s+artikel\s+detik(?:news|finance)?\s+/i,
   /^baca\s+berita\s+tanpa\s+iklan/i,
   /^gabung\s+kompas(?:\.com)?\s+plus/i,
-  /^(?:download|unduh)\s+aplikasi/i,
+  /^(?:download|unduh)\s+(?:aplikasi|tribunx)/i,
   /^pilihan\s+editor\s*:/i,
   /^topik\s+terkait\s*:/i,
   /^jangan\s+lewatkan\s*:/i,
@@ -199,10 +211,40 @@ const NOISE_PARAGRAPH_PATTERNS: RegExp[] = [
   /^simak\s+video\b/i,
   /^tonton\s+video\b/i,
   /^klik\s+(?:di\s+sini|tautan|link)\b/i,
+  /^dilarang\s+keras\s+mengambil\s+konten.*\bantara\b/i,
+  /^e-?paper\s+koran\s+kaltara$/i,
+  /^baca\s+koran\s+digital\s+kapan\s+saja/i,
+  /^the\s+post\s+.*\s+first\s+appeared\s+on\s+/i,
+  /^jadilah\s+pembaca\s+setia,\s+gabung\s+sekarang\s+juga/i,
+  /^sertifikat\s+nomor\s+\d+\/dp-terverifikasi/i,
+  /^isi\s+komentar\s+sepenuhnya\s+adalah\s+tanggung\s+jawab/i,
+  /^situs\s+ini\s+menggunakan\s+akismet\s+untuk\s+mengurangi\s+spam/i,
+  /^cek\s+berita\s+dan\s+artikel\s+yang\s+lain\s+di\s+google\s+news/i,
+  /^baca\s+juga$/i,
+  /^simak\s+juga$/i,
+  /^(?:senin|selasa|rabu|kamis|jumat|sabtu|minggu)\s*,\s*\d{1,2}\s+[a-z]+\s+\d{4}(?:\s*[|-]\s*\d{1,2}[:.]\d{2}\s*(?:wib|wita|wit)?)?$/i,
 ];
 
+function stripInlineAndHtmlNoise(raw: string): string {
+  let text = raw;
+  if (/<[a-z][\s\S]*?>/i.test(text)) {
+    const $frag = load(`<div>${text}</div>`);
+    $frag('script, style, figure, figcaption').remove();
+    text = $frag('div').text();
+  }
+  return text
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/\u00a0/g, ' ')
+    // Hapus sisipan "Baca juga: ..." atau "Gabung Kompas.com PLUS" di akhir paragraf
+    .replace(/\s+(?:baca|simak|lihat)\s+juga\s*:\s*[^\n]+$/gi, '')
+    .replace(/\s*(?:terus\s+memberikan\s+fakta\s+jernih\s+dari\s+lapangan\.\s*)?turut\s+mendukung\s+dengan\s+gabung\s+kompas\.com\s+plus\.?$/gi, '')
+    .replace(/\s*\(\*+\)\s*$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 function cleanText(text: string): string {
-  return text.replace(/\u00a0/g, ' ').replace(/\s+/g, ' ').trim();
+  return stripInlineAndHtmlNoise(text);
 }
 
 export function countWords(text: string): number {
@@ -657,7 +699,25 @@ function findArticleBodyInJsonLd($: CheerioAPI): string | null {
         if (!node || typeof node !== 'object') continue;
         const record = node as Record<string, unknown>;
         if (typeof record.articleBody === 'string' && countWords(record.articleBody) >= 20) {
-          return record.articleBody;
+          // Pecah per baris/paragraf jika mengandung \n\n atau tag <p>/<br> agar tiap paragraf tetap bersih
+          const rawBody = record.articleBody;
+          if (/<(?:p|br|div)\b/i.test(rawBody)) {
+            const $body = load(`<div>${rawBody}</div>`);
+            $body('script, style, figure, figcaption, .baca-juga').remove();
+            $body('br').replaceWith('\n\n');
+            const paras: string[] = [];
+            $body('p').each((_pIdx, pEl) => {
+              const t = cleanText($body(pEl).text());
+              if (t) paras.push(t);
+            });
+            if (paras.length > 0) return paras.join('\n\n');
+            return cleanText($body('div').text());
+          }
+          return rawBody
+            .split(/\r?\n+/)
+            .map(cleanText)
+            .filter(Boolean)
+            .join('\n\n');
         }
         if (Array.isArray(record['@graph'])) {
           stack.push(...record['@graph']);
@@ -667,6 +727,80 @@ function findArticleBodyInJsonLd($: CheerioAPI): string | null {
       // Abaikan JSON-LD tidak valid pada halaman portal pihak ketiga
     }
   }
+  return null;
+}
+
+/**
+ * Mengekstrak naskah lengkap multi-halaman dari JSON Hydration SSR modern
+ * (Jawa Pos Group / Radar Tarakan / Kaltim Post `props.article.content`, dan Next.js `__NEXT_DATA__`).
+ */
+export function findHydrationArticleBodyInScripts(
+  $: CheerioAPI,
+): { paragraphs: string[]; isMultiPageHydrated: boolean } | null {
+  const candidateJsonStrings: string[] = [];
+
+  $('script[type="application/json"], script#__NEXT_DATA__').each((_i, el) => {
+    const raw = $(el).html()?.trim();
+    if (raw && raw.length > 100) {
+      candidateJsonStrings.push(raw);
+    }
+  });
+
+  const dataPageAttr = $('[data-page]').first().attr('data-page')?.trim();
+  if (dataPageAttr && dataPageAttr.startsWith('{')) {
+    candidateJsonStrings.push(dataPageAttr);
+  }
+
+  for (const jsonStr of candidateJsonStrings) {
+    try {
+      const parsed = JSON.parse(jsonStr) as Record<string, unknown>;
+      const props = (parsed.props && typeof parsed.props === 'object'
+        ? parsed.props
+        : parsed) as Record<string, unknown>;
+
+      // 1. Jawa Pos / Inertia `props.article.content`
+      const articleObj =
+        (props.article && typeof props.article === 'object' ? props.article : null) ??
+        (props.pageProps &&
+        typeof props.pageProps === 'object' &&
+        (props.pageProps as Record<string, unknown>).article &&
+        typeof (props.pageProps as Record<string, unknown>).article === 'object'
+          ? (props.pageProps as Record<string, unknown>).article
+          : null);
+
+      if (articleObj && typeof articleObj === 'object') {
+        const contentHtml = (articleObj as Record<string, unknown>).content;
+        if (typeof contentHtml === 'string' && contentHtml.length > 80) {
+          const isMultiPageHydrated = /<p[^>]*class=["'][^"']*\bpage\b[^"']*["'][^>]*>/i.test(
+            contentHtml,
+          );
+          const $content = load(`<div>${contentHtml}</div>`);
+          $content('script, style, figure, figcaption, .baca-juga, [data-ad-slot], [id^="home-ad-"]').remove();
+          $content('br').replaceWith('\n\n');
+
+          const paragraphs: string[] = [];
+          $content('p').each((_pIdx, pEl) => {
+            const pClass = $content(pEl).attr('class') ?? '';
+            if (/\bpage\b/i.test(pClass)) return;
+            const txt = cleanText($content(pEl).text());
+            if (txt) paragraphs.push(txt);
+          });
+
+          if (paragraphs.length === 0) {
+            const flat = cleanText($content('div').text());
+            if (flat) paragraphs.push(flat);
+          }
+
+          if (countWords(paragraphs.join(' ')) >= EXTRACTOR_MIN_VALID_WORDS) {
+            return { paragraphs, isMultiPageHydrated };
+          }
+        }
+      }
+    } catch {
+      // Abaikan script non-JSON atau format hydration berbeda
+    }
+  }
+
   return null;
 }
 
@@ -758,12 +892,75 @@ export function isSameArticlePaginationUrl(
   }
 }
 
+const POST_ARTICLE_HEADING_RE =
+  /^(?:artikel\s+terkait|berita\s+terkait|baca\s+juga|berita\s+terkini|berita\s+lainnya|pilihan\s+redaksi|pilihan\s+editor|rekomendasi(?:\s+untuk\s+anda)?|terpopuler|populer|komentar|topik\s+terkait|tag\s+terkait)$/i;
+
+const RELATED_CARD_ANCESTOR_RE =
+  /\b(?:related|terkait|terkini|populer|trending|komentar|comment|footer|sidebar|widget|banner|iklan|ads|ui-card|card-related|jeg_postblock)\b/i;
+
+/**
+ * Memenggal batas akhir isi artikel berita (Post-Content Boundary Guillotine):
+ * begitu menemukan heading seperti "Artikel Terkait" atau "Berita Terkini" atau <hr> pembatas terkait,
+ * seluruh elemen tersebut dan semua sibling di bawahnya dihapus agar headline berita lain tidak bocor.
+ */
+export function prunePostArticleBoundary($: CheerioAPI, container: Cheerio<any>): void {
+  let cutTriggered = false;
+  container.find('h1, h2, h3, h4, h5, h6, hr, .title, .widget-title, .section-title').each((_i, el) => {
+    if (cutTriggered) return;
+    const $el = $(el);
+    const tag = ($el.prop('tagName') || '').toUpperCase();
+    const headingText = cleanText($el.text());
+
+    if (tag !== 'HR' && POST_ARTICLE_HEADING_RE.test(headingText)) {
+      cutTriggered = true;
+      // Naik ke wrapper terdekat di dalam container jika heading dibungkus card header
+      let target: Cheerio<any> = $el;
+      while (
+        target.parent().length > 0 &&
+        target.parent()[0] !== container[0] &&
+        target.parent().text().trim().length < 220
+      ) {
+        target = target.parent();
+      }
+      target.nextAll().remove();
+      target.remove();
+    }
+  });
+}
+
+function isInsideRelatedOrCardContainer($: CheerioAPI, pEl: any, stopAt: any): boolean {
+  let cur = $(pEl).parent();
+  while (cur.length > 0 && cur[0] !== stopAt) {
+    const cls = cur.attr('class') ?? '';
+    const tag = (cur.prop('tagName') || '').toLowerCase();
+    if (tag === 'footer' || tag === 'aside' || tag === 'nav' || RELATED_CARD_ANCESTOR_RE.test(cls)) {
+      return true;
+    }
+    cur = cur.parent();
+  }
+  return false;
+}
+
+function isTruncatedTeaserParagraph(text: string): boolean {
+  const words = countWords(text);
+  if (words < 5 || words > 35) return false;
+  // Ciri khas cuplikan berita terkait yang dipotong paksa oleh CMS (mis. "...Pemerintah Kabupaten (Pemkab) Ta")
+  const endsWithTerminalPunctuation = /[.!?'"”’)\]]$/.test(text);
+  if (!endsWithTerminalPunctuation && /\s[A-Za-z]{1,4}$/.test(text)) {
+    return true;
+  }
+  return false;
+}
+
 export function extractNextFullPageUrl(
   $: CheerioAPI,
   baseUrl?: string | null,
   canonicalUrl?: string | null,
 ): string | null {
   const referenceBase = baseUrl || canonicalUrl || undefined;
+
+  const isInsideChromeOrFooter = (el: any): boolean =>
+    $(el).closest('footer, nav, aside, header, .footer, .sidebar, .related, .related-posts, .berita-terkait').length > 0;
 
   const resolveAnchorHref = (rawHref: string | undefined): string | null => {
     const trimmed = rawHref?.trim();
@@ -800,14 +997,19 @@ export function extractNextFullPageUrl(
     'a.page-link[rel="next"]',
   ];
   for (const sel of explicitSelectors) {
-    const href = $(sel).first().attr('href');
-    const resolved = resolveAnchorHref(href);
-    if (resolved) return resolved;
+    const anchors = $(sel);
+    for (let i = 0; i < anchors.length; i += 1) {
+      const el = anchors.eq(i);
+      if (isInsideChromeOrFooter(el[0])) continue;
+      const resolved = resolveAnchorHref(el.attr('href'));
+      if (resolved) return resolved;
+    }
   }
 
   let matchedByLabel: string | null = null;
   $('a[href]').each((_idx, el) => {
     if (matchedByLabel) return;
+    if (isInsideChromeOrFooter(el)) return;
     const anchor = $(el);
     const label = cleanText(anchor.text());
     if (
@@ -826,8 +1028,9 @@ export function extractNextFullPageUrl(
 }
 
 /**
- * Mengekstrak judul, tanggal rilis, dan 150-250 kata pertama yang bersih dari dokumen HTML portal berita,
- * memprioritaskan JSON-LD `articleBody`, mendeteksi soft-block anti-bot, serta mengekstrak link `?page=all`.
+ * Mengekstrak judul, tanggal rilis, dan seluruh naskah bersih dari dokumen HTML portal berita:
+ * memprioritaskan Hydration JSON multi-halaman, script inline rawText, JSON-LD `articleBody`,
+ * profil struktur DOM per portal, dan mesin Cheerio 5-lapis.
  */
 export function extractArticleContent(
   html: string,
@@ -855,50 +1058,95 @@ export function extractArticleContent(
     };
   }
 
-  const nextFullPageUrl = extractNextFullPageUrl($, baseUrl, canonicalUrl);
+  const portalProfile = matchPortalExtractionProfile(baseUrl ?? canonicalUrl);
+  const hydrationResultRaw = findHydrationArticleBodyInScripts($);
+  const hydrationResult = hydrationResultRaw
+    ? accumulateParagraphsToThreshold(hydrationResultRaw.paragraphs)
+    : null;
+
   const rawScriptBody = findTribunRawTextInScripts($);
   const rawScriptResult = rawScriptBody
     ? accumulateParagraphsToThreshold(rawScriptBody.split(/\r?\n+/))
     : null;
+
+  const nextFullPageUrl =
+    hydrationResultRaw?.isMultiPageHydrated || rawScriptResult?.isValidContent
+      ? null
+      : extractNextFullPageUrl($, baseUrl, canonicalUrl);
 
   const jsonLdArticleBody = findArticleBodyInJsonLd($);
   const jsonLdResult = jsonLdArticleBody
     ? accumulateParagraphsToThreshold(jsonLdArticleBody.split(/\r?\n+/))
     : null;
 
-  // Bersihkan seluruh elemen pengganggu
+  // Bersihkan seluruh elemen pengganggu umum + elemen pengganggu spesifik profil portal
   $(NOISE_ELEMENT_SELECTORS).remove();
+  if (portalProfile && portalProfile.removeSelectors.length > 0) {
+    $(portalProfile.removeSelectors.join(', ')).remove();
+  }
 
-  // Scrapling Pattern Layer 2 & 3: Adaptive Container Scoring dengan penalti kepadatan link
+  // Scrapling Pattern Layer 2 & 3: Leaf-Container Specificity Scoring
+  const scoreSelectors = (selectors: ReadonlyArray<string>) => {
+    let localBest = $('body' as string);
+    let localScore = -1;
+
+    for (const selector of selectors) {
+      const candidates = $(selector);
+      for (let i = 0; i < Math.min(candidates.length, 3); i += 1) {
+        const candidate = candidates.eq(i);
+        const rawCandidateText = candidate.text();
+        const words = countWords(rawCandidateText);
+        if (words < EXTRACTOR_MIN_VALID_WORDS) continue;
+
+        let linkChars = 0;
+        candidate.find('a').each((_aIdx, aEl) => {
+          linkChars += $(aEl).text().trim().length;
+        });
+        const totalChars = Math.max(1, rawCandidateText.trim().length);
+        const linkDensity = Math.min(1, linkChars / totalChars);
+        const pCount = candidate.find('p').length;
+
+        const score = words * (1 - linkDensity) + pCount * 12;
+        if (score > localScore) {
+          localScore = score;
+          localBest = candidate;
+        }
+      }
+    }
+    return { container: localBest, score: localScore };
+  };
+
   let bestContainer = $('body' as string);
   let bestScore = -1;
 
-  for (const selector of CONTENT_CONTAINER_SELECTORS) {
-    const candidates = $(selector);
-    for (let i = 0; i < Math.min(candidates.length, 3); i += 1) {
-      const candidate = candidates.eq(i);
-      const rawCandidateText = candidate.text();
-      const words = countWords(rawCandidateText);
-      if (words < EXTRACTOR_MIN_VALID_WORDS) continue;
-
-      let linkChars = 0;
-      candidate.find('a').each((_aIdx, aEl) => {
-        linkChars += $(aEl).text().trim().length;
-      });
-      const totalChars = Math.max(1, rawCandidateText.trim().length);
-      const linkDensity = Math.min(1, linkChars / totalChars);
-      const pCount = candidate.find('p').length;
-
-      // Skor tinggi untuk teks padat non-link dan memiliki struktur paragraf <p>
-      const score = words * (1 - linkDensity) + (pCount * 12);
-      if (score > bestScore) {
-        bestScore = score;
-        bestContainer = candidate;
-      }
+  // 1. Prioritaskan profil struktur DOM spesifik portal yang sudah dipelajari
+  if (portalProfile && portalProfile.contentSelectors.length > 0) {
+    const profileHit = scoreSelectors(portalProfile.contentSelectors);
+    if (profileHit.score > 0) {
+      bestContainer = profileHit.container;
+      bestScore = profileHit.score;
     }
   }
 
-  // Adaptive Paragraph Parent Clustering Fallback bila selector CSS tema standar gagal
+  // 2. Jika belum ditemukan, cari selector konten spesifik (dilarang kalah oleh <main>/<article>)
+  if (bestScore <= 0) {
+    const specificHit = scoreSelectors(SPECIFIC_CONTENT_CONTAINER_SELECTORS);
+    if (specificHit.score > 0) {
+      bestContainer = specificHit.container;
+      bestScore = specificHit.score;
+    }
+  }
+
+  // 3. Fallback ke <article>/<main> hanya jika seluruh selector spesifik tidak ditemukan
+  if (bestScore <= 0) {
+    const genericHit = scoreSelectors(GENERIC_CONTENT_CONTAINER_SELECTORS);
+    if (genericHit.score > 0) {
+      bestContainer = genericHit.container;
+      bestScore = genericHit.score;
+    }
+  }
+
+  // 4. Adaptive Paragraph Parent Clustering Fallback bila selector CSS tema standar gagal total
   if (bestScore <= 0) {
     let topParent: ReturnType<typeof $> | null = null;
     let topParentPCount = 0;
@@ -920,16 +1168,20 @@ export function extractArticleContent(
 
   const container = bestContainer;
 
-  // Konversi tag <br> menjadi pemisah baris ganda agar konten berbasis div / br (misal Radar Tarakan / Pemkab KTT)
-  // dapat diekstrak menjadi beberapa baris kalimat terpisah
+  // Penggal semua elemen setelah heading "Artikel Terkait" / "Berita Terkini"
+  prunePostArticleBoundary($, container);
+
+  // Konversi tag <br> menjadi pemisah baris ganda agar konten berbasis div / br dapat diekstrak rapi
   container.find('br').replaceWith('\n\n');
 
   const paragraphs: string[] = [];
+  const stopNode = container[0];
   container.find('p').each((_idx, el) => {
+    if (isInsideRelatedOrCardContainer($, el, stopNode)) return;
     const text = cleanText($(el).text());
-    if (text) {
-      paragraphs.push(text);
-    }
+    if (!text) return;
+    if (isTruncatedTeaserParagraph(text)) return;
+    paragraphs.push(text);
   });
 
   // Fallback jika portal jarang memakai <p> (mis. memisahkan baris dengan <br> atau <div>)
@@ -946,15 +1198,32 @@ export function extractArticleContent(
     }
   }
 
-  // Prioritaskan hasil yang memiliki kelengkapan kata paling utuh dan bersih.
-  // 1. Script inline rawText Tribun (multi-page utuh) bila tersedia dan valid
+  // Prioritaskan hasil yang paling utuh dan bersih:
+  // 1. Hydration JSON multi-halaman (Jawa Pos / Inertia) atau inline rawText Tribun
   // 2. JSON-LD bila valid dan lebih kaya dari DOM
   // 3. DOM paragraf artikel
   let finalResult = domResult;
-  if (jsonLdResult && jsonLdResult.isValidContent && (!finalResult.isValidContent || jsonLdResult.wordCount > finalResult.wordCount)) {
+  if (
+    jsonLdResult &&
+    jsonLdResult.isValidContent &&
+    (!finalResult.isValidContent || jsonLdResult.wordCount > finalResult.wordCount)
+  ) {
     finalResult = jsonLdResult;
   }
-  if (rawScriptResult && rawScriptResult.isValidContent && (!finalResult.isValidContent || rawScriptResult.wordCount > finalResult.wordCount)) {
+  if (
+    hydrationResult &&
+    hydrationResult.isValidContent &&
+    (!finalResult.isValidContent ||
+      hydrationResultRaw?.isMultiPageHydrated ||
+      hydrationResult.wordCount >= finalResult.wordCount)
+  ) {
+    finalResult = hydrationResult;
+  }
+  if (
+    rawScriptResult &&
+    rawScriptResult.isValidContent &&
+    (!finalResult.isValidContent || rawScriptResult.wordCount > finalResult.wordCount)
+  ) {
     finalResult = rawScriptResult;
   }
 

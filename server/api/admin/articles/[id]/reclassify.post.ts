@@ -79,6 +79,12 @@ export default defineEventHandler(async (event) => {
     aiResult.classification,
     aiResult.modelUsed,
     existing.snippetText,
+    {
+      publishedAtWita: formatDateTimeWita(existing.publishedAt),
+      title: existing.title,
+      sourcePortal: existing.sourcePortal,
+      sourceType: existing.sourceType,
+    },
   );
   const detectedSubdistrict =
     existing.subdistrict || detectKttSubdistrict(existing.title, existing.snippetText);

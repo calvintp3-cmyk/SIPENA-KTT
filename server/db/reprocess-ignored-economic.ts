@@ -171,7 +171,7 @@ async function main() {
           const extracted = extractArticleContent(fetched.body, c.publishedAt, fetched.finalUrl || c.url);
           if (extracted && extracted.snippetText && extracted.snippetText.trim().length >= 100) {
             textForClassification = extracted.snippetText.trim();
-            updatedSnippet = textForClassification.slice(0, 1500);
+            updatedSnippet = textForClassification;
             updatedWordCount = extracted.wordCount;
             console.info(`  Ekstraksi berhasil: ${textForClassification.length} karakter (${extracted.wordCount} kata).`);
           }
@@ -210,6 +210,12 @@ async function main() {
         aiResult.classification,
         aiResult.modelUsed,
         textForClassification,
+        {
+          publishedAtWita: formatDateTimeWita(c.publishedAt),
+          title: c.title,
+          sourcePortal: c.sourcePortal,
+          sourceType: c.sourceType,
+        },
       );
 
       console.info(`  Hasil LLM via ${aiResult.modelUsed} (${aiResult.providerUsed}, ${aiResult.responseTimeMs}ms):`);

@@ -21,8 +21,8 @@ import {
 } from './temporal-resolver';
 import { extractSalientEconomicParagraphs } from '../scraper/extractor';
 
-export const COMPRESS_MAX_WORDS_FOR_LLM = 3_500;
-export const COMPRESS_MAX_CHARS_FOR_LLM = 24_000;
+export const COMPRESS_MAX_WORDS_FOR_LLM = 25_000;
+export const COMPRESS_MAX_CHARS_FOR_LLM = 180_000;
 
 export const SIPENA_SYSTEM_INSTRUCTION_FULL = `Anda adalah Analis Senior Neraca Wilayah (PDRB) Badan Pusat Statistik (BPS) Kabupaten Tana Tidung (KTT), Provinsi Kalimantan Utara.
 
@@ -57,9 +57,9 @@ Tujuan utama Anda sebagai analis Nerwilis BPS adalah menangkap FENOMENA PDRB (Th
        - Operasi pasar murah sembako/beras SPHP oleh Disperindagkop/Bulog -> KBLI G, DECREASE_PRICE atau INCREASE_REAL, expenditure_component = PK_RT, sekunder PK_P.
        - Penetapan bulanan harga TBS sawit oleh Disbun Kaltara -> KBLI A (sekunder C), kbli_impact = INCREASE_PRICE / DECREASE_PRICE, expenditure_component = NET_EXPORT, INCREASE_DEFLATOR / DECREASE_DEFLATOR.
        - Kenaikan harga pupuk non-subsidi di tingkat petani -> KBLI A (biaya antara), INCREASE_PRICE.
-   (d) TIPOLOGI 4 - Kebijakan Fiskal, DAK, & Proyek Fisik Pemda:
-       - Proyek konstruksi fisik pembangunan kompleks Puspem KTT, jalan poros, jembatan, gedung puskesmas/RSUD, atau gedung sekolah -> KBLI F, INCREASE_NTB, expenditure_component = PMTB, INCREASE_REAL, sekunder P.
-       - Arahan/instruksi percepatan lelang tender konstruksi atau percepatan penyerapan DAK fisik oleh Bupati/Pemkab KTT -> KBLI F, INCREASE_NTB, expenditure_component = PMTB, sekunder P.
+   (d) TIPOLOGI 4 - Kebijakan Fiskal, DAK, Proyek Fisik Pemda, CSR, & Usulan/Rencana Program Ekonomi:
+       - Proyek konstruksi fisik pembangunan kompleks Puspem KTT, jalan poros, jembatan, jaringan listrik SUTT/GI, gedung puskesmas/RSUD, atau gedung sekolah -> KBLI F, INCREASE_NTB, expenditure_component = PMTB, INCREASE_REAL, sekunder P (atau D untuk kelistrikan).
+       - Arahan/instruksi percepatan lelang tender konstruksi, monev proyek, penataan kawasan/penghijauan jalan protokol & pedestrian, dukungan CSR perusahaan swasta (mis. PT MIP, JOB Medco Pertamina), MoU pembangunan, maupun USULAN PERDA/REGULASI EKONOMI oleh Bupati/DPRD/Pemkab KTT -> WAJIB bernilai is_economic_phenomenon = true sebagai gambaran aktivitas ekonomi dan kebijakan pembangunan yang akan terjadi.
        - Pencairan TPP ASN, THR, Gaji 13 ASN Pemkab KTT -> KBLI P, INCREASE_NTB, expenditure_component = PK_P (dan PK_RT), INCREASE_REAL.
        - Penyaluran bantuan beras Cadangan Pangan Pemerintah Daerah (CPPD) / bantuan benih bibit dinas pertanian -> KBLI P / R / A, expenditure_component = PK_P / PK_RT.
    (e) TIPOLOGI 5 - Kalender Musiman & Event Adat Budaya (Seasonal & Cultural Drivers):
@@ -145,9 +145,10 @@ ATURAN SEKTOR SEKUNDER (INTER-INDUSTRY LINKAGE):
 - secondary_kbli_category & secondary_kbli_impact: Diisi HANYA apabila peristiwa ekonomi memiliki dampak limpahan terukur ke sektor kedua (misal: pembangunan fisik pabrik kelapa sawit berdampak utama pada F Konstruksi dan dampak sekunder pada C Industri; bantuan sembako Pemkab berdampak primer pada P/R dan sekunder pada G/A; bencana banjir merusak panen padi A Pertanian utama dan memutus jalan H Transportasi sekunder). Jika murni hanya berdampak pada 1 sektor, wajib diisi null.
 - secondary_expenditure_component & secondary_expenditure_impact: Diisi HANYA jika terdapat komponen pengeluaran kedua yang terimbas (misal investasi modal fisik PMTB utama dan potensi ekspor komoditas NET_EXPORT sekunder; bansos APBD PK_P utama dan daya beli PK_RT sekunder). Jika tidak ada, wajib diisi null.
 
-ATURAN PENULISAN summary & quarter/year:
+ATURAN PENULISAN summary & quarter/year & FILTER KEBISINGAN TEKS:
 - summary: 3-5 kalimat bahasa Indonesia baku (50-110 kata) memuat peristiwa, pelaku & kecamatan/lokus, angka/nilai bila ada di teks, serta mekanisme dampaknya ke PDRB KTT.
 - quarter & year: Gunakan tanggal rilis berita (WITA) kecuali teks menyebut eksplisit realisasi triwulan/tahun tertentu yang berbeda.
+- ATURAN FILTER KEBISINGAN TEKS: Fokuskan analisis HANYA pada paragraf yang koheren dengan JUDUL BERITA. Abaikan kalimat di akhir teks apabila tampak sebagai sisipan judul/cuplikan berita lain, iklan, atau teks yang terpotong di tengah kata yang tidak berhubungan dengan judul utama.
 
 CONTOH KALIBRASI (FEW-SHOT):
 1. "Harga TBS Sawit KTT Naik Rp 2.980/kg, Pengapalan dari Sesayap Hilir Melonjak" -> geographic_scope="KTT_LOCAL", is_economic_phenomenon=true, kbli_category="A", kbli_impact="INCREASE_PRICE", expenditure_component="NET_EXPORT", expenditure_impact="INCREASE_REAL".
@@ -178,9 +179,10 @@ Keluarkan HANYA 1 objek JSON valid tanpa teks tambahan, mengikuti urutan field i
   (1) Disrupsi Alam/Iklim: banjir Sungai Sesayap, kemarau/air surut tongkang batubara kandas, gelombang tinggi nelayan -> KBLI A/B/E (DECREASE_NTB);
   (2) Logistik & Jalan: jalan poros Tideng Pale rusak/ambles/longsor, antrean truk sembako/TBS, penambahan feri KMP Manta Sebawang -> KBLI H/G (INCREASE_PRICE atau INCREASE/DECREASE_NTB, deflator PK_RT/NET_EXPORT);
   (3) Pasokan & Harga: gas elpiji 3 kg langka, antrean BBM SPBU Sebawang, pasar murah beras SPHP, harga emas Antam, harga TBS sawit Disbun, harga pupuk -> KBLI G/A/C (INCREASE_PRICE/DECREASE_PRICE/DEFLATOR);
-  (4) Fiskal & Proyek: pembangunan kompleks Puspem KTT, jalan poros, jembatan, DAK fisik, pencairan TPP/Gaji 13 ASN, bansos beras CPPD -> KBLI F/P/R (PMTB/PK_P/PK_RT);
+  (4) Fiskal, Proyek & Usulan/Rencana: pembangunan kompleks Puspem KTT, jalan poros, jembatan, SUTT/GI PLN, DAK fisik, pencairan TPP/Gaji 13 ASN, bansos beras CPPD, serta usulan/rencana proyek, penataan jalan protokol, dukungan CSR perusahaan, MoU, dan usulan Perda ekonomi -> WAJIB TRUE (KBLI F/P/R/A, PMTB/PK_P/PK_RT);
   (5) Event & Musiman: Festival Adat Irau, ritual adat Tidung/Dayak, mudik Lebaran Sebawang, panen raya Betayau -> KBLI I/S/T/A (PK_RT/PK_LNPRT).
 - WAJIB FALSE (noise): tarif/harga TETAP/stagnan (Delta=0), kriminalitas murni (sabu/judi/pencurian), kecelakaan lalu lintas perorangan tanpa penutupan jalan, duka cita perorangan, seremonial apel/senam/rapat rutin tanpa komitmen proyek, olahraga hiburan biasa -> set 4 field PDRB=null & isi rejection_reason.
+- FILTER KEBISINGAN: Fokus HANYA pada isi yang sesuai JUDUL BERITA; abaikan sisa teks promosi atau teaser berita lain di akhir teks.
 
 3. KBLI 2025 (A-V) — ANTI-KONTAMINASI KBLI 2009:
 A=Pertanian/Kehutanan/Perikanan(TBS mentah,banjir sawit,ikan,kayu,bibit/pupuk,UMK kebun); B=Pertambangan(batubara,pasang surut tongkang,kuari); C=Industri(PKS CPO,chipmill,IKM olahan); D=Listrik/Gas/PJU; E=Air/PDAM/Limbah; F=Konstruksi(gedung Puspem,jalan poros,jembatan); G=Perdagangan(sembako,pasar murah,BBM,elpiji langka,tanpa bengkel); H=Transportasi/Gudang(jalan rusak,pelabuhan Sebawang,speedboat,KMP Manta); I=Hotel & Makan Minum; J=Penerbitan/Konten; K=Telekomunikasi/IT/BTS; L=Keuangan/KUR; M=Real Estat; N=Jasa Profesional/Teknis; O=Sewa Alat Berat/Travel SWASTA (DILARANG untuk Pemda/Pajak/Tera!); P=Adm Pemerintahan/APBD/TPP/DAK/Pajak Daerah/Tera/Jamsos Wajib; Q=Pendidikan MURNI (Sekolah/PAUD/IAIN/Beasiswa — DILARANG untuk RSUD/Dokter/Bencana!); R=Kesehatan RSUD/Dokter & Bantuan Sosial Bencana/Kebakaran; S=Kesenian/Wisata Alam/Irau; T=Lembaga Adat Dayak-Tidung/Ormas/Baznas/Bengkel Motor-Mobil; U=Jasa Rumah Tangga; V=Badan Internasional.
@@ -218,10 +220,23 @@ export function compressArticleTextForLlm(
 ): string {
   if (!rawText) return '';
 
-  // Jika input teks memiliki multi-paragraf (\n\n), gunakan adaptive salient economic paragraph extractor
-  // agar paragraf yang paling padat data ekonomi KTT dipertahankan dalam anggaran kata/karakter
-  if (rawText.includes('\n\n')) {
-    const rawParagraphs = rawText
+  const normalizedMultiPara = rawText
+    .replace(/\u00a0/g, ' ')
+    .replace(/[ \t]+/g, ' ')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+
+  if (!normalizedMultiPara) return '';
+
+  const totalWordCount = normalizedMultiPara.split(/\s+/).filter(Boolean).length;
+  if (totalWordCount <= maxWords && normalizedMultiPara.length <= maxChars) {
+    return normalizedMultiPara;
+  }
+
+  // Hanya jika melebihi batas anggaran kata/karakter (mis. batas eksplisit atau DoS ekstrem),
+  // gunakan adaptive salient economic paragraph extractor
+  if (normalizedMultiPara.includes('\n\n')) {
+    const rawParagraphs = normalizedMultiPara
       .split(/\n{2,}/)
       .map((p) => p.trim())
       .filter((p) => p.length > 0);
@@ -368,7 +383,7 @@ export function buildClassificationPrompt(
  * kelangkaan energi/sembako, proyek fisik/anggaran daerah, event musiman).
  */
 export const PDRB_PHENOMENON_RESCUE_KEYWORDS_RE =
-  /\b(?:banjir|luapan|terendam|kemarau|surut|kandas|cuaca buruk|gelombang|rusak parah|ambles|longsor|tertahan|jembatan|dermaga|pelabuhan|sebawang|kmp manta|speedboat|kapal feri|jalan poros|lpg|elpiji|antre(?:an)?|solar|pertalite|bbm|sembako|pasar murah|sphp|beras|cabai|pupuk|tbs|sawit|batubara|puspem|gedung kantor|proyek fisik|lelang tender|dak fisik|apbd|tpp|thr|gaji 13|bansos|cppd|irau|panen raya)\b/i;
+  /\b(?:banjir|luapan|terendam|kemarau|surut|kandas|cuaca buruk|gelombang|rusak parah|ambles|longsor|tertahan|jembatan|dermaga|pelabuhan|sebawang|kmp manta|speedboat|kapal feri|jalan poros|jalan protokol|pedestrian|penghijauan|csr|perda|sutt|gardu induk|pln|tambak|udang|bandeng|nelayan|inhutani|lahan hti|mou|multiyears|irigasi|cetak sawah|umkm|koperasi|pajak daerah|retribusi|lpg|elpiji|antre(?:an)?|solar|pertalite|bbm|sembako|pasar murah|sphp|beras|cabai|pupuk|tbs|sawit|batubara|puspem|gedung kantor|proyek fisik|lelang tender|dak fisik|apbd|tpp|thr|gaji 13|bansos|cppd|irau|panen raya)\b/i;
 
 export function shouldRunPhenomenonRescuePass(
   classification: LlmClassificationOutput,
@@ -559,7 +574,11 @@ export function enrichClassificationLinkages(
   // =========================================================================
   // GUARDRAIL 3 (Grup 4): Batas Institusi SNA 2008 Upah/UMK & THR Pekerja Swasta
   // =========================================================================
-  if (/\b(?:umk|upah minimum|posko pengaduan thr|thr dan bhr|perusahaan melanggar)\b/i.test(text)) {
+  if (
+    /\b(?:umk|upah minimum|posko pengaduan thr|thr dan bhr|pembayaran thr|perusahaan melanggar\s+(?:aturan\s+)?(?:thr|umk|upah))\b/i.test(
+      text,
+    )
+  ) {
     priExp = ExpenditureComponentEnum.PK_RT;
     priExpImpact = ExpenditureImpactEnum.INCREASE_REAL;
     if (/\b(?:umk|upah minimum)\b/i.test(text) && priKbli === KbliCategoryEnum.P) {
@@ -665,7 +684,7 @@ export function enrichClassificationLinkages(
 
   // 3. Pendidikan Murni (KBLI 2020: P -> KBLI 2025: Q)
   const isGovAdminExclusive =
-    /\b(?:tpp|gaji asn|lra|pajak daerah|retribusi|dprd|sidang paripurna|pelantikan bupati|mutasi pejabat|satpol pp|inspektorat)\b/i.test(
+    /\b(?:tpp|gaji asn|lra|pajak daerah|retribusi|dprd|sidang paripurna|pelantikan bupati|mutasi pejabat|satpol pp|inspektorat|tingkat pengangguran|pengangguran terbuka|angkatan kerja|ketenagakerjaan)\b/i.test(
       text,
     );
   if (priKbli === KbliCategoryEnum.P && isTrueEducationText && !isGovAdminExclusive) {
@@ -717,13 +736,15 @@ export function enrichClassificationLinkages(
   // Guncangan harga murni tanpa perubahan volume produksi fisik harus masuk
   // ke INCREASE_PRICE/DECREASE_PRICE di Lapangan Usaha dan DEFLATOR di Pengeluaran
   // =========================================================================
-  const isPurePriceShock =
-    /\b(?:harga\s+(?:(?:komoditas|acuan|batangan)\s+)?(?:emas|antam|cabai|beras|sembako|bahan\s+pokok|tbs|sawit|bawang|minyak|daging|telur|bbm|pertalite|solar|lpg|elpiji)|tarif\s+(?:listrik|speedboat|feri|ongkos)|ihk|inflasi|deflasi)\b/i.test(
-      text,
-    ) &&
-    !/\b(?:pembangunan\s+fisik|panen\s+raya|gagal\s+panen|banjir\s+rendam|penambahan\s+armada|buka\s+rute|lelang\s+tender|kontrak\s+kerja)\b/i.test(
+  const hasRealVolumeSignal =
+    /\b(?:pembangunan\s+fisik|panen\s+raya|gagal\s+panen|banjir\s+rendam|penambahan\s+armada|buka\s+rute|lelang\s+tender|kontrak\s+kerja|suplai\s+.*terbatas|stok\s+.*(?:terbatas|menipis|kurang)|pertumbuhan\s+ekonomi|perbankan|kredit|volume\s+(?:produksi|ekspor|pengapalan|panen|distribusi)|produksi\s+(?:meningkat|naik|turun|merosot|melonjak)|pengapalan\s+(?:meningkat|melonjak|naik|turun)|ekspor\s+(?:meningkat|melonjak|naik|turun|tumbuh))\b/i.test(
       text,
     );
+
+  const isPurePriceShock =
+    /\b(?:harga\s+(?:(?:komoditas|acuan|batangan)\s+)?(?:emas|antam|cabai|beras|sembako|bahan\s+pokok|tbs|sawit|bawang|minyak|daging|telur|bbm|pertalite|solar|lpg|elpiji)|tarif\s+(?:listrik|speedboat|feri|ongkos)|ihk)\b/i.test(
+      text,
+    ) && !hasRealVolumeSignal;
 
   if (isPurePriceShock) {
     const isPriceDrop = /\b(?:turun|penurunan|anjlok|melorot|melemah|merosot|diskon|murah)\b/i.test(text);
@@ -810,36 +831,47 @@ export function enrichClassificationLinkages(
   }
 
   // =========================================================================
-  // GUARDRAIL 10: Konsistensi Lintas-Sumbu Dampak (KBLI Impact vs Expenditure Impact)
+  // GUARDRAIL 8C: Infrastruktur Ketenagalistrikan (SUTT / Gardu Induk PLN / PLTS)
+  // Pembangunan fisik transmisi/gardu induk -> F (Konstruksi), sekunder D (Listrik), PMTB
   // =========================================================================
   if (
-    priKbliImpact === KbliImpactEnum.INCREASE_PRICE &&
-    priExpImpact === ExpenditureImpactEnum.INCREASE_REAL
+    /\b(?:sutt|saluran udara tegangan tinggi|gardu induk|gi tideng pale|jaringan transmisi listrik|pembangunan plts|pembangunan pltd)\b/i.test(
+      text,
+    )
   ) {
-    priExpImpact = ExpenditureImpactEnum.INCREASE_DEFLATOR;
-  } else if (
-    priKbliImpact === KbliImpactEnum.DECREASE_PRICE &&
-    priExpImpact === ExpenditureImpactEnum.DECREASE_REAL
-  ) {
-    priExpImpact = ExpenditureImpactEnum.DECREASE_DEFLATOR;
-  }
-
-  if (priKbli === KbliCategoryEnum.F && priExp === ExpenditureComponentEnum.PMTB) {
-    if (
-      priKbliImpact === KbliImpactEnum.INCREASE_NTB &&
-      priExpImpact === ExpenditureImpactEnum.DECREASE_REAL
-    ) {
-      priExpImpact = ExpenditureImpactEnum.INCREASE_REAL;
-    } else if (
-      priKbliImpact === KbliImpactEnum.DECREASE_NTB &&
-      priExpImpact === ExpenditureImpactEnum.INCREASE_REAL
-    ) {
-      priExpImpact = ExpenditureImpactEnum.DECREASE_REAL;
+    if (priKbli === KbliCategoryEnum.P || priKbli === KbliCategoryEnum.D) {
+      priKbli = KbliCategoryEnum.F;
+      secKbli = KbliCategoryEnum.D;
+      secKbliImpact = priKbliImpact;
+    } else if (!secKbli) {
+      secKbli = KbliCategoryEnum.D;
+      secKbliImpact = priKbliImpact;
+    }
+    if (priExp === ExpenditureComponentEnum.PK_P) {
+      priExp = ExpenditureComponentEnum.PMTB;
     }
   }
 
   // =========================================================================
-  // GUARDRAIL 9 (INTER-INDUSTRY LINKAGE CONCORDANCE / INPUT-OUTPUT BPS):
+  // GUARDRAIL 8D: Penataan Jalan Protokol / Pedestrian / Penghijauan CSR & Perda
+  // =========================================================================
+  if (
+    /\b(?:jalan protokol|jalur pedestrian|garis sempadan jalan|penghijauan|pohon peneduh)\b/i.test(
+      text,
+    ) &&
+    /\b(?:perda|csr|puprpkp|dprd|pemkab)\b/i.test(text)
+  ) {
+    if (priKbli === KbliCategoryEnum.F && !secKbli) {
+      secKbli = KbliCategoryEnum.P;
+      secKbliImpact = priKbliImpact;
+    } else if (priKbli === KbliCategoryEnum.P && !secKbli) {
+      secKbli = KbliCategoryEnum.F;
+      secKbliImpact = priKbliImpact;
+    }
+  }
+
+  // =========================================================================
+  // GUARDRAIL 9B (INTER-INDUSTRY LINKAGE CONCORDANCE / INPUT-OUTPUT BPS):
   // Matriks keterkaitan antarsektor berdasarkan tabel Input-Output PDRB BPS
   // =========================================================================
   // 1. Keterkaitan Agro-Industri (Sawit A <-> CPO C)
@@ -939,6 +971,36 @@ export function enrichClassificationLinkages(
     }
   }
 
+  // =========================================================================
+  // GUARDRAIL 10: Konsistensi Lintas-Sumbu Dampak (KBLI Impact vs Expenditure Impact)
+  // Dijalankan paling akhir setelah seluruh koreksi sektor & pengeluaran selesai.
+  // =========================================================================
+  if (
+    priKbliImpact === KbliImpactEnum.INCREASE_PRICE &&
+    priExpImpact === ExpenditureImpactEnum.INCREASE_REAL
+  ) {
+    priExpImpact = ExpenditureImpactEnum.INCREASE_DEFLATOR;
+  } else if (
+    priKbliImpact === KbliImpactEnum.DECREASE_PRICE &&
+    priExpImpact === ExpenditureImpactEnum.DECREASE_REAL
+  ) {
+    priExpImpact = ExpenditureImpactEnum.DECREASE_DEFLATOR;
+  }
+
+  if (priKbli === KbliCategoryEnum.F && priExp === ExpenditureComponentEnum.PMTB) {
+    if (
+      priKbliImpact === KbliImpactEnum.INCREASE_NTB &&
+      priExpImpact === ExpenditureImpactEnum.DECREASE_REAL
+    ) {
+      priExpImpact = ExpenditureImpactEnum.INCREASE_REAL;
+    } else if (
+      priKbliImpact === KbliImpactEnum.DECREASE_NTB &&
+      priExpImpact === ExpenditureImpactEnum.INCREASE_REAL
+    ) {
+      priExpImpact = ExpenditureImpactEnum.DECREASE_REAL;
+    }
+  }
+
   // Symmetrical check: hindari duplikasi sekunder persis sama dengan primer
   if (secKbli === priKbli) {
     secKbli = null;
@@ -999,8 +1061,11 @@ export function calibrateClassificationConfidence(
     empiricalScore += 0.08;
   }
 
-  // 2. Kepadatan Data Kuantitatif (+0.15 untuk keberadaan angka, Rp, ton, %, dsb)
-  const hasQuantitativeData = /\b(?:\d+|rp|rupiah|persen|%|miliar|juta|triliun|ton|kg|hektare)\b/i.test(combinedText);
+  // 2. Kepadatan Data Kuantitatif (+0.15 untuk nominal Rp atau angka yang diikuti satuan ekonomi nyata; bukan angka tanggal)
+  const hasQuantitativeData =
+    /(?:\b(?:rp|rupiah)\s*\d|\b\d+(?:[.,]\d+)?\s*(?:persen|%|miliar|juta|triliun|ribu|ton|kg|kilogram|hektare|ha|sak|liter|unit|paket|mw|kv|kubik|batang|pohon|kamar)\b)/i.test(
+      combinedText,
+    );
   if (hasQuantitativeData) {
     empiricalScore += 0.15;
   }
@@ -1010,8 +1075,9 @@ export function calibrateClassificationConfidence(
     empiricalScore += 0.10;
   }
 
-  // 4. Penalti jika wacana tanpa kepastian angka konkret (-0.15)
+  // 4. Penalti ringan (-0.15) hanya jika wacana makro non-lokal tanpa kepastian angka konkret
   const isVagueDiscourse =
+    classification.geographic_scope !== 'KTT_LOCAL' &&
     /\b(?:direncanakan|wacana|masih dibahas|akan dikaji|potensi)\b/i.test(combinedText) &&
     !hasQuantitativeData;
   if (isVagueDiscourse) {

@@ -95,7 +95,12 @@ export default defineEventHandler(async (event) => {
           }
           break;
         } else {
-          fullSnippetText = `${fullSnippetText}\n\n${nextExtracted.snippetText}`.trim();
+          const nextText = nextExtracted.snippetText.trim();
+          const prevText = fullSnippetText.trim();
+          if (!nextText || nextText === prevText || prevText.includes(nextText)) {
+            break;
+          }
+          fullSnippetText = `${prevText}\n\n${nextText}`.trim();
           currentPageUrl = nextExtracted.nextFullPageUrl;
         }
       } else {
