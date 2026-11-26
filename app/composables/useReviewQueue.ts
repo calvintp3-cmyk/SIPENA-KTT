@@ -423,7 +423,7 @@ export function useReviewQueue() {
 
       const payload: Record<string, unknown> = {
         title: inspectorForm.title.trim(),
-        summary: inspectorForm.summary.trim(),
+        summary: trimmedSummary.length >= 10 ? trimmedSummary : null,
         isEconomicPhenomenon: inspectorForm.isEconomicPhenomenon,
         verificationStatus: nextStatus,
         quarter: inspectorForm.quarter,

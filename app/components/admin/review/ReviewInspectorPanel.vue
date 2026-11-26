@@ -128,7 +128,7 @@ const formData = computed({
       <div class="flex-1 overflow-y-auto saas-scroll p-4 space-y-4">
         <ArticleCurationForm
           :article="article"
-          v-model="formData"
+          :model-value="modelValue"
           mode="inspector"
           :submitting-action="inspectorSubmitting"
           :reclassifying-llm="reclassifyingLlm"
@@ -137,6 +137,7 @@ const formData = computed({
           :show-auto-next-toggle="activeStatus === VerificationStatusEnum.PENDING"
           :auto-advance-next="autoAdvanceNext"
           :can-restore-ai-summary="canRestoreAiSummary"
+          @update:model-value="emit('update:modelValue', $event)"
           @update:auto-advance-next="emit('update:autoAdvanceNext', $event)"
           @restore-ai-summary="emit('restoreAiSummary')"
           @reclassify-llm="emit('reclassifyLlm')"

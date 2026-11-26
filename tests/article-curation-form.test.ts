@@ -121,4 +121,38 @@ describe('Shared Curation Form (Sesi 1B / UX-004)', () => {
     };
     expect(validateCurationAction(complete, 'VERIFIED').valid).toBe(true);
   });
+
+  it('validates partial impact updates via UpdateArticleReviewSchema', () => {
+    // Only kbliImpact updated
+    const partialKbli = UpdateArticleReviewSchema.safeParse({
+      kbliImpact: KbliImpactEnum.DECREASE_NTB,
+    });
+    expect(partialKbli.success).toBe(true);
+    if (partialKbli.success) {
+      expect(partialKbli.data.kbliImpact).toBe(KbliImpactEnum.DECREASE_NTB);
+    }
+
+    // Only expenditureImpact updated
+    const partialExp = UpdateArticleReviewSchema.safeParse({
+      expenditureImpact: ExpenditureImpactEnum.INCREASE_DEFLATOR,
+    });
+    expect(partialExp.success).toBe(true);
+    if (partialExp.success) {
+      expect(partialExp.data.expenditureImpact).toBe(ExpenditureImpactEnum.INCREASE_DEFLATOR);
+    }
+
+    // Nulling impacts
+    const nullImpacts = UpdateArticleReviewSchema.safeParse({
+      kbliImpact: null,
+      expenditureImpact: null,
+    });
+    expect(nullImpacts.success).toBe(true);
+
+    // Summary normalization helper
+    const emptySummary = '';
+    const validSummary = 'Ringkasan fenomena ekonomi yang valid';
+    const normalizeSummary = (s: string) => (s.trim().length >= 10 ? s.trim() : null);
+    expect(normalizeSummary(emptySummary)).toBeNull();
+    expect(normalizeSummary(validSummary)).toBe(validSummary);
+  });
 });
